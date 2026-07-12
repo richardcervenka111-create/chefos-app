@@ -5190,6 +5190,32 @@ let _notes = {};
 let _anthropicKey = '';
 let _scanLanguage = 'en';
 
+/* Every AI feature (photo scan, generate method, Chef's Assistant, recipe ideas, Language
+   Audit, ...) routes its Anthropic call through this instead of hitting api.anthropic.com
+   directly from the browser — the actual API key never reaches the browser at all anymore,
+   only supabase/functions/claude-proxy sees it (looked up server-side from this user's own
+   user_settings row, using the auth token sb.functions.invoke() attaches automatically). Fixes
+   the "key readable in dev tools" risk flagged in the backlog v2 review, without changing the
+   per-user bring-your-own-key model — everyone still uses (and pays for) their own key, it just
+   no longer lives client-side. `_anthropicKey` itself is kept only as a client-side "has this
+   user set one up at all" check, so features can still show a friendly prompt instead of making
+   a doomed call. */
+async function callClaudeAPI(body){
+  const { data, error } = await sb.functions.invoke('claude-proxy', { body });
+  if(error){
+    let detail = error.message || 'Anthropic API error';
+    try{
+      if(error.context && typeof error.context.json === 'function'){
+        const parsed = await error.context.json();
+        if(parsed?.error?.message) detail = parsed.error.message;
+      }
+    } catch(e){}
+    throw new Error(detail);
+  }
+  if(data?.error) throw new Error(data.error.message || 'Anthropic API error');
+  return data;
+}
+
 function dbRowToRecipe(row){
   return {
     id: row.id,
@@ -6523,31 +6549,16 @@ async function callClaudeRecipeIdeas(context){
       required: ['ideas']
     }
   };
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 1024,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'suggest_recipe_ideas' },
-      messages: [{
-        role: 'user',
-        content: [{ type:'text', text: `Suggest exactly 5 distinct professional-kitchen recipe ideas matching this brief: ${context}. Each should be a real, specific dish (not a vague category), suitable for a working restaurant kitchen. Record them using the suggest_recipe_ideas tool.` }]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 1024,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'suggest_recipe_ideas' },
+    messages: [{
+      role: 'user',
+      content: [{ type:'text', text: `Suggest exactly 5 distinct professional-kitchen recipe ideas matching this brief: ${context}. Each should be a real, specific dish (not a vague category), suitable for a working restaurant kitchen. Record them using the suggest_recipe_ideas tool.` }]
+    }]
   });
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse || !toolUse.input.ideas || !toolUse.input.ideas.length) throw new Error('Claude did not return any ideas — try again.');
   return toolUse.input.ideas.slice(0, 5);
@@ -6574,31 +6585,16 @@ async function callClaudeGenerateRecipe(title, shortDescription, context){
       required: ['title','ingredients','steps']
     }
   };
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 2048,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'record_recipe' },
-      messages: [{
-        role: 'user',
-        content: [{ type:'text', text: `Write out the full professional-kitchen recipe for "${title}" (${shortDescription}). It was chosen to fit this brief: ${context}. Use metric units throughout. Record it using the record_recipe tool.` }]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 2048,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_recipe' },
+    messages: [{
+      role: 'user',
+      content: [{ type:'text', text: `Write out the full professional-kitchen recipe for "${title}" (${shortDescription}). It was chosen to fit this brief: ${context}. Use metric units throughout. Record it using the record_recipe tool.` }]
+    }]
   });
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured recipe — try again.');
   return toolUse.input;
@@ -8837,31 +8833,16 @@ async function callClaudeTranslateNames(names){
       required: ['translations']
     }
   };
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 8192,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'translate_non_english_names' },
-      messages: [{
-        role: 'user',
-        content: [{ type:'text', text: `Here is a list of dish/ingredient names from a professional kitchen's prep checklist, one per line. Identify ONLY the ones NOT already written in English, and translate each into natural English using standard professional kitchen terminology. Copy the "original" field back EXACTLY as given, character for character. Omit any name already in English entirely — do not include it in the response.\n\n${names.join('\n')}` }]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 8192,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'translate_non_english_names' },
+    messages: [{
+      role: 'user',
+      content: [{ type:'text', text: `Here is a list of dish/ingredient names from a professional kitchen's prep checklist, one per line. Identify ONLY the ones NOT already written in English, and translate each into natural English using standard professional kitchen terminology. Copy the "original" field back EXACTLY as given, character for character. Omit any name already in English entirely — do not include it in the response.\n\n${names.join('\n')}` }]
+    }]
   });
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured result — try again.');
   return toolUse.input.translations || [];
@@ -10465,34 +10446,19 @@ async function callClaudeContractVision(base64, mediaType){
     ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
     : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 1536,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'record_contract_review' },
-      messages: [{
-        role: 'user',
-        content: [
-          sourceBlock,
-          { type:'text', text:'This is an employment contract for a kitchen/restaurant worker. Read it carefully and extract the weekly contracted hours and annual paid vacation days if stated. Then, acting as a knowledgeable reviewer (not a licensed lawyer), write a short plain-language note flagging anything that looks unclear, missing, unusual, or potentially unfavorable to the employee. Use the record_contract_review tool.' }
-        ]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 1536,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_contract_review' },
+    messages: [{
+      role: 'user',
+      content: [
+        sourceBlock,
+        { type:'text', text:'This is an employment contract for a kitchen/restaurant worker. Read it carefully and extract the weekly contracted hours and annual paid vacation days if stated. Then, acting as a knowledgeable reviewer (not a licensed lawyer), write a short plain-language note flagging anything that looks unclear, missing, unusual, or potentially unfavorable to the employee. Use the record_contract_review tool.' }
+      ]
+    }]
   });
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude could not read this contract — try a clearer photo or PDF.');
   return toolUse.input;
@@ -10723,34 +10689,19 @@ async function callClaudeScheduleVision(base64, mediaType, targetName){
     ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
     : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 4096,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'record_schedule_row' },
-      messages: [{
-        role: 'user',
-        content: [
-          sourceBlock,
-          { type:'text', text:`This is a kitchen staff roster/schedule (Dienstplan) spanning possibly multiple pages, one row per staff member. Find the row for "${targetName}" — match even if spelling differs slightly, or the name is written in a different order (e.g. "First Last" vs "Last First"). Once found, extract their exact shift code for every single date column shown in the header row, across every page — use an empty string for a blank cell. Do NOT transcribe any other staff member's row. If no matching name is found anywhere, set found to false and leave days empty. Use the record_schedule_row tool.` }
-        ]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 4096,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_schedule_row' },
+    messages: [{
+      role: 'user',
+      content: [
+        sourceBlock,
+        { type:'text', text:`This is a kitchen staff roster/schedule (Dienstplan) spanning possibly multiple pages, one row per staff member. Find the row for "${targetName}" — match even if spelling differs slightly, or the name is written in a different order (e.g. "First Last" vs "Last First"). Once found, extract their exact shift code for every single date column shown in the header row, across every page — use an empty string for a blank cell. Do NOT transcribe any other staff member's row. If no matching name is found anywhere, set found to false and leave days empty. Use the record_schedule_row tool.` }
+      ]
+    }]
   });
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude could not read this schedule — try a clearer photo or PDF.');
   return toolUse.input;
@@ -10949,35 +10900,19 @@ async function callClaudeVision(base64, mediaType){
     }
   };
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 2048,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'record_recipe' },
-      messages: [{
-        role: 'user',
-        content: [
-          { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } },
-          { type:'text', text:'This is a photo of a handwritten or printed recipe. Read it carefully, correct any obvious spelling mistakes, standardize cooking terminology, and convert non-metric quantities (cups, oz, lb, °F) to metric (g, kg, ml, l, °C) where you can. Extract it using the record_recipe tool. If something is not present in the photo, leave that field empty rather than guessing.' + scanTranslateInstruction() }
-        ]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 2048,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_recipe' },
+    messages: [{
+      role: 'user',
+      content: [
+        { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } },
+        { type:'text', text:'This is a photo of a handwritten or printed recipe. Read it carefully, correct any obvious spelling mistakes, standardize cooking terminology, and convert non-metric quantities (cups, oz, lb, °F) to metric (g, kg, ml, l, °C) where you can. Extract it using the record_recipe tool. If something is not present in the photo, leave that field empty rather than guessing.' + scanTranslateInstruction() }
+      ]
+    }]
   });
-
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured recipe — try a clearer photo.');
   return toolUse.input;
@@ -11065,31 +11000,16 @@ async function generateMethodWithAI(){
       }
     };
     const ingredientList = ingredients.map(row=> row[1] ? `${row[0]} — ${row[1]}` : row[0]).join('\n');
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': _anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-5',
-        max_tokens: 1536,
-        tools: [tool],
-        tool_choice: { type:'tool', name:'write_method' },
-        messages: [{
-          role: 'user',
-          content: `Write the professional kitchen method for this dish, as a chef would write it for another chef.\n\nDish: ${title}\n\nIngredients:\n${ingredientList}\n\nWrite clear, ordered steps using proper kitchen technique and terminology. Use the write_method tool.`
-        }]
-      })
+    const data = await callClaudeAPI({
+      model: 'claude-sonnet-5',
+      max_tokens: 1536,
+      tools: [tool],
+      tool_choice: { type:'tool', name:'write_method' },
+      messages: [{
+        role: 'user',
+        content: `Write the professional kitchen method for this dish, as a chef would write it for another chef.\n\nDish: ${title}\n\nIngredients:\n${ingredientList}\n\nWrite clear, ordered steps using proper kitchen technique and terminology. Use the write_method tool.`
+      }]
     });
-    if(!res.ok){
-      let detail = '';
-      try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-      throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-    }
-    const data = await res.json();
     const toolUse = (data.content || []).find(b=>b.type==='tool_use');
     if(!toolUse || !toolUse.input.steps || !toolUse.input.steps.length){
       throw new Error('Claude did not return any steps — try again.');
@@ -11163,35 +11083,19 @@ async function callClaudePrepSheetVision(base64, mediaType){
     ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
     : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': _anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 4096,
-      tools: [tool],
-      tool_choice: { type:'tool', name:'record_prep_sheet' },
-      messages: [{
-        role: 'user',
-        content: [
-          sourceBlock,
-          { type:'text', text:'This is a kitchen prep sheet — a list of dishes, each with the ingredients/components needed to prepare it. Read every dish and its full item list. If a CHF price is shown next to a dish, include it; otherwise omit price. Use the record_prep_sheet tool.' + scanTranslateInstruction() }
-        ]
-      }]
-    })
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 4096,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_prep_sheet' },
+    messages: [{
+      role: 'user',
+      content: [
+        sourceBlock,
+        { type:'text', text:'This is a kitchen prep sheet — a list of dishes, each with the ingredients/components needed to prepare it. Read every dish and its full item list. If a CHF price is shown next to a dish, include it; otherwise omit price. Use the record_prep_sheet tool.' + scanTranslateInstruction() }
+      ]
+    }]
   });
-
-  if(!res.ok){
-    let detail = '';
-    try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-    throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-  }
-  const data = await res.json();
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured prep sheet — try a clearer photo or PDF.');
   return toolUse.input.dishes || [];
@@ -11511,29 +11415,14 @@ async function sendChefMessage(){
   sendBtn.disabled = true;
 
   try{
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': _anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        system: CHEF_ASSISTANT_SYSTEM_PROMPT,
-        // Only the last few exchanges go to the API — keeps cost flat instead of growing
-        // with the whole conversation. Full history still shows in the UI either way.
-        messages: _chefChatHistory.filter(m=>!m.pending).slice(-CHEF_CHAT_HISTORY_LIMIT).map(m=>({ role:m.role, content:m.content }))
-      })
+    const data = await callClaudeAPI({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: CHEF_ASSISTANT_SYSTEM_PROMPT,
+      // Only the last few exchanges go to the API — keeps cost flat instead of growing
+      // with the whole conversation. Full history still shows in the UI either way.
+      messages: _chefChatHistory.filter(m=>!m.pending).slice(-CHEF_CHAT_HISTORY_LIMIT).map(m=>({ role:m.role, content:m.content }))
     });
-    if(!res.ok){
-      let detail = '';
-      try{ detail = (await res.json()).error?.message || ''; } catch(e){}
-      throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
-    }
-    const data = await res.json();
     const textBlock = (data.content || []).find(b=>b.type==='text');
     const reply = textBlock ? textBlock.text : "Couldn't get an answer that time — try again.";
     _chefChatHistory[_chefChatHistory.length-1] = { role:'assistant', content: reply };
