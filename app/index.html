@@ -4971,6 +4971,47 @@ async function startApp(){
   activeCategory = _favorites.length > 0 ? 'Favorites' : 'All';
   renderRecipeSummaryBar();
   renderList();
+  subscribeToRealtimeUpdates();
+}
+
+/* Real-time cross-device sync for Check List — MVP_DEFINITION.md's core promise ("updates
+   visible to everyone in real time") was never actually wired up: every screen only ever loaded
+   data once and needed an explicit action (navigate away and back, pull to refresh) to see
+   anyone else's change. This subscribes to live Postgres change events on prep_items/
+   prep_dishes for the current kitchen and merges them straight into the same local arrays every
+   render function already reads from, so a change made on one device shows up on another
+   without either one doing anything. Needs Realtime turned on for these two tables — see
+   db/50_enable_realtime.sql. */
+let _realtimeChannel = null;
+function subscribeToRealtimeUpdates(){
+  if(!currentKitchenId || _realtimeChannel) return;
+  _realtimeChannel = sb.channel('kitchen-' + currentKitchenId)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_items', filter: `kitchen_id=eq.${currentKitchenId}` }, handleRealtimePrepItemChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'prep_dishes', filter: `kitchen_id=eq.${currentKitchenId}` }, handleRealtimePrepDishChange)
+    .subscribe();
+}
+function handleRealtimePrepItemChange(payload){
+  if(payload.eventType === 'DELETE'){
+    _prepItems = _prepItems.filter(i=>i.id !== payload.old.id);
+  } else {
+    const idx = _prepItems.findIndex(i=>i.id === payload.new.id);
+    if(idx > -1) _prepItems[idx] = payload.new;
+    else _prepItems.push(payload.new);
+  }
+  refreshCurrentView();
+}
+function handleRealtimePrepDishChange(payload){
+  if(payload.eventType === 'DELETE'){
+    _prepDishes = _prepDishes.filter(d=>d.id !== payload.old.id);
+  } else {
+    const idx = _prepDishes.findIndex(d=>d.id === payload.new.id);
+    if(idx > -1) _prepDishes[idx] = payload.new;
+    else _prepDishes.push(payload.new);
+    // A brand-new dish on a brand-new station (created on another device) needs its station
+    // registered locally too — same thing loadAppData() already does on a fresh page load.
+    if(payload.new.station && !PREP_SHEET_STATIONS.includes(payload.new.station)) PREP_SHEET_STATIONS.push(payload.new.station);
+  }
+  refreshCurrentView();
 }
 
 /* ============================================================
