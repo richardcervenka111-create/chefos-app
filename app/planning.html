@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Planning</title>
+<style>
+  /* ChefOS standing visual identity (2026-07-11) — same palette/fonts as app/board.html. */
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px 100px 24px; }
+  a{ color:var(--accent); }
+
+  header.hero{ padding:56px 0 34px 0; border-bottom:1px solid var(--rule); }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
+  h1.title{ font-size:38px; font-weight:700; margin:0 0 14px 0; }
+  h1.title b{ color:var(--accent); font-weight:700; }
+  .lede{ color:var(--ink-dim); font-size:15px; max-width:66ch; line-height:1.65; }
+
+  section{ padding:44px 0; border-bottom:1px solid var(--rule); }
+  section:last-of-type{ border-bottom:none; }
+  h2.section-title{ font-weight:700; font-size:24px; margin:0 0 8px 0; }
+  .section-desc{ color:var(--ink-dim); font-size:13.5px; max-width:68ch; margin-bottom:24px; line-height:1.6; }
+
+  /* Top-3 priority cards */
+  .top3-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:820px){ .top3-grid{ grid-template-columns:1fr; } }
+  .top3-card{ background:var(--paper); border:1px solid var(--rule); border-radius:16px; padding:20px 18px; }
+  .top3-scope{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); font-weight:700; margin-bottom:2px; }
+  .top3-range{ font-size:11.5px; color:var(--ink-faint); margin-bottom:14px; }
+  .top3-list{ list-style:none; margin:0; padding:0; }
+  .top3-item{ display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-top:1px solid var(--rule); font-size:13px; color:var(--ink); }
+  .top3-item:first-child{ border-top:none; }
+  .top3-dot{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; margin-top:4px; }
+  .top3-dot.done{ background:var(--accent); }
+  .top3-dot.progress{ background:var(--gold); }
+  .top3-dot.planned{ background:var(--ink-faint); }
+  .top3-status{ display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  .top3-status.done{ color:var(--accent); }
+  .top3-status.progress{ color:var(--gold); }
+  .top3-status.planned{ color:var(--ink-faint); }
+
+  /* Timeline accordion: month > week > day */
+  .month-block{ border:1px solid var(--rule); border-radius:16px; background:var(--paper); margin-bottom:14px; overflow:hidden; }
+  .month-head{ padding:16px 18px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .month-head:hover{ background:var(--paper-raised); }
+  .month-name{ font-size:17px; font-weight:700; }
+  .month-meta{ font-size:11.5px; color:var(--ink-faint); font-family:"SF Mono",Menlo,monospace; }
+  .month-body{ display:none; padding:0 18px 18px 18px; }
+  .month-block.open > .month-body{ display:block; }
+  .month-block.open > .month-head .chev{ transform:rotate(90deg); }
+  .chev{ display:inline-block; transition:transform 0.15s ease; color:var(--ink-faint); margin-left:8px; }
+
+  .week-block{ border:1px solid var(--rule); border-radius:12px; margin-top:12px; }
+  .week-head{ padding:12px 14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .week-head:hover{ background:var(--paper-raised); }
+  .week-name{ font-size:13.5px; font-weight:600; }
+  .week-meta{ font-size:11px; color:var(--ink-faint); font-family:"SF Mono",Menlo,monospace; }
+  .week-body{ display:none; padding:0 14px 14px 14px; }
+  .week-block.open .week-body{ display:block; }
+  .week-block.open .chev{ transform:rotate(90deg); }
+
+  .day-row{ border-top:1px solid var(--rule); }
+  .day-row:first-child{ border-top:none; }
+  .day-head{ padding:11px 4px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .day-head:hover .day-title{ color:var(--accent); }
+  .day-date{ font-family:"SF Mono",Menlo,monospace; font-size:11.5px; color:var(--ink-faint); min-width:78px; }
+  .day-title{ font-size:13px; color:var(--ink); flex:1; padding:0 10px; }
+  .day-body{ display:none; padding:2px 4px 16px 4px; }
+  .day-row.open .day-body{ display:block; }
+  .day-row.open .chev{ transform:rotate(90deg); }
+  .day-flex{ display:flex; align-items:flex-start; gap:0; }
+
+  .accomplished-list{ list-style:none; margin:8px 0 0 88px; padding:0; }
+  .accomplished-list li{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; padding:3px 0; position:relative; padding-left:16px; }
+  .accomplished-list li::before{ content:'✓'; position:absolute; left:0; color:var(--accent); }
+  .day-planned{ margin:10px 0 0 88px; font-size:12px; color:var(--ink-faint); font-style:italic; }
+  .day-planned b{ color:var(--gold); font-style:normal; }
+
+  footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:40px 0 20px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">ChefOS — Planning &amp; Progress</div>
+    <h1 class="title">Plan<b>ning</b></h1>
+    <p class="lede">Done vs. planned, at three timeframes. Top priorities for today/this week/this month, and a click-to-expand log of every day worked — grouped by week and month so this stays readable as it grows.</p>
+  </header>
+
+  <section id="top3">
+    <h2 class="section-title">Top 3 priorities</h2>
+    <p class="section-desc">Updated each session. Teal = done, gold = in progress, grey = planned but not started.</p>
+    <div class="top3-grid" id="top3Grid"></div>
+  </section>
+
+  <section id="timeline">
+    <h2 class="section-title">Day-by-day log</h2>
+    <p class="section-desc">Click a month, then a week, then a day to see exactly what shipped.</p>
+    <div id="timelineRoot"></div>
+  </section>
+
+  <footer class="foot" id="footNote"></footer>
+</div>
+
+<script>
+/* ============================================================
+   DATA — the only part of this file that should need editing.
+   Add a new day by pushing one object to DAYS; week/month grouping
+   is computed automatically. Keep TOP3 current each session.
+   ============================================================ */
+const GENERATED = '2026-07-13';
+
+const TOP3 = {
+  day: {
+    range: 'Thu 2026-07-10',
+    items: [
+      { text: 'Check List: manual "+ New Section" / "+ Add dish" + averaged real prep times', status: 'done' },
+      { text: 'Fix TO DO/DON\'T DO colors, Extra icon, Chef\'s Assistant mobile keyboard + greeting', status: 'done' },
+      { text: 'Scope + record the public-trial plan (Aug 1, 25 users, QR teams) in presentation/planning', status: 'progress' },
+    ]
+  },
+  week: {
+    range: 'Week of 2026-07-06 – 2026-07-12',
+    items: [
+      { text: 'Check List (8-station prep sheets) + Kitchen Flow v1 live in production', status: 'done' },
+      { text: 'Ingredients to ~1,263 + multi-language UI v1 (SQL run, confirmed working)', status: 'done' },
+      { text: 'Public-trial prep sprint: email login for any address, multi-team QR invites, scope narrowed to Check List/Assistant/Ingredients/Recipes', status: 'progress' },
+    ]
+  },
+  month: {
+    range: 'July 2026',
+    items: [
+      { text: 'Public trial launch — 25 users, multiple restaurants, own team per kitchen (target 2026-08-01)', status: 'progress' },
+      { text: 'Fix email login for non-Richard addresses (Resend domain verification) — blocking the trial', status: 'planned' },
+      { text: 'Polish the 4 trial-scope features (Check List, Chef\'s Assistant, Ingredients, Recipes) to feel finished', status: 'progress' },
+    ]
+  }
+};
+
+/* Each day: date (YYYY-MM-DD), headline, accomplished (bullet list),
+   planned (what was intended to carry into the next session, for done-vs-planned tracking). */
+const DAYS = [
+  {
+    date: '2026-07-08',
+    headline: 'Phase 0 — Foundation & Validation approved',
+    accomplished: [
+      'Defined ChefOS v1 scope: Chef Pro / Restaurant kitchens, not home cooks',
+      'Mobile/tablet-first installable web app, no native build',
+      'Pilot kitchen confirmed (Hotel Schweizerhof Bern)',
+      'MVP_DEFINITION.md and ARCHITECTURE.md approved by Richard',
+    ],
+    planned: 'Kick off Phase 1 — real backend + full recipe data model.'
+  },
+  {
+    date: '2026-07-09',
+    headline: 'Recipe engine live, Ingredients + Check List v1, Schedule rebuilt, deployed to production',
+    accomplished: [
+      'Supabase backend stood up; all 173 recipes migrated; scaling calculator fixed',
+      'Ingredients & Pricing: 535 items seeded (estimated prices, flagged), cost + nutrition engines',
+      'Full 20-field recipe form; visual design pass (login, nav, focus states)',
+      'Mise en Place v1: personal task list, 3-state status, quick-add from recipes, Order List',
+      'Home dashboard (6 tiles) + Fridge Temperature module',
+      'Schedule rebuilt to match the real Dienstplan PDF: 28 shift codes, 27 real staff',
+      'SKY prep sheet built from Richard\'s real photographed paper sheet (25 dishes, 69 items)',
+      'Prep sheet refined 5 rounds same day: stock-count on-hand, status field, min_required flags, legibility pass, stage-based prep times, sticky-header rebuild',
+      'Photo-scan AI recipe import (Sonnet) shipped',
+      'Deployed to production: richardcervenka111-create.github.io/chefos-app',
+    ],
+    planned: 'Add more AI features (method generation, chat assistant) and expand Check List to every station.'
+  },
+  {
+    date: '2026-07-10',
+    headline: 'AI features, Kitchen Flow, all 8 stations, multi-language, ingredients to 1,263',
+    accomplished: [
+      'Generate Method with AI + Chef\'s Assistant chatbot shipped; cost-reduced to Haiku + capped history',
+      'Kitchen Flow v1: station picker as icon tiles, 🔥 overload badge (>3.5h outstanding)',
+      'Check List prep sheets extended to all 8 stations (Hot Line/Garde Manger/Desserts from real menus; Lobby/Entremetier/BQT/Extra provisional, Richard-authorized)',
+      'Notes field added to every task/prep item',
+      'AI prep-sheet scan (photo + PDF) — self-service new-station creation',
+      'Renamed "Mise en Place" → "Check List" (user-facing only)',
+      'Translated all prep-sheet data to English',
+      'Multi-language UI v1: EN/DE/FR/IT/SK switcher (partial coverage, real infrastructure)',
+      'Fixed "All" cross-station view (was empty) and stuck station-tile badges',
+      'Added swipe-back gesture on mobile',
+      'Scoped the 20k-row master-DB proposal down to +2 fields and ~1,300 ingredients (730 new, generated, zero collisions)',
+      'Ingredients: season + storage-type + food-type filter chips (combinable)',
+      'Created and now maintaining app/presentation.html (investor dashboard, kept in sync)',
+      'Built app/planning.html (this file) — day/week/month, done vs. planned',
+      'Presentation.html refocused on Switzerland / canton Bern, with sourced market numbers and a bottom-up ARR model',
+      'Check List: manual "+ New Section" and "+ Add dish" (composition of items), no longer scan-only',
+      'Fixed cross-device station persistence bug (a station created on one phone now shows up for everyone after reload)',
+      'Check List: real, crowd-sourced prep times — tap the clock badge to log actual minutes, averaged in over repeated entries',
+      'TO DO / DON\'T DO status colors swapped (TO DO now red) per Richard\'s request; Extra got its own icon (🧺)',
+      'Chef\'s Assistant: fixed mobile keyboard covering the input (100dvh), added a canned greeting bubble',
+      'Two real people testing live via Richard\'s shared login at two separate venues — Recipes confirmed working end-to-end for them',
+      'Scoped and recorded the public-trial plan: target 2026-08-01, 25 users across multiple restaurants, each forming its own team via QR invite, scope narrowed to Check List + Chef\'s Assistant + Ingredients + Recipes',
+    ],
+    planned: 'Fix email login for non-Richard addresses (Resend domain verification or built-in mailer); design and build the multi-team/QR-invite system; polish the 4 trial-scope features toward the 2026-08-01 public trial.'
+  },
+  {
+    date: '2026-07-11',
+    headline: 'Multi-team QR + access gate, Recipe/Check List fixes, unified visual identity',
+    accomplished: [
+      'Multi-team via QR invite (create or join a kitchen) built end-to-end; vendored a verified QR-code generator, fully client-side',
+      'Closed-trial access gate: every email manually approved before use, new Admin tile',
+      'Fixed the recipe double-save bug (double-tap race condition); 🚩 flag restricted to priority-1 items only',
+      'Check List: delete or hide an item, a dish, or a whole section; 🛒 Order button on every item and recipe ingredient row',
+      'Built app/board.html → renamed to app/tasklist.html with a full shipped/timeline tracker',
+      'Unified ChefOS visual identity (navy/teal) across presentation.html, planning.html, tasklist.html',
+    ],
+    planned: 'Order List + Print Labels toolbars, build Working Time from scratch, expand real ingredient pricing.'
+  },
+  {
+    date: '2026-07-12',
+    headline: 'Order List + Print Labels toolbars, Working Time built, 104 real supplier prices, Recipes/Ingredients rework, two critical bugs found and fixed',
+    accomplished: [
+      'Order List top bar (Print, Select+bulk delete, group by section) and Print Labels hub (toolbar + auto shelf-life "use by" dates) shipped',
+      'Working Time built from scratch: check-in/out timer, breaks, monthly hours/overtime, vacation countdown, AI contract-scan with legal-advisory notes',
+      'Found and fixed two severe same-day script-breaking bugs (top-level variable initialization order) — both fully root-caused',
+      'Ingredient Audit v1 shipped, then rebuilt same batch into a real per-item approval flow (Add / Link-as-alias / Ignore)',
+      '104 real supplier-sourced ingredient prices imported from a Swiss wholesaler\'s 2026 price list (CHF→EUR, traceable to article numbers)',
+      'Check List &amp; Recipes: sections/categories can be renamed and re-iconed, not just deleted; Recipes diet filters fixed + expanded 2→7; "Ask Chef\'s Assistant" AI recipe generator added',
+      'Kitchen-wide currency switcher shipped (EUR/CHF/USD), defaulted to CHF; Ingredients topbar redesigned to stop eating half the screen',
+    ],
+    planned: 'Small polish fixes, a ChefOS logo, and hardware research (label printer, fridge sensor).'
+  },
+  {
+    date: '2026-07-13',
+    headline: 'Working Time note-visibility fix, bigger Home icons, Print Labels polish, ChefOS logo, printer + fridge-sensor research, first named sales target',
+    accomplished: [
+      'Fixed Working Time\'s day-note field being invisible while typing (page-wide dark-mode rendering fix, not just that field)',
+      'Home screen tile icons enlarged again (still 3 per row); Print Labels got its missing topbar title and a real "By section" grouping toggle',
+      'Designed a minimalist ChefOS logo (circular monogram), applied live to My Team\'s brand header and centered on the invite QR code itself',
+      'Researched a wireless fridge-temperature sensor for the "scan QR → live temp" idea — recommended SensorPush (only budget option with a real cloud API; Bluetooth/NFC-from-website is a dead end on iOS)',
+      'Researched a physical label printer + supplier contract approach — recommended Brother QL-820NWB (~CHF 130, buy outright, no contract), full report in docs/LABEL_PRINTER_RESEARCH.md',
+      'Named Nooch Asian Kitchen (FWG group, 3 canton-Bern locations) as the first post-pilot sales target',
+      'Ingredients: live match-count while filtering, full real category list replacing the old 4-item shortcut, new Verified/Estimated/Missing pricing filter',
+      'Ingredients: match-count also pinned in the topbar itself, visible without opening Search &amp; Filter',
+      'ChefOS logo redesigned — hand-built ring mark (one precise arc, not a font letter) in sage/cream instead of copper, italic serif wordmark',
+      'Check List\'s icon picker expanded from 30 to the full 72-icon set, matching Recipes',
+      'New: Language Audit — scans Check List dish/item names for anything not in English, suggests translations, per-item approve/skip',
+      'Pilot kitchen changes from Hotel Schweizerhof to Burrito Bandito &amp; Lido (one group, two venues) — retires the Schweizerhof IP-ownership risk from the backlog v2 review since ChefOS stops depending on their data entirely; RC Studio shelved to protect capacity; first draft pilot agreement saved to docs/PILOT_AGREEMENT.md',
+    ],
+    planned: 'Run the pending SQL files in Supabase; get Richard\'s printer document for a direct comparison against the research; continue toward the 2026-08-01 public trial scope.'
+  },
+];
+
+function isoWeekLabel(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = (d.getDay() + 6) % 7; // Monday = 0
+  const monday = new Date(d); monday.setDate(d.getDate() - day);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  const fmt = (x)=> x.toLocaleDateString('en-GB',{ day:'numeric', month:'short' });
+  return { key: monday.toISOString().slice(0,10), label: `Week of ${fmt(monday)} – ${fmt(sunday)}, ${sunday.getFullYear()}` };
+}
+function monthLabel(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return { key: dateStr.slice(0,7), label: d.toLocaleDateString('en-GB',{ month:'long', year:'numeric' }) };
+}
+function weekdayShort(dateStr){
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB',{ weekday:'short' });
+}
+
+function renderTop3(){
+  const scopes = [
+    { key:'day', label:'Today' },
+    { key:'week', label:'This Week' },
+    { key:'month', label:'This Month' },
+  ];
+  document.getElementById('top3Grid').innerHTML = scopes.map(s=>{
+    const data = TOP3[s.key];
+    const items = data.items.map(it=>`
+      <li class="top3-item">
+        <span class="top3-dot ${it.status}"></span>
+        <span>${it.text}<span class="top3-status ${it.status}">${it.status}</span></span>
+      </li>
+    `).join('');
+    return `
+      <div class="top3-card">
+        <div class="top3-scope">${s.label}</div>
+        <div class="top3-range">${data.range}</div>
+        <ul class="top3-list">${items}</ul>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTimeline(){
+  // group days by month, then by week, preserving chronological order, newest first
+  const daysDesc = DAYS.slice().sort((a,b)=> b.date.localeCompare(a.date));
+  const months = [];
+  daysDesc.forEach(day=>{
+    const m = monthLabel(day.date);
+    let monthEntry = months.find(x=>x.key === m.key);
+    if(!monthEntry){ monthEntry = { key:m.key, label:m.label, weeks:[] }; months.push(monthEntry); }
+    const w = isoWeekLabel(day.date);
+    let weekEntry = monthEntry.weeks.find(x=>x.key === w.key);
+    if(!weekEntry){ weekEntry = { key:w.key, label:w.label, days:[] }; monthEntry.weeks.push(weekEntry); }
+    weekEntry.days.push(day);
+  });
+
+  document.getElementById('timelineRoot').innerHTML = months.map((m, mi)=>{
+    const totalDays = m.weeks.reduce((n,w)=>n+w.days.length,0);
+    const weeksHtml = m.weeks.map((w, wi)=>{
+      const daysHtml = w.days.map((day, di)=>{
+        const accomplishedHtml = day.accomplished.map(a=>`<li>${a}</li>`).join('');
+        return `
+          <div class="day-row" data-id="d-${m.key}-${w.key}-${di}">
+            <div class="day-head" onclick="toggleBlock('d-${m.key}-${w.key}-${di}')">
+              <div class="day-flex" style="flex:1;">
+                <span class="day-date">${weekdayShort(day.date)} ${day.date}</span>
+                <span class="day-title">${day.headline}</span>
+              </div>
+              <span class="chev">▶</span>
+            </div>
+            <div class="day-body">
+              <ul class="accomplished-list">${accomplishedHtml}</ul>
+              <div class="day-planned"><b>Planned next:</b> ${day.planned}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return `
+        <div class="week-block" data-id="w-${m.key}-${w.key}">
+          <div class="week-head" onclick="toggleBlock('w-${m.key}-${w.key}')">
+            <span class="week-name">${w.label}</span>
+            <span class="week-meta">${w.days.length} day${w.days.length===1?'':'s'} logged <span class="chev">▶</span></span>
+          </div>
+          <div class="week-body">${daysHtml}</div>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="month-block${mi===0?' open':''}" data-id="m-${m.key}">
+        <div class="month-head" onclick="toggleBlock('m-${m.key}')">
+          <span class="month-name">${m.label}</span>
+          <span class="month-meta">${totalDays} day${totalDays===1?'':'s'} logged <span class="chev">▶</span></span>
+        </div>
+        <div class="month-body">${weeksHtml}</div>
+      </div>
+    `;
+  }).join('');
+
+  // auto-open the most recent week and most recent day inside the open month
+  if(months[0]){
+    const latestWeek = months[0].weeks[0];
+    if(latestWeek) toggleBlock(`w-${months[0].key}-${latestWeek.key}`, true);
+    if(latestWeek && latestWeek.days[0]) toggleBlock(`d-${months[0].key}-${latestWeek.key}-0`, true);
+  }
+}
+
+function toggleBlock(id, forceOpen){
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if(!el) return;
+  if(forceOpen){ el.classList.add('open'); return; }
+  el.classList.toggle('open');
+}
+
+document.getElementById('footNote').textContent = `ChefOS · generated ${GENERATED} · companion to app/presentation.html, sourced from docs/ROADMAP.md`;
+renderTop3();
+renderTimeline();
+</script>
+</body>
+</html>

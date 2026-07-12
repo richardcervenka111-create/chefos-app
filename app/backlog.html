@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Úlohy v2: dnes → Fáza 7 (expert review)</title>
+<style>
+  /* ChefOS standing visual identity — same tokens as presentation.html / planning.html /
+     tasklist.html / status.html, used across every ChefOS internal document. */
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4);
+    --danger:#FF7A68; --danger-dim:rgba(255,122,104,0.4);
+    --v2:#8B93FF; --v2-dim:rgba(139,147,255,0.4);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; padding-bottom:70px; line-height:1.5;
+  }
+  .wrap{ max-width:900px; margin:0 auto; padding:0 20px; }
+
+  header{ padding:44px 20px 26px 20px; border-bottom:1px solid var(--rule); }
+  header .inner{ max-width:900px; margin:0 auto; }
+  .brandmark{ display:flex; align-items:center; gap:9px; margin-bottom:20px; }
+  .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:0.02em; color:var(--accent); }
+  .kicker{ font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:10px; font-weight:600; }
+  h1.title{ font-size:clamp(26px,5vw,38px); line-height:1.12; margin:0 0 12px 0; font-weight:700; }
+  h1.title em{ font-style:italic; color:var(--accent); font-weight:700; }
+  .dek{ font-size:14.5px; color:var(--ink-dim); max-width:660px; line-height:1.6; margin:0 0 18px 0; }
+  .legend{ display:flex; gap:16px; flex-wrap:wrap; }
+  .legend .item{ display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--ink-dim); }
+  .swatch{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+  .sw-plan{ background:var(--accent); }
+  .sw-new{ background:var(--gold); }
+  .sw-crit{ background:var(--danger); }
+  .sw-v2{ background:var(--v2); }
+
+  .phase-head{ margin:48px 0 4px 0; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .phase-num{ font-family:"SF Mono",Menlo,monospace; font-style:italic; font-size:28px; color:var(--accent); line-height:1; }
+  .phase-title-wrap{ flex:1; min-width:200px; }
+  .phase-title-wrap h2{ margin:0; font-size:12px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink); font-weight:700; }
+  .phase-title-wrap .sub{ font-size:13px; color:var(--ink-dim); margin-top:3px; }
+  .phase-rule{ height:1px; background:var(--rule); margin:14px 0; }
+  .phase-status{ display:inline-block; font-size:10px; text-transform:uppercase; letter-spacing:0.07em; padding:3px 9px; border-radius:20px; font-weight:700; white-space:nowrap; }
+  .st-active{ background:rgba(247,201,72,0.16); color:var(--gold); }
+  .st-open{ background:rgba(156,148,158,0.12); color:var(--ink-dim); }
+  .st-future{ background:rgba(156,148,158,0.07); color:var(--ink-faint); }
+  .st-red{ background:rgba(255,122,104,0.18); color:var(--danger); }
+
+  .tasklist{ background:var(--paper); border:1px solid var(--rule); border-radius:12px; overflow:hidden; }
+  .task{ display:flex; gap:12px; padding:13px 16px; border-bottom:1px solid var(--rule); align-items:flex-start; }
+  .task:last-child{ border-bottom:none; }
+  .task.v2{ background:rgba(139,147,255,0.06); border-left:3px solid var(--v2); }
+  .box{ width:15px; height:15px; border:1.5px solid var(--ink-dim); border-radius:4px; margin-top:2px; flex-shrink:0; }
+  .task-body{ flex:1; min-width:0; }
+  .task-title{ font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:2px; }
+  .task-desc{ font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
+  .role{ font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--v2); font-weight:700; margin-top:5px; display:block; }
+  .tags{ display:flex; gap:6px; flex-shrink:0; margin-top:2px; flex-direction:column; align-items:flex-end; }
+  .tag{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; padding:3px 7px; border-radius:20px; font-weight:700; white-space:nowrap; }
+  .tag-plan{ background:rgba(52,247,215,0.14); color:var(--accent); }
+  .tag-new{ background:rgba(247,201,72,0.16); color:var(--gold); }
+  .tag-crit{ background:rgba(255,122,104,0.16); color:var(--danger); }
+  .tag-v2{ background:rgba(139,147,255,0.18); color:var(--v2); }
+
+  .callout{ border:1px solid var(--danger-dim); background:rgba(255,122,104,0.07); border-radius:10px; padding:16px 18px; margin-top:14px; }
+  .callout .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--danger); font-weight:700; margin-bottom:7px; }
+  .callout p{ margin:0; font-size:13px; color:var(--ink-dim); line-height:1.6; }
+  .callout.ok{ border-color:var(--accent-dim); background:rgba(52,247,215,0.07); }
+  .callout.ok .k{ color:var(--accent); }
+
+  footer{ margin-top:56px; padding-top:18px; border-top:1px solid var(--rule); font-size:11px; color:var(--ink-faint); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <div class="brandmark">
+      <svg width="22" height="22" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
+      <span class="word">ChefOS</span>
+    </div>
+    <div class="kicker">Kompletný zoznam úloh · v2 — po expert review</div>
+    <h1 class="title">Všetko, čo treba ešte urobiť — <em>doplnené</em></h1>
+    <p class="dek">Predchádzajúci zoznam prešiel kontrolou zo šiestich uhlov: Product Manager, CTO, Solution Architect, UX Lead, QA Lead a skúsený SaaS founder. Fialové položky sú nové — veci, ktoré v prvej verzii chýbali. Zvyšok zostáva z v1.</p>
+    <div class="legend">
+      <div class="item"><span class="swatch sw-plan"></span>Z tvojho plánu</div>
+      <div class="item"><span class="swatch sw-new"></span>Odporúčanie v1</div>
+      <div class="item"><span class="swatch sw-v2"></span>Nové vo v2 (expert review)</div>
+      <div class="item"><span class="swatch sw-crit"></span>Kritické</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- FOUNDER RISKS -->
+  <div class="phase-head">
+    <div class="phase-num">⚠</div>
+    <div class="phase-title-wrap"><h2>Zakladateľské riziká — vyriešiť skôr než čokoľvek iné</h2><div class="sub">Toto v1 úplne prehliadla a je to najvážnejšia časť celého dokumentu</div></div>
+    <span class="phase-status st-red">Existenčné</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Vyjasniť vlastníctvo IP voči zamestnávateľovi (Hotel Schweizerhof)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> Schweizerhof dáta (rozvrh, prep sheets postavené na jeho menu) ide preč z appky úplne — pilot beží na Burrito Bandito &amp; Lido namiesto toho, takže tento konkrétny IP risk odpadá. Všeobecná rada (skontrolovať IP klauzuly v pracovnej zmluve) naďalej platí aj pre nového zamestnávateľa — pozri nižšie.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Vyriešiť, čo bude pilotnou kuchyňou po odchode zo Schweizerhofu</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> Pilotná kuchyňa je Burrito Bandito &amp; Lido — jedna spoločnosť, dve prevádzky. IP klauzuly v novej pracovnej zmluve stále stojí za to skontrolovať, no to je bežná opatrnosť, nie akútny blocker.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Realisticky prehodnotiť kapacitu: nová práca na plný úväzok + ChefOS + RC Studio</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> RC Studio ide bokom — kapacita sa delí len medzi novú prácu a ChefOS. Termíny (vrátane 1.8. trialu) treba aj tak priebežne sledovať voči reálne dostupným hodinám.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Písomná pilot dohoda s každou testovacou kuchyňou</div><div class="task-desc"><b style="color:var(--v2);">Prvý návrh hotový 13.7.</b> — uložený ako docs/PILOT_AGREEMENT.md. Ešte treba: preložiť/upraviť podľa jazyka konkrétnej prevádzky a nechať si to potvrdiť, že to naozaj právne obstojí, kým sa na to bude spoliehať.</div><span class="role">Founder + právne</span></div><div class="tags"><span class="tag tag-v2">Rozpracované</span></div></div>
+  </div>
+
+  <!-- PHASE 00 -->
+  <div class="phase-head">
+    <div class="phase-num">00</div>
+    <div class="phase-title-wrap"><h2>Tento týždeň — technický základ</h2><div class="sub">v1 blockery + čo odhalil CTO/QA pohľad</div></div>
+    <span class="phase-status st-active">Teraz</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Overiť odosielaciu doménu v Resend / prepnúť na Supabase mailer</div><div class="task-desc">Tvrdý blocker verejného trialu — cudzie adresy sa nevedia prihlásiť.</div></div><div class="tags"><span class="tag tag-crit">Blocker</span><span class="tag tag-plan">Plán</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Dať celý kód do Gitu (GitHub, súkromné repo) — okamžite</div><div class="task-desc">Nikde v dokumentoch nie je zmienka o verzovaní. Jeden zlý edit v jednom obrovskom HTML súbore = nenávratná strata (script-order bug z 12.7. rozbil celú appku — nabudúce nemusí byť z čoho obnoviť). Toto je 30 minút práce s najvyšším pomerom úžitok/námaha v celom zozname.</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Zapnúť/overiť automatické zálohy Supabase databázy + otestovať obnovu</div><div class="task-desc">Free tier má obmedzené zálohy. V DB sú už reálne dáta pilotu (173 receptov, prep dáta, dochádzka). Záloha, ktorú si nikdy neskúšal obnoviť, nie je záloha.</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Vytvoriť staging prostredie (druhý Supabase projekt) — prestať púšťať SQL priamo na produkciu</div><div class="task-desc">Dnes sa každá migrácia (46+ SQL súborov!) púšťa rovno proti živej DB, ktorú používajú reálni ľudia. Pred trialom s 25 užívateľmi je to neúnosné riziko. Postup: migrácia najprv na staging → over → až potom prod.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Presunúť Anthropic API kľúč na server (Supabase Edge Function)</div><div class="task-desc">Kľúč je dnes čitateľný v prehliadači — riziko zneužitia na tvoje náklady.</div></div><div class="tags"><span class="tag tag-new">v1</span><span class="tag tag-crit">Bezpečnosť</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Cost cap + alert na Anthropic účte</div><div class="task-desc">Vedieť o prekročení skôr, než príde faktúra.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Over limity Supabase free tieru pred trialom</div><div class="task-desc">Free projekty sa po 7 dňoch nečinnosti pozastavujú a majú limity na DB veľkosť/požiadavky. S 25 užívateľmi zváž Pro tier (~25 USD/mes) aspoň na obdobie trialu — lacná poistka proti trapasu „appka je preč".</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Spustiť čakajúce SQL migrácie (46–48: dodávateľské ceny, mena, chýbajúce RLS práva)</div><div class="task-desc">Po zriadení stagingu — najprv tam, potom prod.</div></div><div class="tags"><span class="tag tag-plan">Plán</span></div></div>
+  </div>
+
+  <!-- PRE TRIAL -->
+  <div class="phase-head">
+    <div class="phase-num">0.5</div>
+    <div class="phase-title-wrap"><h2>Pred verejným trialom</h2><div class="sub">25 ľudí, viac reštaurácií — s doplnkami z PM/UX/QA pohľadu</div></div>
+    <span class="phase-status st-active">Blízko</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Definovať kritériá úspechu trialu VOPRED — čo znamená „funguje"</div><div class="task-desc">Napr.: aspoň X tímov používa Check List 3+ dni v týždni aj po 2. týždni; aspoň Y ľudí povie „platil by som za to"; menej než Z kritických bugov. Bez čísel vopred sa každý výsledok dá interpretovať ako úspech a nič sa nenaučíš.</div><span class="role">Product Manager</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Pridať základnú analytiku používania (aspoň: kto sa prihlásil, ktorý modul otvoril)</div><div class="task-desc">Bez telemetrie nevieš, či 25 ľudí appku reálne používa alebo len raz otvorilo. Stačí jednoduchá events tabuľka v Supabase — netreba tretiu stranu.</div><span class="role">Product Manager + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Error tracking — zachytávať JS chyby užívateľov (napr. Sentry free tier alebo vlastná error tabuľka)</div><div class="task-desc">Keď sa niečo pokazí u cudzieho človeka na jeho telefóne, nedozvieš sa to, kým ti sám nenapíše. window.onerror → log do Supabase je hodina práce.</div><span class="role">QA Lead</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Napísať regresný test checklist (30–50 krokov) a prejsť ho pred každým väčším nasadením</div><div class="task-desc">Nie automatizácia — len písaný zoznam „prihlás sa, otvor recept, škáluj, ulož, otvor Check List...". Pri tempe zmien v jednom súbore je regresia (rozbitie starého novou funkciou) najpravdepodobnejší typ chyby — script-order bug to už raz dokázal.</div><span class="role">QA Lead</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Otestovať na matici zariadení: starší iPhone, Android, tablet — nie len tvoj telefón</div><div class="task-desc">25 cudzích ľudí = 25 rôznych zariadení. Minimálne: iOS Safari (2 verzie), Android Chrome, jeden tablet. Kuchynské reálie: mokré prsty, rukavice, odlesk — over veľkosť dotykových plôch.</div><span class="role">QA + UX Lead</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Rozhodnúť jazykovú stratégiu: appka je po anglicky, bernské kuchyne hovoria nemecky</div><div class="task-desc">UI bolo cielene preložené do angličtiny — ale cieľový trh je kantón Bern. Minimálne over pri triale, či je angličtina pre commis/casserolier bariéra; nemecká lokalizácia môže byť dôležitejšia než ďalšia funkcia.</div><span class="role">UX Lead + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Manuálny live test celej appky + flow „vytvor kuchyňu → QR → cudzí sa pripojí"</div><div class="task-desc">Z v1 — s reálnym druhým človekom, nie sám so sebou.</div></div><div class="tags"><span class="tag tag-plan">Plán</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Onboarding text + kanál na feedback + Podmienky/Privacy stránka</div><div class="task-desc">Z v1. Privacy je s Working Time (dochádzkové dáta zamestnancov, nDSG) dôležitejšia, než vyzerá.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Label printer + papierový fallback plán pre servis</div><div class="task-desc">Z v1 — Brother QL-820NWB, a odporúčanie pre kuchyne, čo robiť pri výpadku.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase-head">
+    <div class="phase-num">02</div>
+    <div class="phase-title-wrap"><h2>Fáza 2 — Kitchen Flow MVP</h2><div class="sub">Doplnené o architektonickú otázku, ktorú v1 minula</div></div>
+    <span class="phase-status st-open">Čiastočne rozbehnuté</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Overiť/zapojiť skutočný realtime — zmena na jednej stanici sa musí objaviť na druhej BEZ refreshu</div><div class="task-desc">MVP_DEFINITION sľubuje „updates visible to everyone in real time" a ARCHITECTURE.md to volá „the pass". Supabase Realtime (postgres_changes subscriptions) na to existuje, ale z roadmapy nie je jasné, že je reálne zapojený — ak Check List vyžaduje manuálny refresh, kľúčový sľub produktu zatiaľ nie je splnený. Toto je definičná vlastnosť Kitchen Flow, over ju ako prvú.</div><span class="role">Solution Architect</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Jadro produktu</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Naplánovať rozdelenie single-file architektúry — podľa vlastného ARCHITECTURE.md</div><div class="task-desc">Tvoj vlastný dokument hovorí, že single-file štruktúra „does NOT carry forward" — no appka je stále jeden obrovský index.html a rastie o desiatky funkcií denne. Netreba prepisovať hneď, ale treba stanoviť bod, kedy sa rozdelí (napr. po triale), inak sa každá ďalšia zmena stáva rizikovejšou (script-order bug bol prvé varovanie).</div><span class="role">Solution Architect + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Audit log — kto kedy odklikol/zmenil položku</div><div class="task-desc">V kuchyni je „kto to označil ako hotové" polovica hodnoty Check Listu (tvoja vlastná MVP veta: „without a single conversation about whose fault it is"). Bez záznamu autora zmeny sa tento sľub nedá splniť.</div><span class="role">Solution Architect + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Role a oprávnenia · reálne časy namiesto placeholderov · test v ostrom servise · validácia formátu receptu · kalibrácia overload prahu</div><div class="task-desc">Všetko z v1 — zostáva v plnom rozsahu.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase-head">
+    <div class="phase-num">03</div>
+    <div class="phase-title-wrap"><h2>Fáza 3 — Inventory, Food Cost &amp; Shopping</h2><div class="sub">Doplnené o dátovú integritu</div></div>
+    <span class="phase-status st-open">Čiastočne predbehnuté</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Vyriešiť multi-tenant konflikt zdieľanej ingredient tabuľky</div><div class="task-desc">Ak je ingredients tabuľka spoločná pre všetky kuchyne, potom keď jedna kuchyňa zmení cenu masla, zmení ju všetkým — ceny od dodávateľov sú pritom pre každú kuchyňu iné. Treba rozhodnúť: globálny katalóg + per-kitchen ceny (správne riešenie), alebo kópia tabuľky pre každú kuchyňu. Toto treba rozhodnúť SKÔR, než pribudnú ďalšie tímy s vlastnými cenami — spätná migrácia bude bolieť.</div><span class="role">Solution Architect</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Pred trialom zvážiť</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Yield/waste faktor v kalkulácii food costu</div><div class="task-desc">Profesionálny food cost počíta s výťažnosťou (očistená ryba ≠ kúpená ryba, šupky, odrezky). Bez yield % bude vypočítaný cost systematicky podhodnotený — a šéfkuchári, ktorým to predávaš, si to všimnú ako prví.</div><span class="role">PM (a ty ako kuchár to vieš najlepšie)</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Inventory modul · recepty→spotreba→sklad · Shopping Lists · overenie cien · rozhodnutie o Master DB</div><div class="task-desc">Všetko z v1 — zostáva.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+  </div>
+
+  <!-- PHASE 4-5 -->
+  <div class="phase-head">
+    <div class="phase-num">04–05</div>
+    <div class="phase-title-wrap"><h2>Fázy 4–5 — Plánovanie, reporty, AI vrstva</h2><div class="sub">v1 pokrytie stačí, jeden doplnok</div></div>
+    <span class="phase-status st-future">Budúcnosť</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Service planning · prep forecasting · reporty · export dát · AI odporúčania · schedule coverage assistant · monetizácia AI</div><div class="task-desc">Všetko z v1 — zostáva bez zmeny.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Retenčná politika dát + anonymizácia pre AI učenie</div><div class="task-desc">Fáza 5 sa má učiť z „reálnych dát používania" — tie patria kuchyniam. Vopred definuj (a napíš do podmienok), či a ako sa dáta jednej kuchyne používajú na zlepšovanie produktu. Enterprise zákazník sa na toto opýta ako na prvé.</div><span class="role">CTO + Founder</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+  </div>
+
+  <!-- PHASE 6-7 -->
+  <div class="phase-head">
+    <div class="phase-num">06–07</div>
+    <div class="phase-title-wrap"><h2>Fázy 6–7 — Platform Expansion &amp; Launch</h2><div class="sub">v1 + doplnky z founder pohľadu</div></div>
+    <span class="phase-status st-future">Budúcnosť</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Natívne appky · desktop · offline mode (priorita vyššie!) · multi-location · App Store · pricing · onboarding bez teba · go-to-market · Nooch kontakt · GmbH spúšťač · HACCP zodpovednosť/poistenie</div><div class="task-desc">Všetko z v1 — zostáva. Offline mode naďalej odporúčam potiahnuť dopredu.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Fakturácia: použiť hotové riešenie (Stripe Billing / Paddle / Lemon Squeezy), nie stavať vlastné</div><div class="task-desc">v1 správne pomenovala „chýba billing", ale nepovedala ako: pre solo foundera je Merchant-of-Record riešenie (Paddle/Lemon Squeezy rieši aj DPH/VAT v EÚ a CH za teba) obrovská úspora oproti Stripe + vlastné daňové priznania v každej krajine.</div><span class="role">Founder + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Validovať ochotu platiť EŠTE POČAS trialu — nie až vo Fáze 7</div><div class="task-desc">Founding-member pre-sales bol tvoj vlastný zaznamenaný mechanizmus prvého príjmu, no v aktuálnych dokumentoch zmizol. Trial s 25 ľuďmi je presne moment na otázku „zaplatil by si X CHF/mesiac?" — reálny prísľub peňazí je jediná skutočná validácia a zároveň podklad pre investorov/granty.</div><span class="role">Founder + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Aktualizovať konkurenčnú analýzu pred predajom</div><div class="task-desc">Deck má sekciu competitive landscape, ale trh kitchen-management SaaS (Apicbase, MarketMan, Flipdish a pod.) sa hýbe rýchlo — pred prvým predajným rozhovorom over, čo konkurenti medzičasom vydali a za koľko.</div><span class="role">PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+  </div>
+
+  <!-- CROSS CUTTING -->
+  <div class="phase-head">
+    <div class="phase-num">∞</div>
+    <div class="phase-title-wrap"><h2>Prierezové — priebežne</h2><div class="sub">v1 + procesné doplnky</div></div>
+    <span class="phase-status st-open">Priebežne</span>
+  </div>
+  <div class="phase-rule"></div>
+  <div class="tasklist">
+    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">RLS bezpečnostný audit · uptime monitoring · support kanál · Innosuisse/Venturelab grant · live test na reálnom iOS zariadení</div><div class="task-desc">Všetko z v1 — zostáva. Dva konkrétne chýbajúce RLS prípady (kitchens UPDATE, station_icons DELETE) už opravené v 48_kitchens_and_station_icons_policy_fix.sql.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Zaviesť poradie nasadzovania: staging → regresný checklist → prod (nikdy naopak)</div><div class="task-desc">Nie je to úloha, je to zvyk — ale musí sa rozhodnúť raz a dodržiavať. Kombinuje tri v2 položky (Git, staging, checklist) do jedného pracovného postupu.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Penetračný pohľad na access gate a invite linky pred rastom</div><div class="task-desc">Kitchen UUID ako invite token je pre v1 OK, ale link sa dá preposlať komukoľvek navždy — pred platiacimi zákazníkmi pridaj expiráciu/revokáciu pozvánok a „odstrániť člena z tímu" (dnes neexistuje spôsob, ako niekoho z kuchyne vyhodiť).</div><span class="role">CTO + Solution Architect</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Definovať „severnú hviezdu" metriku produktu</div><div class="task-desc">Jedno číslo, ktoré sleduje zdravie produktu naprieč všetkým fázami — pre ChefOS pravdepodobne „počet kuchýň, ktoré použili Check List počas reálneho servisu tento týždeň". Všetko ostatné (funkcie, dizajn, AI) je podriadené tomuto číslu.</div><span class="role">PM + Founder</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+  </div>
+
+  <div class="callout">
+    <div class="k">Najdôležitejší záver expert review</div>
+    <p>v1 zoznam bol o produkte. Chýbali v ňom tri kategórie, ktoré potápajú startupy častejšie než chýbajúce funkcie: <b style="color:var(--ink);">(1) právne základy</b> — IP voči zamestnávateľovi, s ktorým máš zároveň spor, je najvážnejšie jediné riziko v celom projekte; <b style="color:var(--ink);">(2) inžinierska disciplína</b> — žiadny Git, žiadny staging, SQL rovno na produkciu, jeden súbor bez zálohy; <b style="color:var(--ink);">(3) validácia peniazmi</b> — trial bez vopred definovaného úspechu a bez otázky „zaplatil by si?" je len demo pre kamarátov.</p>
+  </div>
+
+  <div class="callout ok">
+    <div class="k">Poradie na najbližších 14 dní</div>
+    <p>1. Git repo (30 min) → 2. Zálohy DB + test obnovy → 3. IP kontrola pracovnej zmluvy + rozhodnutie o pilotnej kuchyni po zmene práce → 4. Resend doména → 5. Staging projekt → 6. API kľúč na server → 7. Regresný checklist + manuálny test → 8. Kritériá úspechu trialu + jednoduchá analytika → potom trial.</p>
+  </div>
+
+  <footer>ChefOS — kompletný zoznam úloh v2 · expert review: PM / CTO / Solution Architect / UX Lead / QA Lead / SaaS Founder · aktualizuje sa denne · 13. 7. 2026</footer>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+-- ChefOS — kitchen-wide display currency (Richard: "chcem mať možnosť v hlavnom menu zmeniť
+-- menu eura frank dolár"). Every ingredient price is still stored in EUR (matches the existing
+-- 535+ ingredient rows and every cost calculation in the app) — this column only controls how
+-- prices are *displayed*, for the whole team at once, via a fixed approximate conversion rate
+-- (see CURRENCY_INFO in app/index.html), not a live exchange rate. Changing it is gated to
+-- admins in the app (a Home-screen tile), since it affects what every device shows, not just
+-- the one making the change.
+--
+-- Defaulting to CHF, not EUR: Richard is running this kitchen in Switzerland, where Swiss
+-- Francs are the real local currency, and the investor presentation is also being done in CHF.
+-- Adding the column with `default 'CHF'` backfills every existing kitchen row (there's currently
+-- only the one pilot kitchen) to CHF immediately, without needing to know/guess its id.
+alter table kitchens add column if not exists display_currency text not null default 'CHF';

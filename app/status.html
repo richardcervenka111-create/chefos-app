@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Stav k 13.7.2026</title>
+<style>
+  /* ChefOS standing visual identity — same tokens as presentation.html / planning.html /
+     tasklist.html, used across every ChefOS internal document. */
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4);
+    --danger:#FF7A68; --danger-dim:rgba(255,122,104,0.4);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px 100px 24px; }
+
+  header.hero{ padding:48px 0 34px 0; border-bottom:1px solid var(--rule); }
+  .brandmark{ display:flex; align-items:center; gap:9px; margin-bottom:22px; }
+  .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:0.02em; color:var(--accent); }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
+  h1.title{ font-size:38px; font-weight:700; margin:0 0 14px 0; line-height:1.12; }
+  h1.title em{ font-style:italic; color:var(--accent); font-weight:700; }
+  .lede{ color:var(--ink-dim); font-size:15px; max-width:64ch; line-height:1.65; }
+  .meta-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:26px; }
+  @media (max-width:720px){ .meta-row{ grid-template-columns:repeat(2,1fr); } }
+  .meta-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 16px; }
+  .meta-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); margin-bottom:4px; }
+  .meta-value{ font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:var(--ink); }
+
+  section{ padding:44px 0; border-bottom:1px solid var(--rule); }
+  section:last-of-type{ border-bottom:none; }
+  .section-label{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .section-label .n{ font-family:"SF Mono",Menlo,monospace; color:var(--accent); font-size:13px; }
+  .section-label h2{ font-size:13px; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink); margin:0; font-weight:700; }
+  .section-label .rule{ flex:1; height:1px; background:var(--rule); }
+
+  /* ---------- Board ---------- */
+  .board{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media (max-width:820px){ .board{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:520px){ .board{ grid-template-columns:1fr; } }
+  .col{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; overflow:hidden; }
+  .col-head{
+    padding:11px 14px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; font-weight:700;
+    display:flex; align-items:center; border-bottom:1px solid var(--rule);
+  }
+  .col-head .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:7px; flex:none; }
+  .col-done .col-head{ color:var(--accent); } .col-done .dot{ background:var(--accent); }
+  .col-prog .col-head{ color:var(--gold); } .col-prog .dot{ background:var(--gold); }
+  .col-block .col-head{ color:var(--danger); } .col-block .dot{ background:var(--danger); }
+  .col-wait .col-head{ color:var(--ink-dim); } .col-wait .dot{ background:var(--ink-dim); }
+  .col-body{ padding:10px; display:flex; flex-direction:column; gap:8px; min-height:60px; }
+  .ticket{ background:var(--paper-raised); border:1px solid var(--rule); border-radius:8px; padding:9px 10px; font-size:12.5px; line-height:1.4; }
+  .ticket b{ display:block; font-size:12.5px; margin-bottom:2px; color:var(--ink); }
+  .ticket span{ color:var(--ink-dim); font-size:11.5px; }
+
+  /* ---------- Timeline ---------- */
+  .timeline{ position:relative; padding-left:26px; }
+  .timeline::before{ content:''; position:absolute; left:6px; top:6px; bottom:6px; width:1px; background:var(--rule); }
+  .tl-item{ position:relative; padding-bottom:30px; }
+  .tl-item:last-child{ padding-bottom:0; }
+  .tl-item::before{
+    content:''; position:absolute; left:-26px; top:3px; width:11px; height:11px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--ink-dim);
+  }
+  .tl-item.now::before{ border-color:var(--gold); background:var(--gold); }
+  .tl-item.done::before{ border-color:var(--accent); background:var(--accent); }
+  .tl-item.risk::before{ border-color:var(--danger); background:var(--danger); }
+  .tl-date{ font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); margin-bottom:5px; }
+  .tl-title{ font-size:19px; font-weight:700; margin:0 0 7px 0; color:var(--ink); }
+  .tl-body{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; max-width:620px; }
+  .tl-body b{ color:var(--ink); font-weight:600; }
+  .tag{
+    display:inline-block; font-size:10px; text-transform:uppercase; letter-spacing:0.06em;
+    padding:3px 9px; border-radius:20px; margin-top:9px; font-weight:700;
+  }
+  .tag.risk{ background:rgba(255,122,104,0.14); color:var(--danger); }
+  .tag.ok{ background:rgba(52,247,215,0.14); color:var(--accent); }
+
+  /* ---------- Callouts (reuses presentation.html's .disclaimer pattern) ---------- */
+  .callout{
+    border:1px solid var(--danger-dim); background:rgba(255,122,104,0.08);
+    border-radius:10px; padding:16px 18px; margin-top:16px;
+  }
+  .callout .k{ font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--danger); font-weight:700; margin-bottom:7px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
+  .callout code{ background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:4px; font-size:12px; color:var(--accent); }
+  .callout.ok{ border-color:var(--accent-dim); background:rgba(52,247,215,0.08); }
+  .callout.ok .k{ color:var(--accent); }
+
+  footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:40px 0 20px 0; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap" style="padding:0; border:none;">
+    <div class="brandmark">
+      <svg width="24" height="24" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
+      <span class="word">ChefOS</span>
+    </div>
+    <div class="kicker">Stavový lístok · Kuchynský denník</div>
+    <h1 class="title">Kde presne stojí <em>ChefOS</em> dnes</h1>
+    <p class="lede">Prehľad na základe ROADMAP.md, MVP_DEFINITION.md, ARCHITECTURE.md a FEATURE_ROADMAP.md. Pilotná kuchyňa už reálne beží — otázka nie je „kedy začať", ale „kedy je to bezpečné pustiť k cudzím ľuďom a k peniazom".</p>
+    <div class="meta-row">
+      <div class="meta-card"><div class="meta-label">Fáza podľa plánu</div><div class="meta-value">1 z 7</div></div>
+      <div class="meta-card"><div class="meta-label">Reálny rozsah práce</div><div class="meta-value">Zasahuje do fáz 1–3</div></div>
+      <div class="meta-card"><div class="meta-label">Aktívnych pilotných užívateľov</div><div class="meta-value">3 (Richard + 2)</div></div>
+      <div class="meta-card"><div class="meta-label">Cieľ verejného trialu</div><div class="meta-value">1. 8. 2026</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <div class="section-label"><span class="n">01</span><h2>Prep board — kde je čo</h2><div class="rule"></div></div>
+
+    <div class="board">
+      <div class="col col-done">
+        <div class="col-head"><span class="dot"></span>Hotovo</div>
+        <div class="col-body">
+          <div class="ticket"><b>Recipe engine na Supabase</b><span>173 receptov migrovaných, škálovanie opravené, edit/save funguje naživo</span></div>
+          <div class="ticket"><b>Ingredients &amp; Pricing</b><span>~1300 ingrediencií, cost-matching engine, plne filtrovateľné (kuchyňa, kategória, sezóna, skladovanie, overenosť ceny)</span></div>
+          <div class="ticket"><b>Check List (Kitchen Flow v1)</b><span>Cross-station prehľad, 8 staníc, prep sheets, AI sken fotky/PDF, Language Audit</span></div>
+          <div class="ticket"><b>Multi-tenant + QR tímy</b><span>Vlastná kuchyňa, invite QR s logom, prístupová brána so schvaľovaním</span></div>
+          <div class="ticket"><b>Working Time</b><span>Check-in/out, nahrávanie rozvrhu, grafy odpracovaných hodín</span></div>
+          <div class="ticket"><b>Chef's Assistant</b><span>AI chat, substitúcie, technika + generovanie nových receptov na mieru filtrom</span></div>
+          <div class="ticket"><b>Investor deck</b><span>presentation.html, priebežne aktualizovaný, Nooch pridaný ako prvý cieľ</span></div>
+          <div class="ticket"><b>Vizuálna identita v2</b><span>Navy/teal na dokumentoch, nové logo appky, jednotný dizajn naprieč appkou</span></div>
+        </div>
+      </div>
+
+      <div class="col col-prog">
+        <div class="col-head"><span class="dot"></span>Rozbehnuté</div>
+        <div class="col-body">
+          <div class="ticket"><b>Recipe formulár — 20 polí</b><span>DB má všetky polia, formulár ukazuje len časť</span></div>
+          <div class="ticket"><b>Ingredient DB rozšírenie</b><span>104 reálnych cien od dodávateľa importovaných, zvyšok stále odhad AI</span></div>
+          <div class="ticket"><b>Overovanie cien</b><span>Nový filter Verified/Estimated/Missing to teraz robí viditeľným, väčšina stále odhad</span></div>
+          <div class="ticket"><b>Label printer</b><span>Odporúčanie hotové (Brother QL-820NWB), fyzicky ešte nekúpené</span></div>
+          <div class="ticket"><b>Fridge temp senzor</b><span>Odporúčanie hotové (SensorPush), fyzicky ešte nekúpené, integrácia nezačatá</span></div>
+        </div>
+      </div>
+
+      <div class="col col-block">
+        <div class="col-head"><span class="dot"></span>Blokované</div>
+        <div class="col-body">
+          <div class="ticket"><b>Email login pre cudzie adresy</b><span>Resend sandbox limit — nutná verifikácia domény alebo Supabase mailer</span></div>
+          <div class="ticket"><b>Živé testovanie v prehliadači</b><span>Agent nemá prístup k reálnemu zariadeniu — väčšina nedávnych funkcií nebola naživo overená</span></div>
+        </div>
+      </div>
+
+      <div class="col col-wait">
+        <div class="col-head"><span class="dot"></span>Čaká</div>
+        <div class="col-body">
+          <div class="ticket"><b>Fakturácia / predplatné</b><span>Žiadny billing systém zatiaľ nie je súčasťou plánu ani kódu</span></div>
+          <div class="ticket"><b>GmbH</b><span>Vedome odložené až po prvom reálnom príjme</span></div>
+          <div class="ticket"><b>Fázy 3 (zvyšok)–7</b><span>Inventory, plánovanie, reporty, AI odporúčania, natívna appka, launch</span></div>
+          <div class="ticket"><b>Prvý predajný kontakt</b><span>Nooch Asian Kitchen identifikovaný ako cieľ (3 pobočky v kantóne Bern), zatiaľ bez oslovenia</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label"><span class="n">02</span><h2>Časová os — tri reálne míľniky</h2><div class="rule"></div></div>
+
+    <div class="timeline">
+      <div class="tl-item done">
+        <div class="tl-date">Od 9. 7. 2026 — už beží</div>
+        <div class="tl-title">Neformálny pilot v jednej kuchyni</div>
+        <div class="tl-body">Toto sa už deje. Richard a dvaja testeri reálne používajú recepty, Check List aj Ingredients naživo na Supabase. Toto <b>nie je budúcnosť — je to súčasný stav</b>.</div>
+        <span class="tag ok">Aktívne</span>
+      </div>
+
+      <div class="tl-item now">
+        <div class="tl-date">Cieľ: 1. 8. 2026 (realisticky skôr polovica augusta)</div>
+        <div class="tl-title">Verejný trial — 25 ľudí, viac reštaurácií</div>
+        <div class="tl-body">Rozsah zámerne úzky: len Check List, Chef's Assistant, Ingredients, Recipes. Technicky takmer pripravené (multi-tím + QR pozvánky + schvaľovacia brána je hotová) — chýba jeden tvrdý blocker a jeden kvalitatívny krok.</div>
+        <div class="callout">
+          <div class="k">Čo reálne stojí v ceste</div>
+          <p>1) <b style="color:var(--ink);">Email prihlásenie pre cudzie adresy</b> je technicky zablokované — Resend posiela len na Richardovu vlastnú adresu, kým sa neoverí doména (<code>DNS záznamy</code>) alebo sa neprepne na vstavaný Supabase mailer. Toto je hodiny až pár dní práce, nie týždne — ale bez toho sa 25 cudzích ľudí nemôže prihlásiť.<br><br>
+            2) Za posledný týždeň pribudlo veľmi veľa funkcií (desiatky zápisov v roadmape) a väčšina z nich <b style="color:var(--ink);">nebola nikdy naživo otestovaná v prehliadači</b> — agent len kontroloval kód štrukturálne. Pred pustením 25 cudzích ľudí k appke to chce jeden poctivý manuálny testovací prechod.</p>
+        </div>
+      </div>
+
+      <div class="tl-item risk">
+        <div class="tl-date">Realistický odhad: Q4 2026 (okt–dec), nie skôr</div>
+        <div class="tl-title">Reálny produkt pripravený na predaj</div>
+        <div class="tl-body">Toto je vedomý odhad, nie sľub — tempo builda je mimoriadne rýchle (desiatky funkcií za pár dní), ale „predajné" chýba viac než kód:</div>
+        <div class="tl-body" style="margin-top:6px;">
+          • Žiadna fakturácia/predplatné (nikde v pláne ani kóde)<br>
+          • Ceny ingrediencií z veľkej časti stále odhadované AI, nie overené — pre platiaci food-cost nástroj to treba dotiahnuť<br>
+          • Kitchen Flow reálne overený len v jednej kuchyni, nie cez skutočnú prevádzku v tlaku servisu vo viacerých podnikoch<br>
+          • Žiadna právnická/zmluvná vrstva (GmbH vedome odložená)<br>
+          • Fázy 3 (zvyšok) až 7 podľa plánu ešte len prídu na rad
+        </div>
+        <span class="tag risk">Závisí od výsledku trialu</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label"><span class="n">03</span><h2>Jedna vec, ktorú treba mať na pamäti</h2><div class="rule"></div></div>
+    <div class="callout ok">
+      <div class="k">Rýchlosť vs. overenie</div>
+      <p>Objem hotovej práce je naozaj veľký na to, koľko dní to trvalo — ale rýchlosť buildu (AI agent, žiadny live prístup k zariadeniu) znamená, že <b style="color:var(--ink);">kvalita a stabilita zaostávajú za rozsahom</b>. Pred verejným trialom aj pred akýmkoľvek predajným rozhovorom (napr. Nooch) treba jeden manuálny prechod appkou naživo — nie ďalšiu funkciu.</p>
+    </div>
+  </section>
+
+  <footer class="foot">ChefOS — interný stavový prehľad · zostavené z ROADMAP.md, MVP_DEFINITION.md, ARCHITECTURE.md, FEATURE_ROADMAP.md, LABEL_PRINTER_RESEARCH.md · aktualizuje sa denne · 13. 7. 2026</footer>
+</div>
+</body>
+</html>

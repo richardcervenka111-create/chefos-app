@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Chaos Is Optional</title>
+<style>
+  :root{
+    --bg: #171512;
+    --surface: #1f1c18;
+    --surface-raised: #26221d;
+    --ink: #ece5d8;
+    --ink-dim: #a89f8f;
+    --ink-faint: #6f6656;
+    --rule: #34302a;
+    --copper: #c9895a;
+    --copper-dim: #7d5136;
+    --copper-wash: rgba(201,137,90,0.10);
+    --sage: #94a483;
+    --sage-wash: rgba(148,164,131,0.10);
+    --rust: #a85a3f;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg: #f4efe3;
+      --surface: #fffcf6;
+      --surface-raised: #ece2cc;
+      --ink: #241f18;
+      --ink-dim: #675e4d;
+      --ink-faint: #9b9078;
+      --rule: #ddd0b0;
+      --copper: #a0602f;
+      --copper-dim: #c9895a;
+      --copper-wash: rgba(160,96,47,0.08);
+      --sage: #59704a;
+      --sage-wash: rgba(89,112,74,0.08);
+      --rust: #a0472f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #171512; --surface: #1f1c18; --surface-raised: #26221d;
+    --ink: #ece5d8; --ink-dim: #a89f8f; --ink-faint: #6f6656; --rule: #34302a;
+    --copper: #c9895a; --copper-dim: #7d5136; --copper-wash: rgba(201,137,90,0.10);
+    --sage: #94a483; --sage-wash: rgba(148,164,131,0.10); --rust: #a85a3f;
+  }
+  :root[data-theme="light"]{
+    --bg: #f4efe3; --surface: #fffcf6; --surface-raised: #ece2cc;
+    --ink: #241f18; --ink-dim: #675e4d; --ink-faint: #9b9078; --rule: #ddd0b0;
+    --copper: #a0602f; --copper-dim: #c9895a; --copper-wash: rgba(160,96,47,0.08);
+    --sage: #59704a; --sage-wash: rgba(89,112,74,0.08); --rust: #a0472f;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  html,body{ margin:0; padding:0; background:var(--bg); overflow-x:hidden; }
+  body{
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--copper); color: var(--bg); }
+  .serif{ font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; }
+  .mono{ font-family: "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a{ color:inherit; }
+
+  .wrap{ max-width: 1040px; margin: 0 auto; padding: 0 28px; }
+  .prose{ max-width: 640px; }
+
+  .eyebrow{
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 11.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--copper); font-weight:600;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom: 22px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--copper); }
+
+  h2.head{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: clamp(30px, 4.4vw, 46px);
+    font-weight: 500;
+    line-height: 1.14;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 26px 0;
+  }
+
+  section{ padding: 118px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type{ border-bottom:none; }
+
+  .reveal{ opacity:0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible{ opacity:1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+
+  /* ================= HERO ================= */
+  .hero{
+    min-height: 92vh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding: 140px 0 90px 0;
+    border-bottom: 1px solid var(--rule);
+    position:relative;
+  }
+  .hero-mark{
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px; letter-spacing: 0.3em; text-transform:uppercase;
+    color: var(--ink-faint); margin-bottom: 46px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .hero-mark .pulse{
+    width:7px; height:7px; border-radius:50%; background:var(--copper);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.25; } }
+  h1.hero-head{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: clamp(40px, 7.4vw, 84px);
+    font-weight: 500;
+    line-height: 1.06;
+    letter-spacing: -0.015em;
+    max-width: 15ch;
+    margin: 0 0 34px 0;
+  }
+  h1.hero-head .ln{ display:block; overflow:hidden; }
+  h1.hero-head .ln span{
+    display:inline-block;
+    opacity:0; transform: translateY(100%);
+    animation: riseIn 0.85s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes riseIn{ to{ opacity:1; transform:translateY(0); } }
+  @media (prefers-reduced-motion: reduce){
+    h1.hero-head .ln span{ animation:none; opacity:1; transform:none; }
+  }
+  .hero-sub{
+    font-size: 19px; color: var(--ink-dim);
+    max-width: 46ch; margin: 0 0 40px 0;
+    opacity:0; animation: fadeUp 0.8s ease 1.05s forwards;
+  }
+  @media (prefers-reduced-motion: reduce){ .hero-sub{ opacity:1; animation:none; } }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .hero-foot{
+    display:flex; flex-wrap:wrap; gap: 10px 24px;
+    font-size: 12.5px; color: var(--ink-faint);
+    padding-top: 22px; border-top:1px solid var(--rule); max-width:520px;
+    opacity:0; animation: fadeUp 0.8s ease 1.3s forwards;
+  }
+  @media (prefers-reduced-motion: reduce){ .hero-foot{ opacity:1; animation:none; } }
+  .hero-foot b{ color:var(--ink-dim); font-weight:600; }
+
+  /* ================= PROBLEM ================= */
+  .problem-lines{ font-family: Georgia, "Iowan Old Style", serif; }
+  .problem-lines p{
+    font-size: clamp(19px, 2.6vw, 25px);
+    line-height: 1.55;
+    color: var(--ink-dim);
+    margin: 0 0 20px 0;
+    max-width: 30ch;
+  }
+  .problem-lines p.final{
+    color: var(--ink);
+    margin-top: 44px;
+    padding-top: 30px;
+    border-top: 1px solid var(--rule);
+    max-width: none;
+  }
+  .problem-lines p.final b{ color: var(--copper); font-weight:600; font-style:normal; }
+
+  /* ================= VISION ================= */
+  .vision-quote{
+    font-family: Georgia, "Iowan Old Style", serif;
+    font-style: italic;
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.4;
+    color: var(--ink);
+    max-width: 20ch;
+    margin: 46px 0 0 0;
+    padding-left: 24px;
+    border-left: 2px solid var(--copper-dim);
+  }
+  .vision-body p{ font-size:17px; color:var(--ink-dim); margin:0 0 16px 0; }
+
+  /* ================= TRANSFORM (before/after) ================= */
+  .xform{ border-top: 1px solid var(--rule); }
+  .xform-row{
+    display:grid;
+    grid-template-columns: 1fr 30px 1.15fr;
+    align-items: center;
+    gap: 22px;
+    padding: 34px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .xform-before{
+    font-size: 14.5px;
+    color: var(--ink-faint);
+    line-height:1.5;
+  }
+  .xform-before .lbl{ display:block; font-family:"SF Mono",monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px; }
+  .xform-arrow{ color: var(--copper-dim); font-size:18px; text-align:center; }
+  .xform-after .lbl{ display:block; font-family:"SF Mono",monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--sage); margin-bottom:6px; }
+  .xform-after .headline{
+    font-family: Georgia, "Iowan Old Style", serif;
+    font-size: 21px; font-weight:500; color:var(--ink); margin-bottom:6px; line-height:1.3;
+  }
+  .xform-after .detail{ font-size:14px; color:var(--ink-dim); line-height:1.5; }
+  @media (max-width: 640px){
+    .xform-row{ grid-template-columns: 1fr; gap:10px; }
+    .xform-arrow{ text-align:left; transform:rotate(90deg); width:18px; }
+  }
+
+  /* ================= ROADMAP (spine) ================= */
+  .spine{ position:relative; margin-top: 50px; }
+  .spine::before{
+    content:''; position:absolute; left:9px; top:8px; bottom:8px; width:1px;
+    background: linear-gradient(to bottom, var(--copper-dim), var(--rule) 70%);
+  }
+  .stage{ position:relative; padding: 0 0 46px 46px; }
+  .stage:last-child{ padding-bottom:0; }
+  .stage-dot{
+    position:absolute; left:0; top:3px;
+    width:19px; height:19px; border-radius:50%;
+    background: var(--bg); border: 2px solid var(--rule);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stage-dot::after{ content:''; width:7px; height:7px; border-radius:50%; }
+  .stage.live .stage-dot{ border-color: var(--sage); }
+  .stage.live .stage-dot::after{ background: var(--sage); }
+  .stage.emerging .stage-dot{ border-color: var(--copper); }
+  .stage.emerging .stage-dot::after{ background: var(--copper); }
+  .stage.ahead .stage-dot::after{ background: transparent; }
+  .stage-top{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  .stage-name{ font-family: Georgia, "Iowan Old Style", serif; font-size:22px; font-weight:500; }
+  .stage-tag{
+    font-family:"SF Mono",monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
+    padding:2px 8px; border-radius:999px; border:1px solid var(--rule); color:var(--ink-faint);
+  }
+  .stage.live .stage-tag{ color:var(--sage); border-color:var(--sage); background:var(--sage-wash); }
+  .stage.emerging .stage-tag{ color:var(--copper); border-color:var(--copper-dim); background:var(--copper-wash); }
+  .stage-desc{ font-size:15px; color:var(--ink-dim); max-width:52ch; }
+
+  /* ================= PROGRESS ================= */
+  .progress-body p{ font-size:18px; color:var(--ink-dim); max-width:64ch; line-height:1.65; }
+  .progress-body strong{ color:var(--ink); font-weight:600; }
+  .progress-stats{
+    display:flex; flex-wrap:wrap; gap: 40px;
+    margin-top: 54px; padding-top: 34px; border-top:1px solid var(--rule);
+  }
+  .pstat .n{ font-family:"SF Mono",monospace; font-size:34px; font-weight:600; color:var(--copper); font-variant-numeric:tabular-nums; }
+  .pstat .l{ font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); margin-top:4px; max-width:16ch; }
+
+  /* ================= FOOTER ================= */
+  footer{ padding: 60px 0 70px 0; }
+  footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12.5px; color:var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-mark"><span class="pulse"></span>ChefOS — an operating system for professional kitchens</div>
+    <h1 class="hero-head">
+      <span class="ln"><span style="animation-delay:.05s">Kitchens have run</span></span>
+      <span class="ln"><span style="animation-delay:.20s">on chaos for a</span></span>
+      <span class="ln"><span style="animation-delay:.35s">hundred years.</span></span>
+      <span class="ln"><span style="animation-delay:.55s; color:var(--copper);">We think that's optional.</span></span>
+    </h1>
+    <p class="hero-sub">Built inside a real kitchen, not around one. One shared place for what a kitchen knows, what's happening right now, and what tomorrow needs — instead of twelve notebooks and somebody's memory.</p>
+    <div class="hero-foot">
+      <span><b>Status</b> Working build, in daily use</span>
+      <span><b>Built by</b> Richard Červenka</span>
+      <span><b>Where</b> Bratislava</span>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow reveal">The Problem</div>
+    <h2 class="head reveal">Every kitchen has accepted the same chaos.</h2>
+    <div class="problem-lines reveal">
+      <p>The head chef's technique lives in her head, and nowhere else.</p>
+      <p>A note gets passed at the pass, and half of it never reaches the line.</p>
+      <p>Prep gets forgotten until the first ticket's already up.</p>
+      <p>A tray goes in the bin, and nobody can say what it actually cost.</p>
+      <p>Something goes wrong — and the question becomes <em>who</em>, never <em>why</em>.</p>
+      <p class="final">Every kitchen has learned to live with this. <b>ChefOS hasn't.</b></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap:60px; align-items:start;">
+      <div>
+        <div class="eyebrow reveal">The Vision</div>
+        <h2 class="head reveal">A kitchen that remembers.</h2>
+        <div class="vision-body prose reveal">
+          <p>Software changed how companies keep the truth — one record everyone trusts, instead of a dozen private ones. Kitchens never got that.</p>
+          <p>ChefOS treats a kitchen the same way. What one cook knows, every cook can know. What's happening on the line right now is visible to whoever needs to see it — not just whoever's shouting loudest.</p>
+          <p>Nothing depends on being remembered, because nothing has to be.</p>
+        </div>
+      </div>
+      <blockquote class="vision-quote reveal">Chaos isn't a kitchen tradition. It's just the oldest bug nobody's fixed.</blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="xform">
+  <div class="wrap">
+    <div class="eyebrow reveal">What It Does Today</div>
+    <h2 class="head reveal">Not features. A different kitchen.</h2>
+
+    <div class="xform-row reveal">
+      <div class="xform-before"><span class="lbl">Before</span>Recipes live in binders, sticky notes, and one chef's memory.</div>
+      <div class="xform-arrow">→</div>
+      <div class="xform-after">
+        <span class="lbl">After</span>
+        <div class="headline">Shared kitchen knowledge.</div>
+        <div class="detail">Every recipe, in one place, built for a working line — not a cookbook shelf.</div>
+      </div>
+    </div>
+
+    <div class="xform-row reveal">
+      <div class="xform-before"><span class="lbl">Before</span>Nobody knows what a dish costs until the invoices land.</div>
+      <div class="xform-arrow">→</div>
+      <div class="xform-after">
+        <span class="lbl">After</span>
+        <div class="headline">Know exactly what every plate costs.</div>
+        <div class="detail">Calculated automatically, ingredient by ingredient, the moment the recipe is written.</div>
+      </div>
+    </div>
+
+    <div class="xform-row reveal">
+      <div class="xform-before"><span class="lbl">Before</span>Substitutions and seasonality live in someone's memory, if anywhere.</div>
+      <div class="xform-arrow">→</div>
+      <div class="xform-after">
+        <span class="lbl">After</span>
+        <div class="headline">Every ingredient carries its own knowledge.</div>
+        <div class="detail">Where it's from, when it's in season, what replaces it — one tap from any recipe.</div>
+      </div>
+    </div>
+
+    <div class="xform-row reveal">
+      <div class="xform-before"><span class="lbl">Before</span>Tomorrow's prep list gets handwritten tonight, half-followed tomorrow.</div>
+      <div class="xform-arrow">→</div>
+      <div class="xform-after">
+        <span class="lbl">After</span>
+        <div class="headline">Everyone knows what's finished. No shouting. No guessing.</div>
+        <div class="detail">Write the list once, in seconds. Everyone on tomorrow's shift reads the same one.</div>
+      </div>
+    </div>
+
+    <div class="xform-row reveal" style="border-bottom:none;">
+      <div class="xform-before"><span class="lbl">Before</span>Ordering happens from memory, station by station.</div>
+      <div class="xform-arrow">→</div>
+      <div class="xform-after">
+        <span class="lbl">After</span>
+        <div class="headline">Nobody forgets what needs ordering.</div>
+        <div class="detail">One list, organized the way the kitchen actually works — not the way a spreadsheet does.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow reveal">Where This Goes</div>
+    <h2 class="head reveal">Eight ideas, one at a time.</h2>
+    <p class="prose reveal" style="color:var(--ink-dim); font-size:16px; margin-top:-10px;">Built in the order a real kitchen would ask for them — not the order that's easiest to code.</p>
+
+    <div class="spine reveal">
+      <div class="stage live">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Knowledge</div><div class="stage-tag">Live</div></div>
+        <div class="stage-desc">Get everything out of people's heads and onto one page everyone can read.</div>
+      </div>
+      <div class="stage live">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Execution</div><div class="stage-tag">Live</div></div>
+        <div class="stage-desc">Turn that knowledge into what actually happens on the line, today.</div>
+      </div>
+      <div class="stage emerging">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Communication</div><div class="stage-tag">Emerging</div></div>
+        <div class="stage-desc">Let the whole team see the same truth, in real time — not just whoever's closest to the board.</div>
+      </div>
+      <div class="stage live">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Inventory</div><div class="stage-tag">Live</div></div>
+        <div class="stage-desc">Know what you have before you run out of it.</div>
+      </div>
+      <div class="stage ahead">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Production</div><div class="stage-tag">Ahead</div></div>
+        <div class="stage-desc">Plan a whole service, not one dish at a time.</div>
+      </div>
+      <div class="stage ahead">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Intelligence</div><div class="stage-tag">Ahead</div></div>
+        <div class="stage-desc">Let the kitchen learn from its own patterns, instead of relying on gut alone.</div>
+      </div>
+      <div class="stage ahead">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Multi-location</div><div class="stage-tag">Ahead</div></div>
+        <div class="stage-desc">One kitchen's knowledge becomes every kitchen's advantage.</div>
+      </div>
+      <div class="stage ahead">
+        <div class="stage-dot"></div>
+        <div class="stage-top"><div class="stage-name">Platform</div><div class="stage-tag">Ahead</div></div>
+        <div class="stage-desc">In every pocket, on every line — whether or not the wifi is any good.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow reveal">Right Now</div>
+    <h2 class="head reveal">This isn't a deck. It's running.</h2>
+    <div class="progress-body reveal">
+      <p><strong>173 real recipes</strong> carry real technique, not filler. <strong>535 ingredients</strong> already know their own price, their season, and what stands in for them when they're out. Every plate already knows roughly what it costs, before it's ever been plated. None of this is a mockup — it's the build, in a working kitchen's hands, tonight.</p>
+    </div>
+    <div class="progress-stats reveal">
+      <div class="pstat"><div class="n mono">173</div><div class="l">Recipes carrying real technique</div></div>
+      <div class="pstat"><div class="n mono">535</div><div class="l">Ingredients, priced &amp; seasoned</div></div>
+      <div class="pstat"><div class="n mono">8</div><div class="l">Stages on the way to done</div></div>
+      <div class="pstat"><div class="n mono">1</div><div class="l">Kitchen already using it</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>ChefOS — built kitchen-side out.</span>
+    <span>Bratislava, 2026.</span>
+  </div>
+</footer>
+
+<script>
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));
+  }
+</script>
+</body>
+</html>
