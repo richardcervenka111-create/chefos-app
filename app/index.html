@@ -7472,14 +7472,22 @@ async function saveFormBody(){
 /* ============================================================
    INGREDIENTS & PRICING VIEW
    ============================================================ */
-let ingredientActiveCuisine = 'All';
-let ingredientActiveSeason = 'All';
-let ingredientActiveStorage = 'All';
-let ingredientActiveCategory = 'All';
+// Each of these is a list of selected values, not a single value — Richard: wants to be able
+// to pick more than one option per filter row (e.g. Spring AND Summer at once). An empty list
+// means "any" (no restriction from that row). Selections within a row are OR'd together;
+// different rows are still AND'd together, same as before.
+let ingredientActiveCuisine = [];
+let ingredientActiveSeason = [];
+let ingredientActiveStorage = [];
+let ingredientActiveCategory = [];
 let ingredientActiveMinPrice = null; // stored in EUR, like ing.price itself
 let ingredientActiveMaxPrice = null;
 let ingredientActiveQuery = '';
 let ingredientEditingId = null;
+function toggleIngredientFilterValue(list, value){
+  const i = list.indexOf(value);
+  if(i > -1) list.splice(i, 1); else list.push(value);
+}
 
 function showIngredients(){
   logEvent('view_opened', {view:'ingredients'});
@@ -7506,7 +7514,7 @@ function closeIngredientFilters(){
 function refreshIngredientFiltersActiveDot(){
   const dot = document.getElementById('ingredientFiltersActiveDot');
   if(!dot) return;
-  const active = !!ingredientActiveQuery || ingredientActiveCuisine !== 'All' || ingredientActiveSeason !== 'All' || ingredientActiveStorage !== 'All' || ingredientActiveCategory !== 'All' || ingredientActiveMinPrice != null || ingredientActiveMaxPrice != null;
+  const active = !!ingredientActiveQuery || ingredientActiveCuisine.length>0 || ingredientActiveSeason.length>0 || ingredientActiveStorage.length>0 || ingredientActiveCategory.length>0 || ingredientActiveMinPrice != null || ingredientActiveMaxPrice != null;
   dot.style.display = active ? 'block' : 'none';
 }
 /* Price range replaces the old Verified/Estimated/Missing chips (removed 2026-07-13 — those
@@ -7528,10 +7536,10 @@ function handleIngredientPriceRangeInput(){
   refreshIngredientFiltersActiveDot();
 }
 function passesIngredientFilters(ing, q){
-  if(ingredientActiveCuisine !== 'All' && ing.cuisine !== ingredientActiveCuisine) return false;
-  if(ingredientActiveSeason !== 'All' && !(ing.seasons||[]).includes(ingredientActiveSeason)) return false;
-  if(ingredientActiveStorage !== 'All' && ing.storage_type !== ingredientActiveStorage) return false;
-  if(ingredientActiveCategory !== 'All' && ing.category !== ingredientActiveCategory) return false;
+  if(ingredientActiveCuisine.length && !ingredientActiveCuisine.includes(ing.cuisine)) return false;
+  if(ingredientActiveSeason.length && !(ing.seasons||[]).some(s=>ingredientActiveSeason.includes(s))) return false;
+  if(ingredientActiveStorage.length && !ingredientActiveStorage.includes(ing.storage_type)) return false;
+  if(ingredientActiveCategory.length && !ingredientActiveCategory.includes(ing.category)) return false;
   if(ingredientActiveMinPrice != null && (ing.price == null || ing.price < ingredientActiveMinPrice)) return false;
   if(ingredientActiveMaxPrice != null && (ing.price == null || ing.price > ingredientActiveMaxPrice)) return false;
   if(!matchesIngredientQuery(ing, q)) return false;
@@ -7553,10 +7561,10 @@ function updateIngredientFilterCount(){
 }
 function clearIngredientFilters(){
   ingredientActiveQuery = '';
-  ingredientActiveCuisine = 'All';
-  ingredientActiveSeason = 'All';
-  ingredientActiveStorage = 'All';
-  ingredientActiveCategory = 'All';
+  ingredientActiveCuisine = [];
+  ingredientActiveSeason = [];
+  ingredientActiveStorage = [];
+  ingredientActiveCategory = [];
   ingredientActiveMinPrice = null;
   ingredientActiveMaxPrice = null;
   document.getElementById('ingredientSearch').value = '';
@@ -7576,9 +7584,13 @@ function renderIngredientChips(){
   wrap.innerHTML = '';
   ['All','European','Asian','Universal'].forEach(c=>{
     const el = document.createElement('div');
-    el.className = 'chip' + (c===ingredientActiveCuisine ? ' active' : '');
+    const isActive = c==='All' ? ingredientActiveCuisine.length===0 : ingredientActiveCuisine.includes(c);
+    el.className = 'chip' + (isActive ? ' active' : '');
     el.textContent = c;
-    el.onclick = ()=>{ ingredientActiveCuisine = c; renderIngredientChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount(); };
+    el.onclick = ()=>{
+      if(c==='All') ingredientActiveCuisine = []; else toggleIngredientFilterValue(ingredientActiveCuisine, c);
+      renderIngredientChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount();
+    };
     wrap.appendChild(el);
   });
 }
@@ -7592,9 +7604,13 @@ function renderIngredientSeasonChips(){
   wrap.innerHTML = '';
   ['All','Spring','Summer','Autumn','Winter'].forEach(s=>{
     const el = document.createElement('div');
-    el.className = 'chip' + (s===ingredientActiveSeason ? ' active' : '');
+    const isActive = s==='All' ? ingredientActiveSeason.length===0 : ingredientActiveSeason.includes(s);
+    el.className = 'chip' + (isActive ? ' active' : '');
     el.textContent = s === 'All' ? 'Any season' : s;
-    el.onclick = ()=>{ ingredientActiveSeason = s; renderIngredientSeasonChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount(); };
+    el.onclick = ()=>{
+      if(s==='All') ingredientActiveSeason = []; else toggleIngredientFilterValue(ingredientActiveSeason, s);
+      renderIngredientSeasonChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount();
+    };
     wrap.appendChild(el);
   });
 }
@@ -7604,9 +7620,13 @@ function renderIngredientStorageChips(){
   wrap.innerHTML = '';
   ['All','Dry Storage','Refrigerated','Freezer','Room Temperature'].forEach(s=>{
     const el = document.createElement('div');
-    el.className = 'chip' + (s===ingredientActiveStorage ? ' active' : '');
+    const isActive = s==='All' ? ingredientActiveStorage.length===0 : ingredientActiveStorage.includes(s);
+    el.className = 'chip' + (isActive ? ' active' : '');
     el.textContent = s === 'All' ? 'Any storage' : s;
-    el.onclick = ()=>{ ingredientActiveStorage = s; renderIngredientStorageChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount(); };
+    el.onclick = ()=>{
+      if(s==='All') ingredientActiveStorage = []; else toggleIngredientFilterValue(ingredientActiveStorage, s);
+      renderIngredientStorageChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount();
+    };
     wrap.appendChild(el);
   });
 }
@@ -7623,9 +7643,13 @@ function renderIngredientCategoryChips(){
   const cats = ['All', ...Array.from(new Set(_ingredients.map(i=>i.category).filter(Boolean))).sort()];
   cats.forEach(c=>{
     const el = document.createElement('div');
-    el.className = 'chip' + (c===ingredientActiveCategory ? ' active' : '');
+    const isActive = c==='All' ? ingredientActiveCategory.length===0 : ingredientActiveCategory.includes(c);
+    el.className = 'chip' + (isActive ? ' active' : '');
     el.textContent = c;
-    el.onclick = ()=>{ ingredientActiveCategory = c; renderIngredientCategoryChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount(); };
+    el.onclick = ()=>{
+      if(c==='All') ingredientActiveCategory = []; else toggleIngredientFilterValue(ingredientActiveCategory, c);
+      renderIngredientCategoryChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount();
+    };
     wrap.appendChild(el);
   });
 }
