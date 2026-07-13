@@ -143,6 +143,8 @@
           <div class="ticket"><b>Kritériá úspechu trialu</b><span>Dohodnuté s Richardom: 40%+ tímov aktívnych 3× v 2. týždni, aspoň 5/25 ochotných platiť, menej ako 10 kritických chýb</span></div>
           <div class="ticket"><b>Monetizačný plán</b><span>app/monetization.html — 11 modelov, expert panel; plán na 12 mesiacov: onboarding CHF ~990 + founding pre-sale CHF 490/rok; Nebenerwerb žiadosť + founding ponuka nadraftované v docs/</span></div>
           <div class="ticket"><b>Jednotný vizuál + trial balík</b><span>Appka v navy/teal ako dokumenty; legal.html, feedback tlačidlo, yield/waste vo food coste, Chef Challenge, multi-select filtre</span></div>
+          <div class="ticket"><b>🔴 → ✅ AI funkcie v appke opravené (naživo overené)</b><span>Skutočná príčina: server-side claude-proxy funkcia (t100) bola napísaná, ale nikdy skutočne nasadená na produkciu — Richard prevedený naživo cez Supabase CLI deploy, teraz funguje (photo scan, prep list, Chef's Assistant). Bonus opravy: Check List delete tichý no-op (RLS), max_tokens limit na veľké prep listy, 1000-ingrediencia zobrazovací strop</span></div>
+          <div class="ticket"><b>2000 ingrediencií + Team Meetings placeholder</b><span>db/58+59 na stagingu (produkcia čaká na Richarda); nová 🗣️ Team Meetings dlaždica na Home (zatiaľ len "we're working on it")</span></div>
         </div>
       </div>
 
@@ -161,7 +163,7 @@
         <div class="col-head"><span class="dot"></span>Blokované</div>
         <div class="col-body">
           <div class="ticket"><b>Email login pre cudzie adresy</b><span>Resend sandbox limit — nutná verifikácia domény alebo Supabase mailer</span></div>
-          <div class="ticket"><b>Živé testovanie v prehliadači</b><span>Agent nemá prístup k reálnemu zariadeniu — väčšina nedávnych funkcií nebola naživo overená</span></div>
+          <div class="ticket"><b>Živé testovanie v prehliadači</b><span>Agent nemá prístup k reálnemu zariadeniu — 13.7. sa dva bugy (Check List delete, AI scan) overili naživo len vďaka tomu, že ich Richard priamo nahlásil a otestoval po nasadení; väčšina ostatných nedávnych funkcií stále nie je naživo overená</span></div>
         </div>
       </div>
 
