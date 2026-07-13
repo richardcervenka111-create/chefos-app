@@ -5438,26 +5438,47 @@ function setSyncStatus(state){
 
 async function loadAppData(){
   setSyncStatus('saving');
-  const { data: recipeRows, error } = await sb.from('recipes').select('*').order('title');
+  // All 11 of these are independent reads — firing them together instead of one-at-a-time
+  // (the original shape here) cuts load time to roughly the slowest single query instead of
+  // the sum of all of them, which was the main reason opening a view could feel slow.
+  const [
+    { data: recipeRows, error },
+    { data: favRows },
+    { data: noteRows },
+    { data: ingredientRows },
+    { data: taskRows },
+    { data: prepDishRows },
+    { data: prepItemRows },
+    { data: iconRows },
+    { data: catIconRows },
+    { data: kitchenRow },
+    { data: settingsRow }
+  ] = await Promise.all([
+    sb.from('recipes').select('*').order('title'),
+    sb.from('favorites').select('recipe_id'),
+    sb.from('recipe_notes').select('recipe_id, note'),
+    sb.from('ingredients').select('*').order('name'),
+    sb.from('tasks').select('*').order('priority').order('created_at'),
+    sb.from('prep_dishes').select('*').order('sort_order'),
+    sb.from('prep_items').select('*').order('sort_order'),
+    sb.from('station_icons').select('station, icon'),
+    sb.from('recipe_category_icons').select('category, icon'),
+    sb.from('kitchens').select('display_currency').eq('id', currentKitchenId).maybeSingle(),
+    sb.from('user_settings').select('anthropic_api_key, scan_language').eq('user_id', currentUser.id).maybeSingle()
+  ]);
   if(error){ console.error(error); setSyncStatus('offline'); return; }
+
   _recipes = (recipeRows || []).map(dbRowToRecipe);
-
-  const { data: favRows } = await sb.from('favorites').select('recipe_id');
   _favorites = (favRows || []).map(f=>f.recipe_id);
-
-  const { data: noteRows } = await sb.from('recipe_notes').select('recipe_id, note');
   _notes = {};
   (noteRows || []).forEach(n=>{ _notes[n.recipe_id] = n.note; });
 
-  const { data: ingredientRows } = await sb.from('ingredients').select('*').order('name');
   _ingredients = ingredientRows || [];
   buildIngredientLookup();
   buildRecipeTitleLookup();
 
-  const { data: taskRows } = await sb.from('tasks').select('*').order('priority').order('created_at');
   _tasks = taskRows || [];
 
-  const { data: prepDishRows } = await sb.from('prep_dishes').select('*').order('sort_order');
   _prepDishes = prepDishRows || [];
   // Any station name found on a real dish counts as a real prep-sheet station, even if it
   // was created on a different device/session (e.g. via manual add or AI scan there) — this
@@ -5465,22 +5486,17 @@ async function loadAppData(){
   new Set(_prepDishes.map(d=>d.station).filter(Boolean)).forEach(st=>{
     if(!PREP_SHEET_STATIONS.includes(st)) PREP_SHEET_STATIONS.push(st);
   });
-  const { data: prepItemRows } = await sb.from('prep_items').select('*').order('sort_order');
   _prepItems = prepItemRows || [];
 
-  const { data: iconRows } = await sb.from('station_icons').select('station, icon');
   _customStationIcons = {};
   (iconRows || []).forEach(r=>{ _customStationIcons[r.station] = r.icon; });
 
-  const { data: catIconRows } = await sb.from('recipe_category_icons').select('category, icon');
   _customCategoryIcons = {};
   (catIconRows || []).forEach(r=>{ _customCategoryIcons[r.category] = r.icon; });
   CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
 
-  const { data: kitchenRow } = await sb.from('kitchens').select('display_currency').eq('id', currentKitchenId).maybeSingle();
   currentKitchenCurrency = (kitchenRow && kitchenRow.display_currency) || 'EUR';
 
-  const { data: settingsRow } = await sb.from('user_settings').select('anthropic_api_key, scan_language').eq('user_id', currentUser.id).maybeSingle();
   _anthropicKey = (settingsRow && settingsRow.anthropic_api_key) || '';
   _scanLanguage = (settingsRow && settingsRow.scan_language) || 'en';
 
