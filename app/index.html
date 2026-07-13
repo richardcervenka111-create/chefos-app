@@ -1379,8 +1379,14 @@
         <button class="icon-btn" onclick="openScanSettings()" title="Scan settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </button>
+        <button class="icon-btn" onclick="openTutorial()" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
         <button class="icon-btn" onclick="openFeedback()" title="Send feedback">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </button>
+        <button class="icon-btn" onclick="openBugReport()" title="Report a bug">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M19 8l-3 2M5 8l3 2M19 16l-3-2M5 16l3-2M12 6V3M9 3h6"/></svg>
         </button>
         <span class="sync-status saved" id="homeSyncStatus"></span>
       </div>
@@ -1400,6 +1406,34 @@
     <div class="login-mark">👨‍🍳</div>
     <h1 class="title display">ChefOS</h1>
     <div id="teamGateContent"></div>
+  </div>
+</div>
+
+<!-- Confidentiality acknowledgement — Richard wants everyone to explicitly agree not to share
+     a kitchen's recipes/prices/data outside the app before they can use it. Shown once per
+     person per CONFIDENTIALITY_VERSION (see hasAcceptedConfidentiality below); recorded as an
+     append-only row (confidentiality_acceptances, db/60) rather than a mutable profile flag, so
+     there's a permanent timestamped record of exactly which version was agreed to and when.
+     Plain-language text, same "not lawyer-reviewed" caveat as legal.html. -->
+<div id="confidentialityGateView" style="display:none;">
+  <div class="box">
+    <div class="login-mark">🤐</div>
+    <h1 class="title display">Before you continue</h1>
+    <p class="lede">One thing to agree to, then you're in.</p>
+    <div style="text-align:left; max-height:38vh; overflow-y:auto; background:var(--paper-raised); border:1px solid var(--rule); border-radius:12px; padding:14px 16px; margin:14px 0; font-size:14px; line-height:1.55; color:var(--ink-dim);">
+      <p style="margin:0 0 10px 0;"><b style="color:var(--ink);">Confidentiality</b></p>
+      <p style="margin:0 0 10px 0;">Everything you see in ChefOS — recipes, ingredient prices, prep sheets, schedules, and any other data belonging to your kitchen — is confidential to that kitchen. By continuing, you agree:</p>
+      <p style="margin:0 0 6px 0;">• not to share, copy, photograph for outside use, or forward this data to anyone outside your kitchen's team;</p>
+      <p style="margin:0 0 6px 0;">• not to use it for any purpose other than working in this kitchen;</p>
+      <p style="margin:0 0 10px 0;">• to keep your own login private and not share your account with anyone else.</p>
+      <p style="margin:0;">This is a plain-language agreement, not a lawyer-drafted contract — ask your kitchen's admin if anything here is unclear.</p>
+    </div>
+    <label style="display:flex; align-items:flex-start; gap:10px; text-align:left; margin:0 0 14px 0; cursor:pointer;">
+      <input type="checkbox" id="confidentialityCheckbox" onchange="document.getElementById('confidentialityConfirmBtn').disabled = !this.checked" style="margin-top:3px;">
+      <span class="lede" style="margin:0;">I have read this and agree.</span>
+    </label>
+    <button class="save-btn" id="confidentialityConfirmBtn" style="width:100%;" disabled onclick="confirmConfidentialityAccept()">Confirm and continue</button>
+    <div class="form-status" id="confidentialityStatus"></div>
   </div>
 </div>
 
@@ -2239,7 +2273,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       <div><div class="sheet-option-title">Type it in</div><div class="sheet-option-sub">Add ingredients and steps manually</div></div>
     </button>
-    <button class="sheet-option" onclick="closeAddChoice(); triggerPhotoScan();">
+    <button class="sheet-option" onclick="closeAddChoice(); openScanTypeChoice();">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
       <div><div class="sheet-option-title">Scan a photo</div><div class="sheet-option-sub">Snap a photo or choose one from your device — Claude reads and formats it for you</div></div>
     </button>
@@ -2251,7 +2285,26 @@
   </div>
 </div>
 
+<!-- Richard: scanning a whole menu into Recipes by mistake (meant Check List) went unnoticed
+     until after the scan finished — this asks up front instead of guessing from the photo. -->
+<div id="scanTypeChoiceOverlay" class="sheet-overlay" onclick="if(event.target===this) closeScanTypeChoice()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">What are you scanning?</div>
+    <button class="sheet-option" onclick="closeScanTypeChoice(); triggerPhotoScan();">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <div><div class="sheet-option-title">One recipe</div><div class="sheet-option-sub">A single recipe, on its own photo or PDF</div></div>
+    </button>
+    <button class="sheet-option" onclick="closeScanTypeChoice(); triggerMenuScan();">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      <div><div class="sheet-option-title">A whole menu</div><div class="sheet-option-sub">Multiple dishes at once — each becomes its own full recipe</div></div>
+    </button>
+    <button class="sheet-cancel" onclick="closeScanTypeChoice()">Cancel</button>
+  </div>
+</div>
+
 <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoSelected(event)">
+<input type="file" id="menuScanInput" accept="image/*,application/pdf" style="display:none;" onchange="handleMenuScanFileSelected(event)">
 <input type="file" id="prepScanInput" accept="image/*,application/pdf" style="display:none;" onchange="handlePrepScanFileSelected(event)">
 <input type="file" id="contractScanInput" accept="image/*,application/pdf" style="display:none;" onchange="handleContractScanFileSelected(event)">
 <input type="file" id="scheduleUploadInput" accept="image/*,application/pdf" style="display:none;" onchange="handleScheduleUploadFileSelected(event)">
@@ -2366,6 +2419,24 @@
   </div>
 </div>
 
+<!-- Quick in-app tour — Richard wants a way to learn the whole app (or its main features) in
+     under 20 minutes. A short guided slide tour rather than a hands-on walkthrough of every
+     screen: each slide is a 1-2 minute read, ~10 slides total, comfortably inside that budget,
+     and it's always reachable again later from the ❓ icon on Home. Shown automatically once
+     for a brand-new user right after they first enter the app (see enterApp()); everyone else
+     can open it manually whenever. -->
+<div id="tutorialOverlay" class="sheet-overlay" onclick="if(event.target===this) closeTutorial()">
+  <div class="sheet" style="max-height:82vh;">
+    <div class="sheet-handle"></div>
+    <div id="tutorialBody"></div>
+    <div class="sheet-row" style="margin-top:10px;">
+      <button class="sheet-cancel" id="tutorialBackBtn" onclick="tutorialStep(-1)">Back</button>
+      <button class="save-btn" id="tutorialNextBtn" onclick="tutorialStep(1)">Next</button>
+    </div>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeTutorial()">Skip</button>
+  </div>
+</div>
+
 <!-- Scan settings: auto-translate photo-scanned recipes/prep sheets into a chosen language -->
 <div id="scanSettingsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeScanSettings()">
   <div class="sheet">
@@ -2445,6 +2516,16 @@
     </div>
     <div class="sheet-status" id="prepScanStatus"></div>
     <button class="sheet-cancel" onclick="closePrepScanReview()">Cancel</button>
+  </div>
+</div>
+
+<div id="menuScanReviewOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMenuScanReview()">
+  <div class="sheet" style="max-height:85vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Menu scan results</div>
+    <p class="sheet-text" id="menuScanSummary"></p>
+    <div id="menuScanList" style="max-height:55vh; overflow-y:auto; margin:10px 0;"></div>
+    <button class="sheet-cancel" onclick="closeMenuScanReview()">Close</button>
   </div>
 </div>
 
@@ -5056,6 +5137,15 @@ async function startApp(){
     return;
   }
 
+  if(!(await hasAcceptedConfidentiality())){
+    document.getElementById('confidentialityGateView').style.display = 'block';
+    return;
+  }
+
+  await enterApp();
+}
+
+async function enterApp(){
   document.getElementById('homeView').style.display = 'block';
   renderHomeGrid();
   if(shiftReminderEnabled()) startShiftReminderTicker();
@@ -5066,6 +5156,33 @@ async function startApp(){
   renderList();
   subscribeToRealtimeUpdates();
   logEvent('login');
+
+  if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
+}
+
+/* Bump this if the confidentiality text ever changes materially — everyone gets asked to
+   re-agree to the new version, and the old acceptance row stays as a permanent record of what
+   they agreed to at the time. */
+const CONFIDENTIALITY_VERSION = 'v1';
+async function hasAcceptedConfidentiality(){
+  const { data } = await sb.from('confidentiality_acceptances').select('id').eq('user_id', currentUser.id).eq('version', CONFIDENTIALITY_VERSION).maybeSingle();
+  return !!data;
+}
+async function confirmConfidentialityAccept(){
+  const btn = document.getElementById('confidentialityConfirmBtn');
+  const statusEl = document.getElementById('confidentialityStatus');
+  btn.disabled = true;
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('confidentiality_acceptances').insert({
+    user_id: currentUser.id, kitchen_id: currentKitchenId, version: CONFIDENTIALITY_VERSION
+  });
+  if(error){
+    statusEl.textContent = 'Could not save: ' + error.message;
+    btn.disabled = false;
+    return;
+  }
+  document.getElementById('confidentialityGateView').style.display = 'none';
+  await enterApp();
 }
 
 /* Real-time cross-device sync for Check List — MVP_DEFINITION.md's core promise ("updates
@@ -9633,9 +9750,10 @@ function renderPrintLabelsList(){
   if(_printQueue.length === 0){
     el.innerHTML = `<div class="empty-state">No labels queued yet. They land here after you finish timing a task, tap 🖨️ Print on a Check List item, or add one below.</div>
       <div class="sheet-row" style="margin-top:14px;">
-        <input class="form-field" id="manualLabelName" type="text" placeholder="Label text">
+        <input class="form-field" id="manualLabelName" type="text" placeholder="Label text" oninput="handleManualLabelInput()" autocomplete="off">
         <button class="save-btn" onclick="addManualLabel()">+ Add</button>
-      </div>`;
+      </div>
+      <div id="manualLabelSuggestions"></div>`;
     renderPrintLabelsBulkBar();
     return;
   }
@@ -9674,9 +9792,10 @@ function renderPrintLabelsList(){
   }
   el.innerHTML = rowsHtml + `
     <div class="sheet-row" style="margin-top:14px;">
-      <input class="form-field" id="manualLabelName" type="text" placeholder="Label text">
+      <input class="form-field" id="manualLabelName" type="text" placeholder="Label text" oninput="handleManualLabelInput()" autocomplete="off">
       <button class="save-btn" onclick="addManualLabel()">+ Add</button>
     </div>
+    <div id="manualLabelSuggestions"></div>
     <button class="save-btn" style="width:100%; margin-top:10px;" onclick="printAllLabels()">🖨️ Print All (${total})</button>
     <button class="danger-btn" style="width:100%; margin-top:8px;" onclick="clearPrintQueue()">Clear list</button>
   `;
@@ -9729,6 +9848,42 @@ function addManualLabel(){
   const name = input.value.trim();
   if(!name) return;
   addToPrintQueue(name, 1, null);
+  renderPrintLabelsList();
+}
+/* Same match/rank logic as the Check List ingredient search (handlePrepSearchInput) — sourced
+   from _prepItems since that's the kitchen's own real Check List ingredient names, not the
+   master Ingredients catalog (which includes things this kitchen may not even stock). Picking
+   a suggestion adds it straight away rather than just filling the text box, matching the
+   "fast add" spirit of the rest of Print Labels. */
+function handleManualLabelInput(){
+  const q = document.getElementById('manualLabelName').value.trim().toLowerCase();
+  const el = document.getElementById('manualLabelSuggestions');
+  if(!el) return;
+  if(q.length < 3){ el.innerHTML = ''; return; }
+  const seen = new Set();
+  let matches = [];
+  (_prepItems || []).forEach(it=>{
+    if(it.deleted || !it.name) return;
+    const nameLower = it.name.toLowerCase();
+    if(!nameLower.includes(q) || seen.has(nameLower)) return;
+    seen.add(nameLower);
+    matches.push(it.name);
+  });
+  matches.sort((a,b)=>{
+    const aStarts = a.toLowerCase().startsWith(q) ? 0 : 1;
+    const bStarts = b.toLowerCase().startsWith(q) ? 0 : 1;
+    if(aStarts !== bStarts) return aStarts - bStarts;
+    return a.length - b.length;
+  });
+  matches = matches.slice(0, 5);
+  el.innerHTML = matches.map(name=>`<button class="sheet-option" onclick="pickManualLabelSuggestion('${name.replace(/'/g,"\\'")}')"><div class="sheet-option-title">${name}</div></button>`).join('');
+}
+function pickManualLabelSuggestion(name){
+  addToPrintQueue(name, 1, null);
+  const input = document.getElementById('manualLabelName');
+  if(input) input.value = '';
+  const el = document.getElementById('manualLabelSuggestions');
+  if(el) el.innerHTML = '';
   renderPrintLabelsList();
 }
 function adjustPrintQty(id, delta){
@@ -11347,6 +11502,61 @@ function openFeedback(){
   const body = encodeURIComponent(`\n\n—\nFrom: ${email}\nKitchen: ${currentKitchenId || 'unknown'}`);
   window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
 }
+
+/* Separate from openFeedback() on purpose — a bug report needs to be findable and fast to send
+   the moment something breaks, and pre-fills the diagnostic details (device, browser, kitchen)
+   Richard would otherwise have to ask for over chat every time. */
+function openBugReport(){
+  logEvent('bug_report_opened');
+  const email = (currentUser && currentUser.email) || 'unknown';
+  const subject = encodeURIComponent('ChefOS bug report');
+  const body = encodeURIComponent(
+    `What happened?\n\n\nWhat did you expect instead?\n\n\n` +
+    `—\nFrom: ${email}\nKitchen: ${currentKitchenId || 'unknown'}\nScreen: ${document.title}\nDevice: ${navigator.userAgent}`
+  );
+  window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
+}
+const TUTORIAL_SLIDES = [
+  { icon:'👋', title:'Welcome to ChefOS', body:'One shared notebook for the whole kitchen — recipes, prep sheets, ingredient prices, schedule and more, all live and synced across everyone\'s phone. This tour is ~10 short screens, a couple minutes each — skip anytime and reopen it later from the ❓ on Home.' },
+  { icon:'🏠', title:'Home', body:'Every feature lives behind an icon here. Tap the reorder icon (top right) to rearrange them to your own liking — that order is just for your device, nobody else\'s.' },
+  { icon:'📋', title:'Check List', body:'The daily prep sheet, organized by station. Tap an item to mark it done/flag it/add a note — every change syncs live to everyone else\'s phone in the kitchen, instantly.' },
+  { icon:'📖', title:'Recipes', body:'Browse by category or search. Add a new one by typing it in, or scanning a photo/PDF — you can now scan a single recipe or a whole menu at once (it writes a full recipe for every dish on the menu).' },
+  { icon:'🧂', title:'Ingredients', body:'Your kitchen\'s own price book. Search and filter by category, season, storage or price range — recipe food-cost is calculated automatically from these prices.' },
+  { icon:'🛒', title:'Order List', body:'Tap the 🛒 icon on any Check List item or recipe ingredient to add it here. One list, ready to send to your supplier.' },
+  { icon:'🎩', title:'Chef\'s Assistant & Chef Challenge', body:'Ask cooking questions, get ingredient substitutions, or generate brand-new recipe ideas — including a whole menu built only from ingredients under a price limit you choose.' },
+  { icon:'🏷️', title:'Print Labels', body:'Tap 🖨️ on a Check List item (or add one by hand — typing 3+ letters suggests your kitchen\'s own ingredients) to queue a label, then print them all at once.' },
+  { icon:'⏱️', title:'Working Time', body:'Check in and out of your shift, see your hours, overtime and days off at a glance.' },
+  { icon:'💬', title:'Feedback & bugs', body:'Something feels off, or you have an idea? The 💬 and 🐛 icons on Home go straight to Richard\'s inbox with useful context already filled in. That\'s the tour — you\'re ready to go.' }
+];
+let _tutorialIdx = 0;
+function openTutorial(){
+  _tutorialIdx = 0;
+  renderTutorialSlide();
+  document.getElementById('tutorialOverlay').classList.add('open');
+}
+function closeTutorial(){
+  document.getElementById('tutorialOverlay').classList.remove('open');
+  localStorage.setItem('chefos_tutorial_seen', '1');
+}
+function tutorialStep(delta){
+  _tutorialIdx += delta;
+  if(_tutorialIdx >= TUTORIAL_SLIDES.length){ closeTutorial(); return; }
+  if(_tutorialIdx < 0) _tutorialIdx = 0;
+  renderTutorialSlide();
+}
+function renderTutorialSlide(){
+  const s = TUTORIAL_SLIDES[_tutorialIdx];
+  document.getElementById('tutorialBody').innerHTML = `
+    <div style="text-align:center; padding:6px 4px 2px 4px;">
+      <div style="font-size:40px; line-height:1;">${s.icon}</div>
+      <div class="sheet-title" style="margin:10px 0 6px 0;">${s.title}</div>
+      <p class="sheet-text" style="text-align:left;">${s.body}</p>
+      <div style="margin-top:12px;">${TUTORIAL_SLIDES.map((_,i)=>`<span style="display:inline-block; width:6px; height:6px; border-radius:50%; margin:0 3px; background:${i===_tutorialIdx?'var(--copper)':'var(--rule)'};"></span>`).join('')}</div>
+    </div>
+  `;
+  document.getElementById('tutorialBackBtn').style.visibility = _tutorialIdx === 0 ? 'hidden' : 'visible';
+  document.getElementById('tutorialNextBtn').textContent = _tutorialIdx === TUTORIAL_SLIDES.length - 1 ? 'Done' : 'Next';
+}
 function openScanSettings(){
   document.getElementById('scanLanguageSelect').value = _scanLanguage || 'en';
   document.getElementById('scanSettingsStatus').textContent = '';
@@ -11492,6 +11702,190 @@ async function runPhotoScan(base64, mediaType){
     errorEl.textContent = err.message || 'Something went wrong reading that photo.';
     closeBtn.style.display = 'block';
   }
+}
+
+function openScanTypeChoice(){
+  if(!_anthropicKey){
+    alert('Add your Anthropic API key first, under Photo-scan settings.');
+    openApiKeySettings();
+    return;
+  }
+  document.getElementById('scanTypeChoiceOverlay').classList.add('open');
+}
+function closeScanTypeChoice(){
+  document.getElementById('scanTypeChoiceOverlay').classList.remove('open');
+}
+
+/* ============================================================
+   WHOLE-MENU SCAN — Richard scanned a whole menu into Recipes by mistake (meant Check List)
+   and only noticed after the fact; the app never asked what it was looking at. This is the
+   "whole menu" branch: one Claude call finds every dish (name, its menu section, and whatever
+   components the menu names — often just a evocative description, not a full ingredient list),
+   then a SECOND Claude call per dish reuses the exact same callClaudeGenerateRecipe() Chef
+   Challenge already uses to write a complete, real kitchen recipe — explicitly told the menu
+   line is marketing copy, not a full recipe, so it should add whatever else a kitchen actually
+   needs (seasoning, technique, plating) beyond what's printed. Each result lands on the normal
+   review-before-save recipe form, exactly like Chef Challenge and the single-recipe scan —
+   nothing is saved to the database until the chef opens it and hits Save themselves.
+   ============================================================ */
+let _pendingMenuScanRecipes = [];
+
+function triggerMenuScan(){
+  document.getElementById('menuScanInput').value = '';
+  document.getElementById('menuScanInput').click();
+}
+
+function handleMenuScanFileSelected(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result;
+    const [header, base64] = dataUrl.split(',');
+    const mediaType = header.match(/data:([^;]+);/)[1];
+    runMenuScan(base64, mediaType);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function callClaudeMenuVision(base64, mediaType){
+  const tool = {
+    name: 'record_menu',
+    description: 'Record every dish found on this menu, grouped by the menu section it appears under.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        dishes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type:'string', description:'The dish name as printed' },
+              section: { type:'string', description:'The menu section/heading this dish appears under, e.g. Starters, Mains, Desserts — used directly as the recipe category' },
+              components: { type:'array', items:{ type:'string' }, description:'The components/description printed under the dish name, as separate short items — often incomplete, just what the menu names, not a full ingredient list' }
+            },
+            required: ['name','section']
+          }
+        }
+      },
+      required: ['dishes']
+    }
+  };
+  const isPdf = mediaType === 'application/pdf';
+  const sourceBlock = isPdf
+    ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
+    : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
+
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 8192,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_menu' },
+    messages: [{
+      role: 'user',
+      content: [
+        sourceBlock,
+        { type:'text', text:'This is a restaurant menu. Read every section heading and every dish listed under it, along with whatever short description/components the menu prints for that dish. Use the record_menu tool.' + scanTranslateInstruction() }
+      ]
+    }]
+  });
+  const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+  if(!toolUse) throw new Error('Claude did not return a structured menu — try a clearer photo or PDF.');
+  return toolUse.input.dishes || [];
+}
+
+async function runMenuScan(base64, mediaType){
+  const overlay = document.getElementById('scanOverlay');
+  const spinner = document.getElementById('scanSpinner');
+  const statusEl = document.getElementById('scanStatus');
+  const errorEl = document.getElementById('scanError');
+  const closeBtn = document.getElementById('scanCloseBtn');
+
+  spinner.style.display = 'block';
+  statusEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  closeBtn.style.display = 'none';
+  overlay.classList.add('open');
+  statusEl.textContent = 'Reading the menu…';
+
+  try{
+    const dishes = await callClaudeMenuVision(base64, mediaType);
+    if(!dishes.length){ throw new Error('No dishes found — try a clearer photo or PDF.'); }
+
+    _pendingMenuScanRecipes = [];
+    for(let i = 0; i < dishes.length; i++){
+      const dish = dishes[i];
+      statusEl.textContent = `Writing recipe ${i+1} of ${dishes.length}: ${dish.name}…`;
+      const componentsList = (dish.components || []).join(', ');
+      const context = `This dish appeared on a printed menu under the "${dish.section || 'Uncategorized'}" section` +
+        (componentsList ? `, described with these components: ${componentsList}.` : '.') +
+        ' A menu line is marketing copy, not a full recipe — incorporate anything it does name, and add whatever else a professional kitchen actually needs (seasoning, technique, sides, plating) to make this dish properly, even if the menu does not spell it out.';
+      try{
+        const input = await callClaudeGenerateRecipe(dish.name, componentsList, context);
+        _pendingMenuScanRecipes.push({
+          title: input.title || dish.name,
+          category: input.category || dish.section || '',
+          meta: input.subtitle || '',
+          yield: input.yield || '',
+          activeTime: input.active_time || '',
+          passiveTime: input.passive_time || '',
+          ingredients: (input.ingredients || []).map(x=>[x.name || '', x.qty || '']),
+          steps: (input.steps && input.steps.length) ? input.steps : [''],
+          failed: false
+        });
+      } catch(dishErr){
+        _pendingMenuScanRecipes.push({ title: dish.name, category: dish.section || '', failed: true, error: dishErr.message });
+      }
+    }
+
+    overlay.classList.remove('open');
+    openMenuScanReview();
+  } catch(err){
+    spinner.style.display = 'none';
+    statusEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = err.message || 'Something went wrong reading that menu.';
+    closeBtn.style.display = 'block';
+  }
+}
+
+function openMenuScanReview(){
+  const ok = _pendingMenuScanRecipes.filter(r=>!r.failed).length;
+  const failed = _pendingMenuScanRecipes.length - ok;
+  document.getElementById('menuScanSummary').textContent =
+    `Found ${_pendingMenuScanRecipes.length} dish${_pendingMenuScanRecipes.length===1?'':'es'}, wrote ${ok} full recipe${ok===1?'':'s'}${failed ? ` (${failed} failed — tap to retry)` : ''}. Tap one to review and save it — nothing is saved yet.`;
+  const listEl = document.getElementById('menuScanList');
+  listEl.innerHTML = _pendingMenuScanRecipes.map((r,i)=> r.failed ? `
+    <div class="sheet-option" style="opacity:0.7;" onclick="alert('${(r.error||'Something went wrong writing this recipe.').replace(/'/g,"\\'")}')">
+      <div><div class="sheet-option-title">⚠️ ${r.title}</div><div class="sheet-option-sub">Failed to write a recipe for this one</div></div>
+    </div>
+  ` : `
+    <button class="sheet-option" onclick="openMenuScanRecipeForm(${i})">
+      <div><div class="sheet-option-title">${r.title}</div><div class="sheet-option-sub">${r.category || 'Uncategorized'} · ${r.ingredients.length} ingredient${r.ingredients.length===1?'':'s'}</div></div>
+    </button>
+  `).join('');
+  document.getElementById('menuScanReviewOverlay').classList.add('open');
+}
+function closeMenuScanReview(){
+  document.getElementById('menuScanReviewOverlay').classList.remove('open');
+}
+function openMenuScanRecipeForm(i){
+  const r = _pendingMenuScanRecipes[i];
+  if(!r || r.failed) return;
+  closeMenuScanReview();
+  formEditingId = null;
+  renderForm({
+    ...BLANK_RECIPE_FORM,
+    title: r.title,
+    category: r.category,
+    meta: r.meta,
+    yield: r.yield,
+    activeTime: r.activeTime,
+    passiveTime: r.passiveTime,
+    ingredients: r.ingredients.length ? r.ingredients : [['','']],
+    steps: r.steps,
+    tags: ['AI-generated', 'Menu scan']
+  });
 }
 
 /* Writes a professional Method from just the title + ingredient list — same direct-to-Claude
