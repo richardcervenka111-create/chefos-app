@@ -137,6 +137,7 @@
           <div class="ticket"><b>Investor deck</b><span>presentation.html, priebežne aktualizovaný, Nooch pridaný ako prvý cieľ</span></div>
           <div class="ticket"><b>Vizuálna identita v2</b><span>Navy/teal na dokumentoch, nové logo appky, jednotný dizajn naprieč appkou</span></div>
           <div class="ticket"><b>Infra/security balík</b><span>Git, API kľúč na server, realtime sync, error/usage tracking, invite expirácia, audit log (kto čo zmenil v Check Liste)</span></div>
+          <div class="ticket"><b>🔴 → ✅ Kritický RLS bug opravený</b><span>db/53 spôsobilo nekonečnú rekurziu na profiles, ktorá rozbila takmer celú appku — nájdené a opravené (db/55) v ten istý deň, Richard potvrdil spustenie a appka opäť normálne odpovedá</span></div>
         </div>
       </div>
 
@@ -154,7 +155,6 @@
       <div class="col col-block">
         <div class="col-head"><span class="dot"></span>Blokované</div>
         <div class="col-body">
-          <div class="ticket" style="border-color:var(--danger);"><b style="color:var(--danger);">🔴 Appka je momentálne rozbitá (RLS recursion)</b><span>db/53 spôsobilo nekonečnú rekurziu v pravidlách pre profiles — potvrdené naživo, appka nenačíta prakticky nič. Oprava hotová v db/55, čaká len na spustenie v Supabase SQL editore.</span></div>
           <div class="ticket"><b>Email login pre cudzie adresy</b><span>Resend sandbox limit — nutná verifikácia domény alebo Supabase mailer</span></div>
           <div class="ticket"><b>Živé testovanie v prehliadači</b><span>Agent nemá prístup k reálnemu zariadeniu — väčšina nedávnych funkcií nebola naživo overená</span></div>
         </div>

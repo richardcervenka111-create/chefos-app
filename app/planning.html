@@ -258,9 +258,9 @@ const DAYS = [
       'Ingredients filter sheet: search box + live match-count pinned to the top while filter chips scroll underneath',
       'backlog.html made interactive: real checkboxes with localStorage persistence, sticky top bar with a live percent-complete pie chart + progress bar',
       'Check List audit log shipped — every status/on-hand/priority/note change now records who/what/when, shown as "Recent activity" in the item Info panel',
-      '🔴 Critical bug found and fixed (in code): db/53 added two RLS policies on `profiles` that recursively query `profiles` itself, which Postgres can\'t resolve — confirmed live via a direct REST probe that this broke nearly every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests...). Very likely the cause of the broken-looking login screen Richard hit on his phone. Fix written in db/55 — must be run in Supabase before anything else.',
+      '🔴→✅ Critical bug found and fixed same-day: db/53 added two RLS policies on `profiles` that recursively query `profiles` itself, which Postgres can\'t resolve — confirmed live via a direct REST probe that this broke nearly every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests...), very likely the cause of the broken-looking login screen Richard hit on his phone. Fix written in db/55, Richard ran it, re-verified live via a second REST probe — every table responds normally again.',
     ],
-    planned: 'URGENT: run db/55 in Supabase to fix the RLS outage. Then run the remaining pending SQL files (46-54); deploy the claude-proxy Edge Function; get Richard\'s printer document for a direct comparison against the research; continue toward the 2026-08-01 public trial scope.'
+    planned: 'Run the remaining pending SQL files (46-54, minus 55 which is done); deploy the claude-proxy Edge Function; get Richard\'s printer document for a direct comparison against the research; continue toward the 2026-08-01 public trial scope.'
   },
 ];
 

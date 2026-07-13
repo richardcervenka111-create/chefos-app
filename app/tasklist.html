@@ -124,7 +124,7 @@ input{width:22px;height:22px;flex:none}
 <div class='task'><input id='s45' type='checkbox' checked><label for='s45'>Expiring/revocable team invites + admin can remove a team member (neither existed before)</label><span class="tag me">ME</span></div>
 <div class='task'><input id='s46' type='checkbox' checked><label for='s46'>Written manual regression checklist (docs/REGRESSION_CHECKLIST.md)</label><span class="tag me">ME</span></div>
 <div class='task'><input id='s47' type='checkbox' checked><label for='s47'>Check List audit log — who changed status/on-hand/priority/notes, shown as "Recent activity" in the item Info panel</label><span class="tag me">ME</span></div>
-<div class='task'><input id='s48' type='checkbox'><label for='s48'>🔴 CRITICAL — run db/55 in Supabase now: db/53 caused an infinite-recursion RLS bug on profiles that breaks basically the entire app (confirmed live via REST probe), fix is written and waiting</label><span class="tag you">YOU</span></div>
+<div class='task'><input id='s48' type='checkbox' checked><label for='s48'>🔴→✅ db/55 run in Supabase — fixed the infinite-recursion RLS bug on profiles that broke basically the entire app; re-verified live via REST probe, every table responding normally again</label><span class="tag you">YOU</span></div>
 
 </section></details>
 
@@ -279,7 +279,7 @@ const DAYS=[
     'Ingredients filter sheet: search box + live match-count now pinned to the top while the filter chip rows scroll underneath, instead of scrolling away',
     'backlog.html made interactive: the 38 task rows are real checkboxes with localStorage persistence, plus a sticky top bar showing a live percent-complete pie chart + progress bar',
     'Check List audit log shipped — every status/on-hand/priority/note change is now recorded (who, what, when) and shown as "Recent activity" in the item\'s Info panel, closing the "whose fault it is" gap the Check List used to leave open',
-    '🔴 Found (and fixed the code for) a critical live bug: yesterday\'s db/53 migration added two RLS policies on `profiles` that query `profiles` again inside themselves, which Postgres can\'t resolve without infinite recursion — confirmed live via a direct REST probe against the production database. This silently broke almost every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests...), which is very likely why the login/approval screen looked broken on a real phone. Fix is written in db/55 using a SECURITY DEFINER helper function — needs to be run in the Supabase SQL editor immediately, before anything else.'
+    '🔴→✅ Found and fixed a critical live bug: db/53 added two RLS policies on `profiles` that query `profiles` again inside themselves, causing infinite recursion in Postgres — confirmed live via a direct REST probe against the production database, which showed it had silently broken almost every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests...). Very likely why the login/approval screen looked broken on Richard\'s phone. Fix shipped as db/55 (a SECURITY DEFINER helper function, sidesteps the self-reference) — Richard ran it and a second REST probe confirmed every table responds normally again.'
   ]}
 ];
 function isoWeekLabel(dateStr){
