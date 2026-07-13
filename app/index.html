@@ -5165,7 +5165,11 @@ async function enterApp(){
    they agreed to at the time. */
 const CONFIDENTIALITY_VERSION = 'v1';
 async function hasAcceptedConfidentiality(){
-  const { data } = await sb.from('confidentiality_acceptances').select('id').eq('user_id', currentUser.id).eq('version', CONFIDENTIALITY_VERSION).maybeSingle();
+  const { data, error } = await sb.from('confidentiality_acceptances').select('id').eq('user_id', currentUser.id).eq('version', CONFIDENTIALITY_VERSION).maybeSingle();
+  // Fail OPEN, not closed: if db/60 hasn't been run yet (or any other query error), treat it
+  // as accepted rather than locking every single user out of the app at login. A missing
+  // feature should never be able to take down the whole app the way db/57's yield_pct did.
+  if(error){ logClientError('hasAcceptedConfidentiality: ' + error.message); return true; }
   return !!data;
 }
 async function confirmConfidentialityAccept(){
