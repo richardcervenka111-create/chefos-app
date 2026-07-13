@@ -9065,8 +9065,20 @@ async function hideStation(station){
 async function deletePrepItem(id){
   if(!confirm('Remove this item? You can restore it afterwards from "N deleted".')) return;
   setSyncStatus('saving');
-  const { error } = await sb.from('prep_items').update({ deleted: true }).eq('id', id);
+  const { data, error } = await sb.from('prep_items').update({ deleted: true }).eq('id', id).select();
   if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
+  // Supabase/RLS can match 0 rows and still return no `error` — the confirm fires but nothing
+  // actually changes server-side. Richard reported exactly this ("asks to confirm, doesn't
+  // delete"); surface it instead of silently no-op'ing, and reload so the view matches the DB.
+  if(!data || !data.length){
+    logClientError('deletePrepItem: update matched 0 rows for id ' + id);
+    alert("That didn't go through — reloading to get back in sync.");
+    setSyncStatus('offline');
+    await loadAppData();
+    renderPrepSheet();
+    renderTaskChips();
+    return;
+  }
   const item = _prepItems.find(i=>i.id===id);
   if(item) item.deleted = true;
   setSyncStatus('saved');
@@ -9087,8 +9099,17 @@ async function restorePrepItem(id){
 async function deletePrepDish(id){
   if(!confirm('Delete this whole dish and everything in it? You can restore it afterwards from "N deleted".')) return;
   setSyncStatus('saving');
-  const { error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', id);
+  const { data, error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', id).select();
   if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
+  if(!data || !data.length){
+    logClientError('deletePrepDish: update matched 0 rows for id ' + id);
+    alert("That didn't go through — reloading to get back in sync.");
+    setSyncStatus('offline');
+    await loadAppData();
+    renderPrepSheet();
+    renderTaskChips();
+    return;
+  }
   const dish = _prepDishes.find(d=>d.id===id);
   if(dish) dish.deleted = true;
   setSyncStatus('saved');
@@ -9114,8 +9135,17 @@ async function restorePrepDish(id){
 async function deleteStation(station){
   if(!confirm(`Delete the entire "${station}" section — every dish and item in it? You can restore it afterwards from "N deleted".`)) return;
   setSyncStatus('saving');
-  const { error } = await sb.from('prep_dishes').update({ deleted: true }).eq('station', station);
+  const { data, error } = await sb.from('prep_dishes').update({ deleted: true }).eq('station', station).select();
   if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
+  if(!data || !data.length){
+    logClientError('deleteStation: update matched 0 rows for station ' + station);
+    alert("That didn't go through — reloading to get back in sync.");
+    setSyncStatus('offline');
+    await loadAppData();
+    renderTaskChips();
+    await renderActiveStationView();
+    return;
+  }
   setSyncStatus('saved');
   await loadAppData();
   renderTaskChips();
@@ -11559,7 +11589,13 @@ async function callClaudePrepSheetVision(base64, mediaType){
 
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
-    max_tokens: 4096,
+    // A real SKY prep sheet is many stations × many dishes × many items — the exact same
+    // shape of bug Richard hit on Schedule upload (see note above callClaudeScheduleVision):
+    // 4096 tokens is enough for a small sheet but truncates mid-JSON on a full one, and a
+    // truncated tool call comes back unusable ("Claude did not return a structured prep
+    // sheet"). Raised to the same ceiling already used for the other bulk-extraction call
+    // (recipe bulk import, line ~9271).
+    max_tokens: 8192,
     tools: [tool],
     tool_choice: { type:'tool', name:'record_prep_sheet' },
     messages: [{
