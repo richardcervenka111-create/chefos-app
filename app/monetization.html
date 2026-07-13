@@ -315,6 +315,23 @@
     <div class="m-verdict"><b>Verdikt:</b> Drž ako doplnok k modelu 04, nie samostatný biznis — napr. onboarding balík "Premium" = digitalizácia + poldňový workshop pre tím za príplatok. Jeden workshop za štvrťrok ako marketing + priamy príjem, viac nie.</div>
   </div>
 
+  <!-- 12 — Claude's addition -->
+  <div class="model mine">
+    <div class="m-head">
+      <div class="m-num">12</div>
+      <div class="m-title-wrap">
+        <div class="m-title">Sponzorované umiestnenie lokálnych dodávateľov</div>
+        <div class="m-sub">Miestny dodávateľ (napr. lokálna syráreň, Caviezel, Gourmador) zaplatí za zvýraznené umiestnenie pri ingredienciách, ktoré dodáva — "odporúčaný lokálny dodávateľ" štítok v Ingredients/Order List, jasne označený ako sponzorovaný. <b style="color:var(--gold);">Doplnil Claude 13.7., na Richardovu otázku.</b></div>
+      </div>
+      <div class="fit"><span class="fit-badge f-later">Po tom, ako existuje reálne používanie</span><span class="stars">★★★☆☆</span></div>
+    </div>
+    <div class="m-body">
+      <div class="m-col pro"><h4>Za</h4><p><b>CTO:</b> technicky triviálne oproti modelu 08 (marketplace) — netreba API integráciu s dodávateľom, žiadne objednávkové workflow, len štítok/banner pri zhode ingrediencie s dodávateľovým sortimentom. Dáta na to už staviame práve teraz (origin pole, ingrediencie s reálnym dodávateľom a číslom artiklu z db/46, db/58). <b>SaaS CEO:</b> hyperlokálna relevancia je presne to, čo veľké reklamné siete nevedia ponúknuť — dodávateľ z Thurgau vie osloviť presne kuchyne, čo aktívne plánujú menu s jeho syrom v zozname ingrediencií.</p></div>
+      <div class="m-col con"><h4>Proti</h4><p><b>SaaS CEO 2:</b> bez reálneho objemu (desiatky aktívnych kuchýň) nemá čo predávať — nulová návštevnosť = nulová hodnota pre inzerenta, predávať to teraz by bolo predčasné. <b>CFO:</b> platený nástroj + reklama v ňom pôsobí lacno, ak to nie je jasne rámcované ako "užitočná informácia", nie vtieravá reklama. <b>Právnik:</b> musí byť zreteľne označené ako sponzorované/platené umiestnenie (švajčiarsky UWG — zákon proti nekalej súťaži vyžaduje rozlíšiteľnosť reklamy od organického obsahu).</p></div>
+    </div>
+    <div class="m-verdict"><b>Verdikt:</b> Dobrý nápad, zlý moment. Odlož, kým appka nemá reálne aktívne kuchyne z trialu (aspoň 20-30) — vtedy sa dá dodávateľom ponúknuť konkrétne číslo ("tvoj produkt uvidí X profesionálnych kuchýň týždenne pri plánovaní menu"). Do tej doby priprav pôdu zadarmo: ukazovať "Dodávateľ: Caviezel Giovanettoni, artikel č. XXXXX" pri ingredienciách už teraz buduje presne tie vzťahy s lokálnymi dodávateľmi, ktoré neskôr platia za zvýraznenie.</div>
+  </div>
+
   <!-- GLOBAL LEGAL -->
   <div class="sec"><h2>Prierezové právne prekážky — platia pre všetky modely</h2><div class="rule"></div></div>
 
@@ -347,7 +364,8 @@
     <div class="r-row"><span class="r-pos">3.</span><span class="r-name">Flat SaaS predplatné (01)</span><span class="r-when">Q4 2026 — verejný cenník po úspešnom triale</span></div>
     <div class="r-row"><span class="r-pos">4.</span><span class="r-name">Modulárne add-ony (03) + AI fair-use → metered (05)</span><span class="r-when">2027, pri 30+ zákazníkoch</span></div>
     <div class="r-row"><span class="r-pos">5.</span><span class="r-name">Enterprise/Nooch (07)</span><span class="r-when">2027, po multi-location (Fáza 6)</span></div>
-    <div class="r-row"><span class="r-pos">6.</span><span class="r-name">Marketplace provízie (08), benchmarking (09), obsah (10), hardvér (06)</span><span class="r-when">2028+ alebo nikdy — vízia pre investorov, nie plán</span></div>
+    <div class="r-row"><span class="r-pos">6.</span><span class="r-name">Sponzorovaní dodávatelia (12) — po 20-30 aktívnych kuchyniach z trialu</span><span class="r-when">Koniec 2026 / začiatok 2027, závisí od objemu</span></div>
+    <div class="r-row"><span class="r-pos">7.</span><span class="r-name">Marketplace provízie (08), benchmarking (09), obsah (10), hardvér (06)</span><span class="r-when">2028+ alebo nikdy — vízia pre investorov, nie plán</span></div>
   </div>
 
   <div class="gflag green" style="margin-top:28px;">
