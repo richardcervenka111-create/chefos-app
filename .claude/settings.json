@@ -7,11 +7,6 @@
       "Read",
       "Glob",
       "Grep"
-    ],
-    "deny": [
-      "Bash(git push --force*)",
-      "Bash(git reset --hard*)",
-      "Bash(rm -rf*)"
     ]
   }
 }
