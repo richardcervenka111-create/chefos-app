@@ -5794,10 +5794,15 @@ function computeRecipeCost(r){
       if(!parsed) return;
       const converted = convertToBaseUnit(parsed.amount, parsed.unit, ing.unit);
       if(converted == null) return;
-      const lineCost = converted * ing.price;
+      // A recipe line is written in usable/prepped quantity, but ing.price is per raw unit as
+      // bought — trim/peel/bone loss means you need more raw product than the line states, so
+      // the effective cost per usable unit is higher than the listed price whenever yield < 100.
+      const yieldPct = ing.yield_pct != null ? ing.yield_pct : 100;
+      const effectivePrice = ing.price / (yieldPct / 100);
+      const lineCost = converted * effectivePrice;
       costSum += lineCost;
       matched++;
-      lines.push({ name: row[0], qtyText: row[1], convertedAmount: converted, unit: ing.unit, unitPrice: ing.price, lineCost });
+      lines.push({ name: row[0], qtyText: row[1], convertedAmount: converted, unit: ing.unit, unitPrice: effectivePrice, lineCost, yieldPct });
     });
   });
   return { costSum, matched, total, lines };
@@ -7022,7 +7027,7 @@ function showDetail(idx){
     <div id="costBreakdown" class="cost-breakdown" style="display:none;">
       ${computed.lines.map(l=>`
         <div class="cost-breakdown-row">
-          <span>${l.name} <span class="mono" style="color:var(--ink-dim);">(${l.qtyText})</span></span>
+          <span>${l.name} <span class="mono" style="color:var(--ink-dim);">(${l.qtyText})</span>${l.yieldPct<100?` <span style="color:var(--copper);">· ${l.yieldPct}% yield</span>`:''}</span>
           <span class="mono">${l.convertedAmount.toFixed(3)} ${l.unit} × ${formatMoney(l.unitPrice)} = <b>${formatMoney(l.lineCost)}</b></span>
         </div>
       `).join('')}
@@ -7671,7 +7676,7 @@ document.getElementById('ingredientSearch').addEventListener('input', (e)=>{
 
 function showAddIngredientForm(){
   ingredientEditingId = null;
-  renderIngredientForm({ name:'', cuisine:'Universal', category:'', unit:'kg', price:'', notes:'', storage_type:'', seasons:[] });
+  renderIngredientForm({ name:'', cuisine:'Universal', category:'', unit:'kg', price:'', notes:'', storage_type:'', seasons:[], yield_pct:100 });
 }
 
 function editIngredientForm(idx){
@@ -7680,7 +7685,8 @@ function editIngredientForm(idx){
   renderIngredientForm({
     name: ing.name, cuisine: ing.cuisine || 'Universal', category: ing.category || '',
     unit: ing.unit, price: ing.price != null ? ing.price : '', notes: ing.notes || '',
-    aliases: (ing.aliases||[]).join(', '), storage_type: ing.storage_type || '', seasons: ing.seasons || []
+    aliases: (ing.aliases||[]).join(', '), storage_type: ing.storage_type || '', seasons: ing.seasons || [],
+    yield_pct: ing.yield_pct != null ? ing.yield_pct : 100
   });
 }
 
@@ -7708,6 +7714,9 @@ function renderIngredientForm(data){
 
     <label class="form-label">Price (${currentKitchenCurrency})</label>
     <input class="form-field" id="i_price" type="number" step="0.01" min="0" placeholder="e.g. 3.20" value="${data.price!=='' && data.price!=null ? (Number(data.price) * (CURRENCY_INFO[currentKitchenCurrency]||CURRENCY_INFO.EUR).fromEur).toFixed(2) : ''}">
+
+    <label class="form-label">Yield % (optional — trim/waste loss)</label>
+    <input class="form-field" id="i_yield_pct" type="number" step="1" min="1" max="100" placeholder="e.g. 80 for 20% peel/trim loss" value="${data.yield_pct != null && data.yield_pct !== 100 ? data.yield_pct : ''}">
 
     <label class="form-label">Also known as (optional)</label>
     <input class="form-field" id="i_aliases" type="text" placeholder="Comma-separated alternate names, e.g. Garlic clove, Fresh garlic" value="${(data.aliases||'').replace(/"/g,'&quot;')}">
@@ -7761,9 +7770,11 @@ async function saveIngredientForm(){
   const notes = document.getElementById('i_notes').value.trim() || null;
   const storage_type = document.getElementById('i_storage_type').value || null;
   const seasons = Array.from(document.querySelectorAll('.i_season:checked')).map(el=>el.value);
+  const yieldRaw = document.getElementById('i_yield_pct').value;
+  const yield_pct = yieldRaw === '' ? 100 : Math.min(100, Math.max(1, parseFloat(yieldRaw)));
 
   const payload = {
-    name, cuisine, category, unit, aliases, notes, storage_type, seasons,
+    name, cuisine, category, unit, aliases, notes, storage_type, seasons, yield_pct,
     price, price_updated_at: price != null ? new Date().toISOString() : null
   };
 
