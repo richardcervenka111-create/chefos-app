@@ -1683,6 +1683,18 @@
   </div>
 </div>
 
+<!-- Home tile placeholder — Richard wants a Team Meetings tile reserved on Home now, scope to
+     be decided later (candidates: auto-agenda from Check List/Schedule, a shared daily note,
+     a meeting log). Nothing built yet on purpose; this just holds the spot. -->
+<div id="teamMeetingsPlaceholderOverlay" class="sheet-overlay" onclick="if(event.target===this) closeTeamMeetingsPlaceholder()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🗣️ Team Meetings</div>
+    <p class="sheet-text">We're working on it — this'll help run your morning team meetings. Not built yet.</p>
+    <button class="sheet-cancel" onclick="closeTeamMeetingsPlaceholder()">Close</button>
+  </div>
+</div>
+
 <!-- Scans every dish + item name in Check List for anything not already in English (photo scans
      and manual entry sometimes bring in German/French/Italian text) and offers a translation
      per name for review — same per-item Approve/Skip philosophy as Ingredient Audit, nothing
@@ -6163,6 +6175,7 @@ const HOME_TILE_DEFS = [
   { key:'fridgeTemp', icon:'🌡️', labelKey:'fridgeTemp', staticLabel:'Fridge Temp', onclick:'showFridges()' },
   { key:'chefAssistant', icon:'🎩', labelKey:'chefAssistant', staticLabel:"Chef's Assistant", onclick:'showChefAssistant()' },
   { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' },
+  { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()' },
   { key:'myTeam', icon:'🔗', staticLabel:'My Team', onclick:'showTeamInvite()' },
   { key:'printLabels', icon:'🏷️', staticLabel:'Print Labels', onclick:'showPrintLabels()', badgeId:'printLabelsBadge' },
   { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdminRequests()', adminOnly:true, badgeId:'adminPendingBadge' },
@@ -6772,6 +6785,14 @@ async function runChefsAssistantGenerate(i){
       <button class="save-btn" style="width:100%; margin-top:10px;" onclick="renderChefAssistantIdeaList()">Back to ideas</button>
     `;
   }
+}
+
+/* ---------- Team Meetings (placeholder — scope not decided yet, see backlog t54) ---------- */
+function openTeamMeetingsPlaceholder(){
+  document.getElementById('teamMeetingsPlaceholderOverlay').classList.add('open');
+}
+function closeTeamMeetingsPlaceholder(){
+  document.getElementById('teamMeetingsPlaceholderOverlay').classList.remove('open');
 }
 
 /* ---------- Chef Challenge ----------
