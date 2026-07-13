@@ -1596,6 +1596,12 @@
     <div class="chips" id="ingredientChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
     <label class="form-label" style="margin-top:10px;">Category</label>
     <div class="chips" id="ingredientFoodTypeChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
+    <label class="form-label" style="margin-top:10px;" id="ingredientPriceRangeLabel">Price range</label>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input class="form-field" id="ingredientMinPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Min" style="flex:1;" oninput="handleIngredientPriceRangeInput()">
+      <span style="color:var(--ink-dim);">–</span>
+      <input class="form-field" id="ingredientMaxPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Max" style="flex:1;" oninput="handleIngredientPriceRangeInput()">
+    </div>
     <label class="form-label" style="margin-top:10px;">Season</label>
     <div class="chips" id="ingredientSeasonChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
     <label class="form-label" style="margin-top:10px;">Storage</label>
@@ -7448,7 +7454,8 @@ let ingredientActiveCuisine = 'All';
 let ingredientActiveSeason = 'All';
 let ingredientActiveStorage = 'All';
 let ingredientActiveCategory = 'All';
-let ingredientActivePricing = 'All';
+let ingredientActiveMinPrice = null; // stored in EUR, like ing.price itself
+let ingredientActiveMaxPrice = null;
 let ingredientActiveQuery = '';
 let ingredientEditingId = null;
 
@@ -7460,12 +7467,14 @@ function showIngredients(){
   renderIngredientSeasonChips();
   renderIngredientStorageChips();
   renderIngredientCategoryChips();
+  renderIngredientPriceRangeLabel();
   renderIngredientList();
   refreshIngredientFiltersActiveDot();
   window.scrollTo(0,0);
 }
 function openIngredientFilters(){
   renderIngredientCategoryChips();
+  renderIngredientPriceRangeLabel();
   updateIngredientFilterCount();
   document.getElementById('ingredientFiltersOverlay').classList.add('open');
 }
@@ -7475,25 +7484,34 @@ function closeIngredientFilters(){
 function refreshIngredientFiltersActiveDot(){
   const dot = document.getElementById('ingredientFiltersActiveDot');
   if(!dot) return;
-  const active = !!ingredientActiveQuery || ingredientActiveCuisine !== 'All' || ingredientActiveSeason !== 'All' || ingredientActiveStorage !== 'All' || ingredientActiveCategory !== 'All' || ingredientActivePricing !== 'All';
+  const active = !!ingredientActiveQuery || ingredientActiveCuisine !== 'All' || ingredientActiveSeason !== 'All' || ingredientActiveStorage !== 'All' || ingredientActiveCategory !== 'All' || ingredientActiveMinPrice != null || ingredientActiveMaxPrice != null;
   dot.style.display = active ? 'block' : 'none';
 }
-/* A price counts as "Verified" when its notes cite a real, traceable source (every
-   supplier-import batch — e.g. db/46_supplier_ingredients.sql — writes notes starting with
-   "Price from ..."); anything else with a price is one of the original estimated values
-   (notes NULL or a plain description, never that prefix). Same distinction Richard has asked
-   to keep visible ever since the original 535-row seed shipped with all-estimated prices. */
-function ingredientPricingStatus(ing){
-  if(ing.price == null) return 'Missing';
-  if(ing.notes && /^Price from /.test(ing.notes)) return 'Verified';
-  return 'Estimated';
+/* Price range replaces the old Verified/Estimated/Missing chips (removed 2026-07-13 — those
+   duplicated on tap in a way that couldn't be reproduced by reading the code, see backlog t41).
+   Richard's replacement request: a plain min/max range instead. Inputs are typed in whatever
+   currency the kitchen currently displays (CURRENCY_INFO), converted to/from EUR since that's
+   the unit ing.price is always stored in — same conversion the add/edit ingredient form uses. */
+function renderIngredientPriceRangeLabel(){
+  const el = document.getElementById('ingredientPriceRangeLabel');
+  if(el) el.textContent = 'Price range (' + currentKitchenCurrency + ')';
+}
+function handleIngredientPriceRangeInput(){
+  const rate = (CURRENCY_INFO[currentKitchenCurrency]||CURRENCY_INFO.EUR).fromEur;
+  const minRaw = document.getElementById('ingredientMinPrice').value;
+  const maxRaw = document.getElementById('ingredientMaxPrice').value;
+  ingredientActiveMinPrice = minRaw === '' ? null : parseFloat(minRaw) / rate;
+  ingredientActiveMaxPrice = maxRaw === '' ? null : parseFloat(maxRaw) / rate;
+  renderIngredientList();
+  refreshIngredientFiltersActiveDot();
 }
 function passesIngredientFilters(ing, q){
   if(ingredientActiveCuisine !== 'All' && ing.cuisine !== ingredientActiveCuisine) return false;
   if(ingredientActiveSeason !== 'All' && !(ing.seasons||[]).includes(ingredientActiveSeason)) return false;
   if(ingredientActiveStorage !== 'All' && ing.storage_type !== ingredientActiveStorage) return false;
   if(ingredientActiveCategory !== 'All' && ing.category !== ingredientActiveCategory) return false;
-  if(ingredientActivePricing !== 'All' && ingredientPricingStatus(ing) !== ingredientActivePricing) return false;
+  if(ingredientActiveMinPrice != null && (ing.price == null || ing.price < ingredientActiveMinPrice)) return false;
+  if(ingredientActiveMaxPrice != null && (ing.price == null || ing.price > ingredientActiveMaxPrice)) return false;
   if(!matchesIngredientQuery(ing, q)) return false;
   return true;
 }
@@ -7517,8 +7535,11 @@ function clearIngredientFilters(){
   ingredientActiveSeason = 'All';
   ingredientActiveStorage = 'All';
   ingredientActiveCategory = 'All';
-  ingredientActivePricing = 'All';
+  ingredientActiveMinPrice = null;
+  ingredientActiveMaxPrice = null;
   document.getElementById('ingredientSearch').value = '';
+  document.getElementById('ingredientMinPrice').value = '';
+  document.getElementById('ingredientMaxPrice').value = '';
   renderIngredientChips();
   renderIngredientSeasonChips();
   renderIngredientStorageChips();
