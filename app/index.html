@@ -5469,6 +5469,21 @@ function setSyncStatus(state){
   }
 }
 
+/* Supabase's REST API caps any single query at 1000 rows — with 1300+ ingredients the app
+   was silently loading exactly the first 1000 and dropping the rest (Richard spotted the
+   count mismatch vs. the presentation's 1263). Fetch in 1000-row pages until a short page. */
+async function fetchAllRows(table, orderCol){
+  const pageSize = 1000;
+  let all = [];
+  for(let from = 0; ; from += pageSize){
+    const { data, error } = await sb.from(table).select('*').order(orderCol).range(from, from + pageSize - 1);
+    if(error){ console.error(table, error); break; }
+    all = all.concat(data || []);
+    if(!data || data.length < pageSize) break;
+  }
+  return { data: all };
+}
+
 async function loadAppData(){
   setSyncStatus('saving');
   // All 11 of these are independent reads — firing them together instead of one-at-a-time
@@ -5490,7 +5505,7 @@ async function loadAppData(){
     sb.from('recipes').select('*').order('title'),
     sb.from('favorites').select('recipe_id'),
     sb.from('recipe_notes').select('recipe_id, note'),
-    sb.from('ingredients').select('*').order('name'),
+    fetchAllRows('ingredients', 'name'),
     sb.from('tasks').select('*').order('priority').order('created_at'),
     sb.from('prep_dishes').select('*').order('sort_order'),
     sb.from('prep_items').select('*').order('sort_order'),
