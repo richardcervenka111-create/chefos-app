@@ -1367,6 +1367,9 @@
         <button class="icon-btn" onclick="openScanSettings()" title="Scan settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </button>
+        <button class="icon-btn" onclick="openFeedback()" title="Send feedback">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </button>
         <span class="sync-status saved" id="homeSyncStatus"></span>
       </div>
     </div>
@@ -11079,6 +11082,16 @@ async function clearApiKeySettings(){
 }
 
 const SCAN_LANGUAGE_NAMES = { en:'English', de:'German', sk:'Slovak', fr:'French', it:'Italian' };
+/* Simplest possible feedback channel (backlog t20) — no new UI to build or moderate, just
+   routes straight to Richard's inbox with useful context pre-filled, since during a small
+   closed trial a real conversation beats a form nobody checks. */
+function openFeedback(){
+  logEvent('feedback_opened');
+  const email = (currentUser && currentUser.email) || 'unknown';
+  const subject = encodeURIComponent('ChefOS feedback');
+  const body = encodeURIComponent(`\n\n—\nFrom: ${email}\nKitchen: ${currentKitchenId || 'unknown'}`);
+  window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
+}
 function openScanSettings(){
   document.getElementById('scanLanguageSelect').value = _scanLanguage || 'en';
   document.getElementById('scanSettingsStatus').textContent = '';
