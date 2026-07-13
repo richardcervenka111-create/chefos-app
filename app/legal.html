@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Privacy &amp; Terms</title>
+<style>
+  :root{
+    color-scheme: dark;
+    --bg: #14120f;
+    --paper: #1f1c18;
+    --paper-raised: #262119;
+    --ink: #ece5d8;
+    --ink-dim: #a89f8f;
+    --ink-faint: #6f6656;
+    --rule: #322d26;
+    --copper: #cd8f5f;
+    --copper-dim: #7d5136;
+    --sage: #96a586;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    background-image: radial-gradient(ellipse 900px 500px at 50% -120px, rgba(205,143,95,0.06), transparent);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  .wrap{ max-width: 680px; margin: 0 auto; padding: 40px 20px 80px 20px; }
+  .mark{ font-size: 34px; margin-bottom: 6px; }
+  .kicker{ font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--copper); font-weight: 600; margin-bottom: 6px; }
+  h1{ font-size: 28px; margin: 0 0 6px 0; }
+  .updated{ font-size: 12.5px; color: var(--ink-faint); margin-bottom: 28px; }
+  .callout{
+    border: 1px solid var(--copper-dim); background: rgba(205,143,95,0.08);
+    border-radius: 12px; padding: 16px 18px; margin-bottom: 32px;
+  }
+  .callout p{ margin: 0; font-size: 13.5px; color: var(--ink-dim); }
+  .callout b{ color: var(--ink); }
+  h2{ font-size: 16px; color: var(--copper); margin: 36px 0 10px 0; border-top: 1px solid var(--rule); padding-top: 24px; }
+  h2:first-of-type{ border-top: none; padding-top: 0; }
+  h3{ font-size: 13.5px; color: var(--ink); margin: 18px 0 6px 0; }
+  p, li{ font-size: 14px; color: var(--ink-dim); }
+  strong{ color: var(--ink); }
+  a{ color: var(--sage); }
+  ul{ padding-left: 20px; margin: 8px 0; }
+  .contact{
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 16px 18px; margin-top: 36px;
+  }
+  .contact p{ margin: 4px 0; }
+  .back{ display: inline-block; margin-top: 32px; color: var(--sage); font-size: 13px; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="mark">👨‍🍳</div>
+  <div class="kicker">ChefOS · Closed Trial</div>
+  <h1>Privacy &amp; Terms</h1>
+  <div class="updated">Last updated 13 July 2026</div>
+
+  <div class="callout">
+    <p><strong>Where this stands right now:</strong> ChefOS is in an early, invite-only trial. This page describes how we actually handle things today, in plain language. It has <strong>not</strong> been reviewed by a lawyer yet — treat it as an honest description of current practice, not a polished legal contract. If anything here matters to you (especially the Working Time / attendance data section below), ask directly — reply to any ChefOS email or message Richard.</p>
+  </div>
+
+  <h2>What ChefOS is, right now</h2>
+  <p>ChefOS is a kitchen management tool (recipes, prep checklists, ingredient pricing, staff scheduling and time tracking) being tested with a small number of invited kitchens before any public or paid launch. Your kitchen's data is only visible to people you've invited into your kitchen's team — it is not shared with other kitchens using ChefOS.</p>
+
+  <h2>What data we collect</h2>
+  <h3>Account &amp; login</h3>
+  <p>Your email address, used only to send you a one-time sign-in code. We don't ask for or store a password.</p>
+  <h3>What you put into the app</h3>
+  <p>Recipes, ingredient prices, prep checklist entries, order lists, and anything else you or your team type into ChefOS, stored so your kitchen can see and use it.</p>
+  <h3>Working Time (attendance)</h3>
+  <p>If your kitchen uses the Working Time feature, it records check-in/check-out times, breaks, and any notes a team member adds to a day. This is genuine employee attendance data. Under Swiss data protection law (nDSG) and similar rules elsewhere, this kind of data deserves extra care:</p>
+  <ul>
+    <li>It's visible to the person it belongs to, and to kitchen admins (for scheduling and payroll purposes).</li>
+    <li>It is not used for anything beyond tracking hours worked, breaks, and time off — no profiling, no sale to third parties, no advertising.</li>
+    <li>If your kitchen stops using ChefOS, this data can be deleted on request.</li>
+  </ul>
+  <h3>Basic usage data</h3>
+  <p>We log logins and which parts of the app get opened (not what you do inside them) so we can tell whether the trial is actually being used, and we log JavaScript errors (technical details only — page, browser, error message) so bugs can be fixed. Both are visible only to the ChefOS team, never sold or shared.</p>
+  <h3>AI features</h3>
+  <p>Features like Chef's Assistant or photo-scanning a recipe send the relevant text or image to Anthropic's Claude API to generate a response. That request goes through ChefOS's own server — your Anthropic API key (if you've set one) is never exposed to other users or stored in the app you can see in your browser.</p>
+
+  <h2>Who can see your kitchen's data</h2>
+  <p>Only people who've joined your kitchen's team (via an invite link or QR code you control). ChefOS staff (currently just Richard, as founder) can access data to fix bugs, run migrations, or provide support — never to read your recipes or attendance data for any other reason.</p>
+
+  <h2>Where data lives</h2>
+  <p>ChefOS runs on Supabase (a hosted Postgres database provider) with servers in the EU. Nothing is stored on individual devices beyond what your browser needs to display the page.</p>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>You can ask to see, correct, or delete your personal data (your account, your Working Time entries) at any time.</li>
+    <li>Your kitchen's admin can remove a team member, which ends their access to that kitchen's data.</li>
+    <li>You can stop using ChefOS at any time — this is a trial, not a contract.</li>
+  </ul>
+
+  <h2>What might change</h2>
+  <p>Because this is an early trial, this page and the product itself will change as ChefOS moves toward a real launch — including a proper legal review of these terms before any public release. If something material changes for you specifically (like new AI data handling), we'll tell you directly, not just quietly update this page.</p>
+
+  <div class="contact">
+    <p><strong>Questions or requests</strong></p>
+    <p>Reply to any ChefOS email, or message Richard directly — whichever's easiest.</p>
+  </div>
+
+  <a class="back" href="index.html">← Back to ChefOS</a>
+</div>
+</body>
+</html>
