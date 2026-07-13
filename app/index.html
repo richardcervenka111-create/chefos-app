@@ -2036,6 +2036,18 @@
   </div>
 </div>
 
+<!-- Chef Challenge — Richard: "vytvorenie menu ale iba s ingredienciami do 1CHF". Builds a menu
+     idea grounded in a real subset of the kitchen's own priced ingredients (not an AI guess at
+     what's cheap), then hands off to the same full-recipe generator Ask Chef's Assistant uses. -->
+<div id="chefChallengeOverlay" class="sheet-overlay" onclick="if(event.target===this) closeChefChallenge()">
+  <div class="sheet" style="max-height:88vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🎯 Chef Challenge</div>
+    <div id="chefChallengeBody"></div>
+    <button class="sheet-cancel" onclick="closeChefChallenge()">Close</button>
+  </div>
+</div>
+
 <!-- New recipe section, mirrors newStationOverlay -->
 <div id="newRecipeCategoryOverlay" class="sheet-overlay" onclick="if(event.target===this) closeNewRecipeCategoryPrompt()">
   <div class="sheet">
@@ -6135,6 +6147,7 @@ const HOME_TILE_DEFS = [
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
   { key:'fridgeTemp', icon:'🌡️', labelKey:'fridgeTemp', staticLabel:'Fridge Temp', onclick:'showFridges()' },
   { key:'chefAssistant', icon:'🎩', labelKey:'chefAssistant', staticLabel:"Chef's Assistant", onclick:'showChefAssistant()' },
+  { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' },
   { key:'myTeam', icon:'🔗', staticLabel:'My Team', onclick:'showTeamInvite()' },
   { key:'printLabels', icon:'🏷️', staticLabel:'Print Labels', onclick:'showPrintLabels()', badgeId:'printLabelsBadge' },
   { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdminRequests()', adminOnly:true, badgeId:'adminPendingBadge' },
@@ -6745,6 +6758,134 @@ async function runChefsAssistantGenerate(i){
     `;
   }
 }
+
+/* ---------- Chef Challenge ----------
+   Richard: "vytvorenie menu ale iba s ingredienciami do 1CHF" — build a menu but only with
+   ingredients under a price limit. Grounded in the kitchen's own real priced ingredients (not
+   an AI guess at what's cheap), then reuses the same idea-list + full-recipe-generation calls
+   as Ask Chef's Assistant above — same review-before-save landing on the recipe edit form. */
+let _chefChallengeThreshold = null;
+let _chefChallengeIngredients = [];
+function openChefChallenge(){
+  if(!_anthropicKey){
+    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
+    return;
+  }
+  _chefChallengeThreshold = null;
+  _chefChallengeIngredients = [];
+  renderChefChallengeSetup();
+  document.getElementById('chefChallengeOverlay').classList.add('open');
+}
+function closeChefChallenge(){
+  document.getElementById('chefChallengeOverlay').classList.remove('open');
+}
+function renderChefChallengeSetup(){
+  const el = document.getElementById('chefChallengeBody');
+  el.innerHTML = `
+    <p class="sheet-text">Build a dish using only ingredients priced at or under a limit you set — a fast way to find creative, low-waste, low-cost menu ideas grounded in your real ingredient prices.</p>
+    <label class="form-label">Max price per ingredient (${currentKitchenCurrency})</label>
+    <input class="form-field" id="chefChallengeMaxPrice" type="number" step="0.1" min="0.1" placeholder="e.g. 1" value="1">
+    <div class="sheet-status" id="chefChallengeStatus"></div>
+    <button class="save-btn" style="width:100%; margin-top:12px;" onclick="findChefChallengeIngredients()">Find ingredients under this price</button>
+  `;
+}
+function findChefChallengeIngredients(){
+  const raw = document.getElementById('chefChallengeMaxPrice').value;
+  const rate = (CURRENCY_INFO[currentKitchenCurrency]||CURRENCY_INFO.EUR).fromEur;
+  const maxEur = raw === '' ? null : parseFloat(raw) / rate;
+  if(!maxEur || maxEur <= 0){
+    document.getElementById('chefChallengeStatus').textContent = 'Enter a price limit above 0.';
+    return;
+  }
+  _chefChallengeThreshold = maxEur;
+  _chefChallengeIngredients = _ingredients.filter(i=>i.price != null && i.price <= maxEur);
+  renderChefChallengeIngredientList();
+}
+function renderChefChallengeIngredientList(){
+  const el = document.getElementById('chefChallengeBody');
+  const limitDisplay = formatMoney(_chefChallengeThreshold);
+  if(_chefChallengeIngredients.length === 0){
+    el.innerHTML = `
+      <p class="sheet-text">No ingredients priced at or under ${limitDisplay} yet — try raising the limit, or price some cheaper ingredients first.</p>
+      <button class="task-status-btn" style="width:100%; margin-top:10px;" onclick="renderChefChallengeSetup()">← Back</button>
+    `;
+    return;
+  }
+  el.innerHTML = `
+    <p class="sheet-text"><b>${_chefChallengeIngredients.length}</b> ingredient${_chefChallengeIngredients.length===1?'':'s'} at or under ${limitDisplay}:</p>
+    <div style="max-height:180px; overflow-y:auto; margin:8px 0 14px 0;">
+      ${_chefChallengeIngredients.map(i=>`<div class="cost-breakdown-row"><span>${i.name}</span><span class="mono">${formatMoney(i.price)} / ${i.unit}</span></div>`).join('')}
+    </div>
+    <button class="save-btn" style="width:100%;" onclick="runChefChallengeIdeas()">✨ Get 5 dish ideas from this list</button>
+    <button class="task-status-btn" style="width:100%; margin-top:10px;" onclick="renderChefChallengeSetup()">← Change limit</button>
+  `;
+}
+function chefChallengeContext(){
+  const limitDisplay = formatMoney(_chefChallengeThreshold);
+  const names = _chefChallengeIngredients.map(i=>i.name);
+  return `a "budget challenge" — the dish must be built from THIS exact list of ingredients (every one is priced at or under ${limitDisplay} in this kitchen): ${names.join(', ')}. Basic pantry staples not on the list (salt, pepper, oil, water) are fine to assume, but the featured ingredients must come from this list.`;
+}
+async function runChefChallengeIdeas(){
+  const el = document.getElementById('chefChallengeBody');
+  el.innerHTML = `<p class="sheet-text">Thinking of 5 budget-friendly ideas…</p>`;
+  try{
+    _chefAssistantIdeas = await callClaudeRecipeIdeas(chefChallengeContext());
+    renderChefChallengeIdeaList();
+  } catch(err){
+    el.innerHTML = `
+      <p class="sheet-text" style="color:#FF7A68;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>
+      <button class="save-btn" style="width:100%; margin-top:10px;" onclick="renderChefChallengeIngredientList()">Back</button>
+    `;
+  }
+}
+function renderChefChallengeIdeaList(){
+  const el = document.getElementById('chefChallengeBody');
+  el.innerHTML = `
+    <p class="sheet-text">Pick one and I'll write out the full recipe — you'll land on the normal edit screen to review before it's saved.</p>
+    ${_chefAssistantIdeas.map((idea,i)=>`
+      <div class="task-row" style="cursor:pointer;" onclick="runChefChallengeGenerate(${i})">
+        <div class="task-row-top">
+          <div class="info" style="flex:1;">
+            <div class="name task-text">${(idea.title||'').replace(/</g,'&lt;')}</div>
+            <div class="task-note" style="color:var(--ink-dim);">${(idea.short_description||'').replace(/</g,'&lt;')}</div>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+    <div class="sheet-status" id="chefChallengeStatus"></div>
+    <button class="task-status-btn" style="width:100%; margin-top:10px;" onclick="renderChefChallengeIngredientList()">← Back</button>
+  `;
+}
+async function runChefChallengeGenerate(i){
+  const idea = _chefAssistantIdeas[i];
+  const el = document.getElementById('chefChallengeBody');
+  el.innerHTML = `<p class="sheet-text">Writing the full recipe for "${(idea.title||'').replace(/</g,'&lt;')}"…</p>`;
+  try{
+    const input = await callClaudeGenerateRecipe(idea.title, idea.short_description || '', chefChallengeContext());
+    closeChefChallenge();
+    formEditingId = null;
+    const ingredients = (input.ingredients || []).map(x=>[x.name || '', x.qty || '']);
+    const steps = (input.steps && input.steps.length) ? input.steps : [''];
+    renderForm({
+      ...BLANK_RECIPE_FORM,
+      title: input.title || idea.title || '',
+      category: input.category || '',
+      meta: input.subtitle || '',
+      yield: input.yield || '',
+      activeTime: input.active_time || '',
+      passiveTime: input.passive_time || '',
+      ingredients: ingredients.length ? ingredients : [['','']],
+      steps,
+      tags: ['AI-generated', 'Chef Challenge']
+    });
+  } catch(err){
+    el.innerHTML = `
+      <p class="sheet-text" style="color:#FF7A68;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>
+      <button class="save-btn" style="width:100%; margin-top:10px;" onclick="renderChefChallengeIdeaList()">Back to ideas</button>
+    `;
+  }
+}
+
 async function callClaudeRecipeIdeas(context){
   const tool = {
     name: 'suggest_recipe_ideas',
