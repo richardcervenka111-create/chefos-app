@@ -24,7 +24,27 @@
   }
   .wrap{ max-width:900px; margin:0 auto; padding:0 20px; }
 
-  header{ padding:44px 20px 26px 20px; border-bottom:1px solid var(--rule); }
+  /* ---------- Sticky progress bar ---------- */
+  #top{
+    position:sticky; top:0; z-index:99;
+    background:var(--paper-raised);
+    border-bottom:1px solid var(--rule);
+    padding:12px 20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  #topInner{ flex:1; min-width:0; }
+  .pie{
+    width:52px; height:52px; border-radius:50%; flex:none; position:relative;
+    background:conic-gradient(#34F7D7 0deg, #223d57 0deg); transition:background .3s;
+  }
+  .pie::after{ content:''; position:absolute; inset:6px; border-radius:50%; background:var(--paper-raised); }
+  .pieLabel{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:bold; color:var(--accent); }
+  #topInner h2{ margin:0 0 3px 0; font-size:13.5px; font-weight:700; color:var(--ink); }
+  .stats{ display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--ink-dim); margin-bottom:5px; }
+  .bar{ height:6px; background:var(--rule); border-radius:99px; overflow:hidden; }
+  .fill{ height:100%; width:0; background:var(--accent); transition:width .3s; }
+
+  header{ padding:32px 20px 26px 20px; border-bottom:1px solid var(--rule); }
   header .inner{ max-width:900px; margin:0 auto; }
   .brandmark{ display:flex; align-items:center; gap:9px; margin-bottom:20px; }
   .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:0.02em; color:var(--accent); }
@@ -56,7 +76,20 @@
   .task{ display:flex; gap:12px; padding:13px 16px; border-bottom:1px solid var(--rule); align-items:flex-start; }
   .task:last-child{ border-bottom:none; }
   .task.v2{ background:rgba(139,147,255,0.06); border-left:3px solid var(--v2); }
-  .box{ width:15px; height:15px; border:1.5px solid var(--ink-dim); border-radius:4px; margin-top:2px; flex-shrink:0; }
+  /* Real checkbox, styled to look like the original plain squares — checking one off strikes
+     the title and dims it automatically via :has(), no JS needed for that part. */
+  .task-check{
+    appearance:none; -webkit-appearance:none;
+    width:16px; height:16px; border:1.5px solid var(--ink-dim); border-radius:4px;
+    margin-top:2px; flex-shrink:0; cursor:pointer; position:relative;
+    background:var(--paper-raised);
+  }
+  .task-check:checked{ background:var(--accent); border-color:var(--accent); }
+  .task-check:checked::after{
+    content:''; position:absolute; left:5px; top:2px; width:4px; height:8px;
+    border:solid var(--bg); border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  .task:has(.task-check:checked) .task-title{ text-decoration:line-through; color:var(--ink-dim); }
   .task-body{ flex:1; min-width:0; }
   .task-title{ font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:2px; }
   .task-desc{ font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
@@ -79,6 +112,15 @@
 </head>
 <body>
 
+<div id="top">
+  <div class="pie" id="pie"><div class="pieLabel" id="pieLabel">0%</div></div>
+  <div id="topInner">
+    <h2>ChefOS backlog v2</h2>
+    <div class="stats"><span id="done"></span><span id="left"></span></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+  </div>
+</div>
+
 <header>
   <div class="inner">
     <div class="brandmark">
@@ -87,7 +129,7 @@
     </div>
     <div class="kicker">Kompletný zoznam úloh · v2 — po expert review</div>
     <h1 class="title">Všetko, čo treba ešte urobiť — <em>doplnené</em></h1>
-    <p class="dek">Predchádzajúci zoznam prešiel kontrolou zo šiestich uhlov: Product Manager, CTO, Solution Architect, UX Lead, QA Lead a skúsený SaaS founder. Fialové položky sú nové — veci, ktoré v prvej verzii chýbali. Zvyšok zostáva z v1.</p>
+    <p class="dek">Predchádzajúci zoznam prešiel kontrolou zo šiestich uhlov: Product Manager, CTO, Solution Architect, UX Lead, QA Lead a skúsený SaaS founder. Fialové položky sú nové — veci, ktoré v prvej verzii chýbali. Zvyšok zostáva z v1. Zaškrtni políčko, keď je úloha hotová — počítadlo hore sa aktualizuje samo a pamätá si to aj nabudúce.</p>
     <div class="legend">
       <div class="item"><span class="swatch sw-plan"></span>Z tvojho plánu</div>
       <div class="item"><span class="swatch sw-new"></span>Odporúčanie v1</div>
@@ -107,10 +149,10 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Vyjasniť vlastníctvo IP voči zamestnávateľovi (Hotel Schweizerhof)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> Schweizerhof dáta (rozvrh, prep sheets postavené na jeho menu) ide preč z appky úplne — pilot beží na Burrito Bandito &amp; Lido namiesto toho, takže tento konkrétny IP risk odpadá. Všeobecná rada (skontrolovať IP klauzuly v pracovnej zmluve) naďalej platí aj pre nového zamestnávateľa — pozri nižšie.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Vyriešiť, čo bude pilotnou kuchyňou po odchode zo Schweizerhofu</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> Pilotná kuchyňa je Burrito Bandito &amp; Lido — jedna spoločnosť, dve prevádzky. IP klauzuly v novej pracovnej zmluve stále stojí za to skontrolovať, no to je bežná opatrnosť, nie akútny blocker.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Realisticky prehodnotiť kapacitu: nová práca na plný úväzok + ChefOS + RC Studio</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> RC Studio ide bokom — kapacita sa delí len medzi novú prácu a ChefOS. Termíny (vrátane 1.8. trialu) treba aj tak priebežne sledovať voči reálne dostupným hodinám.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Písomná pilot dohoda s každou testovacou kuchyňou</div><div class="task-desc"><b style="color:var(--v2);">Prvý návrh hotový 13.7.</b> — uložený ako docs/PILOT_AGREEMENT.md. Ešte treba: preložiť/upraviť podľa jazyka konkrétnej prevádzky a nechať si to potvrdiť, že to naozaj právne obstojí, kým sa na to bude spoliehať.</div><span class="role">Founder + právne</span></div><div class="tags"><span class="tag tag-v2">Rozpracované</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t1" checked><div class="task-body"><div class="task-title">Vyjasniť vlastníctvo IP voči zamestnávateľovi (Hotel Schweizerhof)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> Schweizerhof dáta (rozvrh, prep sheets postavené na jeho menu) ide preč z appky úplne — pilot beží na Burrito Bandito &amp; Lido namiesto toho, takže tento konkrétny IP risk odpadá. Všeobecná rada (skontrolovať IP klauzuly v pracovnej zmluve) naďalej platí aj pre nového zamestnávateľa — pozri nižšie.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t2" checked><div class="task-body"><div class="task-title">Vyriešiť, čo bude pilotnou kuchyňou po odchode zo Schweizerhofu</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> Pilotná kuchyňa je Burrito Bandito &amp; Lido — jedna spoločnosť, dve prevádzky. IP klauzuly v novej pracovnej zmluve stále stojí za to skontrolovať, no to je bežná opatrnosť, nie akútny blocker.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t3" checked><div class="task-body"><div class="task-title">Realisticky prehodnotiť kapacitu: nová práca na plný úväzok + ChefOS + RC Studio</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> RC Studio ide bokom — kapacita sa delí len medzi novú prácu a ChefOS. Termíny (vrátane 1.8. trialu) treba aj tak priebežne sledovať voči reálne dostupným hodinám.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t4"><div class="task-body"><div class="task-title">Písomná pilot dohoda s každou testovacou kuchyňou</div><div class="task-desc"><b style="color:var(--v2);">Prvý návrh hotový 13.7.</b> — uložený ako docs/PILOT_AGREEMENT.md. Ešte treba: preložiť/upraviť podľa jazyka konkrétnej prevádzky a nechať si to potvrdiť, že to naozaj právne obstojí, kým sa na to bude spoliehať.</div><span class="role">Founder + právne</span></div><div class="tags"><span class="tag tag-v2">Rozpracované</span></div></div>
   </div>
 
   <!-- PHASE 00 -->
@@ -121,14 +163,14 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Overiť odosielaciu doménu v Resend / prepnúť na Supabase mailer</div><div class="task-desc">Tvrdý blocker verejného trialu — cudzie adresy sa nevedia prihlásiť.</div></div><div class="tags"><span class="tag tag-crit">Blocker</span><span class="tag tag-plan">Plán</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Dať celý kód do Gitu (GitHub, súkromné repo) — okamžite</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> lokálny git repo založený, prvý commit hotový, priebežne komitujem od teraz. Ešte treba: vytvoriť súkromné repo na GitHub a pushnúť ho tam — to potrebuje tvoj vlastný GitHub účet/prihlásenie, nemám k nemu odtiaľto prístup.</div><span class="role">Vyriešené (čiastočne)</span></div><div class="tags"><span class="tag tag-plan">Lokálne hotové</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Zapnúť/overiť automatické zálohy Supabase databázy + otestovať obnovu</div><div class="task-desc">Free tier má obmedzené zálohy. V DB sú už reálne dáta pilotu (173 receptov, prep dáta, dochádzka). Záloha, ktorú si nikdy neskúšal obnoviť, nie je záloha.</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Vytvoriť staging prostredie (druhý Supabase projekt) — prestať púšťať SQL priamo na produkciu</div><div class="task-desc">Dnes sa každá migrácia (46+ SQL súborov!) púšťa rovno proti živej DB, ktorú používajú reálni ľudia. Pred trialom s 25 užívateľmi je to neúnosné riziko. Postup: migrácia najprv na staging → over → až potom prod.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Presunúť Anthropic API kľúč na server (Supabase Edge Function)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> supabase/functions/claude-proxy hotová, všetkých 9 volaní v appke prepojených cez ňu. Ty ešte musíš spustiť <code style="background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:4px;">supabase functions deploy claude-proxy</code> — nemám odtiaľto prístup k Supabase CLI.</div><span class="role">Vyriešené (čaká na deploy)</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Cost cap + alert na Anthropic účte</div><div class="task-desc">Vedieť o prekročení skôr, než príde faktúra.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Over limity Supabase free tieru pred trialom</div><div class="task-desc">Free projekty sa po 7 dňoch nečinnosti pozastavujú a majú limity na DB veľkosť/požiadavky. S 25 užívateľmi zváž Pro tier (~25 USD/mes) aspoň na obdobie trialu — lacná poistka proti trapasu „appka je preč".</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Spustiť čakajúce SQL migrácie (46–48: dodávateľské ceny, mena, chýbajúce RLS práva)</div><div class="task-desc">Po zriadení stagingu — najprv tam, potom prod.</div></div><div class="tags"><span class="tag tag-plan">Plán</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t5"><div class="task-body"><div class="task-title">Overiť odosielaciu doménu v Resend / prepnúť na Supabase mailer</div><div class="task-desc">Tvrdý blocker verejného trialu — cudzie adresy sa nevedia prihlásiť.</div></div><div class="tags"><span class="tag tag-crit">Blocker</span><span class="tag tag-plan">Plán</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t6" checked><div class="task-body"><div class="task-title">Dať celý kód do Gitu (GitHub, súkromné repo) — okamžite</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> lokálny git repo založený, prvý commit hotový, priebežne komitujem od teraz. Ešte treba: vytvoriť súkromné repo na GitHub a pushnúť ho tam — to potrebuje tvoj vlastný GitHub účet/prihlásenie, nemám k nemu odtiaľto prístup.</div><span class="role">Vyriešené (čiastočne)</span></div><div class="tags"><span class="tag tag-plan">Lokálne hotové</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t7"><div class="task-body"><div class="task-title">Zapnúť/overiť automatické zálohy Supabase databázy + otestovať obnovu</div><div class="task-desc">Free tier má obmedzené zálohy. V DB sú už reálne dáta pilotu (173 receptov, prep dáta, dochádzka). Záloha, ktorú si nikdy neskúšal obnoviť, nie je záloha.</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t8"><div class="task-body"><div class="task-title">Vytvoriť staging prostredie (druhý Supabase projekt) — prestať púšťať SQL priamo na produkciu</div><div class="task-desc">Dnes sa každá migrácia (46+ SQL súborov!) púšťa rovno proti živej DB, ktorú používajú reálni ľudia. Pred trialom s 25 užívateľmi je to neúnosné riziko. Postup: migrácia najprv na staging → over → až potom prod.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t9" checked><div class="task-body"><div class="task-title">Presunúť Anthropic API kľúč na server (Supabase Edge Function)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> supabase/functions/claude-proxy hotová, všetkých 9 volaní v appke prepojených cez ňu. Ty ešte musíš spustiť <code style="background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:4px;">supabase functions deploy claude-proxy</code> — nemám odtiaľto prístup k Supabase CLI.</div><span class="role">Vyriešené (čaká na deploy)</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t10"><div class="task-body"><div class="task-title">Cost cap + alert na Anthropic účte</div><div class="task-desc">Vedieť o prekročení skôr, než príde faktúra.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t11"><div class="task-body"><div class="task-title">Over limity Supabase free tieru pred trialom</div><div class="task-desc">Free projekty sa po 7 dňoch nečinnosti pozastavujú a majú limity na DB veľkosť/požiadavky. S 25 užívateľmi zváž Pro tier (~25 USD/mes) aspoň na obdobie trialu — lacná poistka proti trapasu „appka je preč".</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t12"><div class="task-body"><div class="task-title">Spustiť čakajúce SQL migrácie (46–53: dodávateľské ceny, mena, RLS opravy, realtime, error/usage logy, invite expirácia)</div><div class="task-desc">Po zriadení stagingu — najprv tam, potom prod.</div></div><div class="tags"><span class="tag tag-plan">Plán</span></div></div>
   </div>
 
   <!-- PRE TRIAL -->
@@ -139,15 +181,15 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Definovať kritériá úspechu trialu VOPRED — čo znamená „funguje"</div><div class="task-desc">Napr.: aspoň X tímov používa Check List 3+ dni v týždni aj po 2. týždni; aspoň Y ľudí povie „platil by som za to"; menej než Z kritických bugov. Bez čísel vopred sa každý výsledok dá interpretovať ako úspech a nič sa nenaučíš.</div><span class="role">Product Manager</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Pridať základnú analytiku používania (aspoň: kto sa prihlásil, ktorý modul otvoril)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> db/52_usage_events.sql, loguje login + otvorenie každého hlavného modulu. Admin si to vie prečítať priamo cez Supabase Table Editor, žiadne UI zatiaľ netreba.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Error tracking — zachytávať JS chyby užívateľov</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> db/51_error_logs.sql + window.onerror/unhandledrejection handler, capped na 20 logov/session.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Napísať regresný test checklist a prejsť ho pred každým väčším nasadením</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> docs/REGRESSION_CHECKLIST.md. Prejsť si ho ty musíš sám na reálnom zariadení pred trialom — to za teba spraviť neviem.</div><span class="role">Vyriešené (dokument), test čaká na teba</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Otestovať na matici zariadení: starší iPhone, Android, tablet — nie len tvoj telefón</div><div class="task-desc">25 cudzích ľudí = 25 rôznych zariadení. Minimálne: iOS Safari (2 verzie), Android Chrome, jeden tablet. Kuchynské reálie: mokré prsty, rukavice, odlesk — over veľkosť dotykových plôch.</div><span class="role">QA + UX Lead</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Rozhodnúť jazykovú stratégiu: appka je po anglicky, bernské kuchyne hovoria nemecky</div><div class="task-desc">UI bolo cielene preložené do angličtiny — ale cieľový trh je kantón Bern. Minimálne over pri triale, či je angličtina pre commis/casserolier bariéra; nemecká lokalizácia môže byť dôležitejšia než ďalšia funkcia.</div><span class="role">UX Lead + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Manuálny live test celej appky + flow „vytvor kuchyňu → QR → cudzí sa pripojí"</div><div class="task-desc">Z v1 — s reálnym druhým človekom, nie sám so sebou.</div></div><div class="tags"><span class="tag tag-plan">Plán</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Onboarding text + kanál na feedback + Podmienky/Privacy stránka</div><div class="task-desc">Z v1. Privacy je s Working Time (dochádzkové dáta zamestnancov, nDSG) dôležitejšia, než vyzerá.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Label printer + papierový fallback plán pre servis</div><div class="task-desc">Z v1 — Brother QL-820NWB, a odporúčanie pre kuchyne, čo robiť pri výpadku.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t13"><div class="task-body"><div class="task-title">Definovať kritériá úspechu trialu VOPRED — čo znamená „funguje"</div><div class="task-desc">Napr.: aspoň X tímov používa Check List 3+ dni v týždni aj po 2. týždni; aspoň Y ľudí povie „platil by som za to"; menej než Z kritických bugov. Bez čísel vopred sa každý výsledok dá interpretovať ako úspech a nič sa nenaučíš.</div><span class="role">Product Manager</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t14" checked><div class="task-body"><div class="task-title">Pridať základnú analytiku používania (aspoň: kto sa prihlásil, ktorý modul otvoril)</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> db/52_usage_events.sql, loguje login + otvorenie každého hlavného modulu. Admin si to vie prečítať priamo cez Supabase Table Editor, žiadne UI zatiaľ netreba.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t15" checked><div class="task-body"><div class="task-title">Error tracking — zachytávať JS chyby užívateľov</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> db/51_error_logs.sql + window.onerror/unhandledrejection handler, capped na 20 logov/session.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t16" checked><div class="task-body"><div class="task-title">Napísať regresný test checklist a prejsť ho pred každým väčším nasadením</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> docs/REGRESSION_CHECKLIST.md. Prejsť si ho ty musíš sám na reálnom zariadení pred trialom — to za teba spraviť neviem.</div><span class="role">Vyriešené (dokument), test čaká na teba</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t17"><div class="task-body"><div class="task-title">Otestovať na matici zariadení: starší iPhone, Android, tablet — nie len tvoj telefón</div><div class="task-desc">25 cudzích ľudí = 25 rôznych zariadení. Minimálne: iOS Safari (2 verzie), Android Chrome, jeden tablet. Kuchynské reálie: mokré prsty, rukavice, odlesk — over veľkosť dotykových plôch.</div><span class="role">QA + UX Lead</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t18"><div class="task-body"><div class="task-title">Rozhodnúť jazykovú stratégiu: appka je po anglicky, bernské kuchyne hovoria nemecky</div><div class="task-desc">UI bolo cielene preložené do angličtiny — ale cieľový trh je kantón Bern. Minimálne over pri triale, či je angličtina pre commis/casserolier bariéra; nemecká lokalizácia môže byť dôležitejšia než ďalšia funkcia.</div><span class="role">UX Lead + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t19"><div class="task-body"><div class="task-title">Manuálny live test celej appky + flow „vytvor kuchyňu → QR → cudzí sa pripojí"</div><div class="task-desc">Z v1 — s reálnym druhým človekom, nie sám so sebou.</div></div><div class="tags"><span class="tag tag-plan">Plán</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t20"><div class="task-body"><div class="task-title">Onboarding text + kanál na feedback + Podmienky/Privacy stránka</div><div class="task-desc">Z v1. Privacy je s Working Time (dochádzkové dáta zamestnancov, nDSG) dôležitejšia, než vyzerá.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t21"><div class="task-body"><div class="task-title">Label printer + papierový fallback plán pre servis</div><div class="task-desc">Z v1 — Brother QL-820NWB, a odporúčanie pre kuchyne, čo robiť pri výpadku.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
   </div>
 
   <!-- PHASE 2 -->
@@ -158,10 +200,10 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Overiť/zapojiť skutočný realtime</div><div class="task-desc"><b style="color:var(--accent);">Potvrdené a vyriešené 13.7.:</b> realtime naozaj nikde nebol zapojený — appka sa vždy načítala len raz. Teraz Check List (prep_items/prep_dishes) posiela zmeny naživo na všetky zariadenia. Ty ešte musíš spustiť db/50_enable_realtime.sql.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Naplánovať rozdelenie single-file architektúry — podľa vlastného ARCHITECTURE.md</div><div class="task-desc">Tvoj vlastný dokument hovorí, že single-file štruktúra „does NOT carry forward" — no appka je stále jeden obrovský index.html a rastie o desiatky funkcií denne. Netreba prepisovať hneď, ale treba stanoviť bod, kedy sa rozdelí (napr. po triale), inak sa každá ďalšia zmena stáva rizikovejšou (script-order bug bol prvé varovanie).</div><span class="role">Solution Architect + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Audit log — kto kedy odklikol/zmenil položku</div><div class="task-desc">V kuchyni je „kto to označil ako hotové" polovica hodnoty Check Listu (tvoja vlastná MVP veta: „without a single conversation about whose fault it is"). Bez záznamu autora zmeny sa tento sľub nedá splniť.</div><span class="role">Solution Architect + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Role a oprávnenia · reálne časy namiesto placeholderov · test v ostrom servise · validácia formátu receptu · kalibrácia overload prahu</div><div class="task-desc">Všetko z v1 — zostáva v plnom rozsahu.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t22" checked><div class="task-body"><div class="task-title">Overiť/zapojiť skutočný realtime</div><div class="task-desc"><b style="color:var(--accent);">Potvrdené a vyriešené 13.7.:</b> realtime naozaj nikde nebol zapojený — appka sa vždy načítala len raz. Teraz Check List (prep_items/prep_dishes) posiela zmeny naživo na všetky zariadenia. Ty ešte musíš spustiť db/50_enable_realtime.sql.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t23"><div class="task-body"><div class="task-title">Naplánovať rozdelenie single-file architektúry — podľa vlastného ARCHITECTURE.md</div><div class="task-desc">Tvoj vlastný dokument hovorí, že single-file štruktúra „does NOT carry forward" — no appka je stále jeden obrovský index.html a rastie o desiatky funkcií denne. Netreba prepisovať hneď, ale treba stanoviť bod, kedy sa rozdelí (napr. po triale), inak sa každá ďalšia zmena stáva rizikovejšou (script-order bug bol prvé varovanie).</div><span class="role">Solution Architect + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t24"><div class="task-body"><div class="task-title">Audit log — kto kedy odklikol/zmenil položku</div><div class="task-desc">V kuchyni je „kto to označil ako hotové" polovica hodnoty Check Listu (tvoja vlastná MVP veta: „without a single conversation about whose fault it is"). Bez záznamu autora zmeny sa tento sľub nedá splniť.</div><span class="role">Solution Architect + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t25"><div class="task-body"><div class="task-title">Role a oprávnenia · reálne časy namiesto placeholderov · test v ostrom servise · validácia formátu receptu · kalibrácia overload prahu</div><div class="task-desc">Všetko z v1 — zostáva v plnom rozsahu.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
   </div>
 
   <!-- PHASE 3 -->
@@ -172,9 +214,9 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Vyriešiť multi-tenant konflikt zdieľanej ingredient tabuľky</div><div class="task-desc">Ak je ingredients tabuľka spoločná pre všetky kuchyne, potom keď jedna kuchyňa zmení cenu masla, zmení ju všetkým — ceny od dodávateľov sú pritom pre každú kuchyňu iné. Treba rozhodnúť: globálny katalóg + per-kitchen ceny (správne riešenie), alebo kópia tabuľky pre každú kuchyňu. Toto treba rozhodnúť SKÔR, než pribudnú ďalšie tímy s vlastnými cenami — spätná migrácia bude bolieť.</div><span class="role">Solution Architect</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Pred trialom zvážiť</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Yield/waste faktor v kalkulácii food costu</div><div class="task-desc">Profesionálny food cost počíta s výťažnosťou (očistená ryba ≠ kúpená ryba, šupky, odrezky). Bez yield % bude vypočítaný cost systematicky podhodnotený — a šéfkuchári, ktorým to predávaš, si to všimnú ako prví.</div><span class="role">PM (a ty ako kuchár to vieš najlepšie)</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Inventory modul · recepty→spotreba→sklad · Shopping Lists · overenie cien · rozhodnutie o Master DB</div><div class="task-desc">Všetko z v1 — zostáva.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t26"><div class="task-body"><div class="task-title">Vyriešiť multi-tenant konflikt zdieľanej ingredient tabuľky</div><div class="task-desc">Ak je ingredients tabuľka spoločná pre všetky kuchyne, potom keď jedna kuchyňa zmení cenu masla, zmení ju všetkým — ceny od dodávateľov sú pritom pre každú kuchyňu iné. Treba rozhodnúť: globálny katalóg + per-kitchen ceny (správne riešenie), alebo kópia tabuľky pre každú kuchyňu. Toto treba rozhodnúť SKÔR, než pribudnú ďalšie tímy s vlastnými cenami — spätná migrácia bude bolieť.</div><span class="role">Solution Architect</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Pred trialom zvážiť</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t27"><div class="task-body"><div class="task-title">Yield/waste faktor v kalkulácii food costu</div><div class="task-desc">Profesionálny food cost počíta s výťažnosťou (očistená ryba ≠ kúpená ryba, šupky, odrezky). Bez yield % bude vypočítaný cost systematicky podhodnotený — a šéfkuchári, ktorým to predávaš, si to všimnú ako prví.</div><span class="role">PM (a ty ako kuchár to vieš najlepšie)</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t28"><div class="task-body"><div class="task-title">Inventory modul · recepty→spotreba→sklad · Shopping Lists · overenie cien · rozhodnutie o Master DB</div><div class="task-desc">Všetko z v1 — zostáva.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
   </div>
 
   <!-- PHASE 4-5 -->
@@ -185,8 +227,8 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Service planning · prep forecasting · reporty · export dát · AI odporúčania · schedule coverage assistant · monetizácia AI</div><div class="task-desc">Všetko z v1 — zostáva bez zmeny.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Retenčná politika dát + anonymizácia pre AI učenie</div><div class="task-desc">Fáza 5 sa má učiť z „reálnych dát používania" — tie patria kuchyniam. Vopred definuj (a napíš do podmienok), či a ako sa dáta jednej kuchyne používajú na zlepšovanie produktu. Enterprise zákazník sa na toto opýta ako na prvé.</div><span class="role">CTO + Founder</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t29"><div class="task-body"><div class="task-title">Service planning · prep forecasting · reporty · export dát · AI odporúčania · schedule coverage assistant · monetizácia AI</div><div class="task-desc">Všetko z v1 — zostáva bez zmeny.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t30"><div class="task-body"><div class="task-title">Retenčná politika dát + anonymizácia pre AI učenie</div><div class="task-desc">Fáza 5 sa má učiť z „reálnych dát používania" — tie patria kuchyniam. Vopred definuj (a napíš do podmienok), či a ako sa dáta jednej kuchyne používajú na zlepšovanie produktu. Enterprise zákazník sa na toto opýta ako na prvé.</div><span class="role">CTO + Founder</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
   </div>
 
   <!-- PHASE 6-7 -->
@@ -197,10 +239,10 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">Natívne appky · desktop · offline mode (priorita vyššie!) · multi-location · App Store · pricing · onboarding bez teba · go-to-market · Nooch kontakt · GmbH spúšťač · HACCP zodpovednosť/poistenie</div><div class="task-desc">Všetko z v1 — zostáva. Offline mode naďalej odporúčam potiahnuť dopredu.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Fakturácia: použiť hotové riešenie (Stripe Billing / Paddle / Lemon Squeezy), nie stavať vlastné</div><div class="task-desc">v1 správne pomenovala „chýba billing", ale nepovedala ako: pre solo foundera je Merchant-of-Record riešenie (Paddle/Lemon Squeezy rieši aj DPH/VAT v EÚ a CH za teba) obrovská úspora oproti Stripe + vlastné daňové priznania v každej krajine.</div><span class="role">Founder + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Validovať ochotu platiť EŠTE POČAS trialu — nie až vo Fáze 7</div><div class="task-desc">Founding-member pre-sales bol tvoj vlastný zaznamenaný mechanizmus prvého príjmu, no v aktuálnych dokumentoch zmizol. Trial s 25 ľuďmi je presne moment na otázku „zaplatil by si X CHF/mesiac?" — reálny prísľub peňazí je jediná skutočná validácia a zároveň podklad pre investorov/granty.</div><span class="role">Founder + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Aktualizovať konkurenčnú analýzu pred predajom</div><div class="task-desc">Deck má sekciu competitive landscape, ale trh kitchen-management SaaS (Apicbase, MarketMan, Flipdish a pod.) sa hýbe rýchlo — pred prvým predajným rozhovorom over, čo konkurenti medzičasom vydali a za koľko.</div><span class="role">PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t31"><div class="task-body"><div class="task-title">Natívne appky · desktop · offline mode (priorita vyššie!) · multi-location · App Store · pricing · onboarding bez teba · go-to-market · Nooch kontakt · GmbH spúšťač · HACCP zodpovednosť/poistenie</div><div class="task-desc">Všetko z v1 — zostáva. Offline mode naďalej odporúčam potiahnuť dopredu.</div></div><div class="tags"><span class="tag tag-plan">Plán + v1</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t32"><div class="task-body"><div class="task-title">Fakturácia: použiť hotové riešenie (Stripe Billing / Paddle / Lemon Squeezy), nie stavať vlastné</div><div class="task-desc">v1 správne pomenovala „chýba billing", ale nepovedala ako: pre solo foundera je Merchant-of-Record riešenie (Paddle/Lemon Squeezy rieši aj DPH/VAT v EÚ a CH za teba) obrovská úspora oproti Stripe + vlastné daňové priznania v každej krajine.</div><span class="role">Founder + CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t33"><div class="task-body"><div class="task-title">Validovať ochotu platiť EŠTE POČAS trialu — nie až vo Fáze 7</div><div class="task-desc">Founding-member pre-sales bol tvoj vlastný zaznamenaný mechanizmus prvého príjmu, no v aktuálnych dokumentoch zmizol. Trial s 25 ľuďmi je presne moment na otázku „zaplatil by si X CHF/mesiac?" — reálny prísľub peňazí je jediná skutočná validácia a zároveň podklad pre investorov/granty.</div><span class="role">Founder + PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t34"><div class="task-body"><div class="task-title">Aktualizovať konkurenčnú analýzu pred predajom</div><div class="task-desc">Deck má sekciu competitive landscape, ale trh kitchen-management SaaS (Apicbase, MarketMan, Flipdish a pod.) sa hýbe rýchlo — pred prvým predajným rozhovorom over, čo konkurenti medzičasom vydali a za koľko.</div><span class="role">PM</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
   </div>
 
   <!-- CROSS CUTTING -->
@@ -211,10 +253,11 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><div class="box"></div><div class="task-body"><div class="task-title">RLS bezpečnostný audit · uptime monitoring · support kanál · Innosuisse/Venturelab grant · live test na reálnom iOS zariadení</div><div class="task-desc">Všetko z v1 — zostáva. Dva konkrétne chýbajúce RLS prípady (kitchens UPDATE, station_icons DELETE) už opravené v 48_kitchens_and_station_icons_policy_fix.sql.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Zaviesť poradie nasadzovania: staging → regresný checklist → prod (nikdy naopak)</div><div class="task-desc">Nie je to úloha, je to zvyk — ale musí sa rozhodnúť raz a dodržiavať. Kombinuje tri v2 položky (Git, staging, checklist) do jedného pracovného postupu.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
-    <div class="task"><div class="box" style="background:var(--accent); border-color:var(--accent);"></div><div class="task-body"><div class="task-title" style="text-decoration:line-through; color:var(--ink-dim);">Penetračný pohľad na access gate a invite linky pred rastom</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> nový kitchen_invites token (7-dňová expirácia, revokovateľný) nahradil holé kitchen id v odkaze; pridané "Revoke & get new link" aj zoznam členov tímu s admin-only "Remove". Ty ešte musíš spustiť db/53_invite_expiry_and_remove_member.sql.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
-    <div class="task v2"><div class="box"></div><div class="task-body"><div class="task-title">Definovať „severnú hviezdu" metriku produktu</div><div class="task-desc">Jedno číslo, ktoré sleduje zdravie produktu naprieč všetkým fázami — pre ChefOS pravdepodobne „počet kuchýň, ktoré použili Check List počas reálneho servisu tento týždeň". Všetko ostatné (funkcie, dizajn, AI) je podriadené tomuto číslu.</div><span class="role">PM + Founder</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t35"><div class="task-body"><div class="task-title">RLS bezpečnostný audit · uptime monitoring · support kanál · Innosuisse/Venturelab grant · live test na reálnom iOS zariadení</div><div class="task-desc">Všetko z v1 — zostáva. Dva konkrétne chýbajúce RLS prípady (kitchens UPDATE, station_icons DELETE) už opravené v 48_kitchens_and_station_icons_policy_fix.sql.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t36"><div class="task-body"><div class="task-title">Zaviesť poradie nasadzovania: staging → regresný checklist → prod (nikdy naopak)</div><div class="task-desc">Nie je to úloha, je to zvyk — ale musí sa rozhodnúť raz a dodržiavať. Kombinuje tri v2 položky (Git, staging, checklist) do jedného pracovného postupu.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t37" checked><div class="task-body"><div class="task-title">Penetračný pohľad na access gate a invite linky pred rastom</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> nový kitchen_invites token (7-dňová expirácia, revokovateľný) nahradil holé kitchen id v odkaze; pridané "Revoke &amp; get new link" aj zoznam členov tímu s admin-only "Remove". Ty ešte musíš spustiť db/53_invite_expiry_and_remove_member.sql.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t38"><div class="task-body"><div class="task-title">Definovať „severnú hviezdu" metriku produktu</div><div class="task-desc">Jedno číslo, ktoré sleduje zdravie produktu naprieč všetkým fázami — pre ChefOS pravdepodobne „počet kuchýň, ktoré použili Check List počas reálneho servisu tento týždeň". Všetko ostatné (funkcie, dizajn, AI) je podriadené tomuto číslu.</div><span class="role">PM + Founder</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t39"><div class="task-body"><div class="task-title">Zvážiť dedikovaný support/monitoring kanál mimo emailu — napr. jednoduchý status.html-štýlový verejný stavový panel pre pilotné kuchyne</div><div class="task-desc">Nová myšlienka: keď je appka nedostupná alebo má známy problém, kuchyne to dnes zistia len tak, že im niečo nefunguje. Aj jednoduchá jednostránková "je ChefOS v poriadku?" by znížila počet zbytočných správ tebe počas servisu.</div><span class="role">Moje odporúčanie</span></div><div class="tags"><span class="tag tag-v2">Nové</span></div></div>
   </div>
 
   <div class="callout">
@@ -224,11 +267,30 @@
 
   <div class="callout ok">
     <div class="k">Poradie na najbližších 14 dní</div>
-    <p>1. Git repo (30 min) → 2. Zálohy DB + test obnovy → 3. IP kontrola pracovnej zmluvy + rozhodnutie o pilotnej kuchyni po zmene práce → 4. Resend doména → 5. Staging projekt → 6. API kľúč na server → 7. Regresný checklist + manuálny test → 8. Kritériá úspechu trialu + jednoduchá analytika → potom trial.</p>
+    <p>1. Zálohy DB + test obnovy → 2. IP kontrola novej pracovnej zmluvy → 3. Resend doména → 4. Staging projekt → 5. Deploy claude-proxy + spustiť SQL 46–53 → 6. Regresný checklist naživo na reálnom zariadení → 7. Kritériá úspechu trialu → potom trial. (Git, API kľúč na server, realtime, analytika, error tracking a invite expirácia sú už hotové.)</p>
   </div>
 
   <footer>ChefOS — kompletný zoznam úloh v2 · expert review: PM / CTO / Solution Architect / UX Lead / QA Lead / SaaS Founder · aktualizuje sa denne · 13. 7. 2026</footer>
 </div>
 
+<script>
+const b=[...document.querySelectorAll('.task-check')];
+function upd(){
+  let d=0;
+  b.forEach(x=>{localStorage.setItem('chefos_backlog_'+x.id,x.checked);if(x.checked)d++;});
+  const p=Math.round(d/b.length*100);
+  document.getElementById('done').textContent='✅ '+d+' hotových';
+  document.getElementById('left').textContent='⏳ '+(b.length-d)+' zostáva';
+  document.getElementById('fill').style.width=p+'%';
+  document.getElementById('pie').style.background='conic-gradient(#34F7D7 '+(p*3.6)+'deg, #223d57 0deg)';
+  document.getElementById('pieLabel').textContent=p+'%';
+}
+b.forEach(x=>{
+  const saved=localStorage.getItem('chefos_backlog_'+x.id);
+  x.checked = saved===null ? x.checked : (saved==='true');
+  x.onchange=upd;
+});
+upd();
+</script>
 </body>
 </html>

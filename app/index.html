@@ -1581,12 +1581,17 @@
 <div id="ingredientFiltersOverlay" class="sheet-overlay" onclick="if(event.target===this) closeIngredientFilters()">
   <div class="sheet" style="max-height:88vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Search &amp; Filter</div>
-    <div class="search-wrap" style="margin:0 0 6px 0;">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="ingredientSearch" type="text" placeholder="Search ingredients…">
+    <!-- Pinned to the top of the sheet's own scroll area (not the page) while the chip rows
+         below scroll underneath — Richard: search + the live match-count should always stay
+         visible, not scroll away once there are enough filter rows to need scrolling at all. -->
+    <div style="position:sticky; top:0; z-index:5; background:var(--paper-raised); margin:0 -20px 10px -20px; padding:0 20px 10px 20px; border-bottom:1px solid var(--rule);">
+      <div class="sheet-title" style="margin-bottom:12px;">Search &amp; Filter</div>
+      <div class="search-wrap" style="margin:0 0 6px 0;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="ingredientSearch" type="text" placeholder="Search ingredients…">
+      </div>
+      <div class="sheet-text" id="ingredientFilterCount" style="margin:0; color:var(--copper);"></div>
     </div>
-    <div class="sheet-text" id="ingredientFilterCount" style="margin:0 0 12px 0; color:var(--copper);"></div>
     <label class="form-label">Cuisine</label>
     <div class="chips" id="ingredientChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
     <label class="form-label" style="margin-top:10px;">Category</label>
