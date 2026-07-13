@@ -13,29 +13,29 @@
        background underneath). This was the cause of Working Time's day-note textarea being
        unreadable while typing. */
     color-scheme: dark;
-    --bg: #14120f;
-    --paper: #1f1c18;
-    --paper-raised: #262119;
-    --ink: #ece5d8;
-    --ink-dim: #a89f8f;
-    --ink-faint: #6f6656;
-    --rule: #322d26;
-    --copper: #cd8f5f;
-    --copper-dim: #7d5136;
-    --sage: #96a586;
+    --bg: #0A1A2F;
+    --paper: #122845;
+    --paper-raised: #0f2340;
+    --ink: #ffffff;
+    --ink-dim: #9C949E;
+    --ink-faint: rgba(156,148,158,0.6);
+    --rule: #223d57;
+    --copper: #34F7D7;
+    --copper-dim: rgba(52,247,215,0.4);
+    --sage: #F7C948;
     --shadow: 0 8px 28px rgba(0,0,0,0.35);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0; padding:0; height:100%; max-width:100vw; overflow-x:hidden;}
   body{
     background: var(--bg);
-    background-image: radial-gradient(ellipse 900px 500px at 50% -120px, rgba(205,143,95,0.06), transparent);
+    background-image: radial-gradient(ellipse 900px 500px at 50% -120px, rgba(52,247,215,0.06), transparent);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overscroll-behavior-y: contain;
     -webkit-font-smoothing: antialiased;
   }
-  ::selection{ background: var(--copper); color: #1a1611; }
+  ::selection{ background: var(--copper); color: #0A1A2F; }
   button, input, select, textarea{ font: inherit; }
   button{ cursor:pointer; transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease; }
   a{ transition: color 0.15s ease; }
@@ -76,7 +76,7 @@
     margin: 0 0 30px 0; line-height:1.5;
   }
   .form-status{ font-size:12px; color:var(--sage); min-height:16px; margin: 8px 0 4px 0; }
-  .form-status.error{ color:#d97a6f; }
+  .form-status.error{ color:#FF7A68; }
   .login-hint{ font-size:12px; color:var(--ink-faint); line-height:1.5; margin:6px 0 14px 0; }
 
   /* ---------- Top bar ---------- */
@@ -104,7 +104,7 @@
   .sync-status::before{ content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
   .sync-status.saving, .sync-status.offline{ opacity: 1; }
   .sync-status.saved{ opacity: 0; }
-  .sync-status.offline{ color: #d97757; }
+  .sync-status.offline{ color: #FF7A68; }
   h1.title{
     font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
     font-size: 30px;
@@ -122,7 +122,7 @@
     padding: 11px 14px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  .search-wrap:focus-within{ border-color: var(--copper-dim); box-shadow: 0 0 0 3px var(--copper-wash, rgba(205,143,95,0.12)); }
+  .search-wrap:focus-within{ border-color: var(--copper-dim); box-shadow: 0 0 0 3px var(--copper-wash, rgba(52,247,215,0.12)); }
   .search-wrap svg{ flex:none; opacity:0.55; }
   #search{
     flex:1;
@@ -221,7 +221,7 @@
   .fridge-card:hover{ border-color: var(--copper-dim); }
   .fridge-status-dot{ width:12px; height:12px; border-radius:50%; flex:none; }
   .fridge-status-dot.ok{ background: var(--sage); }
-  .fridge-status-dot.warn{ background: #d97a6f; }
+  .fridge-status-dot.warn{ background: #FF7A68; }
   .fridge-status-dot.none{ background: var(--rule); }
   .fridge-card .info{ flex:1; }
   .fridge-card .name{ font-size:15.5px; font-weight:600; }
@@ -289,7 +289,7 @@
   .wt-pie-label{ font-size:12px; font-weight:700; }
   .wt-pie-sub{ font-size:10px; color:var(--ink-dim); text-align:center; }
   .wt-bar-weekday{ font-size:8.5px; color:var(--ink-faint, var(--ink-dim)); }
-  .fridge-log-row .temp.warn{ color:#d97a6f; }
+  .fridge-log-row .temp.warn{ color:#FF7A68; }
 
   /* ---------- Bottom action sheet (used by the ingredient info panel) ---------- */
   .sheet-overlay{
@@ -376,7 +376,7 @@
   }
   @keyframes scan-spin{ to{ transform: rotate(360deg); } }
   .scan-status{ font-size:14px; color:var(--ink-dim); }
-  .scan-error{ font-size:13px; color:#d97a6f; margin-top:14px; }
+  .scan-error{ font-size:13px; color:#FF7A68; margin-top:14px; }
 
   /* ---------- Task rows (Mise en Place) ---------- */
   .task-row{ padding:14px 18px; border-bottom:1px solid var(--rule); }
@@ -406,13 +406,13 @@
     border:1px solid var(--rule); background: var(--paper);
     cursor:pointer;
   }
-  .icon-choice-btn.active{ border-color: var(--copper); background: rgba(205,143,95,0.16); }
-  .task-status-btn.status-todo{ color:#d97a6f; border-color:#7a3b34; }
-  .task-status-btn.status-todo.active{ color:#fff; border-color:#d97a6f; background: rgba(217,122,111,0.32); }
+  .icon-choice-btn.active{ border-color: var(--copper); background: rgba(52,247,215,0.16); }
+  .task-status-btn.status-todo{ color:#FF7A68; border-color:#7a3b34; }
+  .task-status-btn.status-todo.active{ color:#fff; border-color:#FF7A68; background: rgba(255,122,104,0.32); }
   .task-status-btn.status-check{ color: var(--copper); border-color: var(--copper-dim); }
-  .task-status-btn.status-check.active{ background: rgba(205,143,95,0.15); }
+  .task-status-btn.status-check.active{ background: rgba(52,247,215,0.15); }
   .task-status-btn.status-finish{ color: var(--sage); border-color: var(--sage); }
-  .task-status-btn.status-finish.active{ background: rgba(150,165,134,0.15); }
+  .task-status-btn.status-finish.active{ background: rgba(247,201,72,0.15); }
   .task-status-btn.status-dontdo{ color: var(--ink-dim); border-color: var(--rule); }
   .task-status-btn.status-dontdo.active{ color: var(--ink); border-color: var(--ink-dim); background: rgba(236,229,216,0.14); }
   .task-priority-badge{
@@ -421,7 +421,7 @@
     font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:600;
     border: 1px solid var(--rule);
   }
-  .priority-1, .priority-2{ color:#d97a6f; border-color:#7a3b34; }
+  .priority-1, .priority-2{ color:#FF7A68; border-color:#7a3b34; }
   .priority-3{ color: var(--copper); border-color: var(--copper-dim); }
   .priority-4, .priority-5{ color: var(--sage); border-color: var(--sage); }
 
@@ -440,7 +440,7 @@
   .prep-filter-toggle::after{ content:' ▾'; font-size:9px; opacity:0.6; }
   .prep-filter-toggle:active{ transform: scale(0.97); }
   .prep-filter-toggle:hover{ border-color: var(--copper-dim); }
-  .prep-filter-toggle.active{ border-color: var(--copper); background: rgba(205,143,95,0.16); color: var(--ink); }
+  .prep-filter-toggle.active{ border-color: var(--copper); background: rgba(52,247,215,0.16); color: var(--ink); }
   .prep-filter-toggle.active::after{ content:' ▴'; }
   .prep-flag{ margin-left:6px; font-size:14px; }
   /* Deliberately loud — Richard's own words, "do očí bijúca výstraha" (an eye-catching
@@ -459,7 +459,7 @@
   .prep-dish-header{
     display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
     padding: 14px 18px 10px 18px;
-    background: rgba(205,143,95,0.16);
+    background: rgba(52,247,215,0.16);
     border-left: 3px solid var(--copper);
   }
   .prep-dish-name{ font-family: Georgia, serif; font-size: 17px; color: var(--copper); }
@@ -474,7 +474,7 @@
   .prep-item-row{
     padding: 10px 6px;
     border-top: 1px solid var(--rule);
-    background: rgba(150,165,134,0.12);
+    background: rgba(247,201,72,0.12);
     font-family:"SF Mono",Menlo,monospace;
   }
   .prep-line1{ display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-bottom:5px; }
@@ -499,7 +499,7 @@
   .prep-time-remaining{
     margin-left:auto; padding:5px 10px; border-radius:999px;
     font-family:"SF Mono",Menlo,monospace; border:1px solid var(--copper-dim);
-    color: var(--copper); background: rgba(205,143,95,0.1);
+    color: var(--copper); background: rgba(52,247,215,0.1);
   }
   .prep-section-name{ display:inline-flex; align-items:center; gap:5px; font-weight:700; color: var(--ink); cursor:pointer; }
   /* Section name + Visibility + time-remaining live on their own row below the
@@ -513,8 +513,8 @@
   .prep-status-group{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
   .prep-line3{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:7px; }
   .prep-line3 .prep-note{ flex-basis:100%; order:-1; }
-  .task-status-btn.status-danger{ color:#d97a6f; border-color:#7a3b34; }
-  .task-status-btn.status-danger:active{ background: rgba(217,122,111,0.2); }
+  .task-status-btn.status-danger{ color:#FF7A68; border-color:#7a3b34; }
+  .task-status-btn.status-danger:active{ background: rgba(255,122,104,0.2); }
   .prep-note{ flex:1; min-width:0; font-family:inherit; font-weight:400; font-style:italic; }
   .prep-item-clock{
     font-family:inherit; font-size:12px; font-weight:600;
@@ -528,7 +528,7 @@
     display:flex; align-items:center; gap:5px; color: var(--sage); border-color: var(--sage-dim, var(--rule));
     font-size:13px; padding:7px 12px;
   }
-  .task-status-btn.status-timer.active{ color:#fff; border-color:#d97a6f; background: rgba(217,122,111,0.32); }
+  .task-status-btn.status-timer.active{ color:#fff; border-color:#FF7A68; background: rgba(255,122,104,0.32); }
   .prep-timer-live{ font-variant-numeric: tabular-nums; }
   @media (max-width: 420px){
     /* Font-size stays 16px even here — anything smaller makes iOS Safari auto-zoom the whole
@@ -555,7 +555,7 @@
   }
   .chef-msg.user{
     align-self:flex-end;
-    background: var(--copper-dim); color:#fff3ea;
+    background: var(--copper-dim); color:#34F7D7;
     border-bottom-right-radius:4px;
   }
   .chef-msg.assistant{
@@ -578,7 +578,7 @@
   }
   .chef-chat-send{
     flex:none; padding:10px 18px; border-radius:12px; border:none;
-    background: var(--copper); color:#1c1510; font-weight:700; font-size:14px;
+    background: var(--copper); color:#0A1A2F; font-weight:700; font-size:14px;
   }
   .chef-chat-send:disabled{ opacity:0.5; }
   .chef-empty-state{ color:var(--ink-dim); font-size:14px; padding:18px; text-align:center; }
@@ -589,7 +589,7 @@
     padding: 12px 14px; margin-bottom: 8px;
     border-radius: 8px;
     border: 1px solid var(--rule);
-    background: rgba(150,165,134,0.10);
+    background: rgba(247,201,72,0.10);
   }
   .qa-row.selected{ background: rgba(217,58,58,var(--qa-alpha, 0.2)); border-color: rgba(217,58,58,0.4); }
   .qa-checkbox{
@@ -597,12 +597,12 @@
     border: 1.5px solid var(--rule); background: var(--paper);
     display:flex; align-items:center; justify-content:center;
   }
-  .qa-row.selected .qa-checkbox{ background:#d93a3a; border-color:#d93a3a; }
-  .qa-checkbox.checked{ background:#d93a3a; border-color:#d93a3a; color:#fff; font-weight:700; font-size:13px; }
+  .qa-row.selected .qa-checkbox{ background:#FF7A68; border-color:#FF7A68; }
+  .qa-checkbox.checked{ background:#FF7A68; border-color:#FF7A68; color:#fff; font-weight:700; font-size:13px; }
   .qa-info{ flex:1; min-width:0; }
   .qa-info .name{ font-size:15px; font-weight:500; }
   .qa-info .meta{ font-size:12.5px; color:var(--ink-dim); margin-top:2px; }
-  .qa-row.order-checked{ background: rgba(205,143,95,0.16); border-color: var(--copper-dim); }
+  .qa-row.order-checked{ background: rgba(52,247,215,0.16); border-color: var(--copper-dim); }
   .qa-row.order-checked .qa-checkbox{ background: var(--copper); border-color: var(--copper); }
   .qa-qty-input{
     flex:none; width:64px;
@@ -620,7 +620,7 @@
     letter-spacing: 0.06em;
     padding: 2px 7px;
     border-radius: 999px;
-    background: rgba(205,143,95,0.12);
+    background: rgba(52,247,215,0.12);
     border: 1px solid var(--copper-dim);
     color: var(--copper);
     flex: none;
@@ -686,7 +686,7 @@
     color: var(--ink); font-family:inherit;
     padding: 10px 4px 8px 4px;
   }
-  .station-tile.active{ border-color: var(--copper); background: rgba(205,143,95,0.14); }
+  .station-tile.active{ border-color: var(--copper); background: rgba(52,247,215,0.14); }
   .station-tile:active{ transform: scale(0.96); }
   .station-tile-icon{ font-size:22px; line-height:1; }
   .station-tile-label{ font-size:11px; font-weight:600; text-align:center; line-height:1.2; }
@@ -719,7 +719,7 @@
   .chip.active{
     background: var(--copper-dim);
     border-color: var(--copper);
-    color: #fff3ea;
+    color: #34F7D7;
   }
 
   /* ---------- List ---------- */
@@ -743,13 +743,13 @@
     gap:14px;
     padding: 12px 18px;
     border-top: 1px solid var(--rule);
-    background: rgba(150,165,134,0.12);
+    background: rgba(247,201,72,0.12);
     font-family: "SF Mono", Menlo, monospace;
     cursor:pointer;
     transition: background-color 0.15s ease;
   }
-  .recipe-row:hover{ background: rgba(150,165,134,0.2); }
-  .recipe-row:active{ background: rgba(150,165,134,0.2); }
+  .recipe-row:hover{ background: rgba(247,201,72,0.2); }
+  .recipe-row:active{ background: rgba(247,201,72,0.2); }
   .recipe-row .chevron{ transition: transform 0.15s ease; }
   .recipe-row:hover .chevron{ transform: translateX(2px); color: var(--copper); }
   .recipe-row .idx{
@@ -817,7 +817,7 @@
     cursor:pointer;
     border-radius: 6px;
   }
-  .back-btn:hover{ color: #d99968; }
+  .back-btn:hover{ color: #5FFAE3; }
   .detail-content{ padding: 20px 18px 60px 18px; }
   .detail-cat{
     font-size: 11px;
@@ -967,7 +967,7 @@
     font-size: 11.5px;
     padding: 4px 10px;
     border-radius: 999px;
-    background: rgba(205,143,95,0.12);
+    background: rgba(52,247,215,0.12);
     border: 1px solid var(--copper-dim);
     color: var(--copper);
   }
@@ -993,7 +993,7 @@
     color: var(--ink-dim);
     cursor:pointer;
   }
-  .scale-chip.active{ background: var(--copper-dim); border-color: var(--copper); color:#fff3ea; }
+  .scale-chip.active{ background: var(--copper-dim); border-color: var(--copper); color:#34F7D7; }
   .scale-note{
     width:100%;
     font-size: 11px;
@@ -1057,7 +1057,7 @@
   .scale-arrow{ color: var(--ink-dim); font-size: 13px; flex: none; }
   .scale-apply-btn{
     background: var(--copper);
-    color: #1a1611;
+    color: #0A1A2F;
     border: none;
     font-family: inherit;
     font-size: 12.5px;
@@ -1095,7 +1095,7 @@
   .stat-pill svg{ flex:none; color: var(--copper); }
   .diff-easy{ color: var(--sage); }
   .diff-medium{ color: var(--copper); }
-  .diff-hard{ color: #d97a6f; }
+  .diff-hard{ color: #FF7A68; }
   .list-diff-dot{
     display:inline-block;
     width:6px; height:6px;
@@ -1105,7 +1105,7 @@
   }
   .dot-easy{ background: var(--sage); }
   .dot-medium{ background: var(--copper); }
-  .dot-hard{ background: #d97a6f; }
+  .dot-hard{ background: #FF7A68; }
 
   /* ---------- Notes ---------- */
   .notes-block{ margin-top: 30px; }
@@ -1135,7 +1135,7 @@
     width: 58px; height: 58px;
     border-radius: 50%;
     background: var(--copper);
-    color: #1a1611;
+    color: #0A1A2F;
     border: none;
     display:flex; align-items:center; justify-content:center;
     box-shadow: 0 6px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
@@ -1150,7 +1150,7 @@
   #formView{ display:none; }
   .save-btn{
     background: var(--copper);
-    color: #1a1611;
+    color: #0A1A2F;
     border: none;
     padding: 9px 18px;
     border-radius: 9px;
@@ -1159,7 +1159,7 @@
     font-weight: 600;
     letter-spacing: -0.005em;
   }
-  .save-btn:hover{ background: #d99968; }
+  .save-btn:hover{ background: #5FFAE3; }
   .save-btn:active{ background: var(--copper-dim); transform: scale(0.98); }
   .form-label{
     font-size: 12px;
@@ -1243,7 +1243,7 @@
   .danger-btn{
     background:none;
     border: 1px solid #7a3b34;
-    color: #d97a6f;
+    color: #FF7A68;
     font-family: inherit;
     font-size: 13px;
     padding: 8px 14px;
@@ -1450,7 +1450,7 @@
     </div>
     <div class="wt-chart-legend" style="margin-top:10px;">
       <span><i class="wt-dot wt-dot-actual"></i>Regular hours</span>
-      <span><i class="wt-dot" style="background:#d97a6f;"></i>Overtime</span>
+      <span><i class="wt-dot" style="background:#FF7A68;"></i>Overtime</span>
     </div>
     <div class="wt-pie-grid" id="wtChartsGrid"></div>
     <button class="task-status-btn" style="margin-bottom:20px;" onclick="generateSampleWorkingHours()">🎲 Add sample data for this year (test only)</button>
@@ -4781,10 +4781,10 @@ function logEvent(name, meta){
    from nowhere. */
 function chefOSLogoMarkSvg(size){
   return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="32" r="30" fill="#ece5d8"/>
-    <circle cx="32" cy="32" r="29" fill="none" stroke="#3f4a38" stroke-width="1"/>
-    <path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#5c6b52" stroke-width="7" stroke-linecap="round"/>
-    <circle cx="32" cy="32" r="3.4" fill="#5c6b52"/>
+    <circle cx="32" cy="32" r="30" fill="#ffffff"/>
+    <circle cx="32" cy="32" r="29" fill="none" stroke="#223d57" stroke-width="1"/>
+    <path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="3.4" fill="#34F7D7"/>
   </svg>`;
 }
 
@@ -5205,7 +5205,7 @@ async function showTeamInvite(){
   el.innerHTML = `
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
       ${chefOSLogoMarkSvg(40)}
-      <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--sage);">ChefOS</span>
+      <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">ChefOS</span>
     </div>
 
     <label class="form-label">Your Kitchen</label>
@@ -6678,7 +6678,7 @@ async function runChefsAssistantIdeas(){
     renderChefAssistantIdeaList();
   } catch(err){
     el.innerHTML = `
-      <p class="sheet-text" style="color:#d97a6f;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>
+      <p class="sheet-text" style="color:#FF7A68;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>
       <button class="save-btn" style="width:100%; margin-top:10px;" onclick="renderChefsAssistantQuestions()">Back</button>
     `;
   }
@@ -6727,7 +6727,7 @@ async function runChefsAssistantGenerate(i){
     });
   } catch(err){
     el.innerHTML = `
-      <p class="sheet-text" style="color:#d97a6f;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>
+      <p class="sheet-text" style="color:#FF7A68;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>
       <button class="save-btn" style="width:100%; margin-top:10px;" onclick="renderChefAssistantIdeaList()">Back to ideas</button>
     `;
   }
@@ -8984,7 +8984,7 @@ async function runLanguageAudit(){
       }));
     renderLanguageAuditReport();
   } catch(err){
-    el.innerHTML = `<p class="sheet-text" style="color:#d97a6f;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>`;
+    el.innerHTML = `<p class="sheet-text" style="color:#FF7A68;">${(err.message||'Something went wrong.').replace(/</g,'&lt;')}</p>`;
   }
 }
 function renderLanguageAuditReport(){
@@ -10361,7 +10361,7 @@ function renderWorkingTimeChartsGrid(){
     const regPct = (regular / m.totalHours) * 100;
     return `
       <div class="wt-pie-cell" onclick="openMonthDayBars(${m.month})">
-        <div class="wt-pie" style="background: conic-gradient(var(--copper) 0% ${regPct}%, #d97a6f ${regPct}% 100%);" title="${formatHoursSK(regular)}h regular · ${formatHoursSK(m.overtimeHours)}h overtime"></div>
+        <div class="wt-pie" style="background: conic-gradient(var(--copper) 0% ${regPct}%, #FF7A68 ${regPct}% 100%);" title="${formatHoursSK(regular)}h regular · ${formatHoursSK(m.overtimeHours)}h overtime"></div>
         <div class="wt-pie-label">${MONTH_NAMES_SHORT[m.month]}</div>
         <div class="wt-pie-sub">${formatHoursSK(m.totalHours)}h · OT ${formatHoursSK(m.overtimeHours)}h</div>
       </div>
