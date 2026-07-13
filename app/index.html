@@ -5067,7 +5067,11 @@ function handleRealtimePrepDishChange(payload){
    ============================================================ */
 
 function getJoinTargetFromUrl(){
-  return new URLSearchParams(location.search).get('join') || null;
+  // 'invite' is the current format (a real, revocable/expiring token — db/53_*.sql). 'join'
+  // (the kitchen's own id, never expires, can't be revoked) is kept readable so links already
+  // shared before this change still work — new links are never generated in that format anymore.
+  const params = new URLSearchParams(location.search);
+  return { invite: params.get('invite') || null, legacyKitchenId: params.get('join') || null };
 }
 
 async function renderTeamGate(){
@@ -5098,9 +5102,28 @@ async function renderTeamGate(){
   }
 
   // Approved — either join the kitchen from an invite link, or create a brand new one.
-  const joinId = getJoinTargetFromUrl();
-  if(joinId){
-    const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', joinId).maybeSingle();
+  const { invite, legacyKitchenId } = getJoinTargetFromUrl();
+  let targetKitchenId = null;
+  let invalidInviteReason = '';
+  if(invite){
+    const { data: inviteRow } = await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at').eq('id', invite).maybeSingle();
+    if(!inviteRow) invalidInviteReason = "That invite link doesn't point to a real team.";
+    else if(inviteRow.revoked) invalidInviteReason = 'That invite link has been revoked. Ask whoever sent it for a fresh one.';
+    else if(new Date(inviteRow.expires_at) < new Date()) invalidInviteReason = 'That invite link has expired. Ask whoever sent it for a fresh one.';
+    else targetKitchenId = inviteRow.kitchen_id;
+  } else if(legacyKitchenId){
+    targetKitchenId = legacyKitchenId; // old-format link shared before invites existed
+  }
+
+  if(invite || legacyKitchenId){
+    if(!targetKitchenId){
+      el.innerHTML = `<p class="lede">${invalidInviteReason || "That invite link doesn't point to a real team."} Or create your own kitchen below.</p>
+        <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco" style="margin-top:12px;">
+        <button class="save-btn" style="width:100%;" onclick="createOwnKitchen()">Create my kitchen</button>
+        <div class="form-status" id="teamGateStatus"></div>`;
+      return;
+    }
+    const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', targetKitchenId).maybeSingle();
     if(!kitchen){
       el.innerHTML = `<p class="lede">That invite link doesn't point to a real team. Ask whoever sent it for a fresh one, or create your own kitchen below.</p>
         <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco" style="margin-top:12px;">
@@ -5158,7 +5181,13 @@ async function showTeamInvite(){
   window.scrollTo(0,0);
 
   const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', currentKitchenId).maybeSingle();
-  const inviteUrl = location.origin + location.pathname + '?join=' + currentKitchenId;
+  let inviteId;
+  try{ inviteId = await getOrCreateActiveInvite(); }
+  catch(err){
+    el.innerHTML = `<p class="lede">Could not load an invite link: ${err.message}</p>`;
+    return;
+  }
+  const inviteUrl = location.origin + location.pathname + '?invite=' + inviteId;
 
   el.innerHTML = `
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
@@ -5170,16 +5199,20 @@ async function showTeamInvite(){
     <h2 class="recipe-title" style="margin:0 0 16px 0;">${kitchen ? kitchen.name : 'Unnamed kitchen'}</h2>
 
     <label class="form-label">Invite your team</label>
-    <p class="lede">Anyone who opens this link (and is approved for ChefOS) joins your team and shares Recipes, Check List, and Ingredients with you.</p>
+    <p class="lede">Anyone who opens this link (and is approved for ChefOS) joins your team and shares Recipes, Check List, and Ingredients with you. This link expires in 7 days, or sooner if you revoke it.</p>
     <input class="form-field" id="inviteLinkField" type="text" readonly value="${inviteUrl}">
     <div class="sheet-row">
       <button class="save-btn" onclick="copyInviteLink()">Copy Link</button>
       <button class="save-btn" onclick="shareInviteLink()" id="inviteShareBtn" style="display:none;">Share</button>
     </div>
+    <button class="danger-btn" style="width:100%; margin-top:8px;" onclick="revokeAndRegenerateInvite()">Revoke &amp; get a new link</button>
     <div class="form-status" id="inviteCopyStatus"></div>
 
     <label class="form-label" style="margin-top:22px;">Or scan this QR code</label>
     <div id="inviteQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px; position:relative;"></div>
+
+    <label class="form-label" style="margin-top:26px;">Team members</label>
+    <div id="teamMembersList"><p class="lede">Loading…</p></div>
   `;
 
   if(navigator.share) document.getElementById('inviteShareBtn').style.display = '';
@@ -5194,6 +5227,57 @@ async function showTeamInvite(){
   const holder = document.getElementById('inviteQrHolder');
   holder.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 }) +
     `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:20%; height:20%;">${chefOSLogoMarkSvg('100%')}</div>`;
+
+  renderTeamMembersList();
+}
+
+/* Real, separate invite token (db/53_*.sql) instead of the kitchen's own id — revocable and
+   expiring on its own, with zero effect on the kitchen itself either way. Reuses whatever
+   active (not revoked, not expired) invite already exists rather than minting a new one on
+   every visit to this screen, so the link stays stable until deliberately revoked. */
+async function getOrCreateActiveInvite(){
+  const { data: existing } = await sb.from('kitchen_invites')
+    .select('id, expires_at, revoked')
+    .eq('kitchen_id', currentKitchenId)
+    .eq('revoked', false)
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending:false })
+    .limit(1)
+    .maybeSingle();
+  if(existing) return existing.id;
+  const { data: created, error } = await sb.from('kitchen_invites')
+    .insert({ kitchen_id: currentKitchenId, created_by: currentUser.id })
+    .select('id')
+    .single();
+  if(error) throw error;
+  return created.id;
+}
+async function revokeAndRegenerateInvite(){
+  if(!confirm("Revoke the current invite link? Anyone who already has it won't be able to use it anymore — you'll get a fresh one right after.")) return;
+  await sb.from('kitchen_invites').update({ revoked: true }).eq('kitchen_id', currentKitchenId).eq('revoked', false);
+  await showTeamInvite();
+}
+async function renderTeamMembersList(){
+  const el = document.getElementById('teamMembersList');
+  if(!el) return;
+  const { data: members, error } = await sb.from('profiles').select('id, full_name, is_admin').eq('kitchen_id', currentKitchenId).order('full_name');
+  if(error){ el.innerHTML = `<p class="lede">Could not load team members.</p>`; return; }
+  el.innerHTML = (members || []).map(m=>`
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(m.full_name || 'Unnamed').replace(/</g,'&lt;')}${m.is_admin ? ' · Admin' : ''}${m.id===currentUser.id ? ' (you)' : ''}</div>
+        </div>
+      </div>
+      ${currentIsAdmin && m.id !== currentUser.id ? `<div class="task-status-group"><button class="danger-btn" onclick="removeTeamMember('${m.id}', '${(m.full_name||'this person').replace(/'/g,"\\'")}')">✕ Remove</button></div>` : ''}
+    </div>
+  `).join('') || `<p class="lede">No members found.</p>`;
+}
+async function removeTeamMember(userId, name){
+  if(!confirm(`Remove ${name} from this kitchen? They'll need to create or join a kitchen again to get back in.`)) return;
+  const { error } = await sb.from('profiles').update({ kitchen_id: null }).eq('id', userId);
+  if(error){ alert('Could not remove: ' + error.message); return; }
+  renderTeamMembersList();
 }
 
 function copyInviteLink(){
