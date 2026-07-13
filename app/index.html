@@ -4714,6 +4714,49 @@ const SUPABASE_URL = 'https://azkhyorqnwvaugaomjvh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* Basic client-side error tracking (2026-07-13) — up to now, a JS error on a real user's real
+   device was invisible until they thought to mention it. Logs to error_logs (db/51_error_logs.sql)
+   instead of a third-party service. Capped per session so a tight error loop can't flood the
+   table — after MAX_ERROR_LOGS_PER_SESSION, later errors just get dropped silently rather than
+   generating their own errors trying to log themselves. */
+const MAX_ERROR_LOGS_PER_SESSION = 20;
+let _errorLogCount = 0;
+function logClientError(message, stack){
+  if(_errorLogCount >= MAX_ERROR_LOGS_PER_SESSION) return;
+  _errorLogCount++;
+  try{
+    sb.from('error_logs').insert({
+      kitchen_id: typeof currentKitchenId !== 'undefined' ? currentKitchenId : null,
+      user_id: typeof currentUser !== 'undefined' && currentUser ? currentUser.id : null,
+      message: String(message || '').slice(0, 2000),
+      stack: stack ? String(stack).slice(0, 4000) : null,
+      url: location.href,
+      user_agent: navigator.userAgent
+    }).then(()=>{}, ()=>{});
+  } catch(e){ /* logging itself must never throw */ }
+}
+window.addEventListener('error', (e)=>{
+  logClientError(e.message, e.error && e.error.stack);
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  const reason = e.reason;
+  logClientError(reason && reason.message ? reason.message : String(reason), reason && reason.stack);
+});
+
+/* Minimal usage analytics (db/52_usage_events.sql) — logs a login and which top-level module
+   gets opened (Recipes, Check List, Ingredients, ...), so it's possible to tell whether trial
+   users are actually using the app rather than just guessing from silence. */
+function logEvent(name, meta){
+  try{
+    sb.from('usage_events').insert({
+      kitchen_id: typeof currentKitchenId !== 'undefined' ? currentKitchenId : null,
+      user_id: typeof currentUser !== 'undefined' && currentUser ? currentUser.id : null,
+      name,
+      meta: meta || null
+    }).then(()=>{}, ()=>{});
+  } catch(e){ /* logging itself must never throw */ }
+}
+
 /* ChefOS brand mark v2 — Richard's first pass (a plain system-font "C" in copper) read as
    flat and generic. Replaced the letterform with a hand-built shape instead: a bold open ring,
    drawn as a single precise arc (not a font glyph), reading as an abstract "C" through negative
@@ -4972,6 +5015,7 @@ async function startApp(){
   renderRecipeSummaryBar();
   renderList();
   subscribeToRealtimeUpdates();
+  logEvent('login');
 }
 
 /* Real-time cross-device sync for Check List — MVP_DEFINITION.md's core promise ("updates
@@ -5106,6 +5150,7 @@ async function joinKitchenViaLink(kitchenId){
 
 /* ---------- My Team: invite link + QR ---------- */
 async function showTeamInvite(){
+  logEvent('view_opened', {view:'my_team'});
   hideAllViews();
   document.getElementById('teamInviteView').style.display = 'block';
   const el = document.getElementById('teamInviteContent');
@@ -5174,6 +5219,7 @@ async function refreshAdminPendingBadge(){
 }
 
 async function showAdminRequests(){
+  logEvent('view_opened', {view:'admin'});
   hideAllViews();
   document.getElementById('adminRequestsView').style.display = 'block';
   window.scrollTo(0,0);
@@ -6996,6 +7042,7 @@ function showDetail(idx){
 }
 
 function showList(){
+  logEvent('view_opened', {view:'recipes'});
   hideAllViews();
   document.getElementById('listView').style.display = 'block';
   // Favorites by default, per Richard's request — but if nothing is favorited yet (true for
@@ -7303,6 +7350,7 @@ let ingredientActiveQuery = '';
 let ingredientEditingId = null;
 
 function showIngredients(){
+  logEvent('view_opened', {view:'ingredients'});
   hideAllViews();
   document.getElementById('ingredientsView').style.display = 'block';
   renderIngredientChips();
@@ -7698,6 +7746,7 @@ let _prepDishes = [];
 let _prepItems = [];
 
 async function showTasks(){
+  logEvent('view_opened', {view:'check_list'});
   hideAllViews();
   document.getElementById('tasksView').style.display = 'block';
   // Always reload fresh before showing counts — opening straight from Home was sometimes
@@ -9140,6 +9189,7 @@ let printLabelsSelectMode = false;
 let _printQueueSelectedIds = new Set();
 
 function showPrintLabels(){
+  logEvent('view_opened', {view:'print_labels'});
   hideAllViews();
   document.getElementById('printLabelsView').style.display = 'block';
   printLabelsSelectMode = false;
@@ -9478,6 +9528,7 @@ function setOrderListStatus(state){
 }
 
 function showOrderList(){
+  logEvent('view_opened', {view:'order_list'});
   hideAllViews();
   document.getElementById('orderListView').style.display = 'block';
   orderListSelectMode = false;
@@ -9836,6 +9887,7 @@ let _scheduleForecast = [];
 let _workingTimeDayNotes = {};
 
 async function showWorkingTime(){
+  logEvent('view_opened', {view:'working_time'});
   hideAllViews();
   document.getElementById('workingTimeView').style.display = 'block';
   await loadWorkingTimeData();
@@ -11401,6 +11453,7 @@ let _chefChatHistory = []; // [{role:'user'|'assistant', content:'...'}]
 const CHEF_CHAT_HISTORY_LIMIT = 8; // messages sent to the API per turn — keeps cost flat, not growing with the chat
 
 function showChefAssistant(){
+  logEvent('view_opened', {view:'chef_assistant'});
   hideAllViews();
   document.getElementById('chefAssistantView').style.display = 'flex';
   renderChefChatMessages();
@@ -11811,6 +11864,7 @@ function setFridgesStatus(state){
 }
 
 async function showFridges(){
+  logEvent('view_opened', {view:'fridge_temp'});
   hideAllViews();
   document.getElementById('fridgesView').style.display = 'block';
   await loadFridges();
