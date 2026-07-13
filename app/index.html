@@ -1596,8 +1596,6 @@
     <div class="chips" id="ingredientChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
     <label class="form-label" style="margin-top:10px;">Category</label>
     <div class="chips" id="ingredientFoodTypeChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
-    <label class="form-label" style="margin-top:10px;">Pricing</label>
-    <div class="chips" id="ingredientPricingChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
     <label class="form-label" style="margin-top:10px;">Season</label>
     <div class="chips" id="ingredientSeasonChips" style="overflow-x:visible; flex-wrap:wrap; padding:0;"></div>
     <label class="form-label" style="margin-top:10px;">Storage</label>
@@ -7462,7 +7460,6 @@ function showIngredients(){
   renderIngredientSeasonChips();
   renderIngredientStorageChips();
   renderIngredientCategoryChips();
-  renderIngredientPricingChips();
   renderIngredientList();
   refreshIngredientFiltersActiveDot();
   window.scrollTo(0,0);
@@ -7526,7 +7523,6 @@ function clearIngredientFilters(){
   renderIngredientSeasonChips();
   renderIngredientStorageChips();
   renderIngredientCategoryChips();
-  renderIngredientPricingChips();
   renderIngredientList();
   refreshIngredientFiltersActiveDot();
   updateIngredientFilterCount();
@@ -7587,22 +7583,6 @@ function renderIngredientCategoryChips(){
     el.className = 'chip' + (c===ingredientActiveCategory ? ' active' : '');
     el.textContent = c;
     el.onclick = ()=>{ ingredientActiveCategory = c; renderIngredientCategoryChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount(); };
-    wrap.appendChild(el);
-  });
-}
-
-/* New filter: Richard has flagged more than once that the original 535-row seed shipped with
-   every price estimated, never verified online — this makes that distinction directly
-   filterable instead of only visible one row at a time, so he can see at a glance which parts
-   of the price book are real (supplier-sourced) vs. still placeholders. */
-function renderIngredientPricingChips(){
-  const wrap = document.getElementById('ingredientPricingChips');
-  if(!wrap) return;
-  ['All','Verified','Estimated','Missing'].forEach(p=>{
-    const el = document.createElement('div');
-    el.className = 'chip' + (p===ingredientActivePricing ? ' active' : '');
-    el.textContent = p === 'All' ? 'Any pricing' : p === 'Verified' ? '✓ Verified' : p === 'Estimated' ? '≈ Estimated' : '— Missing';
-    el.onclick = ()=>{ ingredientActivePricing = p; renderIngredientPricingChips(); renderIngredientList(); refreshIngredientFiltersActiveDot(); updateIngredientFilterCount(); };
     wrap.appendChild(el);
   });
 }
