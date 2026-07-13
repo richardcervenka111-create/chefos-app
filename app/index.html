@@ -7972,46 +7972,87 @@ function matchesIngredientQuery(ing, q){
   return (ing.aliases||[]).some(a=>a.toLowerCase().includes(q));
 }
 
+/* Switzerland/Northern-hemisphere season-by-month, used to surface what's actually good to buy
+   right now — same four season names already stored on each ingredient's `seasons` field. */
+const MONTH_SEASON = ['Winter','Winter','Spring','Spring','Spring','Summer','Summer','Summer','Autumn','Autumn','Autumn','Winter'];
+function seasonForMonth(monthIdx){ return MONTH_SEASON[((monthIdx % 12) + 12) % 12]; }
+
+function ingredientRowEl(ing, idx){
+  const row = document.createElement('div');
+  row.className = 'recipe-row ingredient-row';
+  row.onclick = ()=> editIngredientForm(idx);
+  row.innerHTML = `
+    <div class="info">
+      <div class="name">${ing.name}${ing.cuisine ? `<span class="cuisine-badge">${ing.cuisine}</span>` : ''}</div>
+      <div class="meta">${(ing.aliases||[]).length ? 'aka ' + ing.aliases.join(', ') : ''}</div>
+    </div>
+    <div class="price mono">${ing.price != null ? formatMoney(ing.price)+' / '+ing.unit : 'no price'}</div>
+    <div class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></div>
+  `;
+  return row;
+}
+
 function renderIngredientList(){
   updateIngredientFilterCount();
   const container = document.getElementById('ingredientListContainer');
   container.innerHTML = '';
   const q = ingredientActiveQuery;
-  const grouped = {};
-  _ingredients.forEach((ing, idx)=>{
-    if(!passesIngredientFilters(ing, q)) return;
-    const cat = ing.category || 'Other';
-    if(!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(idx);
-  });
+  const isDefaultView = !q && !ingredientActiveCuisine.length && !ingredientActiveSeason.length &&
+    !ingredientActiveStorage.length && !ingredientActiveCategory.length &&
+    ingredientActiveMinPrice == null && ingredientActiveMaxPrice == null;
 
-  const cats = Object.keys(grouped).sort();
-  if(cats.length === 0){
+  const passingIdx = [];
+  _ingredients.forEach((ing, idx)=>{ if(passesIngredientFilters(ing, q)) passingIdx.push(idx); });
+
+  if(passingIdx.length === 0){
     container.innerHTML = `<div class="empty-state">${_ingredients.length===0 ? 'No ingredients yet — tap + to add your first one.' : 'No ingredients match.'}</div>`;
     return;
   }
 
-  cats.forEach(cat=>{
+  // Richard: land on what's actually worth buying right now, not an alphabetical wall — the
+  // first ~30 are in season this month, the next ~30 are coming into season next month. Only
+  // on the untouched default view; searching or filtering shows the normal category grouping,
+  // since at that point the chef is looking for something specific, not browsing.
+  let pinnedIds = new Set();
+  if(isDefaultView){
+    const now = new Date();
+    const thisSeason = seasonForMonth(now.getMonth());
+    const nextSeason = seasonForMonth(now.getMonth() + 1);
+    const inSeasonNow = passingIdx.filter(idx=>(_ingredients[idx].seasons||[]).includes(thisSeason)).slice(0, 30);
+    inSeasonNow.forEach(idx=>pinnedIds.add(idx));
+    const comingNextMonth = thisSeason === nextSeason ? [] :
+      passingIdx.filter(idx=>!pinnedIds.has(idx) && (_ingredients[idx].seasons||[]).includes(nextSeason)).slice(0, 30);
+    comingNextMonth.forEach(idx=>pinnedIds.add(idx));
+
+    if(inSeasonNow.length){
+      const label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = `🌱 In season now (${thisSeason}) · ${inSeasonNow.length}`;
+      container.appendChild(label);
+      inSeasonNow.forEach(idx=>container.appendChild(ingredientRowEl(_ingredients[idx], idx)));
+    }
+    if(comingNextMonth.length){
+      const label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = `🗓️ Coming into season next month (${nextSeason}) · ${comingNextMonth.length}`;
+      container.appendChild(label);
+      comingNextMonth.forEach(idx=>container.appendChild(ingredientRowEl(_ingredients[idx], idx)));
+    }
+  }
+
+  const grouped = {};
+  passingIdx.forEach(idx=>{
+    if(pinnedIds.has(idx)) return;
+    const cat = _ingredients[idx].category || 'Other';
+    if(!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(idx);
+  });
+  Object.keys(grouped).sort().forEach(cat=>{
     const label = document.createElement('div');
     label.className = 'section-label';
     label.textContent = cat + ' · ' + grouped[cat].length;
     container.appendChild(label);
-
-    grouped[cat].forEach(idx=>{
-      const ing = _ingredients[idx];
-      const row = document.createElement('div');
-      row.className = 'recipe-row ingredient-row';
-      row.onclick = ()=> editIngredientForm(idx);
-      row.innerHTML = `
-        <div class="info">
-          <div class="name">${ing.name}${ing.cuisine ? `<span class="cuisine-badge">${ing.cuisine}</span>` : ''}</div>
-          <div class="meta">${(ing.aliases||[]).length ? 'aka ' + ing.aliases.join(', ') : ''}</div>
-        </div>
-        <div class="price mono">${ing.price != null ? formatMoney(ing.price)+' / '+ing.unit : 'no price'}</div>
-        <div class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></div>
-      `;
-      container.appendChild(row);
-    });
+    grouped[cat].forEach(idx=>container.appendChild(ingredientRowEl(_ingredients[idx], idx)));
   });
 }
 
@@ -11512,38 +11553,91 @@ const SCAN_LANGUAGE_NAMES = { en:'English', de:'German', sk:'Slovak', fr:'French
 /* Simplest possible feedback channel (backlog t20) — no new UI to build or moderate, just
    routes straight to Richard's inbox with useful context pre-filled, since during a small
    closed trial a real conversation beats a form nobody checks. */
+/* Richard: the old version stuffed a raw kitchen UUID and the full browser user-agent string
+   into the visible email body — reads as "mess and numbers" to anyone who isn't a developer.
+   The technical details are still captured (logged to error_logs, tagged with the same
+   report_id that's shown in the email) so nothing is lost — they're just not in the sender's
+   face anymore. TODO once hello@chefos exists: swap the mailto target below off the founder's
+   personal address. */
+function newReportId(){ return Math.random().toString(36).slice(2, 8).toUpperCase(); }
 function openFeedback(){
   logEvent('feedback_opened');
   const email = (currentUser && currentUser.email) || 'unknown';
-  const subject = encodeURIComponent('ChefOS feedback');
-  const body = encodeURIComponent(`\n\n—\nFrom: ${email}\nKitchen: ${currentKitchenId || 'unknown'}`);
+  const reportId = newReportId();
+  logClientError('feedback report ' + reportId, `kitchen=${currentKitchenId||'unknown'} ua=${navigator.userAgent}`);
+  const subject = encodeURIComponent('ChefOS feedback (' + reportId + ')');
+  const body = encodeURIComponent(`\n\n—\nFrom: ${email}`);
   window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
 }
 
 /* Separate from openFeedback() on purpose — a bug report needs to be findable and fast to send
-   the moment something breaks, and pre-fills the diagnostic details (device, browser, kitchen)
-   Richard would otherwise have to ask for over chat every time. */
+   the moment something breaks. */
 function openBugReport(){
   logEvent('bug_report_opened');
   const email = (currentUser && currentUser.email) || 'unknown';
-  const subject = encodeURIComponent('ChefOS bug report');
+  const reportId = newReportId();
+  logClientError('bug report ' + reportId, `kitchen=${currentKitchenId||'unknown'} screen=${document.title} ua=${navigator.userAgent}`);
+  const subject = encodeURIComponent('ChefOS bug report (' + reportId + ')');
   const body = encodeURIComponent(
-    `What happened?\n\n\nWhat did you expect instead?\n\n\n` +
-    `—\nFrom: ${email}\nKitchen: ${currentKitchenId || 'unknown'}\nScreen: ${document.title}\nDevice: ${navigator.userAgent}`
+    `What happened?\n\n\nWhat did you expect instead?\n\n\n—\nFrom: ${email}`
   );
   window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
 }
+/* Richard: the first version read as one dense paragraph per slide — too much to read at a
+   glance mid-shift. Each slide is now 3-4 short one-line bullets, each with its own icon, so
+   it can be scanned rather than read. */
 const TUTORIAL_SLIDES = [
-  { icon:'👋', title:'Welcome to ChefOS', body:'One shared notebook for the whole kitchen — recipes, prep sheets, ingredient prices, schedule and more, all live and synced across everyone\'s phone. This tour is ~10 short screens, a couple minutes each — skip anytime and reopen it later from the ❓ on Home.' },
-  { icon:'🏠', title:'Home', body:'Every feature lives behind an icon here. Tap the reorder icon (top right) to rearrange them to your own liking — that order is just for your device, nobody else\'s.' },
-  { icon:'📋', title:'Check List', body:'The daily prep sheet, organized by station. Tap an item to mark it done/flag it/add a note — every change syncs live to everyone else\'s phone in the kitchen, instantly.' },
-  { icon:'📖', title:'Recipes', body:'Browse by category or search. Add a new one by typing it in, or scanning a photo/PDF — you can now scan a single recipe or a whole menu at once (it writes a full recipe for every dish on the menu).' },
-  { icon:'🧂', title:'Ingredients', body:'Your kitchen\'s own price book. Search and filter by category, season, storage or price range — recipe food-cost is calculated automatically from these prices.' },
-  { icon:'🛒', title:'Order List', body:'Tap the 🛒 icon on any Check List item or recipe ingredient to add it here. One list, ready to send to your supplier.' },
-  { icon:'🎩', title:'Chef\'s Assistant & Chef Challenge', body:'Ask cooking questions, get ingredient substitutions, or generate brand-new recipe ideas — including a whole menu built only from ingredients under a price limit you choose.' },
-  { icon:'🏷️', title:'Print Labels', body:'Tap 🖨️ on a Check List item (or add one by hand — typing 3+ letters suggests your kitchen\'s own ingredients) to queue a label, then print them all at once.' },
-  { icon:'⏱️', title:'Working Time', body:'Check in and out of your shift, see your hours, overtime and days off at a glance.' },
-  { icon:'💬', title:'Feedback & bugs', body:'Something feels off, or you have an idea? The 💬 and 🐛 icons on Home go straight to Richard\'s inbox with useful context already filled in. That\'s the tour — you\'re ready to go.' }
+  { icon:'👋', title:'Welcome to ChefOS', bullets:[
+    { icon:'📓', text:'One shared notebook for the whole kitchen.' },
+    { icon:'📱', text:'Recipes, prep, ingredient prices, schedule — all live on everyone\'s phone.' },
+    { icon:'⏱️', text:'~10 short screens, a minute each. Skip anytime.' },
+    { icon:'❓', text:'Reopen this tour anytime from the ❓ on Home.' }
+  ]},
+  { icon:'🏠', title:'Home', bullets:[
+    { icon:'🔲', text:'Every feature is one of these icons.' },
+    { icon:'↕️', text:'Tap the reorder icon to rearrange them.' },
+    { icon:'📵', text:'That order is just for your phone, not shared.' }
+  ]},
+  { icon:'📋', title:'Check List', bullets:[
+    { icon:'🧑‍🍳', text:'The daily prep sheet, by station.' },
+    { icon:'✅', text:'Tap an item: done, flagged, or a note.' },
+    { icon:'🔄', text:'Every change syncs live to every phone, instantly.' }
+  ]},
+  { icon:'📖', title:'Recipes', bullets:[
+    { icon:'🔍', text:'Browse by category, or search.' },
+    { icon:'⌨️', text:'Add one by typing it in.' },
+    { icon:'📷', text:'Or scan a photo/PDF — one recipe, or a whole menu at once.' }
+  ]},
+  { icon:'🧂', title:'Ingredients', bullets:[
+    { icon:'💰', text:'Your kitchen\'s own price book.' },
+    { icon:'🔎', text:'Search or filter by category, season, storage, price.' },
+    { icon:'🧮', text:'Recipe food-cost is calculated from these prices automatically.' }
+  ]},
+  { icon:'🛒', title:'Order List', bullets:[
+    { icon:'👆', text:'Tap 🛒 on any Check List item or ingredient.' },
+    { icon:'📝', text:'It lands here — one list.' },
+    { icon:'📦', text:'Ready to send to your supplier.' }
+  ]},
+  { icon:'🎩', title:'Chef\'s Assistant', bullets:[
+    { icon:'💬', text:'Ask cooking questions, get technique tips.' },
+    { icon:'🔁', text:'Get ingredient substitutions.' },
+    { icon:'✨', text:'Or generate brand-new recipe ideas.' }
+  ]},
+  { icon:'🏷️', title:'Print Labels', bullets:[
+    { icon:'🖨️', text:'Tap 🖨️ on a Check List item to queue a label.' },
+    { icon:'⌨️', text:'Or add one by hand — type 3+ letters for suggestions.' },
+    { icon:'🖱️', text:'Print them all at once.' }
+  ]},
+  { icon:'⏱️', title:'Working Time', bullets:[
+    { icon:'🟢', text:'Check in when your shift starts.' },
+    { icon:'🔴', text:'Check out when it ends.' },
+    { icon:'📊', text:'See your hours, overtime, days off.' }
+  ]},
+  { icon:'💬', title:'Feedback & bugs', bullets:[
+    { icon:'💬', text:'Something feels off, or you have an idea?' },
+    { icon:'🐛', text:'Report a bug — one tap, on Home.' },
+    { icon:'🎉', text:'That\'s the tour — you\'re ready to go.' }
+  ]}
 ];
 let _tutorialIdx = 0;
 function openTutorial(){
@@ -11566,8 +11660,8 @@ function renderTutorialSlide(){
   document.getElementById('tutorialBody').innerHTML = `
     <div style="text-align:center; padding:6px 4px 2px 4px;">
       <div style="font-size:40px; line-height:1;">${s.icon}</div>
-      <div class="sheet-title" style="margin:10px 0 6px 0;">${s.title}</div>
-      <p class="sheet-text" style="text-align:left;">${s.body}</p>
+      <div class="sheet-title" style="margin:10px 0 10px 0;">${s.title}</div>
+      <div style="text-align:left;">${s.bullets.map(b=>`<div style="display:flex; align-items:flex-start; gap:9px; margin:8px 0;"><span style="font-size:18px; line-height:1.4;">${b.icon}</span><span class="sheet-text" style="margin:0; line-height:1.4;">${b.text}</span></div>`).join('')}</div>
       <div style="margin-top:12px;">${TUTORIAL_SLIDES.map((_,i)=>`<span style="display:inline-block; width:6px; height:6px; border-radius:50%; margin:0 3px; background:${i===_tutorialIdx?'var(--copper)':'var(--rule)'};"></span>`).join('')}</div>
     </div>
   `;
