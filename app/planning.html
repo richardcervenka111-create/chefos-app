@@ -259,8 +259,12 @@ const DAYS = [
       'backlog.html made interactive: real checkboxes with localStorage persistence, sticky top bar with a live percent-complete pie chart + progress bar',
       'Check List audit log shipped — every status/on-hand/priority/note change now records who/what/when, shown as "Recent activity" in the item Info panel',
       '🔴→✅ Critical bug found and fixed same-day: db/53 added two RLS policies on `profiles` that recursively query `profiles` itself, which Postgres can\'t resolve — confirmed live via a direct REST probe that this broke nearly every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests...), very likely the cause of the broken-looking login screen Richard hit on his phone. Fix written in db/55, Richard ran it, re-verified live via a second REST probe — every table responds normally again.',
+      'Reviewed Richard\'s Hotel Schweizerhof employment contract at his request: no IP-assignment, non-compete, or side-business clause anywhere in it — a genuinely reassuring read (not a legal guarantee; flagged that a real Swiss employment lawyer should still confirm before anything investor-facing)',
+      'loadAppData() parallelized (11 sequential Supabase queries → Promise.all) to address Richard\'s report that the app sometimes feels slow to load',
+      'Trial success criteria defined and agreed with Richard (usage, retention, willingness-to-pay, reliability and qualitative feedback thresholds — see backlog.html)',
+      'Staging Supabase project ("chefos-staging") created and fully bootstrapped — all 56 migrations run in one shot via a small psycopg2 script (over the Session Pooler, since Direct connection needs IPv6 which wasn\'t reachable here), verified live with zero errors and matching production\'s data exactly. New SQL migrations get tested here first from now on.',
     ],
-    planned: 'Run the remaining pending SQL files (46-54, minus 55 which is done); deploy the claude-proxy Edge Function; get Richard\'s printer document for a direct comparison against the research; continue toward the 2026-08-01 public trial scope.'
+    planned: 'Get Richard to check/upgrade the production Supabase plan for real daily backups, then test a restore into staging; run the remaining pending SQL files (46-54); deploy the claude-proxy Edge Function; get Richard\'s printer document for a direct comparison against the research; continue toward the 2026-08-01 public trial scope.'
   },
 ];
 

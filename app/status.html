@@ -138,6 +138,9 @@
           <div class="ticket"><b>Vizuálna identita v2</b><span>Navy/teal na dokumentoch, nové logo appky, jednotný dizajn naprieč appkou</span></div>
           <div class="ticket"><b>Infra/security balík</b><span>Git, API kľúč na server, realtime sync, error/usage tracking, invite expirácia, audit log (kto čo zmenil v Check Liste)</span></div>
           <div class="ticket"><b>🔴 → ✅ Kritický RLS bug opravený</b><span>db/53 spôsobilo nekonečnú rekurziu na profiles, ktorá rozbila takmer celú appku — nájdené a opravené (db/55) v ten istý deň, Richard potvrdil spustenie a appka opäť normálne odpovedá</span></div>
+          <div class="ticket"><b>Staging prostredie</b><span>Druhý Supabase projekt "chefos-staging", celá schéma + dáta nahraté a naživo overené — nová SQL zmena ide odteraz vždy najprv sem, až potom na produkciu</span></div>
+          <div class="ticket"><b>Rýchlosť načítania</b><span>loadAppData() posielal 11 dotazov jeden po druhom, teraz naraz (Promise.all) — malo by to citeľne skrátiť čakanie pri otváraní obrazoviek</span></div>
+          <div class="ticket"><b>Kritériá úspechu trialu</b><span>Dohodnuté s Richardom: 40%+ tímov aktívnych 3× v 2. týždni, aspoň 5/25 ochotných platiť, menej ako 10 kritických chýb</span></div>
         </div>
       </div>
 
