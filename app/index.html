@@ -5155,9 +5155,22 @@ async function enterApp(){
   renderRecipeSummaryBar();
   renderList();
   subscribeToRealtimeUpdates();
-  logEvent('login');
+  logEvent('login', { device_id: getDeviceId(), user_agent: navigator.userAgent });
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
+}
+
+/* A stable per-device id (kept in localStorage, never sent anywhere but usage_events) so
+   "how many devices have ever logged in" is a real, answerable count — logging in twice from
+   the same phone is one device, not two. Richard asked this and there was no way to answer it:
+   logEvent('login') carried no device info at all before this. */
+function getDeviceId(){
+  let id = localStorage.getItem('chefos_device_id');
+  if(!id){
+    id = (crypto.randomUUID ? crypto.randomUUID() : 'dev-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('chefos_device_id', id);
+  }
+  return id;
 }
 
 /* Bump this if the confidentiality text ever changes materially — everyone gets asked to
