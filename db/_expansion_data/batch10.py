@@ -1,0 +1,33 @@
+ITEMS = [
+("Zopf Flour",["Zopfmehl"],"European","Grains & Flour","kg",2.3,"Switzerland",[], "Cake flour",360,10.5,73.0,1.5,"Dry Storage"),
+("Bretzeli Swiss",["Bretzeli"],"European","Bakery","kg",15.0,"Switzerland",[], "Waffle cones",470,6.0,70.0,18.0,"Dry Storage"),
+("Willisauer Ringli",["Willisauer Ringli"],"European","Bakery","kg",14.0,"Willisau, Switzerland",[], "Bretzeli Swiss",390,6.0,88.0,2.0,"Dry Storage"),
+("Totenbeinli",["Totenbeinli"],"European","Bakery","kg",16.0,"Graubünden, Switzerland",[], "Biscotti",450,9.0,65.0,17.0,"Dry Storage"),
+("Biscotti",["Cantuccini"],"European","Bakery","kg",12.0,"Tuscany, Italy",[], "Totenbeinli",430,10.0,68.0,13.0,"Dry Storage"),
+("Treberwurst Note",["Treberwurst"],"European","Meat","kg",18.0,"Lake Biel, Switzerland",["Winter"], "Saucisson Vaudois",320,14.0,1.5,28.0,"Refrigerated"),
+("Boutefas AOP",["Boutefas"],"European","Meat","kg",26.0,"Vaud, Switzerland",[], "Saucisson Vaudois",340,16.0,1.0,30.0,"Refrigerated"),
+("Walliser Trockenwurst",["Walliser Trockenwurst"],"European","Meat","kg",32.0,"Valais, Switzerland",[], "Salametti",400,25.0,2.0,32.0,"Room Temperature"),
+("Alpine Dried Sausage",["Alpenwurst"],"European","Meat","kg",28.0,"Swiss Alps",[], "Landjäger",420,25.0,2.0,34.0,"Room Temperature"),
+("Etivaz Rebibes",["Rebibes de L'Etivaz"],"European","Dairy","kg",38.0,"Vaud Alps, Switzerland",[], "Berner Hobelkäse AOP",420,31.0,0.5,33.5,"Refrigerated"),
+("Bloderchäs",["Bloderchäs-Sauerkäse"],"European","Dairy","kg",18.0,"Toggenburg, Switzerland",[], "Ziger",130,12.0,3.0,8.0,"Refrigerated"),
+("Raclette du Valais AOP",["Walliser Raclette AOP"],"European","Dairy","kg",28.0,"Valais, Switzerland",[], "Raclette cheese",357,24.5,0.5,29.0,"Refrigerated"),
+("Gruyère Alpage AOP",["Gruyère d'Alpage"],"European","Dairy","kg",34.0,"Fribourg Alps, Switzerland",["Summer"], "Gruyère",413,29.0,0.4,33.5,"Refrigerated"),
+("Mutschli",["Mutschli"],"European","Dairy","kg",20.0,"Swiss Alps",[], "Tilsiter",370,24.0,1.0,30.0,"Refrigerated"),
+("Hobelbutter Note",["gehobelte Alpbutter"],"European","Dairy","kg",24.0,"Swiss Alps",["Summer"], "Alpine butter",745,0.7,0.6,82.0,"Refrigerated"),
+("Buttermilk Powder",["Buttermilchpulver"],"European","Dairy","kg",12.0,"Switzerland/EU",[], "Milk powder",370,34.0,49.0,5.0,"Dry Storage"),
+("Cream Powder",["Rahmpulver"],"Universal","Dairy","kg",16.0,"EU",[], "Milk powder",580,12.0,30.0,45.0,"Dry Storage"),
+("Yogurt Powder",["Jogurtpulver"],"Universal","Dairy","kg",18.0,"EU",[], "Buttermilk powder",380,32.0,48.0,6.0,"Dry Storage"),
+("Kefir Grains Note",["Kefirknollen"],"European","Dairy","kg",45.0,"Switzerland (culture)",[], None,60,3.0,4.5,3.0,"Refrigerated"),
+("Cultured Butter",["Sauerrahmbutter"],"European","Dairy","kg",16.0,"Switzerland/France",[], "Butter",745,0.7,0.6,82.0,"Refrigerated"),
+("Brown Butter",["Nussbutter","Beurre Noisette"],"European","Dairy","kg",18.0,"Switzerland (house-made)",[], "Clarified butter",880,0.5,0.2,97.0,"Refrigerated"),
+("Smoked Butter",["Rauchbutter"],"European","Dairy","kg",20.0,"Switzerland/Denmark",[], "Cultured butter",745,0.7,0.6,82.0,"Refrigerated"),
+("Compound Herb Butter",["Kräuterbutter Gastro"],"European","Dairy","kg",12.0,"Switzerland",[], "Butter + herbs",700,1.0,1.5,76.0,"Freezer"),
+("Espresso Ground",["Espresso gemahlen"],"Universal","Other","kg",20.0,"Italy/Switzerland roast",[], "Espresso beans",2,0.1,0.3,0.0,"Dry Storage"),
+("Chai Spice Blend",["Chai-Gewürzmischung"],"Asian","Spices & Seasonings","kg",20.0,"India",[], "Gingerbread spice",310,8.0,58.0,8.0,"Dry Storage"),
+]
+
+ITEMS += [
+("Ovomaltine Powder",["Ovomaltine"],"European","Sweeteners","kg",11.0,"Switzerland",[], "Cocoa powder + malt",370,8.0,72.0,7.0,"Dry Storage"),
+("Caotina Powder",["Caotina"],"European","Chocolate & Cocoa","kg",12.0,"Switzerland",[], "Dutch cocoa powder",400,6.0,75.0,9.0,"Dry Storage"),
+("Bouillon Cubes Beef",["Bouillonwürfel Rind"],"Universal","Sauces & Condiments","kg",8.0,"Switzerland",[], "Beef stock",180,12.0,20.0,8.0,"Dry Storage"),
+]
