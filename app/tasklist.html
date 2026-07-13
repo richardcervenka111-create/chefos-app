@@ -117,6 +117,12 @@ input{width:22px;height:22px;flex:none}
 <div class='task'><input id='s38' type='checkbox' checked><label for='s38'>ChefOS logo redesigned — hand-built ring mark (not a font letter) in sage/cream, italic serif wordmark</label><span class="tag me">ME</span></div>
 <div class='task'><input id='s39' type='checkbox' checked><label for='s39'>Check List's New/Edit Section icon picker expanded from 30 to the full 72-icon set, matching Recipes</label><span class="tag me">ME</span></div>
 <div class='task'><input id='s40' type='checkbox' checked><label for='s40'>🌐 Language Audit — finds and translates any Check List dish/item name not already in English, per-item review</label><span class="tag me">ME</span></div>
+<div class='task'><input id='s41' type='checkbox' checked><label for='s41'>Git version control set up (local repo + first commit) — was completely missing before</label><span class="tag me">ME</span></div>
+<div class='task'><input id='s42' type='checkbox' checked><label for='s42'>Anthropic API key moved server-side (Supabase Edge Function claude-proxy) — was readable in the browser</label><span class="tag me">ME</span></div>
+<div class='task'><input id='s43' type='checkbox' checked><label for='s43'>Real-time cross-device sync wired up for Check List — the "updates visible to everyone in real time" promise was never actually built until now</label><span class="tag me">ME</span></div>
+<div class='task'><input id='s44' type='checkbox' checked><label for='s44'>Basic error tracking + usage analytics (own Supabase tables, no third-party service)</label><span class="tag me">ME</span></div>
+<div class='task'><input id='s45' type='checkbox' checked><label for='s45'>Expiring/revocable team invites + admin can remove a team member (neither existed before)</label><span class="tag me">ME</span></div>
+<div class='task'><input id='s46' type='checkbox' checked><label for='s46'>Written manual regression checklist (docs/REGRESSION_CHECKLIST.md)</label><span class="tag me">ME</span></div>
 
 </section></details>
 
@@ -266,7 +272,8 @@ const DAYS=[
     'ChefOS logo redesigned (v1 read as flat/generic) — a hand-built ring mark drawn as one precise arc instead of a font letter, sage/cream instead of copper, plus an italic serif "ChefOS" wordmark next to it',
     'Check List\'s New Section / Edit Section icon picker expanded from 30 icons to the same 72-icon set Recipes already offers',
     'New: 🌐 Language Audit — scans every Check List dish and item name, flags anything not already in English (photo scans and manual entry sometimes bring in German/French/Italian, since this kitchen is in Bern), suggests a translation, per-item approve/skip',
-    'Two v2-backlog expert-review findings acted on: pilot kitchen changes from Hotel Schweizerhof to Burrito Bandito &amp; Lido (one group, two venues) — retires the IP-ownership risk flagged against the old employer, since ChefOS stops depending on their data entirely; RC Studio shelved to protect ChefOS capacity against the new full-time job. presentation.html updated to match. First draft of a written pilot agreement saved to docs/PILOT_AGREEMENT.md.'
+    'Two v2-backlog expert-review findings acted on: pilot kitchen changes from Hotel Schweizerhof to Burrito Bandito &amp; Lido (one group, two venues) — retires the IP-ownership risk flagged against the old employer, since ChefOS stops depending on their data entirely; RC Studio shelved to protect ChefOS capacity against the new full-time job. presentation.html updated to match. First draft of a written pilot agreement saved to docs/PILOT_AGREEMENT.md.',
+    'Six critical/security items from the backlog v2 review, resolved: Git version control (finally), Anthropic API key moved server-side (Edge Function proxy, all 9 call sites), real-time cross-device sync actually wired up for Check List (confirmed it never existed before), basic error tracking + usage analytics, expiring/revocable team invites + remove-a-member, and a written manual regression checklist. Everything genuinely needing Richard\'s own accounts/hardware/judgment (Resend domain, Supabase backups/staging, cost caps, device testing, legal review, business decisions) stays logged as open in backlog.html rather than silently skipped.'
   ]}
 ];
 function isoWeekLabel(dateStr){

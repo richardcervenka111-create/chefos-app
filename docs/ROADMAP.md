@@ -2020,3 +2020,63 @@ prefix) rather than deleting them outright, since the underlying dishes are stan
 not the hotel's proprietary content — only the naming tied them to it. Flagged in the file
 itself that a delete-instead-of-rename version is trivial if Richard would rather they were
 gone entirely.
+
+## Six critical/security items from the backlog v2 review, resolved (2026-07-13, later still)
+
+Richard: "poďme na všetky kritické alebo bezpečnostné úlohy a blokery." Triaged every critical
+item into what's actually codeable from here vs. what genuinely needs Richard's own accounts/
+hardware/judgment, then did all six of the former:
+
+1. **Git, finally.** The project had zero version control this whole time — `git init` +
+   `.gitignore` + a first commit capturing the entire current state. Committing incrementally
+   from here on. Pushing to a private GitHub remote still needs Richard's own account (no `gh`
+   CLI or credentials available in this environment).
+2. **Anthropic API key moved server-side.** It was previously sent from the browser straight to
+   Anthropic on every AI call — readable in dev tools/network tab by anyone with device access.
+   New `supabase/functions/claude-proxy` looks up each user's own key server-side (preserves the
+   bring-your-own-key model, the key just never reaches the browser) and forwards the call; all
+   9 `callClaudeXxx()` call sites in `app/index.html` now route through one shared
+   `callClaudeAPI()` helper instead of hitting `api.anthropic.com` directly. Richard needs to run
+   `supabase functions deploy claude-proxy` — no CLI access from here.
+3. **Real-time sync — confirmed missing, now built.** MVP_DEFINITION.md promises "updates
+   visible to everyone in real time"; there was no Realtime subscription anywhere in the
+   codebase — every screen only ever loaded data once per visit. Added
+   `subscribeToRealtimeUpdates()`, live on `prep_items`/`prep_dishes` for the current kitchen,
+   merging changes straight into the existing local arrays. `db/50_enable_realtime.sql` still
+   needs running (adds both tables to the `supabase_realtime` publication).
+4. **Basic error tracking.** `db/51_error_logs.sql` + `window.onerror`/`unhandledrejection`
+   handlers, capped at 20 logs/session so a tight error loop can't flood the table.
+5. **Basic usage analytics.** `db/52_usage_events.sql` + a `logEvent()` call at login and at the
+   top of every top-level module-entry function (Recipes, Check List, Ingredients, Order List,
+   Fridge Temp, Chef's Assistant, Working Time, Print Labels, My Team, Admin).
+6. **Expiring/revocable invite links + remove-a-member.** The invite link was literally the
+   kitchen's own id (never expires, unrevokable without breaking the kitchen), and there was no
+   way to remove someone from a team at all. `db/53_invite_expiry_and_remove_member.sql` adds a
+   real `kitchen_invites` token (7-day expiry, revocable) plus RLS letting team members read
+   each other's names (previously only your own profile row was visible to you at all) and
+   letting an admin clear another member's `kitchen_id`. `showTeamInvite()` now mints/reuses a
+   token instead of exposing the kitchen id, with a "Revoke & get a new link" button and a Team
+   Members list with an admin-only Remove action. Old-format `?join=<kitchenId>` links already
+   shared keep working as a legacy fallback.
+
+**Also written (pure documentation, zero code risk): `docs/REGRESSION_CHECKLIST.md`** — a ~20-step
+manual pass covering every major screen plus the two things most likely to have shipped with a
+real bug today (Working Time's note field, and the brand-new cross-device realtime sync).
+Richard still has to actually walk through it on a real device — that part can't be done from
+here.
+
+**Explicitly NOT attempted from here — genuinely needs Richard directly, not code:**
+Resend domain verification / switch to Supabase's built-in mailer (blocks public-trial email
+login), Supabase automatic-backups toggle + a real restore test, standing up a second
+(staging) Supabase project, a cost cap/alert on the Anthropic account, checking/upgrading the
+Supabase free-tier limits before 25 concurrent trial users, buying and testing the label
+printer/fridge sensor hardware already researched, a short lawyer consult on the pilot
+agreement and the new employment contract's IP clauses, device-matrix testing on real hardware,
+and the handful of open product/business decisions (multi-tenant ingredient-table split, yield/
+waste factor in food cost, billing platform choice, language strategy for the Bern trial).
+These are logged as still-open in `app/backlog.html`, not silently dropped.
+
+**Verification**: full structural pass on every edit (braces/divs/buttons balanced, every
+handler/id resolves, no duplicate function definitions) — clean throughout. Committed each unit
+of work as its own git commit rather than one giant commit at the end, now that there's a repo
+to actually use.
