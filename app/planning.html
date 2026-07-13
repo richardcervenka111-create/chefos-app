@@ -122,7 +122,7 @@
    Add a new day by pushing one object to DAYS; week/month grouping
    is computed automatically. Keep TOP3 current each session.
    ============================================================ */
-const GENERATED = '2026-07-13';
+const GENERATED = '2026-07-14';
 
 const TOP3 = {
   day: {
@@ -272,6 +272,25 @@ const DAYS = [
     ],
     planned: 'REVENUE PATH: Richard sends the Nebenerwerb consent request (10 min) and registers an Einzelfirma (1-2 h) — the only two blockers to first income; then Claude builds the founding-member offer card into the app. Also: production Supabase backups + restore test into staging; run remaining SQL on production (58, 59); Resend domain; regression checklist on a real device; design the whole-menu Recipes scan; toward the 2026-08-01 trial.'
   },
+  {
+    date: '2026-07-14',
+    headline: 'Employment transition finalized, claude-proxy production outage found & fixed, whole-menu scan shipped, external critical review annotated',
+    accomplished: [
+      'Hotel Schweizerhof employment formally ended (signed Aufhebungsvereinbarung, last day 14 July); new Burrito Bandito GmbH contract now the operative one — Nebenerwerb letter retargeted to the actual employer (Samuel Sager) and reframed as a written notification, matching what the signed contract\'s Nebenbeschäftigung clause actually requires',
+      { time:'16:39', text:'Started walking Richard through installing Homebrew + Supabase CLI, live over screenshots, to deploy the claude-proxy Edge Function' },
+      { time:'16:57', text:'claude-proxy deployed to production and confirmed reachable (HTTP 200) — root cause of every AI feature failing found: the function existed in code since Working Time\'s server-side key migration but had never actually been pushed to the production project' },
+      'Whole-menu Recipes scan shipped: choose "one recipe" or "a whole menu" before scanning; a whole-menu scan detects each dish + its section, then writes a full recipe per dish, landing each on the normal review-before-save form',
+      'In-app tutorial, "report a bug" button, Print Labels ingredient autocomplete, and a confidentiality-acknowledgement gate at login all shipped and confirmed working live',
+      'External "ChefOS Critical Review" document read in full and annotated in place with five honest counter-notes: Nebenerwerb needed retargeting, the ingredient verified-price ratio moved the wrong direction overnight, five features shipped during what the review calls freeze week (including some of tonight\'s own), and Chef Challenge is still in the trial build despite the review\'s own 86 call',
+      'Tutorial rewritten from one paragraph per slide to 3-4 short icon+one-line bullets per Richard\'s feedback that it was hard to scan mid-shift',
+      'Founder\'s name removed from user-facing pages (legal.html, monetization.html) pending a real hello@chefos-style address; feedback/bug report emails no longer show a raw kitchen UUID and full user-agent string, just a short report ID',
+      'Ingredients screen: untouched default view now leads with up to 30 in-season-this-month items, then up to 30 coming into season next month, before the normal category grouping',
+      'Working Time: added "Forgot to check out?" — sets a real end time for a still-open shift via a bounded date/time picker, instead of it silently running until noticed',
+      'Fixed the contract-note-to-checkboxes splitter: the old sentence-boundary regex cut through legal abbreviations like "Art. 321c OR"; now prefers real line breaks and guards known abbreviations',
+      'This per-task timestamp column added to Planning &amp; Progress per Richard\'s request — honestly: only shippable going forward, since exact times for most of the day\'s earlier work weren\'t recorded as they happened',
+    ],
+    planned: 'Confirm Nebenerwerb letter sent; decide on the personal-vs-pro profile idea and the recipe-token/verification-agent idea (both logged, neither built — real scope decisions, not freebies); scope the "nonstop ingredient agent" as an actual scheduled cadence once Richard confirms frequency/budget; keep protecting the trial timeline.'
+  },
 ];
 
 function isoWeekLabel(dateStr){
@@ -332,7 +351,11 @@ function renderTimeline(){
     const totalDays = m.weeks.reduce((n,w)=>n+w.days.length,0);
     const weeksHtml = m.weeks.map((w, wi)=>{
       const daysHtml = w.days.map((day, di)=>{
-        const accomplishedHtml = day.accomplished.map(a=>`<li>${a}</li>`).join('');
+        const accomplishedHtml = day.accomplished.map(a=>{
+          const time = (a && typeof a === 'object') ? a.time : null;
+          const text = (a && typeof a === 'object') ? a.text : a;
+          return `<li>${time ? `<span class="mono" style="color:var(--accent); margin-right:8px;">${time}</span>` : ''}${text}</li>`;
+        }).join('');
         return `
           <div class="day-row" data-id="d-${m.key}-${w.key}-${di}">
             <div class="day-head" onclick="toggleBlock('d-${m.key}-${w.key}-${di}')">

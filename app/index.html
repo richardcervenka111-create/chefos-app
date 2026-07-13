@@ -2332,6 +2332,20 @@
 </div>
 
 <!-- Working Time: tap a monthly pie to see the day-by-day bars behind that number -->
+<!-- Working Time: "Forgot to check out?" — lets you set the real end time of a still-open
+     shift instead of it silently running until you notice, possibly the next day. -->
+<div id="forgotCheckoutOverlay" class="sheet-overlay" onclick="if(event.target===this) closeForgotCheckout()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Forgot to check out?</div>
+    <p class="sheet-text">What time did your shift actually end?</p>
+    <input class="form-field" id="forgotCheckoutInput" type="datetime-local">
+    <button class="save-btn" style="width:100%; margin-top:14px;" onclick="confirmForgotCheckout()">Check out at this time</button>
+    <div class="form-status" id="forgotCheckoutStatus"></div>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeForgotCheckout()">Cancel</button>
+  </div>
+</div>
+
 <div id="monthDayDetailOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMonthDayBars()">
   <div class="sheet">
     <div class="sheet-handle"></div>
@@ -10563,12 +10577,27 @@ async function loadWorkingTimeData(){
    scratch, which is exactly the "still doesn't have checkboxes" complaint this fixes. Splits on
    blank lines/sentence breaks; if that yields nothing usable, falls back to the whole note as
    one single checkable point, so there's always at least one checkbox rather than none. */
+/* Richard: this was splitting badly — the plain sentence-boundary regex cut straight through
+   things like "Art. 321c OR" or "z.B." because it only looked for punctuation + capital
+   letter, with no idea those are abbreviations, not sentence ends. Fixed: prefer real line
+   breaks/bullet markers when the note has them (much more reliable), and guard the common
+   legal abbreviations before falling back to sentence-splitting a single blob. */
+function splitContractNotesIntoPoints(raw){
+  const text = raw.trim();
+  if(/\n/.test(text)){
+    const points = text.split(/\n+/).map(t=>t.replace(/^[-•*\d.)]+\s*/, '').trim()).filter(Boolean);
+    if(points.length) return points;
+  }
+  const points = text
+    .split(/(?<!\b(?:Art|Abs|Ziff|Nr|bzw|ca|Std|z\.B))(?<=[.!?])\s+(?=[A-ZÀ-Ž])/)
+    .map(t=>t.trim()).filter(Boolean);
+  return points.length ? points : [text];
+}
 async function migrateContractNotesToPoints(){
   const p = _workingTimeProfile;
   if(!p || !p.contract_notes) return;
   if(p.contract_advisory_points && p.contract_advisory_points.length > 0) return;
-  let points = p.contract_notes.split(/\n+|(?<=[.!?])\s+(?=[A-ZÀ-Ž])/).map(t=>t.trim()).filter(Boolean);
-  if(points.length === 0) points = [p.contract_notes.trim()];
+  const points = splitContractNotesIntoPoints(p.contract_notes);
   const rows = points.map(text=>({ text, done:false }));
   const { error } = await sb.from('profiles').update({ contract_advisory_points: rows }).eq('id', currentUser.id);
   if(!error) p.contract_advisory_points = rows;
@@ -10620,6 +10649,7 @@ function renderWorkingTimeStatus(){
         <div class="meta">Checked in at ${checkInTime}${_activeTimeEntry.break_minutes ? ` · ${_activeTimeEntry.break_minutes} min break logged` : ''}</div>
       </div>
       <button class="danger-btn" style="width:100%; margin-top:0;" onclick="checkOutWorkingTime()">■ Check Out</button>
+      <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="openForgotCheckout()">Forgot to check out?</button>
       <div class="prep-line3" style="margin-top:14px;">
         <span class="prep-field-label" style="align-self:center;">Break</span>
         ${[5,10,15,30].map(m=>`<button class="task-status-btn" onclick="addWorkingTimeBreak(${m})">+${m} min</button>`).join('')}
@@ -10658,11 +10688,50 @@ async function checkInWorkingTime(){
 async function checkOutWorkingTime(){
   if(!_activeTimeEntry) return;
   if(!confirm('Check out now?')) return;
-  const { error } = await sb.from('time_entries').update({ check_out: new Date().toISOString() }).eq('id', _activeTimeEntry.id);
+  await checkOutWorkingTimeAt(new Date());
+}
+async function checkOutWorkingTimeAt(when){
+  if(!_activeTimeEntry) return;
+  const { error } = await sb.from('time_entries').update({ check_out: when.toISOString() }).eq('id', _activeTimeEntry.id);
   if(error){ alert('Could not check out: ' + error.message); return; }
   _activeTimeEntry = null;
   await loadWorkingTimeData();
   renderWorkingTime();
+}
+
+/* "Forgot to check out" — Richard: this needs to be genuinely easy to use, since the person
+   reaching for it already forgot once and is often doing it well after the fact (next
+   morning, days later). A native datetime-local input handles the "was it actually
+   yesterday?" case without asking two separate date/time questions. Bounded to [check-in,
+   now] so nobody can accidentally log a checkout before they clocked in or in the future. */
+function openForgotCheckout(){
+  if(!_activeTimeEntry) return;
+  const input = document.getElementById('forgotCheckoutInput');
+  const toLocalInputValue = (d)=>{
+    const pad = n=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const checkIn = new Date(_activeTimeEntry.check_in);
+  const now = new Date();
+  input.min = toLocalInputValue(checkIn);
+  input.max = toLocalInputValue(now);
+  input.value = toLocalInputValue(now);
+  document.getElementById('forgotCheckoutStatus').textContent = '';
+  document.getElementById('forgotCheckoutOverlay').classList.add('open');
+}
+function closeForgotCheckout(){
+  document.getElementById('forgotCheckoutOverlay').classList.remove('open');
+}
+async function confirmForgotCheckout(){
+  const input = document.getElementById('forgotCheckoutInput');
+  const statusEl = document.getElementById('forgotCheckoutStatus');
+  if(!input.value){ statusEl.textContent = 'Pick a time first.'; return; }
+  const when = new Date(input.value);
+  const checkIn = new Date(_activeTimeEntry.check_in);
+  if(when < checkIn){ statusEl.textContent = "That's before you checked in — pick a later time."; return; }
+  if(when > new Date()){ statusEl.textContent = "That's in the future — pick an earlier time."; return; }
+  closeForgotCheckout();
+  await checkOutWorkingTimeAt(when);
 }
 async function addWorkingTimeBreak(minutes){
   if(!_activeTimeEntry) return;
