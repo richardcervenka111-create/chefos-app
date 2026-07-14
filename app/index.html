@@ -2433,6 +2433,20 @@
   </div>
 </div>
 
+<!-- Feedback + Report a bug — one shared in-app window (db/61), no mailto/external mail app,
+     no address shown to anyone. -->
+<div id="feedbackOverlay" class="sheet-overlay" onclick="if(event.target===this) closeFeedbackOverlay()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="feedbackTitle">Send feedback</div>
+    <p class="sheet-text" id="feedbackHint"></p>
+    <textarea class="form-field" id="feedbackMessage" rows="5" placeholder="Type here…"></textarea>
+    <button class="save-btn" style="width:100%; margin-top:12px;" onclick="submitFeedbackReport()">Send</button>
+    <div class="form-status" id="feedbackStatus"></div>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeFeedbackOverlay()">Cancel</button>
+  </div>
+</div>
+
 <!-- Quick in-app tour — Richard wants a way to learn the whole app (or its main features) in
      under 20 minutes. A short guided slide tour rather than a hands-on walkthrough of every
      screen: each slide is a 1-2 minute read, ~10 slides total, comfortably inside that budget,
@@ -11619,38 +11633,44 @@ async function clearApiKeySettings(){
 }
 
 const SCAN_LANGUAGE_NAMES = { en:'English', de:'German', sk:'Slovak', fr:'French', it:'Italian' };
-/* Simplest possible feedback channel (backlog t20) — no new UI to build or moderate, just
-   routes straight to Richard's inbox with useful context pre-filled, since during a small
-   closed trial a real conversation beats a form nobody checks. */
-/* Richard: the old version stuffed a raw kitchen UUID and the full browser user-agent string
-   into the visible email body — reads as "mess and numbers" to anyone who isn't a developer.
-   The technical details are still captured (logged to error_logs, tagged with the same
-   report_id that's shown in the email) so nothing is lost — they're just not in the sender's
-   face anymore. TODO once hello@chefos exists: swap the mailto target below off the founder's
-   personal address. */
-function newReportId(){ return Math.random().toString(36).slice(2, 8).toUpperCase(); }
+/* Richard (14.7.): both Feedback and Report-a-bug now stay entirely inside the app — no
+   mailto:, no external mail app, no address shown to anyone. A submission is just a row in
+   feedback_reports (db/61); once hello@chef.ch + an email service exist, an Edge Function
+   trigger can forward new rows there automatically. Until then, read the table directly. */
+let _feedbackType = 'feedback';
 function openFeedback(){
   logEvent('feedback_opened');
-  const email = (currentUser && currentUser.email) || 'unknown';
-  const reportId = newReportId();
-  logClientError('feedback report ' + reportId, `kitchen=${currentKitchenId||'unknown'} ua=${navigator.userAgent}`);
-  const subject = encodeURIComponent('ChefOS feedback (' + reportId + ')');
-  const body = encodeURIComponent(`\n\n—\nFrom: ${email}`);
-  window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
+  _feedbackType = 'feedback';
+  document.getElementById('feedbackTitle').textContent = 'Send feedback';
+  document.getElementById('feedbackHint').textContent = "Something feels off, or you have an idea? Tell us.";
+  document.getElementById('feedbackMessage').value = '';
+  document.getElementById('feedbackStatus').textContent = '';
+  document.getElementById('feedbackOverlay').classList.add('open');
 }
-
-/* Separate from openFeedback() on purpose — a bug report needs to be findable and fast to send
-   the moment something breaks. */
 function openBugReport(){
   logEvent('bug_report_opened');
-  const email = (currentUser && currentUser.email) || 'unknown';
-  const reportId = newReportId();
-  logClientError('bug report ' + reportId, `kitchen=${currentKitchenId||'unknown'} screen=${document.title} ua=${navigator.userAgent}`);
-  const subject = encodeURIComponent('ChefOS bug report (' + reportId + ')');
-  const body = encodeURIComponent(
-    `What happened?\n\n\nWhat did you expect instead?\n\n\n—\nFrom: ${email}`
-  );
-  window.location.href = `mailto:richard.cervenka111@gmail.com?subject=${subject}&body=${body}`;
+  _feedbackType = 'bug';
+  document.getElementById('feedbackTitle').textContent = 'Report a bug';
+  document.getElementById('feedbackHint').textContent = 'What happened? What did you expect instead?';
+  document.getElementById('feedbackMessage').value = '';
+  document.getElementById('feedbackStatus').textContent = '';
+  document.getElementById('feedbackOverlay').classList.add('open');
+}
+function closeFeedbackOverlay(){
+  document.getElementById('feedbackOverlay').classList.remove('open');
+}
+async function submitFeedbackReport(){
+  const message = document.getElementById('feedbackMessage').value.trim();
+  const statusEl = document.getElementById('feedbackStatus');
+  if(!message){ statusEl.textContent = 'Write something first.'; return; }
+  statusEl.textContent = 'Sending…';
+  const context = { screen: document.title, user_agent: navigator.userAgent };
+  const { error } = await sb.from('feedback_reports').insert({
+    kitchen_id: currentKitchenId, user_id: currentUser.id, type: _feedbackType, message, context
+  });
+  if(error){ statusEl.textContent = 'Could not send: ' + error.message; return; }
+  statusEl.textContent = 'Sent — thank you!';
+  setTimeout(closeFeedbackOverlay, 1200);
 }
 /* Richard: the first version read as one dense paragraph per slide — too much to read at a
    glance mid-shift. Each slide is now 3-4 short one-line bullets, each with its own icon, so
