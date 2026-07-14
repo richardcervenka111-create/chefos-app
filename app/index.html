@@ -5218,7 +5218,7 @@ function getDeviceId(){
 /* Bump this if the confidentiality text ever changes materially — everyone gets asked to
    re-agree to the new version, and the old acceptance row stays as a permanent record of what
    they agreed to at the time. */
-const CONFIDENTIALITY_VERSION = 'v1';
+const CONFIDENTIALITY_VERSION = 'v2';
 async function hasAcceptedConfidentiality(){
   const { data, error } = await sb.from('confidentiality_acceptances').select('id').eq('user_id', currentUser.id).eq('version', CONFIDENTIALITY_VERSION).maybeSingle();
   // Fail OPEN, not closed: if db/60 hasn't been run yet (or any other query error), treat it
