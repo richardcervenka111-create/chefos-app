@@ -5543,6 +5543,11 @@ async function showAdminRequests(){
   await renderAdminRequests();
 }
 
+function formatAdminRequestTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString([], { day:'numeric', month:'short', year:'numeric' }) + ' at ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
 async function renderAdminRequests(){
   const el = document.getElementById('adminRequestsContent');
   el.innerHTML = `<p class="lede">Loading…</p>`;
@@ -5556,7 +5561,10 @@ async function renderAdminRequests(){
     ${pending.length ? pending.map(r=>`
       <div class="task-row">
         <div class="task-row-top">
-          <div class="info" style="flex:1;"><div class="name task-text">${r.email}</div></div>
+          <div class="info" style="flex:1;">
+            <div class="name task-text">${r.email}</div>
+            <div class="meta">Requested ${formatAdminRequestTime(r.requested_at)}</div>
+          </div>
         </div>
         <div class="task-status-group">
           <button class="save-btn" onclick="reviewAccessRequest('${r.id}','approved')">Approve</button>
@@ -5566,7 +5574,7 @@ async function renderAdminRequests(){
     `).join('') : '<div class="empty-state">No pending requests.</div>'}
 
     <label class="form-label" style="margin-top:18px;">Already reviewed</label>
-    ${decided.length ? decided.map(r=>`<div class="meta" style="padding:6px 0;">${r.email} — ${r.status}</div>`).join('') : '<div class="empty-state">None yet.</div>'}
+    ${decided.length ? decided.map(r=>`<div class="meta" style="padding:6px 0;">${r.email} — ${r.status} · requested ${formatAdminRequestTime(r.requested_at)}${r.reviewed_at ? ', reviewed ' + formatAdminRequestTime(r.reviewed_at) : ''}</div>`).join('') : '<div class="empty-state">None yet.</div>'}
   `;
 }
 
