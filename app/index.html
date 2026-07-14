@@ -2674,9 +2674,15 @@
     <div class="scan-spinner" id="scanSpinner"></div>
     <div class="scan-status" id="scanStatus">Reading your photo…</div>
     <div class="scan-error" id="scanError" style="display:none;"></div>
-    <button class="sheet-cancel" id="scanCloseBtn" style="display:none; margin-top:16px;" onclick="closeScanOverlay()">Close</button>
+    <button class="sheet-cancel" id="scanMinimizeBtn" style="margin-top:16px;" onclick="minimizeScanOverlay()">Keep working — I'll tell you when it's ready</button>
+    <button class="sheet-cancel" id="scanCloseBtn" style="display:none; margin-top:10px;" onclick="closeScanOverlay()">Close</button>
   </div>
 </div>
+
+<!-- Bod 8 (15.7.): a scan running in the background surfaces here — fixed at the top so it's
+     visible no matter what screen you navigate to while it finishes. Tap to reopen the full
+     overlay (still running) or, once done, to jump straight to the result. -->
+<div id="bgScanPill" onclick="onBgScanPillTap()" style="display:none; position:fixed; top:0; left:0; right:0; z-index:60; background:var(--copper, var(--accent)); color:#0A1A2F; font-size:12.5px; font-weight:700; text-align:center; padding:9px 14px; cursor:pointer;"></div>
 
 <!-- Prep sheet scan review — confirm station + dish count before saving -->
 <!-- Check & Add — Richard: scanning a menu photo added everything straight through with no
@@ -11944,7 +11950,9 @@ async function runContractScan(base64, mediaType, fileName){
   statusEl.style.display = 'block';
   errorEl.style.display = 'none';
   closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
   overlay.classList.add('open');
+  startBgScan('Contract scan');
 
   const messages = ['Reading your contract…', 'Checking working-time terms…', 'Looking for anything unclear…', 'Writing your note…'];
   let msgIdx = 0;
@@ -11957,17 +11965,18 @@ async function runContractScan(base64, mediaType, fileName){
 
   try{
     const input = await callClaudeContractVision(base64, mediaType, fileName);
-    clearInterval(_scanMsgTimer);
-    overlay.classList.remove('open');
-    openContractReview(input);
+    finishBgScan(()=> openContractReview(input));
   } catch(err){
     clearInterval(_scanMsgTimer);
+    _bgScan = null; updateBgScanPill();
     logClientError('runContractScan failed: ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
     errorEl.textContent = err.message || 'Something went wrong reading that contract.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
     closeBtn.style.display = 'block';
+    overlay.classList.add('open');
   }
 }
 const CONTRACT_TONE_ICON = { risk:'⚠️', good:'✅', neutral:'ℹ️' };
@@ -12177,7 +12186,9 @@ async function runScheduleUpload(base64, mediaType, fileName){
   statusEl.style.display = 'block';
   errorEl.style.display = 'none';
   closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
   overlay.classList.add('open');
+  startBgScan('Schedule scan');
 
   const messages = ['Reading the schedule…', `Looking for ${_scheduleUploadTargetName}…`, 'Reading each shift code…', 'Almost done…'];
   let msgIdx = 0;
@@ -12190,21 +12201,24 @@ async function runScheduleUpload(base64, mediaType, fileName){
 
   try{
     const result = await callClaudeScheduleVision(base64, mediaType, _scheduleUploadTargetName, fileName);
-    clearInterval(_scanMsgTimer);
-    overlay.classList.remove('open');
-    if(!result.found || !(result.days || []).length){
-      alert(`No row matching "${_scheduleUploadTargetName}" was found in this schedule — check the spelling and try again.`);
-      return;
-    }
-    if(!confirm(`Found schedule for "${result.matched_name || _scheduleUploadTargetName}" — save it?`)) return;
-    await saveScheduleForecastDays(result.days);
+    finishBgScan(async ()=>{
+      if(!result.found || !(result.days || []).length){
+        alert(`No row matching "${_scheduleUploadTargetName}" was found in this schedule — check the spelling and try again.`);
+        return;
+      }
+      if(!confirm(`Found schedule for "${result.matched_name || _scheduleUploadTargetName}" — save it?`)) return;
+      await saveScheduleForecastDays(result.days);
+    });
   } catch(err){
     clearInterval(_scanMsgTimer);
+    _bgScan = null; updateBgScanPill();
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
     errorEl.textContent = err.message || 'Something went wrong reading that schedule.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
     closeBtn.style.display = 'block';
+    overlay.classList.add('open');
   }
 }
 async function saveScheduleForecastDays(days){
@@ -12472,6 +12486,58 @@ let _scanMsgTimer;
 function closeScanOverlay(){
   clearInterval(_scanMsgTimer);
   document.getElementById('scanOverlay').classList.remove('open');
+  _bgScan = null;
+  updateBgScanPill();
+}
+
+/* ---------- Background scanning (bod 8, 15.7.) — the awaited callClaudeAPI() call keeps
+   running regardless of whether the overlay is visible; minimizing just hides the overlay and
+   lets you keep using the app. Each runXScan() start()s a _bgScan record, then either runs its
+   success handler immediately (overlay still open) or stores it for the pill tap (minimized). ---------- */
+let _bgScan = null;
+function startBgScan(label){
+  _bgScan = { label, done:false, onComplete:null };
+  updateBgScanPill();
+}
+function minimizeScanOverlay(){
+  document.getElementById('scanOverlay').classList.remove('open');
+  updateBgScanPill();
+}
+function finishBgScan(onComplete){
+  const overlayOpen = document.getElementById('scanOverlay').classList.contains('open');
+  clearInterval(_scanMsgTimer);
+  if(overlayOpen || !_bgScan){
+    document.getElementById('scanOverlay').classList.remove('open');
+    _bgScan = null;
+    updateBgScanPill();
+    onComplete();
+  } else {
+    _bgScan.done = true;
+    _bgScan.onComplete = onComplete;
+    updateBgScanPill();
+  }
+}
+function updateBgScanPill(){
+  const pill = document.getElementById('bgScanPill');
+  if(!_bgScan){ pill.style.display = 'none'; return; }
+  pill.style.display = 'block';
+  pill.textContent = _bgScan.done ? `✅ ${_bgScan.label} ready — tap to view` : `⏳ ${_bgScan.progress || _bgScan.label} — tap to check`;
+}
+function setBgScanProgress(text){
+  if(!_bgScan) return;
+  _bgScan.progress = text;
+  updateBgScanPill();
+}
+function onBgScanPillTap(){
+  if(!_bgScan) return;
+  if(_bgScan.done){
+    const done = _bgScan.onComplete;
+    _bgScan = null;
+    updateBgScanPill();
+    if(done) done();
+  } else {
+    document.getElementById('scanOverlay').classList.add('open');
+  }
 }
 
 async function callClaudeVision(base64, mediaType, fileName){
@@ -12526,7 +12592,9 @@ async function runPhotoScan(base64, mediaType, fileName){
   statusEl.style.display = 'block';
   errorEl.style.display = 'none';
   closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
   overlay.classList.add('open');
+  startBgScan('Recipe scan');
 
   const messages = ['Reading your photo…', 'Correcting spelling…', 'Converting to metric…', 'Structuring the recipe…'];
   let msgIdx = 0;
@@ -12539,31 +12607,33 @@ async function runPhotoScan(base64, mediaType, fileName){
 
   try{
     const input = await callClaudeVision(base64, mediaType, fileName);
-    clearInterval(_scanMsgTimer);
-    overlay.classList.remove('open');
-
-    formEditingId = null;
-    const ingredients = (input.ingredients || []).map(i=>[i.name || '', i.qty || '']);
-    const steps = (input.steps && input.steps.length) ? input.steps : [''];
-    renderForm({
-      ...BLANK_RECIPE_FORM,
-      title: input.title || '',
-      category: input.category || '',
-      meta: input.subtitle || '',
-      yield: input.yield || '',
-      activeTime: input.active_time || '',
-      passiveTime: input.passive_time || '',
-      ingredients: ingredients.length ? ingredients : [['','']],
-      steps
+    finishBgScan(()=>{
+      formEditingId = null;
+      const ingredients = (input.ingredients || []).map(i=>[i.name || '', i.qty || '']);
+      const steps = (input.steps && input.steps.length) ? input.steps : [''];
+      renderForm({
+        ...BLANK_RECIPE_FORM,
+        title: input.title || '',
+        category: input.category || '',
+        meta: input.subtitle || '',
+        yield: input.yield || '',
+        activeTime: input.active_time || '',
+        passiveTime: input.passive_time || '',
+        ingredients: ingredients.length ? ingredients : [['','']],
+        steps
+      });
     });
   } catch(err){
     clearInterval(_scanMsgTimer);
+    _bgScan = null; updateBgScanPill();
     logClientError('runPhotoScan failed (mediaType: ' + mediaType + '): ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
     errorEl.textContent = err.message || 'Something went wrong reading that photo.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
     closeBtn.style.display = 'block';
+    overlay.classList.add('open');
   }
 }
 
@@ -12656,8 +12726,10 @@ async function runMenuScan(base64, mediaType, fileName){
   statusEl.style.display = 'block';
   errorEl.style.display = 'none';
   closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
   overlay.classList.add('open');
   statusEl.textContent = 'Reading the menu…';
+  startBgScan('Menu scan');
 
   try{
     const dishes = await callClaudeMenuVision(base64, mediaType, fileName);
@@ -12666,7 +12738,9 @@ async function runMenuScan(base64, mediaType, fileName){
     _pendingMenuScanRecipes = [];
     for(let i = 0; i < dishes.length; i++){
       const dish = dishes[i];
-      statusEl.textContent = `Writing recipe ${i+1} of ${dishes.length}: ${dish.name}…`;
+      const progress = `Writing recipe ${i+1} of ${dishes.length}: ${dish.name}…`;
+      statusEl.textContent = progress;
+      setBgScanProgress(progress);
       const componentsList = (dish.components || []).join(', ');
       const context = `This dish appeared on a printed menu under the "${dish.section || 'Uncategorized'}" section` +
         (componentsList ? `, described with these components: ${componentsList}.` : '.') +
@@ -12689,15 +12763,17 @@ async function runMenuScan(base64, mediaType, fileName){
       }
     }
 
-    overlay.classList.remove('open');
-    openMenuScanReview();
+    finishBgScan(()=> openMenuScanReview());
   } catch(err){
+    _bgScan = null; updateBgScanPill();
     logClientError('runMenuScan failed (mediaType: ' + mediaType + '): ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
     errorEl.textContent = err.message || 'Something went wrong reading that menu.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
     closeBtn.style.display = 'block';
+    overlay.classList.add('open');
   }
 }
 
@@ -12877,7 +12953,9 @@ async function runPrepSheetScan(base64, mediaType, fileName){
   statusEl.style.display = 'block';
   errorEl.style.display = 'none';
   closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
   overlay.classList.add('open');
+  startBgScan('Prep sheet scan');
 
   const messages = ['Reading the prep sheet…', 'Finding each dish…', 'Listing components…', 'Structuring the data…'];
   let msgIdx = 0;
@@ -12890,18 +12968,21 @@ async function runPrepSheetScan(base64, mediaType, fileName){
 
   try{
     const dishes = await callClaudePrepSheetVision(base64, mediaType, fileName);
-    clearInterval(_scanMsgTimer);
-    overlay.classList.remove('open');
-    if(!dishes.length){ alert('No dishes found — try a clearer photo or PDF.'); return; }
-    openPrepScanReview(dishes);
+    finishBgScan(()=>{
+      if(!dishes.length){ alert('No dishes found — try a clearer photo or PDF.'); return; }
+      openPrepScanReview(dishes);
+    });
   } catch(err){
     clearInterval(_scanMsgTimer);
+    _bgScan = null; updateBgScanPill();
     logClientError('runPrepSheetScan failed (mediaType: ' + mediaType + '): ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
     errorEl.textContent = err.message || 'Something went wrong reading that prep sheet.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
     closeBtn.style.display = 'block';
+    overlay.classList.add('open');
   }
 }
 
