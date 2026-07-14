@@ -227,7 +227,7 @@
           <div class="ticket"><b>Recipe formulár — 20 polí</b><span>DB má všetky polia, formulár ukazuje len časť</span></div>
           <div class="ticket"><b>🍽️ Michelin-chef prepis receptov</b><span>19 hotových (Šaláty 11/11, Dressingy 8/11), migrácie v db/64+66, žiadna nespustená na produkcii. Pokračuje po kategóriách — ~110 zostáva</span></div>
           <div class="ticket"><b>Ingredient DB rozšírenie</b><span>104 reálnych cien od dodávateľa importovaných, zvyšok stále odhad AI</span></div>
-          <div class="ticket"><b>🤖 Denný AI agent — ingrediencie</b><span>Od 15.7. beží raz denne (06:30), strop CHF 30/mesiac, sám si vyberá čo vylepšiť (ceny/sezóna/chýbajúce položky), zapisuje ako novú SQL migráciu (nikdy priamo do produkcie). Report: docs/ingredient_agent_log.md — zatiaľ žiadny beh.</span></div>
+          <div class="ticket"><b>🤖 Denný AI agent — ingrediencie</b><span>Beží raz denne, strop CHF 30/mesiac, sám si vyberá čo vylepšiť (ceny/sezóna/chýbajúce položky), zapisuje ako novú SQL migráciu (nikdy priamo do produkcie). 14.7.: overil 16 základných surovín (cukor, maslo, parmezán, med, sójová omáčka a i.) voči reálnym Migros cenám — db/67, zatiaľ nespustené. Report: docs/ingredient_agent_log.md</span></div>
           <div class="ticket"><b>Overovanie cien</b><span>Nový filter Verified/Estimated/Missing to teraz robí viditeľným, väčšina stále odhad</span></div>
           <div class="ticket"><b>Label printer</b><span>Odporúčanie hotové (Brother QL-820NWB), fyzicky ešte nekúpené</span></div>
           <div class="ticket"><b>Fridge temp senzor</b><span>Odporúčanie hotové (SensorPush), fyzicky ešte nekúpené, integrácia nezačatá</span></div>
@@ -237,7 +237,7 @@
       <div class="col col-block">
         <div class="col-head"><span class="dot"></span>Blokované</div>
         <div class="col-body">
-          <div class="ticket"><b>Email login pre cudzie adresy</b><span>Stále blokované — Resend sandbox limit (doručí len na vlastnú overenú adresu), nutná verifikácia domény alebo Supabase mailer. Interné riešenie 15.7.: nová funkcia notify-access-request pošle Richardovi email na richard.cervenka@icloud.com pri každej novej žiadosti o prístup — rieši to len upozornenie jeho, NIE doručenie prihlasovacieho kódu novému uživateľovi</span></div>
+          <div class="ticket"><b>Email login pre cudzie adresy</b><span>15.7.: kúpená doména chefos.ch, DNS záznamy pre Resend pridané (DKIM+SPF), Resend momentálne overuje ("Pending", pár hodín). Medzitým appka bežala na vstavanom Supabase mailery — narazili sme na jeho limit 2 emaily/hodinu takmer okamžite pri testovaní. Posledný krok po overení: zapnúť späť custom SMTP s novou doménou</span></div>
           <div class="ticket"><b>Živé testovanie v prehliadači</b><span>Agent nemá prístup k reálnemu zariadeniu — 13.7. sa dva bugy (Check List delete, AI scan) overili naživo len vďaka tomu, že ich Richard priamo nahlásil a otestoval po nasadení; väčšina ostatných nedávnych funkcií stále nie je naživo overená</span></div>
         </div>
       </div>
@@ -309,19 +309,23 @@
       <div class="group-body">
         <div class="spend-row">
           <div class="spend-what"><span data-sk="API kredity + Claude predplatné (od začiatku projektu)" data-en="API credits + Claude subscriptions (since project start)"></span><span class="meta" data-sk="8.7.–14.7.2026, self-reported" data-en="Jul 8–14, 2026, self-reported"></span></div>
-          <div class="spend-amount">~CHF 130</div>
+          <div class="spend-amount">~CHF 135</div>
         </div>
         <div class="spend-row">
-          <div class="spend-what"><span data-sk="Denný ingredient agent (od 15.7.)" data-en="Daily ingredient agent (from Jul 15)"></span><span class="meta" data-sk="strop CHF 30/mesiac, denný log: docs/ingredient_agent_log.md" data-en="cap CHF 30/month, daily log: docs/ingredient_agent_log.md"></span></div>
-          <div class="spend-amount" data-sk="zatiaľ 0 (prvý beh 15.7.)" data-en="0 so far (first run Jul 15)"></div>
+          <div class="spend-what"><span data-sk="Denný ingredient agent" data-en="Daily ingredient agent"></span><span class="meta" data-sk="strop CHF 30/mesiac, denný log: docs/ingredient_agent_log.md" data-en="cap CHF 30/month, daily log: docs/ingredient_agent_log.md"></span></div>
+          <div class="spend-amount" data-sk="~CHF 1.20 (1 beh, samo-nahlásené)" data-en="~CHF 1.20 (1 run, self-reported)"></div>
         </div>
         <div class="spend-row">
           <div class="spend-what"><span data-sk="Fyzické nákupy (label printer, fridge senzor)" data-en="Physical purchases (label printer, fridge sensor)"></span><span class="meta" data-sk="odporúčania hotové, zatiaľ nekúpené" data-en="recommendations ready, not yet purchased"></span></div>
           <div class="spend-amount">CHF 0</div>
         </div>
+        <div class="spend-row">
+          <div class="spend-what"><span data-sk="Doména chefos.ch (Hostpoint, 1. rok)" data-en="Domain chefos.ch (Hostpoint, year 1)"></span><span class="meta" data-sk="15.7.2026 — zľava na prvý rok, obnova ~CHF 15/rok od druhého roka" data-en="Jul 15, 2026 — first-year discount, renews at ~CHF 15/year from year 2"></span></div>
+          <div class="spend-amount">CHF 5.00</div>
+        </div>
         <div class="spend-total">
           <div class="spend-what" data-sk="Odhadovaný celkový beh projektu" data-en="Estimated total project run"></div>
-          <div class="spend-amount">~CHF 130</div>
+          <div class="spend-amount">~CHF 131</div>
         </div>
       </div>
     </details>
@@ -379,7 +383,7 @@ const TOP5 = {
   ]},
   week: { sk:'Tento týždeň', en:'This week', items:[
     { sk:'Zaregistrovať Einzelfirma/AHV (1-2 h, druhý príjmový blokátor)', en:'Register the Einzelfirma/AHV (1-2 h, second revenue blocker)', deadline:'2026-07-20T14:30:00+02:00' },
-    { sk:'Vyriešiť email login pre cudzie adresy (Resend doména / Supabase mailer)', en:'Fix email login for outside addresses (Resend domain / Supabase mailer)', deadline:'2026-07-20T14:30:00+02:00' },
+    { sk:'Skontrolovať Resend "Verified" pre chefos.ch, potom zapnúť custom SMTP v Supabase', en:'Check Resend "Verified" for chefos.ch, then re-enable custom SMTP in Supabase', deadline:'2026-07-20T14:30:00+02:00' },
     { sk:'Jeden poctivý manuálny test appky pred verejným trialom', en:'One honest manual app test pass before the public trial', deadline:'2026-07-20T14:30:00+02:00' },
     { sk:'Napísať týždenný Critical Review (vlastný deadline: pondelok 14:30)', en:'Write the weekly Critical Review (self-set deadline: Monday 14:30)', deadline:'2026-07-20T14:30:00+02:00' },
     { sk:'Otestovať db/62 (privacy fix) na stagingu pred produkciou', en:'Test db/62 (privacy fix) on staging before production', deadline:'2026-07-20T14:30:00+02:00' },

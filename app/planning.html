@@ -122,7 +122,7 @@
    Add a new day by pushing one object to DAYS; week/month grouping
    is computed automatically. Keep TOP3 current each session.
    ============================================================ */
-const GENERATED = '2026-07-14';
+const GENERATED = '2026-07-15';
 
 const TOP3 = {
   day: {
@@ -301,6 +301,21 @@ const DAYS = [
       'Prep board tickets and Top-5 tasks in status.html are now clickable: tap one, hit "Work on this now," and it flags itself plus copies a ready-to-paste message to the clipboard -- the honest limit (a static file can\'t reach into a chat on its own) was explained directly rather than overpromised',
     ],
     planned: 'Keep going through the recipe categories for the Michelin-chef pass; confirm the "AI Playground" shape for the new AI-generated-recipes section; build the Slovak Critical Review page with week-by-week navigation; run db/62 on staging; extend the SK/EN toggle to the remaining documents; check back on the email-login test result.'
+  },
+  {
+    date: '2026-07-15',
+    headline: 'Critical contract-data bug found & fixed, email domain purchased, Feedback/Bug/Question merged, Check & Add editable scan review, My Team live again',
+    accomplished: [
+      'Richard reported his uploaded contract disappearing after a refresh -- root-caused to db/62\'s column-level grant blocking the row owner\'s own SELECT, not just teammates\' (Postgres column privileges can\'t distinguish "my row" from "someone else\'s row"). Emergency fix (db/68) restores full access; the correct fix (a separate profile_private table, db/69) is drafted for staging, not rushed into production tonight',
+      'Merged the separate Feedback/Bug topbar icons into one dropdown with a third "Question" option (db/70)',
+      '"Check & Add" shipped: the prep-sheet scan review is now fully editable per dish (name, price, every item, remove item/dish) instead of one read-only summary and a single "add all" button -- prompted by Richard scanning a real 14-dish restaurant menu into Check List',
+      'Explained cookies vs. localStorage plainly; verified in the code that ChefOS uses no cookies at all, only localStorage for purely functional things (session, language, device id, tutorial-seen, print queue) -- added a plain-language disclosure to the confidentiality screen instead of a meaningless consent checkbox',
+      'My Team tile turned back on (real screen, not the paused banner) now that email login works for outside addresses; added "send invite by email" reusing the same passwordless login flow with emailRedirectTo -- not yet tested live end-to-end',
+      'Hit the built-in mailer\'s 2-emails/hour limit almost immediately while testing (two different failures, one readable one a raw "{}" -- same root cause); added a clear, actionable error message for both',
+      'Bought the domain chefos.ch (Hostpoint, CHF 5 first year) and added Resend\'s DKIM/SPF DNS records for it -- verification pending (Resend said it can take a few hours); this is the real fix for email login, the built-in mailer was always just a same-night stopgap',
+      'Continued the Michelin-chef recipe pass (documented in the prior entry\'s own tracking, see backlog.html for exact batch counts)',
+    ],
+    planned: 'Check Resend for "Verified" on chefos.ch, then re-enable custom SMTP in Supabase pointed at the new domain -- this removes the email rate limit for good. Test the My Team email invite live. Continue the Michelin-chef recipe pass and build the AI Playground recipes toggle. Once email works reliably, do the one honest manual test pass through the live app before the public trial.'
   },
 ];
 

@@ -106,7 +106,7 @@
       <div class="meta-card"><div class="meta-label" data-sk="Mesačný strop (opakované úlohy)" data-en="Monthly cap (recurring tasks)"></div><div class="meta-value">CHF 30</div></div>
       <div class="meta-card clickable" onclick="toggleTimeline()" id="totalCard">
         <div class="meta-label" data-sk="Celkový beh projektu (self-reported)" data-en="Total project run (self-reported)"></div>
-        <div class="meta-value">~CHF 130 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
+        <div class="meta-value">~CHF 135 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
       </div>
     </div>
 
@@ -123,7 +123,7 @@
     <div class="section-label"><span class="n">01</span><h2 data-sk="Odkiaľ presne berieme tento rozpočet" data-en="Where this budget actually comes from"></h2><div class="rule"></div></div>
     <div class="callout">
       <div class="k" data-sk="Nie je to samostatný vrecko peňazí" data-en="Not a separate pot of money"></div>
-      <p data-sk='Tieto 4 opakujúce sa úlohy bežia cez ten istý <code>Claude (Max plán)</code> účet, ktorý používaš práve teraz v tomto chate — nie cez nejaký oddelený rozpočet. Max plán je jeden pevný mesačný poplatok (už započítaný v odhade CHF 130 nižšie) s limitom na množstvo použitia, nie platba za token. Takže "CHF 30/mesiac" tu nie je reálna faktúra navyše — je to <b style="color:var(--ink);">self-reported odhad rovnocennej ceny</b>, keby si to platil per-token, aby si mal predstavu o rozsahu/námahe jednotlivých úloh. Skutočné riziko nie je "minieme peniaze" — je to, že tieto úlohy bežiace na pozadí vyčerpajú tvoj Max limit natoľko, že by to obmedzilo tvoje vlastné rozhovory so mnou. Ak by k tomu niekedy došlo, riešenie je znížiť frekvenciu úloh, nie "dobiť si kredit".' data-en='These 4 recurring tasks run through the same <code>Claude (Max plan)</code> account you\'re using right now in this chat — not a separate budget. Max is one flat monthly fee (already counted in the ~CHF 130 estimate below) with a usage limit, not per-token billing. So "CHF 30/month" here isn\'t a real extra invoice — it\'s a <b style="color:var(--ink);">self-reported estimate</b> of what the equivalent pay-per-token cost would be, just so you have a sense of each task\'s scale/effort. The real risk isn\'t "we spend money" — it\'s that these background tasks eat enough of your Max usage limit to crowd out your own conversations with me. If that ever happens, the fix is lowering task frequency, not "topping up a balance."'></p>
+      <p data-sk='Tieto 4 opakujúce sa úlohy bežia cez ten istý <code>Claude (Max plán)</code> účet, ktorý používaš práve teraz v tomto chate — nie cez nejaký oddelený rozpočet. Max plán je jeden pevný mesačný poplatok (už započítaný v odhade CHF 130 nižšie) s limitom na množstvo použitia, nie platba za token. Takže "CHF 30/mesiac" tu nie je reálna faktúra navyše — je to <b style="color:var(--ink);">self-reported odhad rovnocennej ceny</b>, keby si to platil per-token, aby si mal predstavu o rozsahu/námahe jednotlivých úloh. Skutočné riziko nie je "minieme peniaze" — je to, že tieto úlohy bežiace na pozadí vyčerpajú tvoj Max limit natoľko, že by to obmedzilo tvoje vlastné rozhovory so mnou. Ak by k tomu niekedy došlo, riešenie je znížiť frekvenciu úloh, nie "dobiť si kredit".' data-en='These 4 recurring tasks run through the same <code>Claude (Max plan)</code> account you\'re using right now in this chat — not a separate budget. Max is one flat monthly fee (already counted in the ~CHF 135 estimate below) with a usage limit, not per-token billing. So "CHF 30/month" here isn\'t a real extra invoice — it\'s a <b style="color:var(--ink);">self-reported estimate</b> of what the equivalent pay-per-token cost would be, just so you have a sense of each task\'s scale/effort. The real risk isn\'t "we spend money" — it\'s that these background tasks eat enough of your Max usage limit to crowd out your own conversations with me. If that ever happens, the fix is lowering task frequency, not "topping up a balance."'></p>
     </div>
     <div class="callout" style="margin-top:12px;">
       <div class="k" data-sk="Kde sa PLATÍ naozaj po tokenoch" data-en="Where real per-token billing DOES happen"></div>
@@ -221,6 +221,9 @@ applyAutoLang();
    exists so far (the retroactive lump estimate); from 2026-07-15 onward, real per-run lines
    come from docs/automation_cost_log.md and should be added here as they accumulate. */
 const SPEND_TIMELINE = [
+  { sk:'15.7.2026 — doména chefos.ch (Hostpoint)', en:'Jul 15, 2026 — domain chefos.ch (Hostpoint)',
+    note_sk:'Prvý rok so zľavou; obnova ~CHF 15/rok od druhého roka. Bez Domain Shield doplnku.', note_en:'First-year discount; renews at ~CHF 15/year from year 2. No Domain Shield add-on.',
+    amount:'CHF 5.00' },
   { sk:'8.7.–14.7.2026 (spred denného logu)', en:'Jul 8–14, 2026 (before the daily log existed)',
     note_sk:'Hrubý spätný odhad za celý prvý týždeň buildu — API kredity + Claude predplatné dohromady, nerozpočítané po dňoch.', note_en:'A rough retroactive estimate for the whole first build week — API credits + Claude subscription combined, not split by day.',
     amount:'~CHF 130' },
