@@ -5212,6 +5212,20 @@ function refreshCurrentView(){
 }
 
 /* ---------- Login (email + one-time code, no password) ---------- */
+/* Supabase's built-in mailer (switched on 2026-07-15, see docs/EMAIL_LOGIN_SETUP) caps out at a
+   very low rate (2 emails/hour) — under repeated testing, later 429s sometimes come back with a
+   real "rate limit exceeded" message, other times as an empty/malformed error object (raw
+   `{}`) that reads as gibberish to a normal user. Both are the same underlying cause. This
+   turns either shape into one clear, actionable message instead of leaking a raw error object. */
+function friendlyAuthErrorMessage(error){
+  const raw = (error && (error.message || error.error_description || error.msg)) || '';
+  const looksEmpty = !raw || raw.trim() === '{}' || raw.trim() === '[object Object]';
+  const looksLikeRateLimit = /rate limit/i.test(raw) || error?.status === 429 || looksEmpty;
+  if(looksLikeRateLimit){
+    return "Too many emails sent in the last hour (the free mailer only allows 2/hour while we're testing) — wait about an hour and try again.";
+  }
+  return raw || (error?.status ? ('HTTP ' + error.status) : 'unknown error');
+}
 async function sendLoginCode(){
   const email = document.getElementById('loginEmail').value.trim();
   const statusEl = document.getElementById('loginStatus1');
@@ -5221,8 +5235,7 @@ async function sendLoginCode(){
   const { error } = await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
   if(error){
     console.error('signInWithOtp error', error);
-    const detail = error.message || error.error_description || error.msg || (error.status ? ('HTTP ' + error.status) : 'unknown error');
-    statusEl.textContent = 'Could not send code: ' + detail;
+    statusEl.textContent = 'Could not send code: ' + friendlyAuthErrorMessage(error);
     statusEl.className = 'form-status error';
     return;
   }
@@ -5652,8 +5665,8 @@ async function sendInviteByEmail(){
     options: { shouldCreateUser: true, emailRedirectTo: _currentInviteUrl }
   });
   if(error){
-    statusEl.textContent = 'Could not send: ' + (error.message || error.error_description || 'unknown error');
-    logClientError('sendInviteByEmail failed: ' + (error.message || error));
+    statusEl.textContent = 'Could not send: ' + friendlyAuthErrorMessage(error);
+    logClientError('sendInviteByEmail failed: ' + (error.message || JSON.stringify(error)));
     return;
   }
   statusEl.textContent = `Sent to ${email} — ask them to check their inbox (and spam/junk folder).`;
