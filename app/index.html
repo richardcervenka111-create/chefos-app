@@ -6363,14 +6363,20 @@ const HOME_TILE_DEFS = [
   { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredients()' },
   { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showTasks()' },
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
-  { key:'fridgeTemp', icon:'🌡️', labelKey:'fridgeTemp', staticLabel:'Fridge Temp', onclick:'showFridges()' },
+  /* Fridge Temp — hidden from Home at Richard's request (2026-07-15), not deleted. Manual-only
+     logging isn't worth shipping until there's a real answer for how temperature data actually
+     gets into the app (SensorPush or similar) — bringing it back is un-commenting this line. */
   { key:'chefAssistant', icon:'🎩', labelKey:'chefAssistant', staticLabel:"Chef's Assistant", onclick:'showChefAssistant()' },
   /* Chef Challenge — hidden from Home at Richard's request (2026-07-14), not deleted. The
      feature, its overlay, and all its code below are untouched; bringing it back later is
      just un-commenting this one line.
   { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' }, */
   { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()' },
-  { key:'myTeam', icon:'🔗', staticLabel:'My Team', onclick:'showTeamInvite()' },
+  /* My Team — hidden from Home at Richard's request (2026-07-15), not deleted. Pointless to
+     show while email login can't yet deliver a code to more than one address (Resend sandbox
+     limit) — inviting someone who can't log in isn't a real invite. Bring back once that's
+     fixed, by un-commenting this line.
+  { key:'myTeam', icon:'🔗', staticLabel:'My Team', onclick:'showTeamInvite()' }, */
   { key:'printLabels', icon:'🏷️', staticLabel:'Print Labels', onclick:'showPrintLabels()', badgeId:'printLabelsBadge' },
   { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdminRequests()', adminOnly:true, badgeId:'adminPendingBadge' },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
