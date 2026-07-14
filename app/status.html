@@ -412,9 +412,43 @@ function renderTop5(){
   if(!grid) return;
   grid.innerHTML = ['day','week','month'].map(key=>{
     const card = TOP5[key];
-    const items = card.items.map(it=>`<li>${_statusLang==='sk'?it.sk:it.en}${deadlineBadge(it.deadline)}</li>`).join('');
+    const items = card.items.map(it=>`<li class="clickable-ticket"><span class="task-text"></span>${deadlineBadge(it.deadline)}</li>`).join('');
     return `<div class="top5-card"><h4>${_statusLang==='sk'?card.sk:card.en}</h4><ol>${items}</ol></div>`;
   }).join('');
+  // Fill in task text + wire up the same click-to-select behaviour as Prep board tickets,
+  // via DOM APIs (not string interpolation) so quotes/apostrophes in task text never break
+  // anything (2026-07-15, Richard's request to mirror the Prep board feature here too).
+  ['day','week','month'].forEach((key,cardIdx)=>{
+    const card = TOP5[key];
+    const li = grid.children[cardIdx].querySelectorAll('li');
+    card.items.forEach((it,i)=>{
+      const text = _statusLang==='sk' ? it.sk : it.en;
+      const el = li[i];
+      el.querySelector('.task-text').textContent = text;
+      el.dataset.enhanced = '1';
+      if(localStorage.getItem('chefos_status_selected_title') === text){
+        el.classList.add('selected-next');
+        const flag = document.createElement('span');
+        flag.className = 'ticket-next-flag';
+        flag.textContent = '🎯 Vybrané ako ďalšie';
+        el.insertBefore(flag, el.firstChild);
+      }
+      const actions = document.createElement('div');
+      actions.className = 'ticket-actions';
+      const workBtn = document.createElement('button');
+      workBtn.className = 'ticket-work-btn';
+      workBtn.textContent = '🎯 Pracovať na tomto teraz';
+      workBtn.dataset.title = text;
+      workBtn.dataset.desc = '';
+      workBtn.onclick = function(e){ e.stopPropagation(); selectTicketToWorkOn(this); };
+      const hintSpan = document.createElement('span');
+      hintSpan.className = 'ticket-copied-hint';
+      actions.appendChild(workBtn);
+      actions.appendChild(hintSpan);
+      el.appendChild(actions);
+      el.addEventListener('click', ()=> el.classList.toggle('open'));
+    });
+  });
 }
 renderTop5();
 setInterval(renderTop5, 60000);
@@ -431,12 +465,12 @@ function selectTicketToWorkOn(btn){
   const title = btn.dataset.title;
   const desc = btn.dataset.desc;
   localStorage.setItem('chefos_status_selected_title', title);
-  document.querySelectorAll('.ticket.selected-next').forEach(t=>{
+  document.querySelectorAll('.ticket.selected-next, li.selected-next').forEach(t=>{
     t.classList.remove('selected-next');
     const flag = t.querySelector('.ticket-next-flag');
     if(flag) flag.remove();
   });
-  const ticket = btn.closest('.ticket');
+  const ticket = btn.closest('.ticket, li');
   ticket.classList.add('selected-next');
   if(!ticket.querySelector('.ticket-next-flag')){
     const flag = document.createElement('span');
@@ -445,7 +479,7 @@ function selectTicketToWorkOn(btn){
     ticket.insertBefore(flag, ticket.firstChild);
   }
   const hint = btn.parentElement.querySelector('.ticket-copied-hint');
-  const msg = `Chcem aby sme teraz pracovali na: "${title}" — ${desc}`;
+  const msg = desc ? `Chcem aby sme teraz pracovali na: "${title}" — ${desc}` : `Chcem aby sme teraz pracovali na: "${title}"`;
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(msg).then(()=>{
       hint.textContent = '✓ Skopírované — vlož do chatu s Claude';
