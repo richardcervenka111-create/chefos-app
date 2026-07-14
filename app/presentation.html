@@ -139,7 +139,8 @@
   <section id="financials">
     <h2 class="section-title">Financials &amp; monetization</h2>
     <p class="section-desc">Subscription tiers map directly to the product's own user tiers (Home Cook / Chef Pro / Restaurant), priced in CHF for the Swiss market. Go-to-market starts in canton Bern — the pilot kitchen's own canton — before expanding to neighbouring cantons and eventually German-speaking Switzerland. A future B2B layer — Swiss suppliers transacting through the platform — is vision-stage, not built.</p>
-    <p class="section-desc"><b style="color:var(--ink);">Monetization plan formalized 2026-07-13</b> (full expert-panel analysis of 11 models: <i>monetization.html</i>): first revenue comes from a <b style="color:var(--ink);">founding-member pre-sale</b> (first 10 kitchens at CHF 490/year, offered during the August trial) combined with a <b style="color:var(--ink);">paid onboarding service</b> (~CHF 990 — the founder, a working chef, personally digitizes the kitchen's recipes and prep sheets). Flat SaaS pricing below follows after a successful trial. The two blockers to first revenue are legal, not product: written employer consent for side-business income, and sole-proprietorship registration — both in progress.</p>
+    <p class="section-desc"><b style="color:var(--ink);">Monetization plan formalized 2026-07-13</b> (full expert-panel analysis of 11 models: <i>monetization.html</i>): first revenue comes from a <b style="color:var(--ink);">founding-member pre-sale</b> (first 10 kitchens at CHF 490/year, offered during the August trial) combined with a <b style="color:var(--ink);">paid onboarding service</b> (~CHF 990 — the founder, a working chef, personally digitizes the kitchen's recipes and prep sheets). Flat SaaS pricing below follows after a successful trial. The two blockers to first revenue are legal, not product: written employer consent for side-business income (letter drafted, ready to send), and sole-proprietorship registration — neither yet complete.</p>
+    <p class="section-desc"><b style="color:var(--ink);">Build cost to date: ~CHF 141</b> (API credits + Claude subscriptions since project start, plus the chefos.ch domain) — a working multi-feature product for one pilot kitchen group, built by a solo chef-founder with an AI agent, no other engineering spend. Self-reported, not audited.</p>
 
     <div class="tier-grid">
       <div class="tier-card">
@@ -180,7 +181,7 @@
    Keep KPIS / BENEFITS / ROADMAP / REVENUE in sync with docs/ROADMAP.md after any shipped
    feature; see the persistent-update instruction this file was created under.
    ============================================================ */
-const GENERATED = '2026-07-13';
+const GENERATED = '2026-07-15';
 
 const MARKET = [
   { num:'~32,000', label:'F&B establishments, Switzerland', note:'GastroSuisse Branchenspiegel 2025' },
@@ -191,7 +192,7 @@ const MARKET = [
 
 const KPIS = [
   { num: '173', label: 'Recipes migrated', note: 'full 20-field format' },
-  { num: '1,263', label: 'Ingredients priced', note: 'SQL ready, not yet run in prod' },
+  { num: '~1,300', label: 'Ingredients priced', note: 'live in production, cost-matching engine' },
   { num: '8', label: 'Kitchen stations', note: 'dish-grouped prep sheets' },
   { num: '5', label: 'AI features live', note: 'scan · generate · assistant · translate' },
   { num: '0', label: 'Staff in Schedule', note: 'roster retiring with the old pilot, rebuilding for Burrito Bandito & Lido' },
@@ -199,6 +200,7 @@ const KPIS = [
   { num: '1', label: 'Pilot kitchen', note: 'Burrito Bandito & Lido (one group, two venues)' },
   { num: '0', label: 'Paying customers', note: 'pre-monetization' },
   { num: 'Aug 1', label: 'Public trial target', note: '25 users, multi-team via QR invite' },
+  { num: 'chefos.ch', label: 'Own domain live', note: 'custom SMTP, no third-party branding' },
 ];
 
 const BENEFITS = [
