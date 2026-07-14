@@ -288,8 +288,12 @@ const DAYS = [
       'Working Time: added "Forgot to check out?" — sets a real end time for a still-open shift via a bounded date/time picker, instead of it silently running until noticed',
       'Fixed the contract-note-to-checkboxes splitter: the old sentence-boundary regex cut through legal abbreviations like "Art. 321c OR"; now prefers real line breaks and guards known abbreviations',
       'This per-task timestamp column added to Planning &amp; Progress per Richard\'s request — honestly: only shippable going forward, since exact times for most of the day\'s earlier work weren\'t recorded as they happened',
+      'Evening batch: Working Time "Forgot to check in?" + a one-time location snapshot at check-in/out only (Richard chose this over continuous tracking after a direct trade-off question — legally sensitive and not reliably buildable as a locked-phone web app anyway)',
+      'Contract-review note restyled with a tone icon per point (⚠️ risk / ✅ good / ℹ️ neutral) so it surfaces fair terms too, not just risks — while checking this, found and drafted a fix (db/62, staging-tested first) for a real gap where teammates could technically read each other\'s contract notes via RLS',
+      '"Nonstop ingredient agent" question finally resolved: Richard set a real CHF 30/month cap and left cadence/priority to Claude\'s judgment — daily 06:30 run created, self-reported cost logged to docs/ingredient_agent_log.md and summarized in status.html',
+      'Chef Challenge tile hidden from Home (not deleted) per Richard\'s request; tasklist.html fully redesigned to the same visual system as status.html/planning.html; status.html gained a Spending section and a Top-5-tasks-by-timeframe section, plus a SK/EN toggle on structural chrome (full historical-content translation queued, not rushed)',
     ],
-    planned: 'Confirm Nebenerwerb letter sent; decide on the personal-vs-pro profile idea and the recipe-token/verification-agent idea (both logged, neither built — real scope decisions, not freebies); scope the "nonstop ingredient agent" as an actual scheduled cadence once Richard confirms frequency/budget; keep protecting the trial timeline.'
+    planned: 'Get the recipes table export from Richard to start the Michelin-chef rewrite of the 173 recipes; confirm the "AI Playground" shape for the new AI-generated-recipes section; build the Slovak Critical Review page with week-by-week navigation; run db/62 on staging; extend the SK/EN toggle to the remaining documents.'
   },
 ];
 

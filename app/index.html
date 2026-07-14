@@ -2346,6 +2346,20 @@
   </div>
 </div>
 
+<!-- Working Time: "Forgot to check in?" — mirrors "Forgot to check out?": lets you back-date
+     a check-in you only remembered to do after the shift already started (or after it ended). -->
+<div id="forgotCheckinOverlay" class="sheet-overlay" onclick="if(event.target===this) closeForgotCheckin()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Forgot to check in?</div>
+    <p class="sheet-text">What time did your shift actually start?</p>
+    <input class="form-field" id="forgotCheckinInput" type="datetime-local">
+    <button class="save-btn" style="width:100%; margin-top:14px;" onclick="confirmForgotCheckin()">Check in at this time</button>
+    <div class="form-status" id="forgotCheckinStatus"></div>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeForgotCheckin()">Cancel</button>
+  </div>
+</div>
+
 <div id="monthDayDetailOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMonthDayBars()">
   <div class="sheet">
     <div class="sheet-handle"></div>
@@ -5297,6 +5311,11 @@ async function renderTeamGate(){
   if(!reqRow){
     const { data: created } = await sb.from('access_requests').insert({ email }).select().single();
     reqRow = created;
+    // Best-effort — Richard should hear about a new request even if he forgets to check the
+    // Admin tile. Never blocks the gate itself if the email fails to send for any reason.
+    sb.functions.invoke('notify-access-request', { body: { email } }).catch(err=>{
+      console.error('notify-access-request failed', err);
+    });
   }
 
   if(!reqRow || reqRow.status === 'pending'){
@@ -5368,7 +5387,9 @@ async function createOwnKitchen(){
   statusEl.textContent = 'Creating…';
   const { data: kitchen, error } = await sb.from('kitchens').insert({ name, created_by: currentUser.id }).select().single();
   if(error){ statusEl.textContent = 'Could not create: ' + error.message; return; }
-  const { error: profErr } = await sb.from('profiles').update({ kitchen_id: kitchen.id }).eq('id', currentUser.id);
+  // Whoever creates a kitchen becomes its admin — otherwise nobody in a brand-new kitchen can
+  // ever see the Admin/Currency tiles or approve anyone else, with no way to self-promote.
+  const { error: profErr } = await sb.from('profiles').update({ kitchen_id: kitchen.id, is_admin: true }).eq('id', currentUser.id);
   if(profErr){ statusEl.textContent = 'Could not save: ' + profErr.message; return; }
   history.replaceState(null, '', location.pathname);
   await startApp();
@@ -6336,7 +6357,10 @@ const HOME_TILE_DEFS = [
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
   { key:'fridgeTemp', icon:'🌡️', labelKey:'fridgeTemp', staticLabel:'Fridge Temp', onclick:'showFridges()' },
   { key:'chefAssistant', icon:'🎩', labelKey:'chefAssistant', staticLabel:"Chef's Assistant", onclick:'showChefAssistant()' },
-  { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' },
+  /* Chef Challenge — hidden from Home at Richard's request (2026-07-14), not deleted. The
+     feature, its overlay, and all its code below are untouched; bringing it back later is
+     just un-commenting this one line.
+  { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' }, */
   { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()' },
   { key:'myTeam', icon:'🔗', staticLabel:'My Team', onclick:'showTeamInvite()' },
   { key:'printLabels', icon:'🏷️', staticLabel:'Print Labels', onclick:'showPrintLabels()', badgeId:'printLabelsBadge' },
@@ -10672,7 +10696,10 @@ function renderWorkingTimeStatus(){
     startWorkingTimeTicker();
   } else {
     stopWorkingTimeTicker();
-    el.innerHTML = `<button class="save-btn" style="width:100%; font-size:16px; padding:16px;" onclick="checkInWorkingTime()">▶ Check In</button>`;
+    el.innerHTML = `
+      <button class="save-btn" style="width:100%; font-size:16px; padding:16px;" onclick="checkInWorkingTime()">▶ Check In</button>
+      <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="openForgotCheckin()">Forgot to check in?</button>
+    `;
   }
 }
 function startWorkingTimeTicker(){
@@ -10691,13 +10718,64 @@ function stopWorkingTimeTicker(){
   if(_workingTimeTicker){ clearInterval(_workingTimeTicker); _workingTimeTicker = null; }
 }
 
+/* One-time location snapshot at the moment of check-in/check-out only — not continuous
+   tracking. Resolves to null (never blocks check-in/out) if geolocation is unsupported,
+   denied, or slow — capped at 4s so a bad GPS fix never holds up clocking in. */
+function getLocationSnapshot(){
+  return new Promise(resolve=>{
+    if(!('geolocation' in navigator)){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos=>resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      ()=>resolve(null),
+      { timeout: 4000, maximumAge: 60000 }
+    );
+  });
+}
 async function checkInWorkingTime(){
+  await checkInWorkingTimeAt(new Date());
+}
+async function checkInWorkingTimeAt(when){
+  const loc = await getLocationSnapshot();
   const { data, error } = await sb.from('time_entries').insert({
-    kitchen_id: currentKitchenId, user_id: currentUser.id, check_in: new Date().toISOString(), break_minutes: 0
+    kitchen_id: currentKitchenId, user_id: currentUser.id, check_in: when.toISOString(), break_minutes: 0,
+    check_in_lat: loc ? loc.lat : null, check_in_lng: loc ? loc.lng : null
   }).select().single();
   if(error){ alert('Could not check in: ' + error.message); return; }
   _activeTimeEntry = data;
   renderWorkingTimeStatus();
+}
+/* "Forgot to check in?" — same reasoning as "Forgot to check out?": bounded to
+   [24h ago, now] so a shift can be back-dated within a realistic window without
+   letting someone log a future check-in or one from days ago by mistake. */
+function openForgotCheckin(){
+  if(_activeTimeEntry) return;
+  const input = document.getElementById('forgotCheckinInput');
+  const toLocalInputValue = (d)=>{
+    const pad = n=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const now = new Date();
+  const earliest = new Date(now.getTime() - 24*60*60*1000);
+  input.min = toLocalInputValue(earliest);
+  input.max = toLocalInputValue(now);
+  input.value = toLocalInputValue(now);
+  document.getElementById('forgotCheckinStatus').textContent = '';
+  document.getElementById('forgotCheckinOverlay').classList.add('open');
+}
+function closeForgotCheckin(){
+  document.getElementById('forgotCheckinOverlay').classList.remove('open');
+}
+async function confirmForgotCheckin(){
+  const input = document.getElementById('forgotCheckinInput');
+  const statusEl = document.getElementById('forgotCheckinStatus');
+  if(!input.value){ statusEl.textContent = 'Pick a time first.'; return; }
+  const when = new Date(input.value);
+  const now = new Date();
+  const earliest = new Date(now.getTime() - 24*60*60*1000);
+  if(when < earliest){ statusEl.textContent = "That's more than 24h ago — pick a more recent time."; return; }
+  if(when > now){ statusEl.textContent = "That's in the future — pick an earlier time."; return; }
+  closeForgotCheckin();
+  await checkInWorkingTimeAt(when);
 }
 async function checkOutWorkingTime(){
   if(!_activeTimeEntry) return;
@@ -10706,7 +10784,10 @@ async function checkOutWorkingTime(){
 }
 async function checkOutWorkingTimeAt(when){
   if(!_activeTimeEntry) return;
-  const { error } = await sb.from('time_entries').update({ check_out: when.toISOString() }).eq('id', _activeTimeEntry.id);
+  const loc = await getLocationSnapshot();
+  const { error } = await sb.from('time_entries').update({
+    check_out: when.toISOString(), check_out_lat: loc ? loc.lat : null, check_out_lng: loc ? loc.lng : null
+  }).eq('id', _activeTimeEntry.id);
   if(error){ alert('Could not check out: ' + error.message); return; }
   _activeTimeEntry = null;
   await loadWorkingTimeData();
@@ -11038,6 +11119,7 @@ function renderContractAdvisoryHtml(p){
     ? points.map((pt,i)=>`
         <div class="wt-advisory-point">
           <button class="wt-check-btn${pt.done?' checked':''}" onclick="toggleContractAdvisoryPoint(${i})">${pt.done?'✓':''}</button>
+          <span style="font-size:16px; line-height:1.4;">${CONTRACT_TONE_ICON[pt.tone]||'ℹ️'}</span>
           <span class="${pt.done?'wt-point-done':''}">${pt.text}</span>
         </div>
       `).join('')
@@ -11045,7 +11127,7 @@ function renderContractAdvisoryHtml(p){
   return `
     <details class="more-details" ${_contractNotesOpen ? 'open' : ''} ontoggle="_contractNotesOpen = this.open">
       <summary>AI note on your contract</summary>
-      <p class="sheet-text">Informational only — not a substitute for professional legal advice.</p>
+      <p class="sheet-text">Informational only — not a substitute for professional legal advice. Only you can see this — teammates cannot read your contract notes.</p>
       ${body}
     </details>
   `;
@@ -11153,7 +11235,9 @@ async function openDayDetail(dayStr){
     entries.map(e=>{
       const inT = new Date(e.check_in).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
       const outT = e.check_out ? new Date(e.check_out).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '…';
-      return `<div class="wt-settings-row"><div>${inT} → ${outT}</div><div class="wt-vacation-days">${formatHoursSK(workingTimeHoursForEntry(e))} h</div></div>`;
+      const inPin = (e.check_in_lat!=null && e.check_in_lng!=null) ? ` <a href="https://maps.google.com/?q=${e.check_in_lat},${e.check_in_lng}" target="_blank" rel="noopener" style="text-decoration:none;">📍</a>` : '';
+      const outPin = (e.check_out_lat!=null && e.check_out_lng!=null) ? ` <a href="https://maps.google.com/?q=${e.check_out_lat},${e.check_out_lng}" target="_blank" rel="noopener" style="text-decoration:none;">📍</a>` : '';
+      return `<div class="wt-settings-row"><div>${inT}${inPin} → ${outT}${outPin}</div><div class="wt-vacation-days">${formatHoursSK(workingTimeHoursForEntry(e))} h</div></div>`;
     }).join('') + `<div class="wt-settings-row"><b>Total</b><b>${formatHoursSK(totalHours)} h</b></div>`
   ) : `<p class="sheet-text">No check-ins recorded this day.</p>`;
 
@@ -11245,8 +11329,15 @@ async function callClaudeContractVision(base64, mediaType){
         vacation_days_per_year: { type:'number', description:'Annual paid vacation days stated in the contract, if present' },
         advisory_points: {
           type: 'array',
-          items: { type:'string' },
-          description: 'A list of short, individual, plain-language points — one distinct issue per entry — flagging anything in the contract that seems unclear, unusual, missing, or potentially unfavorable to the employee, e.g. "No overtime pay rate specified", "Notice period is not stated", "Vacation entitlement (18 days) is below the usual 20-day minimum". Neutral, helpful tone, not alarmist. Each point should be short enough to check off once resolved. If nothing stands out, return a single point saying so plainly.'
+          items: {
+            type: 'object',
+            properties: {
+              text: { type:'string', description:'One short, plain-language point — a single distinct observation, checkable once resolved/acknowledged.' },
+              tone: { type:'string', enum:['risk','good','neutral'], description:'"risk" = unclear/unusual/missing/unfavorable to the employee. "good" = a genuinely solid or above-average term worth knowing is fine (e.g. vacation days above the legal minimum, a clearly stated overtime rate). "neutral" = a factual note that is neither a risk nor a highlight.' }
+            },
+            required: ['text','tone']
+          },
+          description: 'Roughly 4-6 short, individual points covering the contract overall — a mix, not just risks: flag anything unclear/unusual/missing/unfavorable ("risk"), but also call out terms that are genuinely fine or better than typical ("good"), e.g. "No overtime pay rate specified" (risk), "Vacation entitlement (25 days) is above the usual 20-day minimum" (good), "Notice period is not stated" (risk). Neutral, helpful tone throughout, not alarmist. If nothing stands out either way, return a single neutral point saying so plainly.'
         }
       },
       required: ['advisory_points']
@@ -11266,7 +11357,7 @@ async function callClaudeContractVision(base64, mediaType){
       role: 'user',
       content: [
         sourceBlock,
-        { type:'text', text:'This is an employment contract for a kitchen/restaurant worker. Read it carefully and extract the weekly contracted hours and annual paid vacation days if stated. Then, acting as a knowledgeable reviewer (not a licensed lawyer), write a short plain-language note flagging anything that looks unclear, missing, unusual, or potentially unfavorable to the employee. Use the record_contract_review tool.' }
+        { type:'text', text:'This is an employment contract for a kitchen/restaurant worker. Read it carefully and extract the weekly contracted hours and annual paid vacation days if stated. Then, acting as a knowledgeable reviewer (not a licensed lawyer), write 4-6 short plain-language points covering the contract overall — flag anything unclear, missing, unusual, or potentially unfavorable to the employee, AND separately call out anything that is genuinely fine or better than typical (don\'t only list problems). Tag each point\'s tone honestly. Use the record_contract_review tool.' }
       ]
     }]
   });
@@ -11310,12 +11401,13 @@ async function runContractScan(base64, mediaType){
     closeBtn.style.display = 'block';
   }
 }
+const CONTRACT_TONE_ICON = { risk:'⚠️', good:'✅', neutral:'ℹ️' };
 let _pendingContractPoints = [];
 function openContractReview(input){
   document.getElementById('cr_hours').value = input.contracted_hours_per_week != null ? input.contracted_hours_per_week : '';
-  _pendingContractPoints = input.advisory_points && input.advisory_points.length ? input.advisory_points.slice() : ['Nothing stood out.'];
-  if(input.vacation_days_per_year != null) _pendingContractPoints.unshift(`Vacation entitlement found: ${input.vacation_days_per_year} days/year.`);
-  document.getElementById('cr_points').innerHTML = _pendingContractPoints.map(pt=>`<div class="wt-advisory-point"><span>${pt}</span></div>`).join('');
+  _pendingContractPoints = input.advisory_points && input.advisory_points.length ? input.advisory_points.slice() : [{text:'Nothing stood out.', tone:'neutral'}];
+  if(input.vacation_days_per_year != null) _pendingContractPoints.unshift({ text:`Vacation entitlement found: ${input.vacation_days_per_year} days/year.`, tone:'neutral' });
+  document.getElementById('cr_points').innerHTML = _pendingContractPoints.map(pt=>`<div class="wt-advisory-point"><span style="font-size:16px; line-height:1.4;">${CONTRACT_TONE_ICON[pt.tone]||'ℹ️'}</span><span>${pt.text}</span></div>`).join('');
   document.getElementById('contractReviewStatus').textContent = '';
   document.getElementById('contractReviewOverlay').classList.add('open');
 }
@@ -11326,7 +11418,7 @@ async function saveContractReview(){
   const statusEl = document.getElementById('contractReviewStatus');
   const hoursRaw = document.getElementById('cr_hours').value;
   const hours = hoursRaw ? parseFloat(hoursRaw) : null;
-  const points = _pendingContractPoints.map(text=>({ text, done:false }));
+  const points = _pendingContractPoints.map(pt=>({ text: pt.text, tone: pt.tone||'neutral', done:false }));
   statusEl.textContent = 'Saving…';
   const { error } = await sb.from('profiles').update({ contracted_hours_per_week: hours, contract_advisory_points: points }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
