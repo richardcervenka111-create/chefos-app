@@ -11547,6 +11547,7 @@ async function runContractScan(base64, mediaType){
     openContractReview(input);
   } catch(err){
     clearInterval(_scanMsgTimer);
+    logClientError('runContractScan failed: ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
@@ -12150,6 +12151,7 @@ async function runPhotoScan(base64, mediaType){
     });
   } catch(err){
     clearInterval(_scanMsgTimer);
+    logClientError('runPhotoScan failed (mediaType: ' + mediaType + '): ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
@@ -12295,6 +12297,7 @@ async function runMenuScan(base64, mediaType){
     overlay.classList.remove('open');
     openMenuScanReview();
   } catch(err){
+    logClientError('runMenuScan failed (mediaType: ' + mediaType + '): ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
@@ -12510,6 +12513,7 @@ async function runPrepSheetScan(base64, mediaType){
     openPrepScanReview(dishes);
   } catch(err){
     clearInterval(_scanMsgTimer);
+    logClientError('runPrepSheetScan failed (mediaType: ' + mediaType + '): ' + (err.message || err), err.stack);
     spinner.style.display = 'none';
     statusEl.style.display = 'none';
     errorEl.style.display = 'block';
