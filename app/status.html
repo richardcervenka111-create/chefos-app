@@ -62,6 +62,15 @@
   .ticket{ background:var(--paper-raised); border:1px solid var(--rule); border-radius:8px; padding:9px 10px; font-size:12.5px; line-height:1.4; }
   .ticket b{ display:block; font-size:12.5px; margin-bottom:2px; color:var(--ink); }
   .ticket span{ color:var(--ink-dim); font-size:11.5px; }
+  .ticket.clickable-ticket{ cursor:pointer; transition:border-color .15s; }
+  .ticket.clickable-ticket:hover{ border-color:var(--accent-dim); }
+  .ticket.selected-next{ border-color:var(--gold); background:rgba(247,201,72,0.09); }
+  .ticket-next-flag{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold); font-weight:700; margin-bottom:4px; }
+  .ticket-actions{ display:none; margin-top:8px; padding-top:8px; border-top:1px solid var(--rule); }
+  .ticket.open .ticket-actions{ display:block; }
+  .ticket-work-btn{ background:var(--accent); color:var(--bg); border:none; border-radius:8px; padding:6px 12px; font-size:11px; font-weight:700; cursor:pointer; }
+  .ticket-work-btn:hover{ opacity:0.88; }
+  .ticket-copied-hint{ display:block; margin-top:6px; font-size:10.5px; color:var(--accent); min-height:14px; }
 
   /* ---------- Timeline ---------- */
   .timeline{ position:relative; padding-left:26px; }
@@ -409,6 +418,78 @@ function renderTop5(){
 }
 renderTop5();
 setInterval(renderTop5, 60000);
+
+/* ---------- Click a ticket -> pick what to work on next (2026-07-15) ---------------------
+   Honest limit: this is a static file (file:// in the browser, no server) — a button here
+   physically cannot reach into a chat with Claude or start a session by itself. The closest
+   real equivalent: tap a ticket to open it, tap "Work on this now" to (a) mark it with a gold
+   "next" flag that persists on this device via localStorage, and (b) copy a ready-to-paste
+   message to the clipboard — so the actual hand-off is one tap + one paste into the chat,
+   instead of typing the ticket out from scratch. Only wired on Rozbehnuté/Blokované/Čaká —
+   Hotovo tickets are already done, nothing to queue there. ------------------------------- */
+function selectTicketToWorkOn(btn){
+  const title = btn.dataset.title;
+  const desc = btn.dataset.desc;
+  localStorage.setItem('chefos_status_selected_title', title);
+  document.querySelectorAll('.ticket.selected-next').forEach(t=>{
+    t.classList.remove('selected-next');
+    const flag = t.querySelector('.ticket-next-flag');
+    if(flag) flag.remove();
+  });
+  const ticket = btn.closest('.ticket');
+  ticket.classList.add('selected-next');
+  if(!ticket.querySelector('.ticket-next-flag')){
+    const flag = document.createElement('span');
+    flag.className = 'ticket-next-flag';
+    flag.textContent = '🎯 Vybrané ako ďalšie';
+    ticket.insertBefore(flag, ticket.firstChild);
+  }
+  const hint = btn.parentElement.querySelector('.ticket-copied-hint');
+  const msg = `Chcem aby sme teraz pracovali na: "${title}" — ${desc}`;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(msg).then(()=>{
+      hint.textContent = '✓ Skopírované — vlož do chatu s Claude';
+    }).catch(()=>{
+      hint.textContent = 'Napíš Claude: "' + title + '"';
+    });
+  } else {
+    hint.textContent = 'Napíš Claude: "' + title + '"';
+  }
+  setTimeout(()=>{ if(hint) hint.textContent=''; }, 5000);
+}
+function enhanceTickets(){
+  document.querySelectorAll('.col-prog .ticket, .col-block .ticket, .col-wait .ticket').forEach(ticket=>{
+    if(ticket.dataset.enhanced) return;
+    ticket.dataset.enhanced = '1';
+    const titleEl = ticket.querySelector('b');
+    const descEl = ticket.querySelector('span');
+    const title = titleEl ? titleEl.textContent.trim() : ticket.textContent.trim().slice(0,60);
+    const desc = descEl ? descEl.textContent.trim() : '';
+    ticket.classList.add('clickable-ticket');
+    if(localStorage.getItem('chefos_status_selected_title') === title){
+      ticket.classList.add('selected-next');
+      const flag = document.createElement('span');
+      flag.className = 'ticket-next-flag';
+      flag.textContent = '🎯 Vybrané ako ďalšie';
+      ticket.insertBefore(flag, ticket.firstChild);
+    }
+    const actions = document.createElement('div');
+    actions.className = 'ticket-actions';
+    const workBtn = document.createElement('button');
+    workBtn.className = 'ticket-work-btn';
+    workBtn.textContent = '🎯 Pracovať na tomto teraz';
+    workBtn.dataset.title = title;
+    workBtn.dataset.desc = desc;
+    workBtn.onclick = function(e){ e.stopPropagation(); selectTicketToWorkOn(this); };
+    const hintSpan = document.createElement('span');
+    hintSpan.className = 'ticket-copied-hint';
+    actions.appendChild(workBtn);
+    actions.appendChild(hintSpan);
+    ticket.appendChild(actions);
+    ticket.addEventListener('click', ()=> ticket.classList.toggle('open'));
+  });
+}
+enhanceTickets();
 </script>
 </div>
 </body>
