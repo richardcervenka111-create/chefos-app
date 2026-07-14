@@ -108,6 +108,14 @@
   .callout.ok .k{ color:var(--accent); }
 
   footer{ margin-top:56px; padding-top:18px; border-top:1px solid var(--rule); font-size:11px; color:var(--ink-faint); }
+
+  .lang-toggle{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .lang-toggle:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  .topline{ display:flex; align-items:center; justify-content:space-between; }
 </style>
 </head>
 <body>
@@ -123,18 +131,21 @@
 
 <header>
   <div class="inner">
-    <div class="brandmark">
-      <svg width="22" height="22" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
-      <span class="word">ChefOS</span>
+    <div class="topline">
+      <div class="brandmark">
+        <svg width="22" height="22" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
+        <span class="word">ChefOS</span>
+      </div>
+      <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
     </div>
-    <div class="kicker">Kompletný zoznam úloh · v2 — po expert review</div>
-    <h1 class="title">Všetko, čo treba ešte urobiť — <em>doplnené</em></h1>
-    <p class="dek">Predchádzajúci zoznam prešiel kontrolou zo šiestich uhlov: Product Manager, CTO, Solution Architect, UX Lead, QA Lead a skúsený SaaS founder. Fialové položky sú nové — veci, ktoré v prvej verzii chýbali. Zvyšok zostáva z v1. Zaškrtni políčko, keď je úloha hotová — počítadlo hore sa aktualizuje samo a pamätá si to aj nabudúce.</p>
+    <div class="kicker" data-sk="Kompletný zoznam úloh · v2 — po expert review" data-en="Complete task list · v2 — after expert review"></div>
+    <h1 class="title" data-sk="Všetko, čo treba ešte urobiť — doplnené" data-en="Everything left to do — updated"></h1>
+    <p class="dek" data-sk="Predchádzajúci zoznam prešiel kontrolou zo šiestich uhlov: Product Manager, CTO, Solution Architect, UX Lead, QA Lead a skúsený SaaS founder. Fialové položky sú nové — veci, ktoré v prvej verzii chýbali. Zvyšok zostáva z v1. Zaškrtni políčko, keď je úloha hotová — počítadlo hore sa aktualizuje samo a pamätá si to aj nabudúce." data-en="The previous list went through a review from six angles: Product Manager, CTO, Solution Architect, UX Lead, QA Lead and an experienced SaaS founder. Purple items are new — things the first version missed. The rest carries over from v1. Check the box when a task is done — the counter above updates itself and remembers it next time."></p>
     <div class="legend">
-      <div class="item"><span class="swatch sw-plan"></span>Z tvojho plánu</div>
-      <div class="item"><span class="swatch sw-new"></span>Odporúčanie v1</div>
-      <div class="item"><span class="swatch sw-v2"></span>Nové vo v2 (expert review)</div>
-      <div class="item"><span class="swatch sw-crit"></span>Kritické</div>
+      <div class="item"><span class="swatch sw-plan"></span><span data-sk="Z tvojho plánu" data-en="From your plan"></span></div>
+      <div class="item"><span class="swatch sw-new"></span><span data-sk="Odporúčanie v1" data-en="v1 recommendation"></span></div>
+      <div class="item"><span class="swatch sw-v2"></span><span data-sk="Nové vo v2 (expert review)" data-en="New in v2 (expert review)"></span></div>
+      <div class="item"><span class="swatch sw-crit"></span><span data-sk="Kritické" data-en="Critical"></span></div>
     </div>
   </div>
 </header>
@@ -144,7 +155,7 @@
   <!-- FOUNDER RISKS -->
   <div class="phase-head">
     <div class="phase-num">⚠</div>
-    <div class="phase-title-wrap"><h2>Zakladateľské riziká — vyriešiť skôr než čokoľvek iné</h2><div class="sub">Toto v1 úplne prehliadla a je to najvážnejšia časť celého dokumentu</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Zakladateľské riziká — vyriešiť skôr než čokoľvek iné" data-en="Founder risks — resolve before anything else"></h2><div class="sub" data-sk="Toto v1 úplne prehliadla a je to najvážnejšia časť celého dokumentu" data-en="v1 completely missed this, and it's the most important part of the whole document"></div></div>
     <span class="phase-status st-red">Existenčné</span>
   </div>
   <div class="phase-rule"></div>
@@ -158,7 +169,7 @@
   <!-- PHASE 00 -->
   <div class="phase-head">
     <div class="phase-num">00</div>
-    <div class="phase-title-wrap"><h2>Tento týždeň — technický základ</h2><div class="sub">v1 blockery + čo odhalil CTO/QA pohľad</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Tento týždeň — technický základ" data-en="This week — technical foundation"></h2><div class="sub" data-sk="v1 blockery + čo odhalil CTO/QA pohľad" data-en="v1 blockers + what the CTO/QA review surfaced"></div></div>
     <span class="phase-status st-active">Teraz</span>
   </div>
   <div class="phase-rule"></div>
@@ -176,7 +187,7 @@
   <!-- PRE TRIAL -->
   <div class="phase-head">
     <div class="phase-num">0.5</div>
-    <div class="phase-title-wrap"><h2>Pred verejným trialom</h2><div class="sub">25 ľudí, viac reštaurácií — s doplnkami z PM/UX/QA pohľadu</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Pred verejným trialom" data-en="Before the public trial"></h2><div class="sub" data-sk="25 ľudí, viac reštaurácií — s doplnkami z PM/UX/QA pohľadu" data-en="25 people, multiple restaurants — with additions from the PM/UX/QA review"></div></div>
     <span class="phase-status st-active">Blízko</span>
   </div>
   <div class="phase-rule"></div>
@@ -195,7 +206,7 @@
   <!-- PHASE 2 -->
   <div class="phase-head">
     <div class="phase-num">02</div>
-    <div class="phase-title-wrap"><h2>Fáza 2 — Kitchen Flow MVP</h2><div class="sub">Doplnené o architektonickú otázku, ktorú v1 minula</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Fáza 2 — Kitchen Flow MVP" data-en="Phase 2 — Kitchen Flow MVP"></h2><div class="sub" data-sk="Doplnené o architektonickú otázku, ktorú v1 minula" data-en="Added an architecture question that v1 missed"></div></div>
     <span class="phase-status st-open">Čiastočne rozbehnuté</span>
   </div>
   <div class="phase-rule"></div>
@@ -209,7 +220,7 @@
   <!-- PHASE 3 -->
   <div class="phase-head">
     <div class="phase-num">03</div>
-    <div class="phase-title-wrap"><h2>Fáza 3 — Inventory, Food Cost &amp; Shopping</h2><div class="sub">Doplnené o dátovú integritu</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Fáza 3 — Inventory, Food Cost &amp; Shopping" data-en="Phase 3 — Inventory, Food Cost &amp; Shopping"></h2><div class="sub" data-sk="Doplnené o dátovú integritu" data-en="Added data-integrity coverage"></div></div>
     <span class="phase-status st-open">Čiastočne predbehnuté</span>
   </div>
   <div class="phase-rule"></div>
@@ -222,7 +233,7 @@
   <!-- PHASE 4-5 -->
   <div class="phase-head">
     <div class="phase-num">04–05</div>
-    <div class="phase-title-wrap"><h2>Fázy 4–5 — Plánovanie, reporty, AI vrstva</h2><div class="sub">v1 pokrytie stačí, jeden doplnok</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Fázy 4–5 — Plánovanie, reporty, AI vrstva" data-en="Phases 4–5 — Planning, reports, AI layer"></h2><div class="sub" data-sk="v1 pokrytie stačí, jeden doplnok" data-en="v1 coverage is enough, one addition"></div></div>
     <span class="phase-status st-future">Budúcnosť</span>
   </div>
   <div class="phase-rule"></div>
@@ -234,7 +245,7 @@
   <!-- PHASE 6-7 -->
   <div class="phase-head">
     <div class="phase-num">06–07</div>
-    <div class="phase-title-wrap"><h2>Fázy 6–7 — Platform Expansion &amp; Launch</h2><div class="sub">v1 + doplnky z founder pohľadu</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Fázy 6–7 — Platform Expansion &amp; Launch" data-en="Phases 6–7 — Platform Expansion &amp; Launch"></h2><div class="sub" data-sk="v1 + doplnky z founder pohľadu" data-en="v1 + additions from the founder review"></div></div>
     <span class="phase-status st-future">Budúcnosť</span>
   </div>
   <div class="phase-rule"></div>
@@ -248,7 +259,7 @@
   <!-- CROSS CUTTING -->
   <div class="phase-head">
     <div class="phase-num">∞</div>
-    <div class="phase-title-wrap"><h2>Prierezové — priebežne</h2><div class="sub">v1 + procesné doplnky</div></div>
+    <div class="phase-title-wrap"><h2 data-sk="Prierezové — priebežne" data-en="Cross-cutting — ongoing"></h2><div class="sub" data-sk="v1 + procesné doplnky" data-en="v1 + process additions"></div></div>
     <span class="phase-status st-open">Priebežne</span>
   </div>
   <div class="phase-rule"></div>
@@ -332,17 +343,37 @@
     1. Zálohy DB + test obnovy → 2. IP kontrola novej pracovnej zmluvy + <b style="color:var(--gold);">poslať Nebenerwerb žiadosť (t47 — 10 min, odblokuje príjem)</b> → 3. <b style="color:var(--gold);">Kúpiť doménu (t50 — rieši Resend blokátor AJ firemný email naraz)</b> → 4. Staging projekt ✅ → 5. Deploy claude-proxy + spustiť zvyšné SQL 46–54 → 6. Regresný checklist naživo na reálnom zariadení → 7. Kritériá úspechu trialu ✅ → 8. <b style="color:var(--gold);">Einzelfirma registrácia (t48)</b> → potom trial + founding-member ponuka (draft hotový: docs/FOUNDING_OFFER.md). Celý monetizačný plán: app/monetization.html. Veľký blok v poradí: dodávateľské dáta (t51 — čaká na stiahnutie PDF z iCloudu).</p>
   </div>
 
-  <footer>ChefOS — kompletný zoznam úloh v2 · expert review: PM / CTO / Solution Architect / UX Lead / QA Lead / SaaS Founder · aktualizuje sa denne · 13. 7. 2026</footer>
+  <footer data-sk="ChefOS — kompletný zoznam úloh v2 · expert review: PM / CTO / Solution Architect / UX Lead / QA Lead / SaaS Founder · aktualizuje sa denne · 13. 7. 2026" data-en="ChefOS — complete task list v2 · expert review: PM / CTO / Solution Architect / UX Lead / QA Lead / SaaS Founder · updated daily · Jul 13, 2026"></footer>
 </div>
 
 <script>
+/* ---------- Language toggle — same pattern as tasklist.html/status.html: translates
+   structural chrome (headings, section labels, legend) only, not the ~100 individual task
+   titles/descriptions or the 14-day-order callout below, which stay Slovak in both modes
+   (a separate, deliberately-not-rushed translation job). ---------- */
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLang(){
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+  });
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _lang;
+  upd();
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLang();
+}
+function L(sk, en){ return _lang === 'sk' ? sk : en; }
+
 const b=[...document.querySelectorAll('.task-check')];
 function upd(){
   let d=0;
   b.forEach(x=>{localStorage.setItem('chefos_backlog_'+x.id,x.checked);if(x.checked)d++;});
   const p=Math.round(d/b.length*100);
-  document.getElementById('done').textContent='✅ '+d+' hotových';
-  document.getElementById('left').textContent='⏳ '+(b.length-d)+' zostáva';
+  document.getElementById('done').textContent='✅ '+d+' '+L('hotových','done');
+  document.getElementById('left').textContent='⏳ '+(b.length-d)+' '+L('zostáva','left');
   document.getElementById('fill').style.width=p+'%';
   document.getElementById('pie').style.background='conic-gradient(#34F7D7 '+(p*3.6)+'deg, #223d57 0deg)';
   document.getElementById('pieLabel').textContent=p+'%';
@@ -352,7 +383,7 @@ b.forEach(x=>{
   x.checked = saved===null ? x.checked : (saved==='true');
   x.onchange=upd;
 });
-upd();
+applyLang();
 </script>
 </body>
 </html>
