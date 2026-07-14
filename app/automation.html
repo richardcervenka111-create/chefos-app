@@ -40,6 +40,16 @@
   .meta-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 16px; }
   .meta-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); margin-bottom:4px; }
   .meta-value{ font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:var(--ink); }
+  .meta-card.clickable{ cursor:pointer; transition:border-color .15s; }
+  .meta-card.clickable:hover{ border-color:var(--accent-dim); }
+  .expand-hint{ font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; font-size:10.5px; font-weight:600; color:var(--accent); text-transform:none; }
+  .timeline-panel{ display:none; margin-top:14px; }
+  .timeline-panel.open{ display:block; }
+  .tl-row{ display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid var(--rule); gap:12px; }
+  .tl-row:first-child{ border-top:none; }
+  .tl-what{ font-size:13px; color:var(--ink); }
+  .tl-what .meta{ display:block; font-size:11px; color:var(--ink-dim); margin-top:2px; }
+  .tl-amount{ font-family:"SF Mono",Menlo,monospace; font-size:13.5px; font-weight:700; color:var(--ink); flex:none; font-variant-numeric:tabular-nums; }
 
   section{ padding:40px 0; border-bottom:1px solid var(--rule); }
   section:last-of-type{ border-bottom:none; }
@@ -94,7 +104,15 @@
     <div class="meta-row">
       <div class="meta-card"><div class="meta-label" data-sk="Aktívne automatizácie" data-en="Active automations"></div><div class="meta-value">4</div></div>
       <div class="meta-card"><div class="meta-label" data-sk="Mesačný strop (opakované úlohy)" data-en="Monthly cap (recurring tasks)"></div><div class="meta-value">CHF 30</div></div>
-      <div class="meta-card"><div class="meta-label" data-sk="Celkový beh projektu (self-reported)" data-en="Total project run (self-reported)"></div><div class="meta-value">~CHF 130</div></div>
+      <div class="meta-card clickable" onclick="toggleTimeline()" id="totalCard">
+        <div class="meta-label" data-sk="Celkový beh projektu (self-reported)" data-en="Total project run (self-reported)"></div>
+        <div class="meta-value">~CHF 130 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
+      </div>
+    </div>
+
+    <div class="timeline-panel" id="timelinePanel">
+      <p class="lede" style="margin:8px 0 12px 0; font-size:12.5px;" data-sk="Denný záznam existuje až od 15.7.2026 (docs/automation_cost_log.md). Všetko pred tým je jeden spätný hrubý odhad — nedá sa to rozdeliť po dňoch spätne s istotou." data-en="A real daily log only exists from Jul 15, 2026 onward (docs/automation_cost_log.md). Everything before that is one retroactive rough estimate — it can't be reliably split day-by-day after the fact."></p>
+      <div class="log-card" id="timelineList"></div>
     </div>
   </div>
 </header>
@@ -102,7 +120,19 @@
 <div class="wrap">
 
   <section>
-    <div class="section-label"><span class="n">01</span><h2 data-sk="Aktívne automatizácie" data-en="Active automations"></h2><div class="rule"></div></div>
+    <div class="section-label"><span class="n">01</span><h2 data-sk="Odkiaľ presne berieme tento rozpočet" data-en="Where this budget actually comes from"></h2><div class="rule"></div></div>
+    <div class="callout">
+      <div class="k" data-sk="Nie je to samostatný vrecko peňazí" data-en="Not a separate pot of money"></div>
+      <p data-sk='Tieto 4 opakujúce sa úlohy bežia cez ten istý <code>Claude (Max plán)</code> účet, ktorý používaš práve teraz v tomto chate — nie cez nejaký oddelený rozpočet. Max plán je jeden pevný mesačný poplatok (už započítaný v odhade CHF 130 nižšie) s limitom na množstvo použitia, nie platba za token. Takže "CHF 30/mesiac" tu nie je reálna faktúra navyše — je to <b style="color:var(--ink);">self-reported odhad rovnocennej ceny</b>, keby si to platil per-token, aby si mal predstavu o rozsahu/námahe jednotlivých úloh. Skutočné riziko nie je "minieme peniaze" — je to, že tieto úlohy bežiace na pozadí vyčerpajú tvoj Max limit natoľko, že by to obmedzilo tvoje vlastné rozhovory so mnou. Ak by k tomu niekedy došlo, riešenie je znížiť frekvenciu úloh, nie "dobiť si kredit".' data-en='These 4 recurring tasks run through the same <code>Claude (Max plan)</code> account you\'re using right now in this chat — not a separate budget. Max is one flat monthly fee (already counted in the ~CHF 130 estimate below) with a usage limit, not per-token billing. So "CHF 30/month" here isn\'t a real extra invoice — it\'s a <b style="color:var(--ink);">self-reported estimate</b> of what the equivalent pay-per-token cost would be, just so you have a sense of each task\'s scale/effort. The real risk isn\'t "we spend money" — it\'s that these background tasks eat enough of your Max usage limit to crowd out your own conversations with me. If that ever happens, the fix is lowering task frequency, not "topping up a balance."'></p>
+    </div>
+    <div class="callout" style="margin-top:12px;">
+      <div class="k" data-sk="Kde sa PLATÍ naozaj po tokenoch" data-en="Where real per-token billing DOES happen"></div>
+      <p data-sk="Appka ChefOS samotná (fotoscan, Chef's Assistant, generovanie receptov) používa TVOJ VLASTNÝ Anthropic API kľúč, ktorý si zadal v nastaveniach appky — to sa účtuje priamo z tvojho Anthropic Console účtu, oddelene od Max predplatného použitého tu na tieto 4 úlohy." data-en="The ChefOS app itself (photo scan, Chef's Assistant, recipe generation) uses YOUR OWN Anthropic API key, entered in the app's settings — that's billed directly from your Anthropic Console account, separate from the Max subscription used here for these 4 tasks."></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label"><span class="n">02</span><h2 data-sk="Aktívne automatizácie" data-en="Active automations"></h2><div class="rule"></div></div>
 
     <div class="task-grid">
       <div class="autotask">
@@ -144,7 +174,7 @@
   </section>
 
   <section>
-    <div class="section-label"><span class="n">02</span><h2 data-sk="Náklady — posledné záznamy" data-en="Costs — recent entries"></h2><div class="rule"></div></div>
+    <div class="section-label"><span class="n">03</span><h2 data-sk="Náklady — posledné záznamy" data-en="Costs — recent entries"></h2><div class="rule"></div></div>
     <div class="log-card">
       <div class="spend-row">
         <div class="spend-what"><span data-sk="Zatiaľ žiadny automatický beh" data-en="No automated run yet"></span><span class="meta" data-sk="Prvý beh denného ingredient agenta: 15.7.2026 ráno. Plný priebežný záznam: docs/automation_cost_log.md" data-en="First daily ingredient-agent run: morning of Jul 15, 2026. Full running log: docs/automation_cost_log.md"></span></div>
@@ -158,7 +188,7 @@
   </section>
 
   <section>
-    <div class="section-label"><span class="n">03</span><h2 data-sk="Ako to čítať" data-en="How to read this"></h2><div class="rule"></div></div>
+    <div class="section-label"><span class="n">04</span><h2 data-sk="Ako to čítať" data-en="How to read this"></h2><div class="rule"></div></div>
     <div class="callout">
       <div class="k" data-sk="Self-reported, nie auditované" data-en="Self-reported, not audited"></div>
       <p data-sk='Každá cena tu je odhad, ktorý si úloha sama zapísala pri behu — nie výpis z účtu. Presné čísla vždy v <code>Anthropic Console</code> alebo bankovom výpise. Ak sa čísla rozídu, ver tým skutočným, nie tejto stránke.' data-en='Every price here is an estimate the task wrote about itself while running — not a billing statement. Exact figures always in the <code>Anthropic Console</code> or bank statement. If the numbers ever disagree, trust those, not this page.'></p>
@@ -169,24 +199,47 @@
 <footer class="foot" data-sk="ChefOS — automatizácie a náklady · aktualizuje sa pri každom behu · 14. 7. 2026" data-en="ChefOS — automations and costs · updates with every run · Jul 14, 2026"></footer>
 
 <script>
-(function(){
-  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
-  function apply(){
-    document.querySelectorAll('[data-sk]').forEach(el=>{
-      const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
-      if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
-    });
-    const btn = document.getElementById('langBtn');
-    if(btn) btn.textContent = lang === 'sk' ? 'EN' : 'SK';
-    document.documentElement.lang = lang;
-  }
-  window.toggleLang = function(){
-    lang = lang === 'sk' ? 'en' : 'sk';
-    localStorage.setItem('chefos_doc_lang', lang);
-    apply();
-  };
-  apply();
-})();
+let _autoLang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyAutoLang(){
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    const val = _autoLang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+    if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+  });
+  const btn = document.getElementById('langBtn');
+  if(btn) btn.textContent = _autoLang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _autoLang;
+}
+window.toggleLang = function(){
+  _autoLang = _autoLang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _autoLang);
+  applyAutoLang();
+  renderTimeline();
+};
+applyAutoLang();
+
+/* ---------- Total-run timeline — click the meta-card to unroll. Only ONE real dated entry
+   exists so far (the retroactive lump estimate); from 2026-07-15 onward, real per-run lines
+   come from docs/automation_cost_log.md and should be added here as they accumulate. */
+const SPEND_TIMELINE = [
+  { sk:'8.7.–14.7.2026 (spred denného logu)', en:'Jul 8–14, 2026 (before the daily log existed)',
+    note_sk:'Hrubý spätný odhad za celý prvý týždeň buildu — API kredity + Claude predplatné dohromady, nerozpočítané po dňoch.', note_en:'A rough retroactive estimate for the whole first build week — API credits + Claude subscription combined, not split by day.',
+    amount:'~CHF 130' },
+];
+function renderTimeline(){
+  const el = document.getElementById('timelineList');
+  if(!el) return;
+  el.innerHTML = SPEND_TIMELINE.map(row=>`
+    <div class="tl-row">
+      <div class="tl-what">${_autoLang==='sk'?row.sk:row.en}<span class="meta">${_autoLang==='sk'?row.note_sk:row.note_en}</span></div>
+      <div class="tl-amount">${row.amount}</div>
+    </div>
+  `).join('') + `<div class="tl-row"><div class="tl-what">${_autoLang==='sk'?'Od 15.7. — pozri docs/automation_cost_log.md pre reálne dátumované riadky':'From Jul 15 — see docs/automation_cost_log.md for real dated lines'}</div><div class="tl-amount">–</div></div>`;
+}
+window.toggleTimeline = function(){
+  document.getElementById('timelinePanel').classList.toggle('open');
+  renderTimeline();
+};
+renderTimeline();
 </script>
 </body>
 </html>
