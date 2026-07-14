@@ -92,10 +92,10 @@
     <h1 class="title" data-sk="Čo appka vie, čo jej chýba" data-en="What the app can do, what it's missing"></h1>
     <p class="lede" data-sk="Jedna karta na každú dlaždicu z Home: čo presne robí, čo naozaj funguje dobre, kde sú medzery, a poznámky/nápady z našich rozhovorov, ktoré sa jej týkajú. Aktualizuje sa denne — časť „Nedostatky" čerpá zo statického denného code-auditu (viac v poznámke nižšie)." data-en="One card per Home tile: exactly what it does, what genuinely works well, where the gaps are, and notes/ideas from our conversations that relate to it. Updated daily — the &quot;Shortcomings&quot; section is fed by a daily static code audit (more in the note below)."></p>
     <div class="meta-row">
-      <div class="meta-card"><div class="meta-label" data-sk="Dlaždíc na Home" data-en="Tiles on Home"></div><div class="meta-value">10</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Dlaždíc na Home" data-en="Tiles on Home"></div><div class="meta-value">11</div></div>
       <div class="meta-card"><div class="meta-label" data-sk="Naživo funkčné" data-en="Live & working"></div><div class="meta-value">8</div></div>
       <div class="meta-card"><div class="meta-label" data-sk="Len placeholder" data-en="Placeholder only"></div><div class="meta-value">1</div></div>
-      <div class="meta-card"><div class="meta-label" data-sk="Skryté (nezmazané)" data-en="Hidden (not deleted)"></div><div class="meta-value">3</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Pozastavené / skryté" data-en="Paused / hidden"></div><div class="meta-value">3</div></div>
     </div>
   </div>
 </header>
@@ -271,7 +271,7 @@
   </details>
 
   <details class="tile">
-    <summary><span class="tile-icon">🌡️</span><span class="tile-name">Fridge Temp</span><span class="tile-badge hidden" data-sk="Skrytá z Home" data-en="Hidden from Home"></span></summary>
+    <summary><span class="tile-icon">🌡️</span><span class="tile-name">Fridge Temp</span><span class="tile-badge hidden" data-sk="Pozastavená (dlaždica viditeľná)" data-en="Paused (tile still visible)"></span></summary>
     <div class="tile-body">
       <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Manuálne zapisovanie teplôt chladničiek (HACCP)" data-en="Manual fridge-temperature logging (HACCP)"></li></ul></div>
       <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Základná manuálna verzia je funkčná" data-en="Basic manual version is functional"></li></ul></div>
@@ -284,7 +284,7 @@
       </div>
       <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes">
         <li data-sk="SensorPush odporúčaný (~CHF 150/chladnička), fyzicky nekúpený" data-en="SensorPush recommended (~CHF 150/fridge), not yet purchased"></li>
-        <li data-sk="Skrytá z Home 15.7. — manuálne zapisovanie nestojí za to, kým nevyriešime, ako sa teplota dostane do appky reálne (senzor)" data-en="Hidden from Home on Jul 15 — manual-only logging isn't worth shipping until how temperature data actually gets into the app is solved (a real sensor)"></li>
+        <li data-sk="Od 15.7.: dlaždica ostáva na Home, ale po ťuknutí ukáže len banner &quot;pracujeme na tom&quot; — kým nevyriešime, ako sa teplota dostane do appky reálne (senzor)" data-en='From Jul 15: the tile stays on Home, but tapping it just shows a "working on it" banner — until how temperature data actually gets into the app is solved (a real sensor)'></li>
       </ul></div>
     </div>
   </details>
@@ -316,7 +316,7 @@
   </details>
 
   <details class="tile">
-    <summary><span class="tile-icon">🔗</span><span class="tile-name">My Team</span><span class="tile-badge hidden" data-sk="Skrytá z Home" data-en="Hidden from Home"></span></summary>
+    <summary><span class="tile-icon">🔗</span><span class="tile-name">My Team</span><span class="tile-badge hidden" data-sk="Pozastavená (dlaždica viditeľná)" data-en="Paused (tile still visible)"></span></summary>
     <div class="tile-body">
       <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="QR pozvánka s logom, brána so schvaľovaním, expirujúce/odvolateľné pozvánky" data-en="QR invite with logo, approval gate, expiring/revocable invites"></li></ul></div>
       <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Celý multi-tím tok postavený end-to-end" data-en="The whole multi-team flow is built end-to-end"></li></ul></div>
@@ -325,7 +325,7 @@
         <ul class="feat bad">
           <li data-sk="&quot;Team worker&quot; vs. &quot;friend&quot; tag — význam a prístupové práva stále nerozhodnuté" data-en='"Team worker" vs. "friend" tag — meaning and access rights still undecided'></li>
           <li data-sk="QR sken nikdy neoverený naživo na neznámom telefóne" data-en="QR scan never confirmed live on an unfamiliar phone"></li>
-          <li data-sk="Skrytá z Home 15.7. — pozvať niekoho, kto sa aj tak nevie prihlásiť (email login zatiaľ funguje len pre jednu adresu), nie je skutočná pozvánka" data-en="Hidden from Home on Jul 15 — inviting someone who can't log in anyway (email login currently only works for one address) isn't a real invite"></li>
+          <li data-sk="Od 15.7.: dlaždica ostáva na Home, ale po ťuknutí ukáže len banner — pozvať niekoho, kto sa aj tak nevie prihlásiť (email login zatiaľ funguje len pre jednu adresu), nie je skutočná pozvánka" data-en="From Jul 15: the tile stays on Home, but tapping it just shows a banner — inviting someone who can't log in anyway (email login currently only works for one address) isn't a real invite"></li>
         </ul>
       </div>
       <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="Osobný/pro profil idea (verejný/súkromný, foto, bio) sa najviac týka práve tejto dlaždice" data-en="The personal/pro profile idea (public/private, photo, bio) relates most directly to this tile"></li></ul></div>
@@ -359,12 +359,12 @@
   </details>
 
   <details class="tile">
-    <summary><span class="tile-icon">💱</span><span class="tile-name">Currency</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <summary><span class="tile-icon">💱</span><span class="tile-name">Currency</span><span class="tile-badge live" data-sk="Naživo — teraz ikona hore, nie dlaždica" data-en="Live — now a top icon, not a tile"></span></summary>
     <div class="tile-body">
       <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Kuchynský prepínač EUR/CHF/USD, predvolene CHF" data-en="Kitchen-wide EUR/CHF/USD switcher, defaulted to CHF"></li></ul></div>
       <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Jednoduché, malé, nemalo dôvod zlyhať" data-en="Simple, small, hasn't had a reason to fail"></li></ul></div>
       <div class="tile-col"><h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4><ul class="feat bad"><li data-sk="Žiadne — malá funkcia bez známych problémov" data-en="None known — small feature, nothing flagged"></li></ul></div>
-      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="—" data-en="—"></li></ul></div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="15.7.: presunuté z veľkej Home dlaždice na malú ikonu hore vpravo (vedľa jazyka/tutorialu/feedbacku), viditeľnú len adminovi" data-en="Jul 15: moved from a big Home tile to a small top-right icon (next to language/tutorial/feedback), visible only to the admin"></li></ul></div>
     </div>
   </details>
 
