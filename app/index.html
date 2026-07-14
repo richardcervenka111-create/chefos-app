@@ -2416,7 +2416,28 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       <div><div class="sheet-option-title">A whole menu</div><div class="sheet-option-sub">Multiple dishes at once — each becomes its own full recipe</div></div>
     </button>
+    <button class="sheet-option" onclick="closeScanTypeChoice(); openMenuScanUrlPrompt();">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <div><div class="sheet-option-title">A menu website</div><div class="sheet-option-sub">Paste a restaurant's menu page link instead of a photo</div></div>
+    </button>
     <button class="sheet-cancel" onclick="closeScanTypeChoice()">Cancel</button>
+  </div>
+</div>
+
+<!-- Menu scan from a URL instead of a photo/PDF — reuses the exact same per-dish recipe
+     pipeline as the photo-based whole-menu scan (_pendingMenuScanRecipes / openMenuScanReview),
+     just swapping the vision call for Claude's server-side web_fetch tool. -->
+<div id="menuScanUrlOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMenuScanUrlPrompt()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Menu Website</div>
+    <p class="sheet-text">Paste the link to a restaurant's menu page — Claude will read it directly.</p>
+    <input class="form-field" id="menuScanUrlInput" type="url" placeholder="https://example-restaurant.com/menu" inputmode="url" autocapitalize="off" autocorrect="off">
+    <div class="sheet-status" id="menuScanUrlStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="submitMenuScanUrl()">Scan</button>
+      <button class="sheet-cancel" onclick="closeMenuScanUrlPrompt()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -12674,6 +12695,23 @@ function handleMenuScanFileSelected(e){
   readFileForScan(file, runMenuScan);
 }
 
+function openMenuScanUrlPrompt(){
+  document.getElementById('menuScanUrlInput').value = '';
+  document.getElementById('menuScanUrlStatus').textContent = '';
+  document.getElementById('menuScanUrlOverlay').classList.add('open');
+  setTimeout(()=> document.getElementById('menuScanUrlInput').focus(), 50);
+}
+function closeMenuScanUrlPrompt(){
+  document.getElementById('menuScanUrlOverlay').classList.remove('open');
+}
+function submitMenuScanUrl(){
+  let url = document.getElementById('menuScanUrlInput').value.trim();
+  if(!url){ document.getElementById('menuScanUrlStatus').textContent = 'Paste a link first.'; return; }
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  closeMenuScanUrlPrompt();
+  runMenuScanFromUrl(url);
+}
+
 async function callClaudeMenuVision(base64, mediaType, fileName){
   const tool = {
     name: 'record_menu',
@@ -12713,6 +12751,113 @@ async function callClaudeMenuVision(base64, mediaType, fileName){
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured menu — try a clearer photo or PDF.');
   return toolUse.input.dishes || [];
+}
+
+/* Same record_menu tool as the photo scan, but the source is a live web page instead of an
+   uploaded image — uses Claude's server-side web_fetch tool (fetches on Anthropic's side, no
+   edge-function changes needed). tool_choice must stay 'auto' here (not forced to record_menu
+   like the photo scan) so Claude is free to call web_fetch first; record_menu is the LAST
+   tool_use block in the response once it has read the page. */
+async function callClaudeMenuUrlVision(url){
+  const tool = {
+    name: 'record_menu',
+    description: 'Record every dish found on this menu, grouped by the menu section it appears under.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        dishes: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type:'string', description:'The dish name as printed' },
+              section: { type:'string', description:'The menu section/heading this dish appears under, e.g. Starters, Mains, Desserts — used directly as the recipe category' },
+              components: { type:'array', items:{ type:'string' }, description:'The components/description printed under the dish name, as separate short items — often incomplete, just what the menu names, not a full ingredient list' }
+            },
+            required: ['name','section']
+          }
+        }
+      },
+      required: ['dishes']
+    }
+  };
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 8192,
+    tools: [
+      { type:'web_fetch_20260209', name:'web_fetch', max_uses: 3 },
+      tool
+    ],
+    messages: [{
+      role: 'user',
+      content: `Fetch this restaurant's menu page and read it: ${url}\n\nIf the page links to a separate "full menu" or "menu" page, fetch that one too. Read every section heading and every dish listed under it, along with whatever short description/components the page gives for that dish. Once you've read the menu, call the record_menu tool with everything you found.` + scanTranslateInstruction()
+    }]
+  });
+  const toolUse = (data.content || []).filter(b=>b.type==='tool_use' && b.name==='record_menu').pop();
+  if(!toolUse) throw new Error('Claude could not read a menu from that page — check the link is correct and publicly accessible.');
+  return toolUse.input.dishes || [];
+}
+
+async function runMenuScanFromUrl(url){
+  const overlay = document.getElementById('scanOverlay');
+  const spinner = document.getElementById('scanSpinner');
+  const statusEl = document.getElementById('scanStatus');
+  const errorEl = document.getElementById('scanError');
+  const closeBtn = document.getElementById('scanCloseBtn');
+
+  spinner.style.display = 'block';
+  statusEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
+  overlay.classList.add('open');
+  statusEl.textContent = 'Fetching the menu page…';
+  startBgScan('Menu scan');
+
+  try{
+    const dishes = await callClaudeMenuUrlVision(url);
+    if(!dishes.length){ throw new Error('No dishes found on that page.'); }
+
+    _pendingMenuScanRecipes = [];
+    for(let i = 0; i < dishes.length; i++){
+      const dish = dishes[i];
+      const progress = `Writing recipe ${i+1} of ${dishes.length}: ${dish.name}…`;
+      statusEl.textContent = progress;
+      setBgScanProgress(progress);
+      const componentsList = (dish.components || []).join(', ');
+      const context = `This dish appeared on a restaurant's website menu under the "${dish.section || 'Uncategorized'}" section` +
+        (componentsList ? `, described with these components: ${componentsList}.` : '.') +
+        ' A menu line is marketing copy, not a full recipe — incorporate anything it does name, and add whatever else a professional kitchen actually needs (seasoning, technique, sides, plating) to make this dish properly, even if the menu does not spell it out.';
+      try{
+        const input = await callClaudeGenerateRecipe(dish.name, componentsList, context);
+        _pendingMenuScanRecipes.push({
+          title: input.title || dish.name,
+          category: input.category || dish.section || '',
+          meta: input.subtitle || '',
+          yield: input.yield || '',
+          activeTime: input.active_time || '',
+          passiveTime: input.passive_time || '',
+          ingredients: (input.ingredients || []).map(x=>[x.name || '', x.qty || '']),
+          steps: (input.steps && input.steps.length) ? input.steps : [''],
+          failed: false
+        });
+      } catch(dishErr){
+        _pendingMenuScanRecipes.push({ title: dish.name, category: dish.section || '', failed: true, error: dishErr.message });
+      }
+    }
+
+    finishBgScan(()=> openMenuScanReview());
+  } catch(err){
+    _bgScan = null; updateBgScanPill();
+    logClientError('runMenuScanFromUrl failed (' + url + '): ' + (err.message || err), err.stack);
+    spinner.style.display = 'none';
+    statusEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = err.message || 'Something went wrong reading that page.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
+    closeBtn.style.display = 'block';
+    overlay.classList.add('open');
+  }
 }
 
 async function runMenuScan(base64, mediaType, fileName){
