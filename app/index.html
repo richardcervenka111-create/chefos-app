@@ -1382,6 +1382,7 @@
     <div id="loginStep2" style="display:none;">
       <label class="form-label" data-i18n="codeFromEmail">Code from your email</label>
       <input id="loginCode" class="form-field" type="text" inputmode="numeric" placeholder="Enter code" data-i18n-placeholder="enterCode">
+      <p class="login-hint" data-i18n="emailHasLinkToo">The email has both a code to type below AND a 'Sign in' link — either one works, use whichever is easier.</p>
       <p class="login-hint" data-i18n="checkTrashHint">Don't see it? Check your Spam and Trash folders too — some providers file it there.</p>
       <button class="save-btn" style="width:100%;" onclick="verifyLoginCode()" data-i18n="confirm">Confirm</button>
       <div class="form-status" id="loginStatus2"></div>
@@ -1494,17 +1495,18 @@
   <div class="box">
     <div class="login-mark">👤</div>
     <h1 class="title display">My Profile</h1>
-    <p class="lede">Quick one-time setup before you get in.</p>
-    <input class="form-field" id="mp_full_name" type="text" placeholder="Full name" style="margin-top:14px;">
-    <input class="form-field" id="mp_age" type="number" min="14" max="100" placeholder="Age" style="margin-top:10px;">
+    <p class="lede">Optional — any name works, not necessarily your real one. Skip it entirely if you'd rather not.</p>
+    <input class="form-field" id="mp_full_name" type="text" placeholder="Name (any you like)" style="margin-top:14px;">
+    <input class="form-field" id="mp_age" type="number" min="14" max="100" placeholder="Age (optional)" style="margin-top:10px;">
     <select class="form-field" id="mp_gender" style="margin-top:10px;">
-      <option value="">Gender…</option>
+      <option value="">Gender (optional)…</option>
       <option value="female">Female</option>
       <option value="male">Male</option>
       <option value="other">Other</option>
       <option value="prefer_not_to_say">Prefer not to say</option>
     </select>
     <button class="save-btn" style="width:100%; margin-top:14px;" onclick="saveMyProfileGate()">Save and continue</button>
+    <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="skipMyProfileGate()">Skip for now</button>
     <div class="form-status" id="myProfileGateStatus"></div>
   </div>
 </div>
@@ -5166,6 +5168,13 @@ const TRANSLATIONS = {
   sendCode: { en:'Send me a code', de:'Code senden', fr:'Envoyer un code', it:'Invia un codice', sk:'Poslať kód' },
   codeFromEmail: { en:'Code from your email', de:'Code aus deiner E-Mail', fr:"Code reçu par e-mail", it:'Codice ricevuto via email', sk:'Kód z emailu' },
   enterCode: { en:'Enter code', de:'Code eingeben', fr:'Saisir le code', it:'Inserisci il codice', sk:'Zadaj kód' },
+  emailHasLinkToo: {
+    en:"The email has both a code to type below AND a 'Sign in' link — either one works, use whichever is easier.",
+    de:'Die E-Mail enthält sowohl einen Code zum Eingeben als auch einen Link „Anmelden" — beides funktioniert, nimm was dir leichter fällt.',
+    fr:"L'e-mail contient à la fois un code à saisir et un lien « Se connecter » — les deux fonctionnent, utilisez ce qui est le plus simple.",
+    it:"L'email contiene sia un codice da digitare sia un link 'Accedi' — funzionano entrambi, usa quello che preferisci.",
+    sk:'V emaili je aj kód na zadanie aj odkaz "Sign in" — funguje oboje, použi čo je pre teba jednoduchšie.'
+  },
   checkTrashHint: {
     en:"Don't see it? Check your Spam and Trash folders too — some providers file it there.",
     de:'Nichts erhalten? Prüfe auch deinen Spam- und Papierkorb-Ordner — manche Anbieter legen die E-Mail dort ab.',
@@ -5417,22 +5426,34 @@ async function confirmConfidentialityAccept(){
    reasoning as hasAcceptedConfidentiality: a not-yet-run migration (db/65) must never lock
    every user out of the app. */
 async function hasCompletedMyProfile(){
-  const { data, error } = await sb.from('profiles').select('full_name, age, gender').eq('id', currentUser.id).maybeSingle();
+  const { data, error } = await sb.from('profiles').select('full_name, age, gender, profile_gate_skipped').eq('id', currentUser.id).maybeSingle();
   if(error){ logClientError('hasCompletedMyProfile: ' + error.message); return true; }
-  return !!(data && data.full_name && data.age && data.gender);
+  return !!(data && ((data.full_name && data.age && data.gender) || data.profile_gate_skipped));
+}
+async function skipMyProfileGate(){
+  const { error } = await sb.from('profiles').update({ profile_gate_skipped: true }).eq('id', currentUser.id);
+  if(error){ document.getElementById('myProfileGateStatus').textContent = 'Could not skip: ' + error.message; return; }
+  document.getElementById('myProfileGateView').style.display = 'none';
+  await enterApp();
 }
 async function saveMyProfileGate(){
   const statusEl = document.getElementById('myProfileGateStatus');
   const full_name = document.getElementById('mp_full_name').value.trim();
   const ageRaw = document.getElementById('mp_age').value;
   const gender = document.getElementById('mp_gender').value;
-  if(!full_name || !ageRaw || !gender){ statusEl.textContent = 'Fill in all three fields first.'; return; }
-  const age = parseInt(ageRaw, 10);
-  if(!age || age < 14 || age > 100){ statusEl.textContent = 'Enter a real age.'; return; }
+  // Every field here is optional (bod 4) — an empty field is saved as null rather than
+  // blocking. Only the age gets validated, and only if someone actually typed one in.
+  let age = null;
+  if(ageRaw){
+    age = parseInt(ageRaw, 10);
+    if(!age || age < 14 || age > 100){ statusEl.textContent = 'Enter a real age, or leave it blank.'; return; }
+  }
   statusEl.textContent = 'Saving…';
-  const { error } = await sb.from('profiles').update({ full_name, age, gender }).eq('id', currentUser.id);
+  const { error } = await sb.from('profiles').update({
+    full_name: full_name || null, age, gender: gender || null, profile_gate_skipped: true
+  }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
-  currentUserName = full_name;
+  if(full_name) currentUserName = full_name;
   document.getElementById('myProfileGateView').style.display = 'none';
   await enterApp();
 }
