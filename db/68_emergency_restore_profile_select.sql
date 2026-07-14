@@ -1,0 +1,22 @@
+-- ChefOS — EMERGENCY: restore full SELECT on profiles for authenticated (2026-07-15).
+--
+-- Richard reported: Working Time contract data (uploaded via photo scan) disappears after a
+-- page refresh, after trying it 2-3 times. Root cause found: db/62's fix for the "teammates can
+-- read each other's contract notes" gap used a column-level REVOKE/GRANT — but Postgres column
+-- privileges are NOT conditional on row ownership. Revoking SELECT on contract_notes/
+-- contract_advisory_points/etc. for the `authenticated` role blocks EVERYONE from reading those
+-- columns, including a user reading their OWN row. loadWorkingTimeData() selects exactly those
+-- columns (contracted_hours_per_week, next_vacation_date, contract_notes,
+-- contract_advisory_points) on every page load — if db/62 ran, that query silently returns no
+-- data (the code never checked for a query error), so _workingTimeProfile resets to {} and
+-- everything the person just uploaded appears to vanish.
+--
+-- Immediate fix: restore the original blanket SELECT grant so nobody's own data is blocked.
+-- This reopens the original privacy gap db/62 was trying to close (teammates COULD technically
+-- read each other's contract/age/gender fields via a direct API call, though the app itself
+-- never does this) -- that gap is being reintroduced deliberately, on purpose, to stop active
+-- data loss right now. The correct fix (a separate table for sensitive fields, with real
+-- row-owner-only RLS instead of a column-level grant) is drafted in db/69 as a follow-up to test
+-- on staging first, not rushed here.
+
+grant select on profiles to authenticated;
