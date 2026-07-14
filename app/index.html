@@ -2622,17 +2622,22 @@
 </div>
 
 <!-- Prep sheet scan review — confirm station + dish count before saving -->
+<!-- Check & Add — Richard: scanning a menu photo added everything straight through with no
+     chance to fix a misread name, drop a dish that shouldn't be there, or tweak an item list
+     before it lands in Check List. Every dish is now its own editable card (name, price, each
+     item individually) with an Include checkbox, instead of one read-only summary + one "Add
+     all" button (2026-07-15). -->
 <div id="prepScanReviewOverlay" class="sheet-overlay" onclick="if(event.target===this) closePrepScanReview()">
-  <div class="sheet">
+  <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Add to Check List</div>
+    <div class="sheet-title">Check &amp; Add to Check List</div>
     <p class="sheet-text" id="prepScanSummary"></p>
     <label class="form-label">Station</label>
     <select class="form-field" id="prepScanStation"></select>
     <input class="form-field" id="prepScanStationNew" type="text" placeholder="New station name" style="display:none;">
-    <div id="prepScanDishList" style="max-height:220px; overflow-y:auto; margin:10px 0;"></div>
+    <div id="prepScanDishList" style="max-height:44vh; overflow-y:auto; margin:10px 0;"></div>
     <div class="sheet-row">
-      <button class="save-btn" onclick="savePrepSheetScanResults()">Add these dishes</button>
+      <button class="save-btn" onclick="savePrepSheetScanResults()">Add checked dishes</button>
     </div>
     <div class="sheet-status" id="prepScanStatus"></div>
     <button class="sheet-cancel" onclick="closePrepScanReview()">Cancel</button>
@@ -12592,7 +12597,7 @@ async function runPrepSheetScan(base64, mediaType){
 function openPrepScanReview(dishes){
   _pendingPrepScanDishes = dishes;
   const totalItems = dishes.reduce((sum,d)=> sum + (d.items||[]).length, 0);
-  document.getElementById('prepScanSummary').textContent = `Found ${dishes.length} dish${dishes.length===1?'':'es'}, ${totalItems} item${totalItems===1?'':'s'}. Pick which station these belong to, then add them.`;
+  document.getElementById('prepScanSummary').textContent = `Found ${dishes.length} dish${dishes.length===1?'':'es'}, ${totalItems} item${totalItems===1?'':'s'}. Check each one below, edit anything wrong, then add.`;
 
   const stationSelect = document.getElementById('prepScanStation');
   const stations = getStations().filter(s=>s!=='All');
@@ -12604,21 +12609,68 @@ function openPrepScanReview(dishes){
   document.getElementById('prepScanStationNew').style.display = 'none';
   document.getElementById('prepScanStationNew').value = '';
 
-  const listEl = document.getElementById('prepScanDishList');
-  listEl.innerHTML = dishes.map(d=>`
-    <div style="padding:8px 0; border-top:1px solid var(--rule);">
-      <div style="font-size:14px;">${d.name}${d.price!=null?` <span style="color:var(--copper); font-family:'SF Mono',Menlo,monospace; font-size:12px;">${d.price} CHF</span>`:''}</div>
-      <div style="font-size:12px; color:var(--ink-dim);">${(d.items||[]).length} item${(d.items||[]).length===1?'':'s'}</div>
-    </div>
-  `).join('');
+  renderPrepScanDishCards(dishes);
 
   document.getElementById('prepScanStatus').textContent = '';
   document.getElementById('prepScanReviewOverlay').classList.add('open');
 }
 
+/* Check & Add — every dish is its own editable card (name, price, each item's text), plus a
+   Remove button per dish and per item. Nothing is read-only anymore: a mis-scanned name, a
+   wrong price, or an item that doesn't belong can all be fixed right here before anything is
+   saved (2026-07-15, Richard's report after a 14-dish menu-photo scan). */
+function renderPrepScanDishCards(dishes){
+  const listEl = document.getElementById('prepScanDishList');
+  listEl.innerHTML = dishes.map((d,i)=>`
+    <div class="prep-scan-dish" data-idx="${i}" style="padding:10px 0; border-top:1px solid var(--rule);">
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input class="form-field prep-scan-dish-name" type="text" value="${(d.name||'').replace(/"/g,'&quot;')}" style="flex:1;">
+        <input class="form-field prep-scan-dish-price" type="number" step="0.1" placeholder="CHF" value="${d.price!=null?d.price:''}" style="width:78px; flex:none;">
+      </div>
+      <div class="prep-scan-items" style="margin:8px 0 0 4px;">
+        ${(d.items||[]).map(item=>`
+          <div class="prep-scan-item-row" style="display:flex; gap:6px; margin-top:5px; align-items:center;">
+            <input class="form-field prep-scan-item-name" type="text" value="${(item||'').replace(/"/g,'&quot;')}" style="flex:1; font-size:12.5px; padding:7px 9px;">
+            <button class="icon-btn" onclick="this.closest('.prep-scan-item-row').remove()" title="Remove item" style="flex:none; width:32px; height:32px;">✕</button>
+          </div>
+        `).join('')}
+        <button class="sheet-cancel" style="margin-top:6px; font-size:12px; padding:5px 12px;" onclick="addPrepScanItem(this)">+ Add item</button>
+      </div>
+      <button class="sheet-cancel" style="margin-top:8px; font-size:12px; padding:5px 12px;" onclick="this.closest('.prep-scan-dish').remove()">Remove this dish</button>
+    </div>
+  `).join('');
+}
+function addPrepScanItem(btn){
+  const itemsWrap = btn.closest('.prep-scan-items');
+  const row = document.createElement('div');
+  row.className = 'prep-scan-item-row';
+  row.style.cssText = 'display:flex; gap:6px; margin-top:5px; align-items:center;';
+  row.innerHTML = `
+    <input class="form-field prep-scan-item-name" type="text" placeholder="New item" style="flex:1; font-size:12.5px; padding:7px 9px;">
+    <button class="icon-btn" onclick="this.closest('.prep-scan-item-row').remove()" title="Remove item" style="flex:none; width:32px; height:32px;">✕</button>
+  `;
+  itemsWrap.insertBefore(row, btn);
+  row.querySelector('input').focus();
+}
+
 function closePrepScanReview(){
   document.getElementById('prepScanReviewOverlay').classList.remove('open');
   _pendingPrepScanDishes = [];
+}
+
+/* Reads the live, edited state straight out of the DOM rather than the original scan data —
+   any dish or item removed from the page, any name/price typed over, is what actually gets
+   saved. Dishes with an empty name after editing are silently skipped (nothing to save). */
+function collectEditedPrepScanDishes(){
+  return [...document.querySelectorAll('.prep-scan-dish')].map(card=>{
+    const name = card.querySelector('.prep-scan-dish-name').value.trim();
+    const priceRaw = card.querySelector('.prep-scan-dish-price').value;
+    const price = priceRaw !== '' ? parseFloat(priceRaw) : null;
+    const items = [...card.querySelectorAll('.prep-scan-item-name')]
+      .map(inp=>inp.value.trim())
+      .filter(Boolean);
+    return { name, price, items };
+  }).filter(d=>d.name);
 }
 
 async function savePrepSheetScanResults(){
@@ -12627,7 +12679,8 @@ async function savePrepSheetScanResults(){
     station = document.getElementById('prepScanStationNew').value.trim();
   }
   if(!station){ alert('Pick or name a station first.'); return; }
-  if(!_pendingPrepScanDishes.length) return;
+  const dishesToSave = collectEditedPrepScanDishes();
+  if(!dishesToSave.length){ alert('Nothing left to add — every dish was removed.'); return; }
 
   const statusEl = document.getElementById('prepScanStatus');
   statusEl.textContent = 'Saving…';
@@ -12635,7 +12688,7 @@ async function savePrepSheetScanResults(){
   const existingForStation = _prepDishes.filter(d=> d.station === station);
   let nextSort = existingForStation.length ? Math.max(...existingForStation.map(d=>d.sort_order)) + 1 : 0;
 
-  for(const dish of _pendingPrepScanDishes){
+  for(const dish of dishesToSave){
     const { data: dishRow, error: dishError } = await sb.from('prep_dishes').insert({
       kitchen_id: currentKitchenId, station, name: dish.name, price: dish.price ?? null, sort_order: nextSort++
     }).select().single();
