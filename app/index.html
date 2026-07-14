@@ -5023,7 +5023,14 @@ var qrcode = function() {
    ============================================================ */
 const SUPABASE_URL = 'https://azkhyorqnwvaugaomjvh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Richard (15.7.): "nikto počas používania aplikácie nebude vyhodený, ale akonáhle prepne tab
+   alebo zavrie appku sa musí znova prihlásiť" — clarified this means closing the tab/browser
+   specifically, not switching away briefly (a photo-scan camera trip or a notification
+   shouldn't force a fresh email code). sessionStorage instead of the default localStorage does
+   exactly that: it survives normal tab switching and backgrounding, but is wiped the moment the
+   tab/browser is actually closed — a real re-login is then required next time, which matters on
+   a shared kitchen phone/tablet where the previous person's session shouldn't just sit there. */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage } });
 
 /* Basic client-side error tracking (2026-07-13) — up to now, a JS error on a real user's real
    device was invisible until they thought to mention it. Logs to error_logs (db/51_error_logs.sql)
