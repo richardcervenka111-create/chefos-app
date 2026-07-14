@@ -6555,6 +6555,11 @@ function diffTextClass(d){
    taskActiveStation works in Check List. showList() resets this to 'Favorites' on every open,
    deliberately not remembered between visits. */
 let activeCategory = "Favorites";
+/* AI Playground toggle — 'mine' hides anything tagged 'AI-generated' (Ask Chef's Assistant,
+   Chef Challenge, Menu Scan output), 'ai' shows only that. Keeps AI experiments out of Richard's
+   173 real recipes by default instead of building a whole separate app section for them.
+   Reset to 'mine' on every showList() open, same reasoning as activeCategory above. */
+let recipeSourceFilter = "mine";
 let activeQuery = "";
 let currentScale = 1;
 let _customCategoryIcons = {};
@@ -6722,6 +6727,7 @@ document.addEventListener('touchend', (e)=>{
 function renderRecipeSummaryBar(){
   const el = document.getElementById('recipeSummarySlot');
   if(!el) return;
+  const aiCount = allRecipes().filter(r=>(r.tags||[]).includes('AI-generated')).length;
   el.innerHTML = `
     <div class="prep-summary-row2" style="padding:8px 18px 12px 18px;">
       <span class="prep-section-name" onclick="openRecipeCategoryPicker()" title="Switch section">${categoryIcon(activeCategory)} ${activeCategory}</span>
@@ -6730,7 +6736,19 @@ function renderRecipeSummaryBar(){
         <button class="prep-item-clock" title="Section visibility" onclick="openRecipeCategoryVisibility()">👁️ Visibility</button>
       </span>
     </div>
+    ${aiCount > 0 ? `
+    <div class="prep-line3" style="padding:0 18px 10px 18px;">
+      <button class="task-status-btn${recipeSourceFilter==='mine' ? ' active' : ''}" onclick="setRecipeSourceFilter('mine')">📖 My Recipes</button>
+      <button class="task-status-btn${recipeSourceFilter==='ai' ? ' active' : ''}" onclick="setRecipeSourceFilter('ai')">✨ AI Playground (${aiCount})</button>
+    </div>` : ''}
   `;
+}
+function setRecipeSourceFilter(mode){
+  recipeSourceFilter = mode;
+  logEvent('recipe_source_filter_changed', {mode});
+  renderRecipeSummaryBar();
+  renderList();
+  window.scrollTo(0,0);
 }
 function showNewestRecipes(){
   activeCategory = 'Newest';
@@ -6994,6 +7012,9 @@ let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false,
 function passesRecipeFilters(r, q){
   if(activeCategory === 'Favorites' && !isFavorite(r.id)) return false;
   if(activeCategory !== 'Favorites' && activeCategory !== 'All' && activeCategory !== 'Newest' && r.category !== activeCategory) return false;
+  const isAiGenerated = (r.tags||[]).includes('AI-generated');
+  if(recipeSourceFilter === 'ai' && !isAiGenerated) return false;
+  if(recipeSourceFilter === 'mine' && isAiGenerated) return false;
   if(!matchesQuery(r, q)) return false;
   if(DIET_FILTER_OPTIONS.some(o=>dietFilter[o.key])){
     const diet = computeDietTags(r);
@@ -7783,6 +7804,7 @@ function showList(){
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
   activeCategory = _favorites.length > 0 ? 'Favorites' : 'All';
+  recipeSourceFilter = 'mine';
   renderRecipeSummaryBar();
   renderList();
   window.scrollTo(0,0);
