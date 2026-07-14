@@ -2418,11 +2418,11 @@
   </div>
 </div>
 
-<input type="file" id="photoInput" accept="image/*,application/pdf" style="display:none;" onchange="handlePhotoSelected(event)">
-<input type="file" id="menuScanInput" accept="image/*,application/pdf" style="display:none;" onchange="handleMenuScanFileSelected(event)">
-<input type="file" id="prepScanInput" accept="image/*,application/pdf" style="display:none;" onchange="handlePrepScanFileSelected(event)">
-<input type="file" id="contractScanInput" accept="image/*,application/pdf" style="display:none;" onchange="handleContractScanFileSelected(event)">
-<input type="file" id="scheduleUploadInput" accept="image/*,application/pdf" style="display:none;" onchange="handleScheduleUploadFileSelected(event)">
+<input type="file" id="photoInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handlePhotoSelected(event)">
+<input type="file" id="menuScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handleMenuScanFileSelected(event)">
+<input type="file" id="prepScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handlePrepScanFileSelected(event)">
+<input type="file" id="contractScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handleContractScanFileSelected(event)">
+<input type="file" id="scheduleUploadInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handleScheduleUploadFileSelected(event)">
 
 <!-- Check List: "also appears elsewhere" — tap the warning badge on a checked item to see
      every other dish/section where the same ingredient is also tracked. -->
@@ -11722,6 +11722,50 @@ async function uploadDayDetailPhoto(file){
   statusEl.textContent = 'Saved.';
 }
 
+/* ---------- Upload any document type, not just photos (Richard, 15.7.: recipes/menu/schedule/
+   "or anything else" as PDF/.md/.html, not just a photo). Every scan entry point below (recipe,
+   contract, schedule, menu, prep sheet) already sent images and PDFs straight to Claude as
+   binary. .md/.html/.txt files are plain text underneath, so instead of stuffing them through
+   the vision pipeline as if they were a photo, they're decoded and sent as a normal text block —
+   simpler and more reliable than asking Claude to "read" text out of a screenshot of text.
+   file.type is unreliable for this: browsers reliably report .html as text/html and .txt as
+   text/plain, but commonly report an EMPTY type for .md — so the filename extension is checked
+   too, not just the MIME type. ---------- */
+function isTextDocumentFile(mediaType, fileName){
+  if(/\.(md|markdown|txt|html?)$/i.test(fileName || '')) return true;
+  return /^text\//.test(mediaType || '');
+}
+function base64ToUtf8Text(base64){
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+/* One shared source-block builder for every callClaudeXVision function below — image/PDF go in
+   as binary exactly as before, text documents go in as a plain text block instead. */
+function claudeScanSourceBlock(base64, mediaType, fileName){
+  if(isTextDocumentFile(mediaType, fileName)){
+    return { type:'text', text: base64ToUtf8Text(base64) };
+  }
+  if(mediaType === 'application/pdf'){
+    return { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } };
+  }
+  return { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
+}
+/* Every handleXSelected function shares this same read: figure out the media type from the data
+   URL, keep the original filename alongside it (needed for the .md detection above), then hand
+   off to the matching runXScan(base64, mediaType, fileName). */
+function readFileForScan(file, onRead){
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result;
+    const [header, base64] = dataUrl.split(',');
+    const mediaType = header.match(/data:([^;]*);/)[1] || '';
+    onRead(base64, mediaType, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
 /* ---------- Contract scan — same direct-to-Claude photo/PDF pattern as the recipe and prep
    sheet scans, reusing the shared scanOverlay UI and the person's own stored API key. Extracts
    the contracted weekly hours (if stated) and writes a short plain-language advisory note
@@ -11738,16 +11782,9 @@ function triggerContractScan(){
 function handleContractScanFileSelected(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = reader.result;
-    const [header, base64] = dataUrl.split(',');
-    const mediaType = header.match(/data:([^;]+);/)[1];
-    runContractScan(base64, mediaType);
-  };
-  reader.readAsDataURL(file);
+  readFileForScan(file, runContractScan);
 }
-async function callClaudeContractVision(base64, mediaType){
+async function callClaudeContractVision(base64, mediaType, fileName){
   const tool = {
     name: 'record_contract_review',
     description: 'Extract key working-time terms from this employment contract and flag anything that looks wrong, missing, or unclear.',
@@ -11772,11 +11809,6 @@ async function callClaudeContractVision(base64, mediaType){
       required: ['advisory_points']
     }
   };
-  const isPdf = mediaType === 'application/pdf';
-  const sourceBlock = isPdf
-    ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
-    : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
-
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
     max_tokens: 1536,
@@ -11785,8 +11817,8 @@ async function callClaudeContractVision(base64, mediaType){
     messages: [{
       role: 'user',
       content: [
-        sourceBlock,
-        { type:'text', text:'This is an employment contract for a kitchen/restaurant worker. Read it carefully and extract the weekly contracted hours and annual paid vacation days if stated. Then, acting as a knowledgeable reviewer (not a licensed lawyer), write 4-6 short plain-language points covering the contract overall — flag anything unclear, missing, unusual, or potentially unfavorable to the employee, AND separately call out anything that is genuinely fine or better than typical (don\'t only list problems). Tag each point\'s tone honestly. Use the record_contract_review tool.' }
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is an employment contract for a kitchen/restaurant worker (photo, PDF, or document text). Read it carefully and extract the weekly contracted hours and annual paid vacation days if stated. Then, acting as a knowledgeable reviewer (not a licensed lawyer), write 4-6 short plain-language points covering the contract overall — flag anything unclear, missing, unusual, or potentially unfavorable to the employee, AND separately call out anything that is genuinely fine or better than typical (don\'t only list problems). Tag each point\'s tone honestly. Use the record_contract_review tool.' }
       ]
     }]
   });
@@ -11794,7 +11826,7 @@ async function callClaudeContractVision(base64, mediaType){
   if(!toolUse) throw new Error('Claude could not read this contract — try a clearer photo or PDF.');
   return toolUse.input;
 }
-async function runContractScan(base64, mediaType){
+async function runContractScan(base64, mediaType, fileName){
   const overlay = document.getElementById('scanOverlay');
   const spinner = document.getElementById('scanSpinner');
   const statusEl = document.getElementById('scanStatus');
@@ -11817,7 +11849,7 @@ async function runContractScan(base64, mediaType){
   }, 2400);
 
   try{
-    const input = await callClaudeContractVision(base64, mediaType);
+    const input = await callClaudeContractVision(base64, mediaType, fileName);
     clearInterval(_scanMsgTimer);
     overlay.classList.remove('open');
     openContractReview(input);
@@ -11984,16 +12016,9 @@ function confirmScheduleNameAndPickFile(){
 function handleScheduleUploadFileSelected(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = reader.result;
-    const [header, base64] = dataUrl.split(',');
-    const mediaType = header.match(/data:([^;]+);/)[1];
-    runScheduleUpload(base64, mediaType);
-  };
-  reader.readAsDataURL(file);
+  readFileForScan(file, runScheduleUpload);
 }
-async function callClaudeScheduleVision(base64, mediaType, targetName){
+async function callClaudeScheduleVision(base64, mediaType, targetName, fileName){
   const tool = {
     name: 'record_schedule_row',
     description: 'Find the row for one named staff member in this kitchen roster/schedule (Dienstplan) and record their shift code for every date column.',
@@ -12017,11 +12042,6 @@ async function callClaudeScheduleVision(base64, mediaType, targetName){
       required: ['found','days']
     }
   };
-  const isPdf = mediaType === 'application/pdf';
-  const sourceBlock = isPdf
-    ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
-    : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
-
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
     max_tokens: 4096,
@@ -12030,8 +12050,8 @@ async function callClaudeScheduleVision(base64, mediaType, targetName){
     messages: [{
       role: 'user',
       content: [
-        sourceBlock,
-        { type:'text', text:`This is a kitchen staff roster/schedule (Dienstplan) spanning possibly multiple pages, one row per staff member. Find the row for "${targetName}" — match even if spelling differs slightly, or the name is written in a different order (e.g. "First Last" vs "Last First"). Once found, extract their exact shift code for every single date column shown in the header row, across every page — use an empty string for a blank cell. Do NOT transcribe any other staff member's row. If no matching name is found anywhere, set found to false and leave days empty. Use the record_schedule_row tool.` }
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:`This is a kitchen staff roster/schedule (Dienstplan), as a photo, PDF, or document text, spanning possibly multiple pages, one row per staff member. Find the row for "${targetName}" — match even if spelling differs slightly, or the name is written in a different order (e.g. "First Last" vs "Last First"). Once found, extract their exact shift code for every single date column shown in the header row, across every page — use an empty string for a blank cell. Do NOT transcribe any other staff member's row. If no matching name is found anywhere, set found to false and leave days empty. Use the record_schedule_row tool.` }
       ]
     }]
   });
@@ -12039,7 +12059,7 @@ async function callClaudeScheduleVision(base64, mediaType, targetName){
   if(!toolUse) throw new Error('Claude could not read this schedule — try a clearer photo or PDF.');
   return toolUse.input;
 }
-async function runScheduleUpload(base64, mediaType){
+async function runScheduleUpload(base64, mediaType, fileName){
   const overlay = document.getElementById('scanOverlay');
   const spinner = document.getElementById('scanSpinner');
   const statusEl = document.getElementById('scanStatus');
@@ -12062,7 +12082,7 @@ async function runScheduleUpload(base64, mediaType){
   }, 2400);
 
   try{
-    const result = await callClaudeScheduleVision(base64, mediaType, _scheduleUploadTargetName);
+    const result = await callClaudeScheduleVision(base64, mediaType, _scheduleUploadTargetName, fileName);
     clearInterval(_scanMsgTimer);
     overlay.classList.remove('open');
     if(!result.found || !(result.days || []).length){
@@ -12338,14 +12358,7 @@ function triggerPhotoScan(){
 function handlePhotoSelected(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = reader.result;
-    const [header, base64] = dataUrl.split(',');
-    const mediaType = header.match(/data:([^;]+);/)[1];
-    runPhotoScan(base64, mediaType);
-  };
-  reader.readAsDataURL(file);
+  readFileForScan(file, runPhotoScan);
 }
 
 let _scanMsgTimer;
@@ -12354,7 +12367,7 @@ function closeScanOverlay(){
   document.getElementById('scanOverlay').classList.remove('open');
 }
 
-async function callClaudeVision(base64, mediaType){
+async function callClaudeVision(base64, mediaType, fileName){
   const tool = {
     name: 'record_recipe',
     description: 'Record the recipe read from the photo, with spelling corrected, terminology standardized, and quantities converted to metric units.',
@@ -12377,11 +12390,6 @@ async function callClaudeVision(base64, mediaType){
     }
   };
 
-  const isPdf = mediaType === 'application/pdf';
-  const sourceBlock = isPdf
-    ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
-    : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
-
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
     max_tokens: 2048,
@@ -12390,8 +12398,8 @@ async function callClaudeVision(base64, mediaType){
     messages: [{
       role: 'user',
       content: [
-        sourceBlock,
-        { type:'text', text:'This is a photo or PDF of a handwritten or printed recipe. Read it carefully, correct any obvious spelling mistakes, standardize cooking terminology, and convert non-metric quantities (cups, oz, lb, °F) to metric (g, kg, ml, l, °C) where you can. Extract it using the record_recipe tool. If something is not present, leave that field empty rather than guessing.' + scanTranslateInstruction() }
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is a handwritten or printed recipe, as a photo, PDF, or document text. Read it carefully, correct any obvious spelling mistakes, standardize cooking terminology, and convert non-metric quantities (cups, oz, lb, °F) to metric (g, kg, ml, l, °C) where you can. Extract it using the record_recipe tool. If something is not present, leave that field empty rather than guessing.' + scanTranslateInstruction() }
       ]
     }]
   });
@@ -12400,7 +12408,7 @@ async function callClaudeVision(base64, mediaType){
   return toolUse.input;
 }
 
-async function runPhotoScan(base64, mediaType){
+async function runPhotoScan(base64, mediaType, fileName){
   const overlay = document.getElementById('scanOverlay');
   const spinner = document.getElementById('scanSpinner');
   const statusEl = document.getElementById('scanStatus');
@@ -12423,7 +12431,7 @@ async function runPhotoScan(base64, mediaType){
   }, 2400);
 
   try{
-    const input = await callClaudeVision(base64, mediaType);
+    const input = await callClaudeVision(base64, mediaType, fileName);
     clearInterval(_scanMsgTimer);
     overlay.classList.remove('open');
 
@@ -12486,17 +12494,10 @@ function triggerMenuScan(){
 function handleMenuScanFileSelected(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = reader.result;
-    const [header, base64] = dataUrl.split(',');
-    const mediaType = header.match(/data:([^;]+);/)[1];
-    runMenuScan(base64, mediaType);
-  };
-  reader.readAsDataURL(file);
+  readFileForScan(file, runMenuScan);
 }
 
-async function callClaudeMenuVision(base64, mediaType){
+async function callClaudeMenuVision(base64, mediaType, fileName){
   const tool = {
     name: 'record_menu',
     description: 'Record every dish found on this menu, grouped by the menu section it appears under.',
@@ -12519,11 +12520,6 @@ async function callClaudeMenuVision(base64, mediaType){
       required: ['dishes']
     }
   };
-  const isPdf = mediaType === 'application/pdf';
-  const sourceBlock = isPdf
-    ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
-    : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
-
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
     max_tokens: 8192,
@@ -12532,8 +12528,8 @@ async function callClaudeMenuVision(base64, mediaType){
     messages: [{
       role: 'user',
       content: [
-        sourceBlock,
-        { type:'text', text:'This is a restaurant menu. Read every section heading and every dish listed under it, along with whatever short description/components the menu prints for that dish. Use the record_menu tool.' + scanTranslateInstruction() }
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is a restaurant menu, as a photo, PDF, or document text. Read every section heading and every dish listed under it, along with whatever short description/components the menu prints for that dish. Use the record_menu tool.' + scanTranslateInstruction() }
       ]
     }]
   });
@@ -12542,7 +12538,7 @@ async function callClaudeMenuVision(base64, mediaType){
   return toolUse.input.dishes || [];
 }
 
-async function runMenuScan(base64, mediaType){
+async function runMenuScan(base64, mediaType, fileName){
   const overlay = document.getElementById('scanOverlay');
   const spinner = document.getElementById('scanSpinner');
   const statusEl = document.getElementById('scanStatus');
@@ -12557,7 +12553,7 @@ async function runMenuScan(base64, mediaType){
   statusEl.textContent = 'Reading the menu…';
 
   try{
-    const dishes = await callClaudeMenuVision(base64, mediaType);
+    const dishes = await callClaudeMenuVision(base64, mediaType, fileName);
     if(!dishes.length){ throw new Error('No dishes found — try a clearer photo or PDF.'); }
 
     _pendingMenuScanRecipes = [];
@@ -12713,17 +12709,10 @@ function triggerPrepSheetScan(){
 function handlePrepScanFileSelected(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = reader.result;
-    const [header, base64] = dataUrl.split(',');
-    const mediaType = header.match(/data:([^;]+);/)[1];
-    runPrepSheetScan(base64, mediaType);
-  };
-  reader.readAsDataURL(file);
+  readFileForScan(file, runPrepSheetScan);
 }
 
-async function callClaudePrepSheetVision(base64, mediaType){
+async function callClaudePrepSheetVision(base64, mediaType, fileName){
   const tool = {
     name: 'record_prep_sheet',
     description: 'Record every dish and its component/ingredient items found on this prep sheet.',
@@ -12746,11 +12735,6 @@ async function callClaudePrepSheetVision(base64, mediaType){
       required: ['dishes']
     }
   };
-  const isPdf = mediaType === 'application/pdf';
-  const sourceBlock = isPdf
-    ? { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } }
-    : { type:'image', source:{ type:'base64', media_type: mediaType, data: base64 } };
-
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
     // A real SKY prep sheet is many stations × many dishes × many items — the exact same
@@ -12765,8 +12749,8 @@ async function callClaudePrepSheetVision(base64, mediaType){
     messages: [{
       role: 'user',
       content: [
-        sourceBlock,
-        { type:'text', text:'This is a kitchen prep sheet — a list of dishes, each with the ingredients/components needed to prepare it. Read every dish and its full item list. If a CHF price is shown next to a dish, include it; otherwise omit price. Use the record_prep_sheet tool.' + scanTranslateInstruction() }
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is a kitchen prep sheet, as a photo, PDF, or document text — a list of dishes, each with the ingredients/components needed to prepare it. Read every dish and its full item list. If a CHF price is shown next to a dish, include it; otherwise omit price. Use the record_prep_sheet tool.' + scanTranslateInstruction() }
       ]
     }]
   });
@@ -12775,7 +12759,7 @@ async function callClaudePrepSheetVision(base64, mediaType){
   return toolUse.input.dishes || [];
 }
 
-async function runPrepSheetScan(base64, mediaType){
+async function runPrepSheetScan(base64, mediaType, fileName){
   const overlay = document.getElementById('scanOverlay');
   const spinner = document.getElementById('scanSpinner');
   const statusEl = document.getElementById('scanStatus');
@@ -12798,7 +12782,7 @@ async function runPrepSheetScan(base64, mediaType){
   }, 2400);
 
   try{
-    const dishes = await callClaudePrepSheetVision(base64, mediaType);
+    const dishes = await callClaudePrepSheetVision(base64, mediaType, fileName);
     clearInterval(_scanMsgTimer);
     overlay.classList.remove('open');
     if(!dishes.length){ alert('No dishes found — try a clearer photo or PDF.'); return; }
