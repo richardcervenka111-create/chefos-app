@@ -5222,7 +5222,7 @@ function friendlyAuthErrorMessage(error){
   const looksEmpty = !raw || raw.trim() === '{}' || raw.trim() === '[object Object]';
   const looksLikeRateLimit = /rate limit/i.test(raw) || error?.status === 429 || looksEmpty;
   if(looksLikeRateLimit){
-    return "Too many emails sent in the last hour (the free mailer only allows 2/hour while we're testing) — wait about an hour and try again.";
+    return "Too many login emails sent recently — wait a little while and try again.";
   }
   return raw || (error?.status ? ('HTTP ' + error.status) : 'unknown error');
 }
