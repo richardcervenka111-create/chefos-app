@@ -29,6 +29,14 @@
   h1.title b{ color:var(--accent); font-weight:700; }
   .lede{ color:var(--ink-dim); font-size:15px; max-width:66ch; line-height:1.65; }
 
+  .lang-toggle{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .lang-toggle:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  .topline{ display:flex; align-items:center; justify-content:space-between; }
+
   section{ padding:44px 0; border-bottom:1px solid var(--rule); }
   section:last-of-type{ border-bottom:none; }
   h2.section-title{ font-weight:700; font-size:24px; margin:0 0 8px 0; }
@@ -96,20 +104,23 @@
 <div class="wrap">
 
   <header class="hero">
-    <div class="kicker">ChefOS — Planning &amp; Progress</div>
+    <div class="topline">
+      <div class="kicker" data-sk="ChefOS — Plánovanie a postup" data-en="ChefOS — Planning &amp; Progress"></div>
+      <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
+    </div>
     <h1 class="title">Plan<b>ning</b></h1>
-    <p class="lede">Done vs. planned, at three timeframes. Top priorities for today/this week/this month, and a click-to-expand log of every day worked — grouped by week and month so this stays readable as it grows.</p>
+    <p class="lede" data-sk="Hotovo vs. plánované, v troch časových rámcoch. Top priority pre dnes/tento týždeň/tento mesiac a rozkliknuteľný denník všetkého odpracovaného — zoskupený podľa týždňa a mesiaca, aby to zostalo čitateľné aj s rastom." data-en="Done vs. planned, at three timeframes. Top priorities for today/this week/this month, and a click-to-expand log of every day worked — grouped by week and month so this stays readable as it grows."></p>
   </header>
 
   <section id="top3">
-    <h2 class="section-title">Top 3 priorities</h2>
-    <p class="section-desc">Updated each session. Teal = done, gold = in progress, grey = planned but not started.</p>
+    <h2 class="section-title" data-sk="Top 3 priority" data-en="Top 3 priorities"></h2>
+    <p class="section-desc" data-sk="Aktualizované každú session. Tyrkysová = hotovo, zlatá = rozpracované, sivá = naplánované, ešte nezačaté." data-en="Updated each session. Teal = done, gold = in progress, grey = planned but not started."></p>
     <div class="top3-grid" id="top3Grid"></div>
   </section>
 
   <section id="timeline">
-    <h2 class="section-title">Day-by-day log</h2>
-    <p class="section-desc">Click a month, then a week, then a day to see exactly what shipped.</p>
+    <h2 class="section-title" data-sk="Denník deň po dni" data-en="Day-by-day log"></h2>
+    <p class="section-desc" data-sk="Klikni na mesiac, potom na týždeň, potom na deň — uvidíš presne, čo sa vtedy dorobilo." data-en="Click a month, then a week, then a day to see exactly what shipped."></p>
     <div id="timelineRoot"></div>
   </section>
 
@@ -434,7 +445,27 @@ function toggleBlock(id, forceOpen){
   el.classList.toggle('open');
 }
 
-document.getElementById('footNote').textContent = `ChefOS · generated ${GENERATED} · companion to app/presentation.html, sourced from docs/ROADMAP.md`;
+/* ---------- Language toggle — translates structural chrome (kicker, headings, section
+   descriptions, footer) only. TOP3/DAYS log content stays in English in both modes — same
+   scope boundary as the other ChefOS docs, a separate translation job. ---------- */
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLang(){
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+  });
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _lang;
+  document.getElementById('footNote').textContent = _lang === 'sk'
+    ? `ChefOS · vygenerované ${GENERATED} · doplnok k app/presentation.html, zdroj docs/ROADMAP.md`
+    : `ChefOS · generated ${GENERATED} · companion to app/presentation.html, sourced from docs/ROADMAP.md`;
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLang();
+}
+
+applyLang();
 renderTop3();
 renderTimeline();
 </script>
