@@ -5939,7 +5939,8 @@ function dbRowToRecipe(row){
     platingSuggestions: row.plating_suggestions || '',
     crossReferences: row.cross_references || '',
     tags: row.tags || [],
-    createdAt: row.created_at || null
+    createdAt: row.created_at || null,
+    createdBy: row.created_by || null
   };
 }
 
@@ -6632,9 +6633,11 @@ function diffTextClass(d){
    taskActiveStation works in Check List. showList() resets this to 'Favorites' on every open,
    deliberately not remembered between visits. */
 let activeCategory = "Favorites";
-/* AI Playground toggle — 'mine' hides anything tagged 'AI-generated' (Ask Chef's Assistant,
-   Chef Challenge, Menu Scan output), 'ai' shows only that. Keeps AI experiments out of Richard's
-   173 real recipes by default instead of building a whole separate app section for them.
+/* Recipe source filter (bod 5, 15.7. — extends the earlier 2-way AI Playground toggle into 3):
+   'mine' = recipes YOU personally added (r.createdBy === currentUser.id), excluding AI ones.
+   'chefos' = anything tagged 'AI-generated' (Ask Chef's Assistant, Chef Challenge, Menu Scan
+   output) — same set the old "AI Playground" option showed, just relabeled. 'company' = every
+   non-AI recipe in the kitchen regardless of who added it (the whole shared recipe book).
    Reset to 'mine' on every showList() open, same reasoning as activeCategory above. */
 let recipeSourceFilter = "mine";
 let activeQuery = "";
@@ -6804,7 +6807,10 @@ document.addEventListener('touchend', (e)=>{
 function renderRecipeSummaryBar(){
   const el = document.getElementById('recipeSummarySlot');
   if(!el) return;
-  const aiCount = allRecipes().filter(r=>(r.tags||[]).includes('AI-generated')).length;
+  const all = allRecipes();
+  const aiCount = all.filter(r=>(r.tags||[]).includes('AI-generated')).length;
+  const mineCount = all.filter(r=>!(r.tags||[]).includes('AI-generated') && r.createdBy === currentUser.id).length;
+  const companyCount = all.filter(r=>!(r.tags||[]).includes('AI-generated')).length;
   el.innerHTML = `
     <div class="prep-summary-row2" style="padding:8px 18px 12px 18px;">
       <span class="prep-section-name" onclick="openRecipeCategoryPicker()" title="Switch section">${categoryIcon(activeCategory)} ${activeCategory}</span>
@@ -6813,11 +6819,11 @@ function renderRecipeSummaryBar(){
         <button class="prep-item-clock" title="Section visibility" onclick="openRecipeCategoryVisibility()">👁️ Visibility</button>
       </span>
     </div>
-    ${aiCount > 0 ? `
     <div class="prep-line3" style="padding:0 18px 10px 18px;">
-      <button class="task-status-btn${recipeSourceFilter==='mine' ? ' active' : ''}" onclick="setRecipeSourceFilter('mine')">📖 My Recipes</button>
-      <button class="task-status-btn${recipeSourceFilter==='ai' ? ' active' : ''}" onclick="setRecipeSourceFilter('ai')">✨ AI Playground (${aiCount})</button>
-    </div>` : ''}
+      <button class="task-status-btn${recipeSourceFilter==='mine' ? ' active' : ''}" onclick="setRecipeSourceFilter('mine')">📖 Moje (${mineCount})</button>
+      <button class="task-status-btn${recipeSourceFilter==='chefos' ? ' active' : ''}" onclick="setRecipeSourceFilter('chefos')">✨ ChefOS (${aiCount})</button>
+      <button class="task-status-btn${recipeSourceFilter==='company' ? ' active' : ''}" onclick="setRecipeSourceFilter('company')">🏢 Firemné (${companyCount})</button>
+    </div>
   `;
 }
 function setRecipeSourceFilter(mode){
@@ -7090,8 +7096,9 @@ function passesRecipeFilters(r, q){
   if(activeCategory === 'Favorites' && !isFavorite(r.id)) return false;
   if(activeCategory !== 'Favorites' && activeCategory !== 'All' && activeCategory !== 'Newest' && r.category !== activeCategory) return false;
   const isAiGenerated = (r.tags||[]).includes('AI-generated');
-  if(recipeSourceFilter === 'ai' && !isAiGenerated) return false;
-  if(recipeSourceFilter === 'mine' && isAiGenerated) return false;
+  if(recipeSourceFilter === 'chefos' && !isAiGenerated) return false;
+  if(recipeSourceFilter === 'company' && isAiGenerated) return false;
+  if(recipeSourceFilter === 'mine' && (isAiGenerated || r.createdBy !== currentUser.id)) return false;
   if(!matchesQuery(r, q)) return false;
   if(DIET_FILTER_OPTIONS.some(o=>dietFilter[o.key])){
     const diet = computeDietTags(r);
@@ -7881,7 +7888,11 @@ function showList(){
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
   activeCategory = _favorites.length > 0 ? 'Favorites' : 'All';
-  recipeSourceFilter = 'mine';
+  // 'company' by default, not 'mine' — the original 173 migrated recipes (db/02) predate
+  // created_by tracking entirely, so they'd all be invisible under a 'mine' filter for
+  // literally everyone. 'company' (all non-AI recipes, regardless of who added them) is what
+  // "My Recipes" always meant in practice before this 3-way split existed.
+  recipeSourceFilter = 'company';
   renderRecipeSummaryBar();
   renderList();
   window.scrollTo(0,0);
