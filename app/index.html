@@ -10588,10 +10588,16 @@ let orderListSelectMode = false;
 let orderListGroupBySection = true;
 let _orderListSelectedIds = new Set();
 
+let _profilesById = {};
 async function loadAndRenderOrderListSummary(){
   setOrderListStatus('saving');
-  const { data, error } = await sb.from('order_list_items').select('*').eq('kitchen_id', currentKitchenId).order('station');
+  const queries = [ sb.from('order_list_items').select('*').eq('kitchen_id', currentKitchenId).order('station') ];
+  // Only admins ever see the per-person breakdown (bod 4), so only admins pay for this extra
+  // fetch — everyone else just sees the summed total.
+  if(currentIsAdmin) queries.push(sb.from('profiles').select('id, full_name').eq('kitchen_id', currentKitchenId));
+  const [{ data, error }, teamRes] = await Promise.all(queries);
   if(error){ setOrderListStatus('offline'); return; }
+  if(teamRes) _profilesById = Object.fromEntries((teamRes.data || []).map(p=>[p.id, p]));
   setOrderListStatus('saved');
   _lastOrderListRows = data || [];
   _orderListSelectedIds = new Set([..._orderListSelectedIds].filter(id=>_lastOrderListRows.some(r=>r.id===id)));
@@ -10607,6 +10613,24 @@ function orderListItemLabel(r){
   return ing ? ing.name : '(ingredient removed)';
 }
 
+/* Merge everyone's individual rows (one per person per ingredient+station since db/76) into one
+   summary line per ingredient+station, quantities summed. Select mode still operates on the raw
+   underlying rows for precise bulk-delete, but the normal read view is what an admin actually
+   wants: "how much of this do we need in total", not one line per person who happened to add
+   it. Per-person breakdown (bod 4: "admin vie kto čo objednáva") is admin-only. */
+function mergeOrderListRows(rows){
+  const groups = {};
+  rows.forEach(r=>{
+    const key = r.station + '|' + r.ingredient_id;
+    if(!groups[key]) groups[key] = { station: r.station, ingredient_id: r.ingredient_id, unit: r.unit, rows: [] };
+    groups[key].rows.push(r);
+  });
+  return Object.values(groups).map(g=>({
+    ...g,
+    totalQty: g.rows.some(r=>r.quantity != null) ? g.rows.reduce((s,r)=> s + (r.quantity || 0), 0) : null,
+    mineRow: g.rows.find(r=>r.created_by === currentUser.id) || null
+  }));
+}
 function renderOrderListSummary(rows){
   const container = document.getElementById('orderListSummaryContainer');
   document.getElementById('orderListGroupBtn').classList.toggle('active', orderListGroupBySection);
@@ -10616,32 +10640,66 @@ function renderOrderListSummary(rows){
     renderOrderListBulkBar();
     return;
   }
-  const renderRow = (r)=>{
-    const name = orderListItemLabel(r);
-    const checked = _orderListSelectedIds.has(r.id);
+  if(orderListSelectMode){
+    // Select mode targets exact underlying rows for precise bulk-delete — not merged.
+    const renderRawRow = (r)=>{
+      const name = orderListItemLabel(r);
+      const checked = _orderListSelectedIds.has(r.id);
+      return `
+        <div class="task-row">
+          <div class="task-row-top">
+            <button class="qa-checkbox${checked?' checked':''}" style="margin-right:8px;" onclick="toggleOrderListItemSelected('${r.id}')">${checked?'✓':''}</button>
+            <div class="info" style="flex:1;">
+              <div class="name task-text">${name}${!orderListGroupBySection ? `<span class="meta"> · ${stationIcon(r.station)} ${r.station}</span>` : ''}</div>
+              ${r.notes ? `<div class="meta task-note">📝 ${r.notes}</div>` : ''}
+            </div>
+            <div class="task-priority-badge priority-3">${r.quantity != null ? r.quantity : '–'} ${r.unit}</div>
+          </div>
+        </div>
+      `;
+    };
+    if(orderListGroupBySection){
+      const grouped = {};
+      rows.forEach(r=>{ (grouped[r.station] = grouped[r.station] || []).push(r); });
+      container.innerHTML = Object.keys(grouped).sort().map(station=>{
+        const items = grouped[station].map(renderRawRow).join('');
+        return `<div class="section-label">${stationIcon(station)} ${station} · ${grouped[station].length}</div>${items}`;
+      }).join('');
+    } else {
+      container.innerHTML = [...rows].sort((a,b)=>orderListItemLabel(a).localeCompare(orderListItemLabel(b))).map(renderRawRow).join('');
+    }
+    renderOrderListBulkBar();
+    return;
+  }
+
+  const merged = mergeOrderListRows(rows);
+  const renderMergedRow = (g)=>{
+    const name = orderListItemLabel(g);
+    const whoBreakdown = currentIsAdmin && g.rows.length > 1
+      ? `<div class="meta task-note">👥 ${g.rows.map(r=>`${(_profilesById[r.created_by]||{}).full_name || 'Someone'}: ${r.quantity != null ? r.quantity : '–'} ${r.unit}`).join(' · ')}</div>`
+      : '';
     return `
       <div class="task-row">
         <div class="task-row-top">
-          ${orderListSelectMode ? `<button class="qa-checkbox${checked?' checked':''}" style="margin-right:8px;" onclick="toggleOrderListItemSelected('${r.id}')">${checked?'✓':''}</button>` : ''}
           <div class="info" style="flex:1;">
-            <div class="name task-text">${name}${!orderListGroupBySection ? `<span class="meta"> · ${stationIcon(r.station)} ${r.station}</span>` : ''}</div>
-            ${r.notes ? `<div class="meta task-note">📝 ${r.notes}</div>` : ''}
+            <div class="name task-text">${name}${!orderListGroupBySection ? `<span class="meta"> · ${stationIcon(g.station)} ${g.station}</span>` : ''}</div>
+            ${whoBreakdown}
           </div>
-          <div class="task-priority-badge priority-3">${r.quantity != null ? r.quantity : '–'} ${r.unit}</div>
+          <div class="task-priority-badge priority-3">${g.totalQty != null ? Math.round(g.totalQty*100)/100 : '–'} ${g.unit}</div>
         </div>
-        ${!orderListSelectMode ? `<div class="task-status-group"><button class="danger-btn" onclick="removeOrderListItemQuick('${r.id}')">✕ Remove</button></div>` : ''}
+        ${g.mineRow ? `<div class="task-status-group"><button class="danger-btn" onclick="removeOrderListItemQuick('${g.mineRow.id}')">✕ Remove mine</button></div>` : ''}
       </div>
     `;
   };
   if(orderListGroupBySection){
     const grouped = {};
-    rows.forEach(r=>{ (grouped[r.station] = grouped[r.station] || []).push(r); });
+    merged.forEach(g=>{ (grouped[g.station] = grouped[g.station] || []).push(g); });
     container.innerHTML = Object.keys(grouped).sort().map(station=>{
-      const items = grouped[station].map(renderRow).join('');
+      const items = grouped[station].map(renderMergedRow).join('');
       return `<div class="section-label">${stationIcon(station)} ${station} · ${grouped[station].length}</div>${items}`;
     }).join('');
   } else {
-    container.innerHTML = [...rows].sort((a,b)=>orderListItemLabel(a).localeCompare(orderListItemLabel(b))).map(renderRow).join('');
+    container.innerHTML = [...merged].sort((a,b)=>orderListItemLabel(a).localeCompare(orderListItemLabel(b))).map(renderMergedRow).join('');
   }
   renderOrderListBulkBar();
 }
@@ -10763,16 +10821,28 @@ async function loadOrderListForStation(){
   const { data, error } = await sb.from('order_list_items').select('*')
     .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation);
   if(error){ setOrderListStatus('offline'); return; }
+  // The checkbox reflects only what I personally ordered (one row per person per ingredient
+  // now, db/76) — everyone else's rows for the same ingredient are folded into
+  // _orderListTeammateTotals instead, shown as a hint so teammates' existing orders are visible
+  // without one person's save being able to touch another's row.
   _orderListSelections = {};
+  _orderListTeammateTotals = {};
   _ingredients.forEach(ing=>{
-    const existing = (data||[]).find(d=>d.ingredient_id===ing.id);
-    _orderListSelections[ing.id] = existing
-      ? { checked:true, quantity: existing.quantity!=null ? existing.quantity : '', unit: existing.unit, notes: existing.notes || null }
+    const rowsForIng = (data||[]).filter(d=>d.ingredient_id===ing.id);
+    const mine = rowsForIng.find(d=>d.created_by===currentUser.id);
+    const others = rowsForIng.filter(d=>d.created_by!==currentUser.id);
+    _orderListSelections[ing.id] = mine
+      ? { checked:true, quantity: mine.quantity!=null ? mine.quantity : '', unit: mine.unit, notes: mine.notes || null }
       : { checked:false, quantity:'', unit: ing.unit, notes: null };
+    if(others.length){
+      const sum = others.reduce((s,r)=> s + (r.quantity || 0), 0);
+      _orderListTeammateTotals[ing.id] = { count: others.length, sum, unit: others[0].unit };
+    }
   });
   setOrderListStatus('saved');
   renderOrderListItems();
 }
+let _orderListTeammateTotals = {};
 
 function renderOrderListItems(){
   const container = document.getElementById('orderListContainer');
@@ -10801,6 +10871,7 @@ function renderOrderListItems(){
           </button>
           <div class="qa-info" onclick="toggleOrderItem('${ing.id}')">
             <div class="name">${ing.name}</div>
+            ${_orderListTeammateTotals[ing.id] ? `<div class="meta">👥 already ${Math.round(_orderListTeammateTotals[ing.id].sum*100)/100} ${_orderListTeammateTotals[ing.id].unit} from ${_orderListTeammateTotals[ing.id].count} teammate${_orderListTeammateTotals[ing.id].count>1?'s':''}</div>` : ''}
           </div>
           <input class="qa-qty-input" type="number" step="0.01" min="0" placeholder="qty" value="${sel.quantity}" oninput="updateOrderQty('${ing.id}', this.value)" onclick="event.stopPropagation()">
           <select class="qa-priority" onchange="updateOrderUnit('${ing.id}', this.value)" onclick="event.stopPropagation()">
@@ -10837,8 +10908,12 @@ document.getElementById('orderListSearch').addEventListener('input', (e)=>{
 async function saveOrderList(){
   const checked = Object.entries(_orderListSelections).filter(([id, sel])=> sel.checked);
   setOrderListStatus('saving');
+  // Only ever delete/replace THIS person's own rows for this station — order_list_items now
+  // has one row per (kitchen, station, ingredient, created_by), so a teammate's rows for the
+  // same station are never touched. Used to delete the whole station for the whole kitchen
+  // before saving, which silently wiped out whatever anyone else had ordered (db/76).
   const { error: delErr } = await sb.from('order_list_items').delete()
-    .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation);
+    .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation).eq('created_by', currentUser.id);
   if(delErr){ alert('Could not save: ' + delErr.message); setOrderListStatus('offline'); return; }
   if(checked.length){
     const rows = checked.map(([id, sel])=>({
@@ -10900,7 +10975,7 @@ async function saveOrderDialog(){
   const { error } = await sb.from('order_list_items').upsert({
     kitchen_id: currentKitchenId, station, ingredient_id: ing.id,
     quantity, unit, notes, created_by: currentUser.id
-  }, { onConflict: 'kitchen_id,station,ingredient_id' });
+  }, { onConflict: 'kitchen_id,station,ingredient_id,created_by' });
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   closeOrderDialog();
 }
