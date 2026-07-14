@@ -225,6 +225,7 @@
         <div class="col-head"><span class="dot"></span>Rozbehnuté</div>
         <div class="col-body">
           <div class="ticket"><b>Recipe formulár — 20 polí</b><span>DB má všetky polia, formulár ukazuje len časť</span></div>
+          <div class="ticket"><b>🍽️ Michelin-chef prepis receptov</b><span>19 hotových (Šaláty 11/11, Dressingy 8/11), migrácie v db/64+66, žiadna nespustená na produkcii. Pokračuje po kategóriách — ~110 zostáva</span></div>
           <div class="ticket"><b>Ingredient DB rozšírenie</b><span>104 reálnych cien od dodávateľa importovaných, zvyšok stále odhad AI</span></div>
           <div class="ticket"><b>🤖 Denný AI agent — ingrediencie</b><span>Od 15.7. beží raz denne (06:30), strop CHF 30/mesiac, sám si vyberá čo vylepšiť (ceny/sezóna/chýbajúce položky), zapisuje ako novú SQL migráciu (nikdy priamo do produkcie). Report: docs/ingredient_agent_log.md — zatiaľ žiadny beh.</span></div>
           <div class="ticket"><b>Overovanie cien</b><span>Nový filter Verified/Estimated/Missing to teraz robí viditeľným, väčšina stále odhad</span></div>
@@ -387,7 +388,7 @@ const TOP5 = {
     { sk:'Spustiť verejný trial — 1.8., 25 ľudí, viac reštaurácií', en:'Launch the public trial — Aug 1, 25 people, multiple restaurants', deadline:'2026-08-01T00:00:00+02:00' },
     { sk:'Prvý kontakt s Nooch Asian Kitchen', en:'First contact with Nooch Asian Kitchen', deadline:'2026-08-01T00:00:00+02:00' },
     { sk:'Kúpiť label printer (Brother QL-820NWB) + fridge senzor (SensorPush)', en:'Buy the label printer (Brother QL-820NWB) + fridge sensor (SensorPush)', deadline:'2026-08-01T00:00:00+02:00' },
-    { sk:'Dokončiť Michelin-chef prepis ~131 receptov', en:'Finish the Michelin-chef rewrite of the ~131 in-scope recipes', deadline:'2026-08-01T00:00:00+02:00' },
+    { sk:'Dokončiť Michelin-chef prepis (19/~131 hotových)', en:'Finish the Michelin-chef rewrite (19/~131 done)', deadline:'2026-08-01T00:00:00+02:00' },
     { sk:'Founding-member ponuka naživo v appke, po prvom príjme', en:'Founding-member offer live in the app, after first revenue', deadline:'2026-08-01T00:00:00+02:00' },
   ]},
 };
