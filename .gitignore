@@ -1,2 +1,24 @@
+# OS / editor noise
 .DS_Store
+
+# Secrets & environment — never commit credentials of any kind
+.env
+.env.*
+*.pem
+*.key
+secrets*
+
+# Local tooling state
+node_modules/
+supabase/.temp/
+
+# Backups & dumps — real backups live in Supabase, not in git
+*.dump
+*.sql.gz
+backups/
+
+# iCloud offload placeholders (file content lives in iCloud, not on disk)
+*.icloud
+
+# Weekly working snapshots (large generated artifacts, per the Sunday automation)
 docs/snapshots/
