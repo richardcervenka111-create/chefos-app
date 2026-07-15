@@ -28,6 +28,10 @@
 -- Professional-standard suggestions, not verified against this specific kitchen's exact
 -- practice -- review before treating as gospel, same as any AI-generated content here.
 --
+-- Correction before this ever ran: the original LIMIT-20 pull only surfaced 2 of "Cheesecake,
+-- Bergamot & Strawberries"' 6 kitchen-copies (the other 4 were past row 20) -- a follow-up
+-- GROUP BY sections::text query caught it before running. The id list below now has all 6.
+--
 -- TEST ON chefos-staging FIRST, same as every other migration.
 
 -- Black Forest Mousse -- reads as a component base (scaled x1 -> x5 batch note), not a
@@ -56,4 +60,4 @@ update recipes set
   storage = 'Baked cheesecake keeps refrigerated up to 4 days. Bergamot gel keeps refrigerated, airtight, up to 5 days. Strawberry compote keeps refrigerated up to 3 days.',
   shelf_life = 'Cheesecake: 4 days refrigerated. Gel: 5 days refrigerated. Compote: 3 days refrigerated. Assemble the fresh strawberry slices just before serving — they weep once cut.',
   plating_suggestions = 'Dot or quenelle the bergamot gel rather than pooling it — its perfume is delicate and easily lost if overused; fresh strawberry slices and micro herbs go on last so they stay bright, not sitting in juices.'
-where id in ('1ece8a68-db25-4812-8f09-355d2d05aef3','6ff9d942-e090-43fb-8c2f-31aa28b61db9');
+where id in ('1ece8a68-db25-4812-8f09-355d2d05aef3','6ff9d942-e090-43fb-8c2f-31aa28b61db9','20f49b32-3f03-4d6e-ba8a-9fc3efc8aa82','b2b62cee-d22e-4f2c-9239-4a2e424e6c8e','fcbcacf4-65aa-4322-a1ee-7806258ed190','4d5b7b43-469c-4a6b-8aa7-b1ebd10bcdd9');
