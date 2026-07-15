@@ -1844,8 +1844,8 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">👋 Add Friend</div>
-    <p class="sheet-text">Have another chef scan this with ChefOS's Scan QR — you're connected the moment they do, no extra approval step.</p>
-    <div id="friendQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px;"></div>
+    <p class="sheet-text">Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code brings them into your kitchen too.</p>
+    <div id="friendQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px;"><p style="color:#333;">Loading…</p></div>
     <button class="sheet-cancel" style="width:100%; margin-top:14px;" onclick="closeMyFriendQr()">Close</button>
   </div>
 </div>
@@ -6567,8 +6567,17 @@ async function createOwnKitchen(){
 async function joinKitchenViaLink(kitchenId){
   const statusEl = document.getElementById('teamGateStatus');
   statusEl.textContent = 'Joining…';
+  // Personal "Add Friend" QR doubles as an invite (bod, 16.7.) — its URL carries both ?invite=
+  // and ?friend=, read before history.replaceState below wipes the query string. Best-effort:
+  // a failed connection must never block someone from actually joining the kitchen.
+  const friendId = new URLSearchParams(location.search).get('friend');
   const { error } = await sb.from('profiles').update({ kitchen_id: kitchenId }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
+  if(friendId && friendId !== currentUser.id){
+    sb.from('chef_connections').insert({ user_a: currentUser.id, user_b: friendId }).then(({ error: connErr })=>{
+      if(connErr && connErr.code !== '23505') console.error('chef_connections insert failed', connErr);
+    });
+  }
   history.replaceState(null, '', location.pathname);
   await startApp();
 }
@@ -6774,18 +6783,34 @@ function closeFriendRecipeDetail(){
   window.scrollTo(0,0);
 }
 
-/* Add Friend (bod 6) — my own personal QR. Encodes a plain URL with ?friend=<my user id> so
-   Scan QR (or, in a pinch, the phone's own native camera app) can act on it directly. Scanning
-   it in person IS the consent — see chef_connections' own comment (db/84) for why there's no
-   separate accept/reject step. */
-function showMyFriendQr(){
-  const url = location.origin + location.pathname + '?friend=' + currentUser.id;
+/* Add Friend (bod 6, extended 16.7.) — my own personal QR, now dual-purpose per Richard's
+   explicit call: "každý pozýva cez QR" — every kitchen member's personal QR also works as a
+   kitchen invite, not just admins'. Encodes BOTH ?invite=<real kitchen_invites token> (reused/
+   created via the same getOrCreateActiveInvite() the admin-only "Invite New Chef" flow already
+   uses — real, revocable, expiring, not a bare kitchen id) AND ?friend=<my user id>.
+     - Someone who already has a ChefOS account scans it in-app (Scan QR): handleScannedQrText()
+       checks ?friend first and only ever does the friend-connect, on purpose — an existing chef
+       in a different kitchen must never get silently moved into this one.
+     - Someone with NO account yet opens the same URL fresh (native camera app): signs in,
+       renderTeamGate() reads ?invite exactly like a normal invite link always has, and
+       joinKitchenViaLink() additionally reads ?friend and connects them as friends once they're
+       actually in — see its own comment for why that's safe to combine.
+   Deliberately relaxed at the DB level too (db/95) — kitchen_invites INSERT is no longer
+   admin-only, since this is now something every member's own QR does silently in the
+   background. Revoking an invite (My Team's "regenerate" button) stays admin-only; nothing
+   here changes who can take that link away. */
+async function showMyFriendQr(){
   const holder = document.getElementById('friendQrHolder');
+  holder.innerHTML = '<p style="color:#333;">Loading…</p>';
+  document.getElementById('myFriendQrOverlay').classList.add('open');
+  let inviteId;
+  try{ inviteId = await getOrCreateActiveInvite(); }
+  catch(err){ holder.innerHTML = `<p style="color:#333;">Could not load: ${err.message}</p>`; return; }
+  const url = location.origin + location.pathname + '?invite=' + inviteId + '&friend=' + currentUser.id;
   const qr = qrcode(0, 'M');
   qr.addData(url);
   qr.make();
   holder.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
-  document.getElementById('myFriendQrOverlay').classList.add('open');
 }
 function closeMyFriendQr(){ document.getElementById('myFriendQrOverlay').classList.remove('open'); }
 
@@ -6843,6 +6868,11 @@ function handleScannedQrText(text){
     return;
   }
   const params = url.searchParams;
+  // Checked first, on purpose: someone scanning this INSIDE the app already has a kitchen —
+  // the Add Friend QR's ?invite= (bod, 16.7.) must never move an existing chef into a
+  // different kitchen. It only ever does something for someone who doesn't have one yet,
+  // which happens through renderTeamGate()/joinKitchenViaLink() on a fresh page load instead,
+  // never through this in-app scan path.
   if(params.get('friend')){
     showConfirmFriend(params.get('friend'));
     return;
