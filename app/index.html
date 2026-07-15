@@ -1808,8 +1808,8 @@
     <button class="sheet-option" onclick="closeShareQrChoice(); showMyFriendQr();">
       <div><div class="sheet-option-title">1. Add friend</div><div class="sheet-option-sub">Show your personal QR — another chef scans it to connect</div></div>
     </button>
-    <button class="sheet-option" onclick="closeShareQrChoice(); openPausedFeature('📖 Share My Recipes', 'Not built yet — needs a real answer first for which recipes get shared and whether it\'s a read-only view or a copy. Tell Claude the shape you want and it\'s a quick build on top of what Add Friend already does.');">
-      <div><div class="sheet-option-title">2. Share my recipes</div><div class="sheet-option-sub">Coming soon</div></div>
+    <button class="sheet-option" onclick="closeShareQrChoice(); openShareMyRecipes();">
+      <div><div class="sheet-option-title">2. Share my recipes</div><div class="sheet-option-sub">Let your chef friends view recipes you created — read-only, off by default</div></div>
     </button>
     <button class="sheet-option" id="shareQrInviteChefBtn" onclick="closeShareQrChoice(); showTeamInvite();">
       <div><div class="sheet-option-title">3. Invite new chef</div><div class="sheet-option-sub">Add someone to your kitchen's team</div></div>
@@ -1860,6 +1860,49 @@
     </div>
     <div class="form-status" id="confirmFriendStatus"></div>
   </div>
+</div>
+
+<!-- Share My Recipes (bod 6, 16.7.) — the opt-in toggle. Off by default; turning it on lets
+     connected chef friends (chef_connections, db/84) VIEW recipes this person created —
+     read-only, never a copy, never teammates' recipes (db/89). -->
+<div id="shareMyRecipesOverlay" class="sheet-overlay" onclick="if(event.target===this) closeShareMyRecipes()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📖 Share My Recipes</div>
+    <p class="sheet-text">When ON, chefs you've connected with (Add Friend) can view recipes <b>you created</b> — read-only, in their Chef Friends screen. Recipes from your teammates or the ChefOS library are never shared. Turn it off anytime.</p>
+    <div id="shareMyRecipesToggleWrap"></div>
+    <div class="form-status" id="shareMyRecipesStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeShareMyRecipes()">Close</button>
+  </div>
+</div>
+
+<!-- Chef Friends (bod 6, 16.7.) — first-ever list of chef_connections + the reader side of
+     Share My Recipes. One view, two internal modes: friends list → one friend's shared recipes. -->
+<div id="friendsRecipesView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="friendsRecipesBack()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      <span id="friendsRecipesBackLabel">Connections</span>
+    </button>
+  </div>
+  <div class="detail-content">
+    <h2 class="recipe-title display" id="friendsRecipesTitle">👨‍🍳 Chef Friends</h2>
+    <p class="recipe-meta" id="friendsRecipesSubtitle"></p>
+    <div id="friendsRecipesList" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- Read-only detail of one shared recipe — deliberately NOT the normal recipe detail screen:
+     no edit, no scaling, no order/print buttons (those all act on the viewer's own kitchen data
+     and would misfire against a friend's recipe). -->
+<div id="friendRecipeDetailView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="closeFriendRecipeDetail()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      <span id="friendRecipeBackLabel">Recipes</span>
+    </button>
+  </div>
+  <div class="detail-content" id="friendRecipeDetailContent"></div>
 </div>
 
 <div id="adminRequestsView" style="display:none;">
@@ -6394,6 +6437,7 @@ async function joinKitchenViaLink(kitchenId){
 const CONNECTIONS_TILE_DEFS = [
   { key:'scanQr', icon:'📷', staticLabel:'Scan QR', onclick:'startQrScan()' },
   { key:'shareQr', icon:'📤', staticLabel:'Share QR Code', onclick:'openShareQrChoice()' },
+  { key:'chefFriends', icon:'👨‍🍳', staticLabel:'Chef Friends', onclick:'showChefFriends()' },
   { key:'myTeam', icon:'👥', staticLabel:'My Team', onclick:'showTeamInvite()' },
 ];
 function showConnections(){
@@ -6418,6 +6462,173 @@ function openShareQrChoice(){
   document.getElementById('shareQrOverlay').classList.add('open');
 }
 function closeShareQrChoice(){ document.getElementById('shareQrOverlay').classList.remove('open'); }
+
+/* ---------- Share My Recipes (bod 6, 16.7. — db/89) ----------
+   The opt-in toggle side. Off by default; state lives in profiles.recipes_shared and is read
+   fresh on every open (not cached at login) so two devices can't show stale opposite states.
+   The actual visibility enforcement is RLS ("read connected shared recipes", db/89) — this
+   toggle is the only thing the user has to understand: ON = connected friends can view, OFF =
+   nobody outside the kitchen sees anything. */
+let _myRecipesShared = false;
+async function openShareMyRecipes(){
+  const statusEl = document.getElementById('shareMyRecipesStatus');
+  statusEl.textContent = '';
+  document.getElementById('shareMyRecipesToggleWrap').innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('shareMyRecipesOverlay').classList.add('open');
+  const { data, error } = await sb.from('profiles').select('recipes_shared').eq('id', currentUser.id).single();
+  if(error){
+    document.getElementById('shareMyRecipesToggleWrap').innerHTML = '';
+    statusEl.textContent = 'Could not load — has db/89 been run? (' + error.message + ')';
+    return;
+  }
+  _myRecipesShared = !!(data && data.recipes_shared);
+  renderShareMyRecipesToggle();
+}
+function closeShareMyRecipes(){ document.getElementById('shareMyRecipesOverlay').classList.remove('open'); }
+function renderShareMyRecipesToggle(){
+  document.getElementById('shareMyRecipesToggleWrap').innerHTML = `
+    <div class="chip${_myRecipesShared?' active':''}" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleShareMyRecipes()">
+      <span><strong>Sharing is ${_myRecipesShared?'ON':'OFF'}</strong><br><span style="font-weight:400; font-size:12px;">${_myRecipesShared?'Connected chefs can view recipes you created.':'Nobody outside your kitchen can see your recipes.'}</span></span>
+      <span>${_myRecipesShared?'ON':'OFF'}</span>
+    </div>
+  `;
+}
+async function toggleShareMyRecipes(){
+  const statusEl = document.getElementById('shareMyRecipesStatus');
+  const next = !_myRecipesShared;
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('profiles').update({ recipes_shared: next }).eq('id', currentUser.id);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  _myRecipesShared = next;
+  statusEl.textContent = 'Saved.';
+  renderShareMyRecipesToggle();
+}
+
+/* ---------- Chef Friends (bod 6, 16.7.) — the reader side + the first-ever UI listing
+   chef_connections at all (Add Friend created them, but there was nowhere to SEE them).
+   Names/emails come through get_my_connections() (db/89, SECURITY DEFINER) — connections
+   cross kitchen boundaries, so the normal same-kitchen profiles RLS can't serve this, and the
+   function only exposes the 4 safe columns (never contract data). One view, two modes. */
+let _chefFriendRows = [];
+let _friendRecipeRows = [];
+let _friendRecipesMode = 'friends'; // 'friends' | 'recipes'
+async function showChefFriends(){
+  logEvent('view_opened', {view:'chef_friends'});
+  hideAllViews();
+  _friendRecipesMode = 'friends';
+  document.getElementById('friendsRecipesView').style.display = 'block';
+  document.getElementById('friendsRecipesBackLabel').textContent = 'Connections';
+  document.getElementById('friendsRecipesTitle').textContent = '👨‍🍳 Chef Friends';
+  document.getElementById('friendsRecipesSubtitle').textContent = 'Chefs you’ve connected with via Add Friend.';
+  const el = document.getElementById('friendsRecipesList');
+  el.innerHTML = '<p class="lede">Loading…</p>';
+  window.scrollTo(0,0);
+  const { data, error } = await sb.rpc('get_my_connections');
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  _chefFriendRows = data || [];
+  if(!_chefFriendRows.length){
+    el.innerHTML = '<div class="empty-state">No connections yet. Scan another chef’s QR (Share QR Code → Add friend) to connect.</div>';
+    return;
+  }
+  el.innerHTML = _chefFriendRows.map(f=>`
+    <div class="task-row" ${f.recipes_shared?`onclick="showFriendRecipes('${f.id}')" style="cursor:pointer;"`:''}>
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(f.full_name||f.email||'Unknown').replace(/</g,'&lt;')}</div>
+          <div class="meta">${(f.email||'').replace(/</g,'&lt;')} · ${f.recipes_shared?'📖 shares recipes — tap to view':'not sharing recipes'}</div>
+        </div>
+        ${f.recipes_shared?'<span style="font-size:18px;">›</span>':''}
+      </div>
+    </div>
+  `).join('');
+}
+function friendsRecipesBack(){
+  if(_friendRecipesMode === 'recipes'){ showChefFriends(); return; }
+  showConnections();
+}
+async function showFriendRecipes(friendId){
+  const friend = _chefFriendRows.find(f=>f.id===friendId);
+  if(!friend) return;
+  _friendRecipesMode = 'recipes';
+  document.getElementById('friendsRecipesBackLabel').textContent = 'Chef Friends';
+  document.getElementById('friendsRecipesTitle').textContent = '📖 ' + (friend.full_name || friend.email || 'Shared recipes');
+  document.getElementById('friendsRecipesSubtitle').textContent = 'Read-only — recipes this chef created and chose to share.';
+  const el = document.getElementById('friendsRecipesList');
+  el.innerHTML = '<p class="lede">Loading…</p>';
+  window.scrollTo(0,0);
+  const { data, error } = await sb.from('recipes').select('*').eq('created_by', friendId).order('title');
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  _friendRecipeRows = data || [];
+  if(!_friendRecipeRows.length){
+    el.innerHTML = '<div class="empty-state">Nothing shared right now — they may have turned sharing off, or haven’t created any recipes of their own yet.</div>';
+    return;
+  }
+  el.innerHTML = _friendRecipeRows.map(row=>`
+    <div class="task-row" onclick="openFriendRecipeDetail('${row.id}')" style="cursor:pointer;">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(row.title||'Untitled').replace(/</g,'&lt;')}</div>
+          <div class="meta">${[row.category, row.yield_text, row.difficulty].filter(Boolean).join(' · ') || '—'}</div>
+        </div>
+        <span style="font-size:18px;">›</span>
+      </div>
+    </div>
+  `).join('');
+}
+/* Read-only section renderer — same visual blocks as renderSection(), minus everything that
+   acts on the viewer's OWN kitchen data (ingredient info lookups, Add-to-Order buttons,
+   cross-recipe links): those would silently query the wrong kitchen against a friend's recipe. */
+function renderFriendSection(s){
+  let html = '<div class="block">';
+  if(s.heading) html += `<h3>${s.heading}</h3>`;
+  if(s.type === 'table'){
+    html += '<table class="ing">';
+    (s.rows||[]).forEach(row=>{ html += `<tr><td>${row[0]}</td><td class="qty mono">${row[1]||''}</td></tr>`; });
+    html += '</table>';
+  } else if(s.type === 'steps'){
+    html += '<ol class="method-list">' + (s.items||[]).map(i=>`<li>${i}</li>`).join('') + '</ol>';
+  } else if(s.type === 'list'){
+    html += '<ul class="bullet-list">' + (s.items||[]).map(i=>`<li>${i}</li>`).join('') + '</ul>';
+  } else if(s.type === 'text'){
+    html += `<div class="plain-text">${s.text||''}</div>`;
+  }
+  return html + '</div>';
+}
+function openFriendRecipeDetail(recipeId){
+  const row = _friendRecipeRows.find(x=>x.id===recipeId);
+  if(!row) return;
+  const r = dbRowToRecipe(row);
+  let html = '';
+  if(r.img) html += `<img class="hero" src="${r.img}" alt="${r.title}">`;
+  html += `<div class="detail-cat">${r.category}</div>`;
+  html += `<h2 class="recipe-title display">${r.title}</h2>`;
+  if(r.meta) html += `<div class="recipe-meta">${r.meta}</div>`;
+  const statPills = [];
+  if(r.yield) statPills.push(`<span class="stat-pill">${r.yield}</span>`);
+  if(r.time && (r.time.active || r.time.passive)){
+    const parts = [];
+    if(r.time.active) parts.push('Active ' + r.time.active);
+    if(r.time.passive) parts.push('Rest/cook ' + r.time.passive);
+    statPills.push(`<span class="stat-pill">${parts.join(' · ')}</span>`);
+  }
+  if(r.difficulty) statPills.push(`<span class="stat-pill ${diffTextClass(r.difficulty)}"><span class="list-diff-dot ${diffDotClass(r.difficulty)}"></span>${r.difficulty}</span>`);
+  if(r.cuisine) statPills.push(`<span class="stat-pill">${r.cuisine}</span>`);
+  if(statPills.length) html += `<div class="stat-row">${statPills.join('')}</div>`;
+  html += `<div class="scale-note" style="margin:0 0 16px 0;">📖 Read-only — shared by a chef friend. Costs, scaling and ordering are hidden because they belong to their kitchen, not yours.</div>`;
+  html += (r.sections||[]).map(renderFriendSection).join('');
+  if(r.equipment) html += `<div class="block"><h3>Equipment</h3><div class="plain-text">${r.equipment}</div></div>`;
+  if(r.chefNotes) html += `<div class="block"><h3>Chef's Notes</h3><div class="plain-text">${r.chefNotes}</div></div>`;
+  if(r.platingSuggestions) html += `<div class="block"><h3>Plating</h3><div class="plain-text">${r.platingSuggestions}</div></div>`;
+  document.getElementById('friendRecipeDetailContent').innerHTML = html;
+  hideAllViews();
+  document.getElementById('friendRecipeDetailView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+function closeFriendRecipeDetail(){
+  hideAllViews();
+  document.getElementById('friendsRecipesView').style.display = 'block';
+  window.scrollTo(0,0);
+}
 
 /* Add Friend (bod 6) — my own personal QR. Encodes a plain URL with ?friend=<my user id> so
    Scan QR (or, in a pinch, the phone's own native camera app) can act on it directly. Scanning
@@ -7550,7 +7761,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's

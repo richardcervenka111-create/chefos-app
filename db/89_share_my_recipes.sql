@@ -12,6 +12,12 @@
 
 alter table profiles add column if not exists recipes_shared boolean not null default false;
 
+-- db/62 locked profiles down to a column-level SELECT allow-list -- every new profiles column
+-- MUST be added to it or every query naming the column fails outright for the authenticated
+-- role (invisible in the SQL editor; this exact omission for admin_perms/email in db/85 caused
+-- the 2026-07-16 super-admin lockout, fixed in db/90). Never skip this line again.
+grant select (recipes_shared) on profiles to authenticated;
+
 -- A recipe becomes visible outside its own kitchen only if: it's ChefOS/Moje-shelf-owned by a
 -- real person (created_by is not null -- Firemné/teammate recipes never qualify, since sharing
 -- a colleague's work without their own opt-in would defeat the whole point of this being
