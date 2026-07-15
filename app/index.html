@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ChefOS</title>
+
+<!-- Add-to-Home-Screen setup (Richard, 15.7. — bod 6): a real app icon + manifest instead of
+     the blank/placeholder tile iOS shows when a site has none. Icons are the app's own ring
+     mark (same SVG used in the topbar brandmark elsewhere), rendered at each required size. -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-32.png" sizes="32x32">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0A1A2F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChefOS">
 <style>
   :root{
     /* Tells the browser/OS this page is always dark, regardless of the device's own light/
@@ -1488,7 +1500,10 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">📲 Add ChefOS to your phone</div>
-    <p class="sheet-text">ChefOS installs like an app — no App Store needed. One minute, once:</p>
+    <div style="display:flex; align-items:center; gap:12px; margin:4px 0 12px 0;">
+      <img src="icons/icon-192.png" width="52" height="52" style="border-radius:12px; flex:none;" alt="ChefOS icon">
+      <p class="sheet-text" style="margin:0;">This icon lands on your home screen — no App Store needed. One minute, once:</p>
+    </div>
     <label class="form-label" style="margin-top:12px;">iPhone / iPad (Safari)</label>
     <p class="sheet-text">1. Open <b>app.chefos.ch</b> in <b>Safari</b> (not Chrome/Instagram browser)<br>
     2. Tap the <b>Share</b> button <span style="opacity:0.8;">(square with arrow ⬆️, bottom center)</span><br>
