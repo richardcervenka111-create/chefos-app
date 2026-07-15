@@ -127,7 +127,7 @@
       <div class="meta-card"><div class="meta-label" data-sk="Mesačný strop (opakované úlohy)" data-en="Monthly cap (recurring tasks)"></div><div class="meta-value">CHF 30</div></div>
       <div class="meta-card clickable" onclick="toggleTimeline()" id="totalCard">
         <div class="meta-label" data-sk="Celkový beh projektu (self-reported)" data-en="Total project run (self-reported)"></div>
-        <div class="meta-value">~CHF 141 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
+        <div class="meta-value">~CHF 238.73 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
       </div>
     </div>
 
@@ -251,6 +251,9 @@ const SPEND_TIMELINE = [
   { sk:'15.7.2026 — prvý beh denného ingredient agenta', en:'Jul 15, 2026 — first daily ingredient-agent run',
     note_sk:'Self-reported odhad z docs/ingredient_agent_log.md (overenie 16 základných surovín, db/67).', note_en:'Self-reported estimate from docs/ingredient_agent_log.md (verified 16 staple items, db/67).',
     amount:'~CHF 1.20' },
+  { sk:'15.7.2026 (noc) — nové náklady na projekt', en:'Jul 15, 2026 (late night) — new project costs',
+    note_sk:'Nahlásené priamo Richardom — presné zaradenie/účel zatiaľ neupresnené v tomto zázname.', note_en:'Reported directly by Richard — exact category/purpose not yet specified in this entry.',
+    amount:'CHF 97.73' },
 ];
 function renderTimeline(){
   const el = document.getElementById('timelineList');

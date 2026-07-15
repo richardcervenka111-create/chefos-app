@@ -1518,6 +1518,19 @@
   </div>
 </div>
 
+<!-- Email contacts database (bod 8, 15.7.) — every email ChefOS has touched, admin-only. -->
+<div id="emailContactsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeEmailContacts()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📧 Email Contacts</div>
+    <p class="sheet-text">Every address ChefOS has seen — access requests, invites sent. Self-reported source, not verified deliverability.</p>
+    <button class="save-btn" style="width:100%; margin-top:8px;" onclick="copyAllEmailContacts()">Copy all emails</button>
+    <div class="form-status" id="emailContactsCopyStatus"></div>
+    <div id="emailContactsList" style="margin-top:10px;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeEmailContacts()">Close</button>
+  </div>
+</div>
+
 <!-- Generic reading log used by Goods Receiving / Core Cooking Temp / Cooling Log — same
      shape (a label, an optional numeric reading, an OK/Problem judgement, a note), so one
      screen serves all three via HACCP_MEASUREMENT_CONFIG instead of three near-identical ones.
@@ -1698,6 +1711,21 @@
     <button class="save-btn" style="width:100%; margin-top:14px;" onclick="saveMyProfileGate()">Save and continue</button>
     <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="skipMyProfileGate()">Skip for now</button>
     <div class="form-status" id="myProfileGateStatus"></div>
+  </div>
+</div>
+
+<!-- Mandatory password (bod 7, 15.7.) — one-time gate, same visual pattern as the
+     confidentiality/profile gates above. Not skippable: the email code always still works to
+     sign in, but every account now also needs a password as a second, faster way in. -->
+<div id="passwordGateView" style="display:none;">
+  <div class="box">
+    <div class="login-mark">🔒</div>
+    <h1 class="title display">Set a Password</h1>
+    <p class="lede">One-time step. Your emailed code will always work too, but a password gets you in faster next time — especially on a shared kitchen device.</p>
+    <input class="form-field" id="pg_password" type="password" placeholder="New password (min 8 characters)" autocomplete="new-password" style="margin-top:14px;">
+    <input class="form-field" id="pg_password_confirm" type="password" placeholder="Confirm password" autocomplete="new-password" style="margin-top:10px;">
+    <button class="save-btn" style="width:100%; margin-top:14px;" onclick="savePasswordGate()">Set password and continue</button>
+    <div class="form-status" id="passwordGateStatus"></div>
   </div>
 </div>
 
@@ -5642,6 +5670,8 @@ async function setAccountPassword(){
     statusEl.className = 'form-status error';
     return;
   }
+  const { error: flagErr } = await sb.from('profiles').update({ password_set: true }).eq('id', currentUser.id);
+  if(flagErr) logClientError('setAccountPassword password_set flag failed: ' + flagErr.message);
   document.getElementById('mps_new_password').value = '';
   statusEl.textContent = 'Password set — you can now sign in with your email + this password too.';
   statusEl.className = 'form-status success';
@@ -5783,6 +5813,11 @@ async function startApp(){
     return;
   }
 
+  if(!(await hasSetPassword())){
+    document.getElementById('passwordGateView').style.display = 'block';
+    return;
+  }
+
   if(!(await hasCompletedMyProfile())){
     document.getElementById('myProfileGateView').style.display = 'block';
     return;
@@ -5846,11 +5881,45 @@ async function confirmConfidentialityAccept(){
   }
   document.getElementById('confidentialityGateView').style.display = 'none';
 
+  if(!(await hasSetPassword())){
+    document.getElementById('passwordGateView').style.display = 'block';
+    return;
+  }
+
   if(!(await hasCompletedMyProfile())){
     document.getElementById('myProfileGateView').style.display = 'block';
     return;
   }
 
+  await enterApp();
+}
+
+/* Mandatory password (bod 7, 15.7.) — same fail-OPEN reasoning as the other gates: if db/83
+   hasn't been run yet, treat it as already set rather than locking everyone out. Not skippable
+   once the column exists — this gate has no "skip" button on purpose, unlike My Profile. */
+async function hasSetPassword(){
+  const { data, error } = await sb.from('profiles').select('password_set').eq('id', currentUser.id).maybeSingle();
+  if(error){ logClientError('hasSetPassword: ' + error.message); return true; }
+  return !!(data && data.password_set);
+}
+async function savePasswordGate(){
+  const pw = document.getElementById('pg_password').value;
+  const pwConfirm = document.getElementById('pg_password_confirm').value;
+  const statusEl = document.getElementById('passwordGateStatus');
+  if(!pw || pw.length < 8){ statusEl.textContent = 'Password must be at least 8 characters.'; statusEl.className = 'form-status error'; return; }
+  if(pw !== pwConfirm){ statusEl.textContent = 'Passwords do not match.'; statusEl.className = 'form-status error'; return; }
+  statusEl.className = 'form-status';
+  statusEl.textContent = 'Saving…';
+  const { error: pwErr } = await sb.auth.updateUser({ password: pw });
+  if(pwErr){ statusEl.textContent = 'Could not save: ' + pwErr.message; statusEl.className = 'form-status error'; return; }
+  const { error: profErr } = await sb.from('profiles').update({ password_set: true }).eq('id', currentUser.id);
+  if(profErr){ statusEl.textContent = 'Could not save: ' + profErr.message; statusEl.className = 'form-status error'; return; }
+  document.getElementById('passwordGateView').style.display = 'none';
+
+  if(!(await hasCompletedMyProfile())){
+    document.getElementById('myProfileGateView').style.display = 'block';
+    return;
+  }
   await enterApp();
 }
 
@@ -5981,12 +6050,23 @@ function getJoinTargetFromUrl(){
   return { invite: params.get('invite') || null, legacyKitchenId: params.get('join') || null };
 }
 
+/* Invite-only lockdown (Richard, 15.7. late night, bod 5): "nikto okrem
+   richard.cervenka@icloud.com sa dnu nedostane, iba ja môžem vytvárať invitation QR kódy
+   alebo posielať linky." Self-serve "create your own kitchen" is now reserved for the
+   super-admin account only — everyone else's only way in is a real invite link/QR someone
+   with admin rights (only Richard, per db/80) sent them. This is enforced twice: here in the
+   UI (so nobody even sees the option) and at the database level (db/81 — kitchen_invites can
+   only be created/revoked by an admin), the same belt-and-suspenders pattern as the admin
+   lockdown itself. */
+const CHEFOS_SUPER_ADMIN_EMAIL = 'richard.cervenka@icloud.com';
+
 async function renderTeamGate(){
   document.getElementById('teamGateView').style.display = 'block';
   const el = document.getElementById('teamGateContent');
   el.innerHTML = `<p class="lede">Checking your access…</p>`;
 
   const email = (currentUser.email || '').toLowerCase();
+  const isSuperAdmin = email === CHEFOS_SUPER_ADMIN_EMAIL;
   let { data: reqRow } = await sb.from('access_requests').select('*').eq('email', email).order('requested_at', { ascending:false }).limit(1).maybeSingle();
 
   if(!reqRow){
@@ -5997,6 +6077,12 @@ async function renderTeamGate(){
     sb.functions.invoke('notify-access-request', { body: { email } }).catch(err=>{
       console.error('notify-access-request failed', err);
     });
+    // Email contacts database (bod 8) — first sighting of this address. Best-effort, same as
+    // the notification above: a logging failure must never block someone from getting in.
+    sb.from('email_contacts').upsert(
+      { email, source: 'access_request', status: 'new' },
+      { onConflict: 'email,source', ignoreDuplicates: true }
+    ).then(({ error })=>{ if(error) console.error('email_contacts upsert failed', error); });
   }
 
   if(!reqRow || reqRow.status === 'pending'){
@@ -6013,7 +6099,8 @@ async function renderTeamGate(){
     return;
   }
 
-  // Approved — either join the kitchen from an invite link, or create a brand new one.
+  // Approved — join the kitchen from an invite link, or (super-admin only) create a brand
+  // new one from scratch.
   const { invite, legacyKitchenId } = getJoinTargetFromUrl();
   let targetKitchenId = null;
   let invalidInviteReason = '';
@@ -6027,20 +6114,24 @@ async function renderTeamGate(){
     targetKitchenId = legacyKitchenId; // old-format link shared before invites existed
   }
 
+  const createOwnKitchenBlock = `
+    <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco" style="margin-top:12px;">
+    <button class="save-btn" style="width:100%;" onclick="createOwnKitchen()">Create my kitchen</button>
+    <div class="form-status" id="teamGateStatus"></div>`;
+  const noInviteMessage = `<p class="lede">ChefOS is invite-only right now — ask whoever should be inviting you for their link or QR code. There's no self-signup path.</p>`;
+
   if(invite || legacyKitchenId){
     if(!targetKitchenId){
-      el.innerHTML = `<p class="lede">${invalidInviteReason || "That invite link doesn't point to a real team."} Or create your own kitchen below.</p>
-        <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco" style="margin-top:12px;">
-        <button class="save-btn" style="width:100%;" onclick="createOwnKitchen()">Create my kitchen</button>
-        <div class="form-status" id="teamGateStatus"></div>`;
+      el.innerHTML = isSuperAdmin
+        ? `<p class="lede">${invalidInviteReason || "That invite link doesn't point to a real team."} Or create your own kitchen below.</p>${createOwnKitchenBlock}`
+        : `<p class="lede">${invalidInviteReason || "That invite link doesn't point to a real team."}</p>${noInviteMessage}`;
       return;
     }
     const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', targetKitchenId).maybeSingle();
     if(!kitchen){
-      el.innerHTML = `<p class="lede">That invite link doesn't point to a real team. Ask whoever sent it for a fresh one, or create your own kitchen below.</p>
-        <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco" style="margin-top:12px;">
-        <button class="save-btn" style="width:100%;" onclick="createOwnKitchen()">Create my kitchen</button>
-        <div class="form-status" id="teamGateStatus"></div>`;
+      el.innerHTML = isSuperAdmin
+        ? `<p class="lede">That invite link doesn't point to a real team. Ask whoever sent it for a fresh one, or create your own kitchen below.</p>${createOwnKitchenBlock}`
+        : `<p class="lede">That invite link doesn't point to a real team. Ask whoever sent it for a fresh one.</p>${noInviteMessage}`;
       return;
     }
     el.innerHTML = `
@@ -6052,13 +6143,10 @@ async function renderTeamGate(){
     return;
   }
 
-  el.innerHTML = `
-    <p class="login-tagline">Set up your kitchen</p>
-    <p class="lede">You're approved. Name your restaurant/kitchen to get started — you can invite your team afterwards.</p>
-    <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco">
-    <button class="save-btn" style="width:100%;" onclick="createOwnKitchen()">Create my kitchen</button>
-    <div class="form-status" id="teamGateStatus"></div>
-  `;
+  el.innerHTML = isSuperAdmin
+    ? `<p class="login-tagline">Set up your kitchen</p>
+       <p class="lede">You're approved. Name your restaurant/kitchen to get started — you can invite your team afterwards.</p>${createOwnKitchenBlock}`
+    : `<p class="login-tagline">You're approved</p>${noInviteMessage}`;
 }
 
 async function createOwnKitchen(){
@@ -6178,6 +6266,13 @@ async function sendInviteByEmail(){
     logClientError('sendInviteByEmail failed: ' + (error.message || JSON.stringify(error)));
     return;
   }
+  // Email contacts database (bod 8) — this was the actual gap: an invite email went out but
+  // nowhere in ChefOS's own tables remembered who it went to. Best-effort, never blocks the
+  // "sent" confirmation the person just saw.
+  sb.from('email_contacts').upsert(
+    { email: email.toLowerCase(), source: 'invite_sent', kitchen_id: currentKitchenId, status: 'new' },
+    { onConflict: 'email,source' }
+  ).then(({ error: ecErr })=>{ if(ecErr) console.error('email_contacts upsert failed', ecErr); });
   statusEl.textContent = `Sent to ${email} — ask them to check their inbox (and spam/junk folder).`;
   emailField.value = '';
 }
@@ -7201,11 +7296,13 @@ const SETTINGS_TILE_DEFS = [
   { key:'scanSettings', icon:'🔑', staticLabel:'AI & Scan Settings', onclick:'openScanSettings()' },
   { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
+  { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:true },
   { key:'reorderHome', icon:'↕️', staticLabel:'Reorder Home Icons', onclick:'openHomeReorder()' },
   { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
   { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
   { key:'tutorial', icon:'❓', staticLabel:'Tutorial', onclick:'openTutorial()' },
   { key:'legal', icon:'🔒', staticLabel:'Privacy & Terms', onclick:"window.open('legal.html','_blank')" },
+  { key:'signOut', icon:'🚪', staticLabel:'Sign Out', onclick:'confirmSignOut()' },
 ];
 function showSettings(){
   logEvent('view_opened', {view:'settings'});
@@ -7236,6 +7333,59 @@ function openLanguagePicker(){
 function closeLanguagePicker(){ document.getElementById('languagePickerOverlay').classList.remove('open'); }
 function openInstallGuide(){ document.getElementById('installGuideOverlay').classList.add('open'); }
 function closeInstallGuide(){ document.getElementById('installGuideOverlay').classList.remove('open'); }
+
+let _emailContactRows = [];
+async function openEmailContacts(){
+  const el = document.getElementById('emailContactsList');
+  el.innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('emailContactsCopyStatus').textContent = '';
+  document.getElementById('emailContactsOverlay').classList.add('open');
+  const { data, error } = await sb.from('email_contacts').select('*').order('last_seen_at', { ascending:false });
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  _emailContactRows = data || [];
+  if(!_emailContactRows.length){ el.innerHTML = '<div class="empty-state">No emails recorded yet.</div>'; return; }
+  const sourceLabel = { access_request:'requested access', invite_sent:'sent an invite', signup:'signed up' };
+  el.innerHTML = _emailContactRows.map(r=>`
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${r.email.replace(/</g,'&lt;')}</div>
+          <div class="meta">${sourceLabel[r.source] || r.source} · ${r.status} · ${new Date(r.last_seen_at).toLocaleDateString('sk-SK')}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function closeEmailContacts(){ document.getElementById('emailContactsOverlay').classList.remove('open'); }
+function copyAllEmailContacts(){
+  const statusEl = document.getElementById('emailContactsCopyStatus');
+  if(!_emailContactRows.length){ statusEl.textContent = 'Nothing to copy yet.'; return; }
+  const uniqueEmails = [...new Set(_emailContactRows.map(r=>r.email))];
+  navigator.clipboard.writeText(uniqueEmails.join(', ')).then(()=>{
+    statusEl.textContent = `Copied ${uniqueEmails.length} email(s).`;
+  }).catch(()=>{
+    statusEl.textContent = 'Could not copy — select manually.';
+  });
+}
+
+/* Sign out (bod 2, 15.7.) — there was no way to actually leave a shared kitchen device before
+   this; sessionStorage already ends the session on browser close, but someone handing a tablet
+   to the next shift needs to do it NOW, not just eventually. Clears the Supabase session, resets
+   in-memory state, and drops back to a fresh login screen. */
+async function confirmSignOut(){
+  if(!confirm('Sign out of ChefOS on this device?')) return;
+  await sb.auth.signOut();
+  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentUserName = '';
+  if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
+  hideAllViews();
+  document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginStatus1').textContent = '';
+  document.getElementById('loginView').style.display = 'block';
+  renderLoginFaceIdBlock();
+  window.scrollTo(0,0);
+}
 
 let _homeReorderList = [];
 function openHomeReorder(){
