@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Pre-Seed Critical Review · July 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0A1A2F; --paper:#122845; --paper2:#0f2340; --well:#0c1e37;
+  --ink:#F4F7FA; --dim:#9aa7b8; --faint:rgba(154,167,184,.55);
+  --rule:#223d57; --rule2:#1a3350;
+  --teal:#34F7D7; --teal-dim:rgba(52,247,215,.35); --teal-bg:rgba(52,247,215,.07);
+  --gold:#F7C948; --gold-dim:rgba(247,201,72,.35); --gold-bg:rgba(247,201,72,.08);
+  --red:#FF6B7A; --red-dim:rgba(255,107,122,.35); --red-bg:rgba(255,107,122,.08);
+  --serif:"Fraunces", Georgia, "Times New Roman", serif;
+  --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.62;-webkit-font-smoothing:antialiased;font-size:15px}
+.wrap{max-width:1020px;margin:0 auto;padding:0 22px 100px}
+a{color:var(--gold)}
+p{color:var(--dim);margin:10px 0}
+strong{color:var(--ink)} em{color:var(--ink)}
+::selection{background:var(--teal);color:#06253f}
+
+/* ——— station tickets (section headers) ——— */
+.station{margin-top:96px;border-top:1px solid var(--rule);padding-top:34px;position:relative}
+.station:first-of-type{border-top:none}
+.ticket{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.ticket .no{font-family:var(--mono);font-size:13px;color:var(--teal);letter-spacing:.12em;border:1px solid var(--teal-dim);border-radius:4px;padding:3px 9px;background:var(--teal-bg)}
+.ticket h2{font-family:var(--serif);font-weight:560;font-style:italic;font-size:33px;margin:0;letter-spacing:-.01em}
+.ticket .brief{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.lede{font-size:16.5px;color:var(--dim);max-width:820px}
+.lede strong{color:var(--ink)}
+
+/* ——— expo stamps: FIRE / HOLD / 86 ——— */
+.stamp{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.16em;padding:2px 9px;border-radius:3px;transform:rotate(-1.2deg);white-space:nowrap;vertical-align:middle}
+.fire{color:#06253f;background:var(--teal);}
+.hold{color:#3d2f00;background:var(--gold);}
+.s86{color:#fff;background:#b7404f;}
+.watch{color:var(--dim);background:transparent;border:1px dashed var(--rule);transform:none}
+
+/* ——— cards & grids ——— */
+.grid{display:grid;gap:14px;margin:22px 0}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:18px 20px}
+.card h4{margin:0 0 8px;font-size:13px;font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600}
+.card.goldc h4{color:var(--gold)} .card.redc h4{color:var(--red)}
+.card.goldc{border-color:var(--gold-dim)} .card.redc{border-color:var(--red-dim)}
+.card p,.card li{font-size:13.8px}
+.card ul{margin:6px 0;padding-left:18px}
+.card li{margin:5px 0;color:var(--dim)}
+.kpi{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:16px 18px}
+.kpi .n{font-family:var(--serif);font-size:34px;font-weight:600;color:var(--ink);line-height:1.1}
+.kpi .n.teal{color:var(--teal)} .kpi .n.gold{color:var(--gold)} .kpi .n.red{color:var(--red)}
+.kpi .l{font-size:12px;color:var(--faint);margin-top:4px;line-height:1.45}
+
+/* ——— tables ——— */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13.3px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);font-weight:500}
+td{padding:11px 10px;border-bottom:1px solid var(--rule2);color:var(--dim);vertical-align:top}
+td b, td strong{color:var(--ink);font-weight:600}
+tr:hover td{background:rgba(255,255,255,.015)}
+.num{font-family:var(--mono);font-size:12.5px}
+.tscroll{overflow-x:auto;margin:0 -22px;padding:0 22px}
+.tscroll table{min-width:720px}
+
+/* ——— bar charts ——— */
+.bars{margin:20px 0}
+.bar-row{display:grid;grid-template-columns:190px 1fr 86px;gap:12px;align-items:center;margin:9px 0}
+@media(max-width:640px){.bar-row{grid-template-columns:120px 1fr 74px}}
+.bar-row .bl{font-size:12.8px;color:var(--dim)}
+.bar-row .bv{font-family:var(--mono);font-size:12px;color:var(--ink);text-align:right}
+.track{height:12px;background:var(--well);border-radius:6px;overflow:hidden;border:1px solid var(--rule2)}
+.fill{height:100%;border-radius:6px;background:linear-gradient(90deg,rgba(52,247,215,.55),var(--teal))}
+.fill.g{background:linear-gradient(90deg,rgba(247,201,72,.5),var(--gold))}
+.fill.r{background:linear-gradient(90deg,rgba(255,107,122,.5),var(--red))}
+.fill.ghost{background:repeating-linear-gradient(45deg,rgba(154,167,184,.35) 0 6px,transparent 6px 12px)}
+
+.note{border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 10px 10px 0;padding:13px 17px;margin:20px 0;font-size:13.6px;color:var(--dim)}
+.note.red{border-left-color:var(--red);background:var(--red-bg)}
+.note.teal{border-left-color:var(--teal);background:var(--teal-bg)}
+.note.claude{border-left-color:#B388FF;background:rgba(179,136,255,.08)}
+.note.claude .tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#B388FF;border:1px solid rgba(179,136,255,.4);border-radius:4px;padding:2px 7px;margin-bottom:8px}
+.note b{color:var(--ink)}
+.mono{font-family:var(--mono)}
+h3{font-family:var(--serif);font-style:italic;font-weight:560;font-size:21px;margin:36px 0 8px;color:var(--ink)}
+.small{font-size:12px;color:var(--faint)}
+code{font-family:var(--mono);font-size:12.5px;background:var(--well);border:1px solid var(--rule2);border-radius:4px;padding:1px 6px;color:var(--teal)}
+
+/* ——— cover ——— */
+.cover{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:70px 0 40px;position:relative}
+.cover::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 900px 520px at 50% -160px, rgba(52,247,215,.08), transparent);pointer-events:none}
+.cover .rail{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:22px}
+.cover h1{font-family:var(--serif);font-weight:420;font-size:clamp(40px,7vw,74px);line-height:1.04;margin:0 0 10px;letter-spacing:-.015em}
+.cover h1 em{font-style:italic;color:var(--teal);font-weight:560}
+.cover .sub{font-size:17.5px;color:var(--dim);max-width:700px}
+.verdictline{margin-top:44px;border:1px solid var(--rule);border-radius:14px;background:var(--paper);padding:22px 26px}
+.verdictline .vh{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.verdictline .vt{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.4;color:var(--ink)}
+.covermeta{display:flex;gap:26px;flex-wrap:wrap;margin-top:34px;font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.06em}
+.toc{margin-top:56px;columns:2;column-gap:40px;font-size:13px}
+@media(max-width:640px){.toc{columns:1}}
+.toc a{display:block;color:var(--dim);text-decoration:none;padding:5px 0;border-bottom:1px dotted var(--rule2)}
+.toc a:hover{color:var(--teal)}
+.toc .tno{font-family:var(--mono);color:var(--teal);font-size:11px;margin-right:8px}
+
+/* SWOT */
+.swot{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.swot{grid-template-columns:1fr}}
+/* priority matrix */
+.pm{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}
+@media(max-width:700px){.pm{grid-template-columns:1fr}}
+.axis{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:center;margin:6px 0}
+footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-size:12px;color:var(--faint)}
+@media print{ body{background:#0A1A2F!important} .station{page-break-before:always} .cover{min-height:auto} }
+
+/* Week-by-week review navigation (2026-07-15, Richard's t85 ask) */
+.review-nav{position:sticky;top:0;z-index:60;background:rgba(10,26,47,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:4px;padding:0 16px;overflow-x:auto}
+.review-nav .rn-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-right:8px;white-space:nowrap}
+.review-nav a{flex:none;padding:11px 13px;font-size:12px;font-weight:600;color:var(--dim);text-decoration:none;border-bottom:2px solid transparent;white-space:nowrap}
+.review-nav a:hover{color:var(--ink)}
+.review-nav a.current{color:var(--teal);border-bottom-color:var(--teal)}
+</style>
+</head>
+<body>
+<nav class="review-nav"><span class="rn-label">Critical Review — týždeň po týždni</span><a href="CRITICAL_REVIEW_2026-07-13.html" class="current">13.07.2026</a><a href="CRITICAL_REVIEW_2026-07-15.html">15.07.2026</a></nav>
+
+<div class="wrap">
+
+<!-- ============================ COVER ============================ -->
+<section class="cover">
+  <div class="rail">ChefOS · Internal strategy review · Pre-seed · Confidential</div>
+  <h1>The state of the pass,<br><em>read without mercy.</em></h1>
+  <p class="sub">A full critical review of ChefOS as of <strong>13 July 2026</strong> — every uploaded document read and cross-referenced: the live app (<span class="mono">index.html</span>), the complete roadmap log, status, backlog, task list, monetization workshop, investor deck, visual guide, and all nine <span class="mono">docs/</span> files. Sixteen deliverables, one honest thesis.</p>
+
+  <div class="verdictline">
+    <div class="vh">Verdict, one plate</div>
+    <div class="vt">ChefOS has a real wedge and rare founder-market fit — but its bottleneck is not features. It is <span style="color:var(--teal)">verification</span>, <span style="color:var(--gold)">founder capacity</span>, and <span style="color:var(--red)">two ten-minute legal tasks</span>. The next 60 days should ship almost nothing new.</div>
+  </div>
+
+  <div class="covermeta">
+    <span>PREPARED FOR — RICHARD ČERVENKA</span>
+    <span>SOURCES — 19 PROJECT DOCUMENTS + MARKET RESEARCH</span>
+    <span>STATUS — WORKING DOCUMENT, NOT LEGAL/FINANCIAL ADVICE</span>
+    <span>NEXT IN SERIES — <a href="CRITICAL_REVIEW_2026-07-15.html" style="color:var(--teal)">15 Jul 2026 review ▸</a></span>
+  </div>
+
+  <nav class="toc">
+    <a href="#s01"><span class="tno">01</span>Executive summary</a>
+    <a href="#s02"><span class="tno">02</span>Reality check — where the documents disagree</a>
+    <a href="#s03"><span class="tno">03</span>Product analysis — module by module</a>
+    <a href="#s04"><span class="tno">04</span>Competitive landscape &amp; the path to category leadership</a>
+    <a href="#s05"><span class="tno">05</span>UX audit</a>
+    <a href="#s06"><span class="tno">06</span>UI recommendations</a>
+    <a href="#s07"><span class="tno">07</span>Feature brainstorm — behind a feature freeze</a>
+    <a href="#s08"><span class="tno">08</span>Revenue model &amp; honest ARR scenarios</a>
+    <a href="#s09"><span class="tno">09</span>Go-to-market ladder</a>
+    <a href="#s10"><span class="tno">10</span>Exit strategy — the honest version</a>
+    <a href="#s11"><span class="tno">11</span>Roadmap: now / next / later / future</a>
+    <a href="#s12"><span class="tno">12</span>SWOT</a>
+    <a href="#s13"><span class="tno">13</span>Investor readiness — would I invest?</a>
+    <a href="#s14"><span class="tno">14</span>Priority matrix</a>
+    <a href="#s15"><span class="tno">15</span>What's missing entirely</a>
+    <a href="#s16"><span class="tno">16</span>Master plan — the next 12 months</a>
+  </nav>
+</section>
+
+<!-- ============================ 01 EXEC SUMMARY ============================ -->
+<section class="station" id="s01">
+  <div class="ticket"><span class="no">TICKET 01</span><h2>Executive summary</h2><span class="brief">Deliverable 1</span></div>
+  <p class="lede"><strong>What ChefOS is today:</strong> a live, multi-tenant kitchen-management web app (recipes with cost &amp; nutrition, a real-time prep board, ~1,263 priced ingredients, ordering, HACCP labels, working-time tracking, AI assistant) built solo in weeks by a working chef, running on Supabase + GitHub Pages, in genuine daily use by <strong>3 people in one pilot kitchen</strong> (Burrito Bandito &amp; Lido, Bern). Zero revenue, zero legal entity, one canton, one founder — who starts a new 80% chef job in roughly two weeks.</p>
+
+  <div class="grid g4">
+    <div class="kpi"><div class="n teal">173</div><div class="l">Professional recipes live, 20-field format, cost-matched</div></div>
+    <div class="kpi"><div class="n teal">1,263</div><div class="l">Ingredients priced — but only 104 supplier-verified; the rest AI-estimated</div></div>
+    <div class="kpi"><div class="n gold">3</div><div class="l">Active users. Every strategic claim rests on this number</div></div>
+    <div class="kpi"><div class="n red">CHF 0</div><div class="l">Revenue. Blocked by two admin tasks, not by the product</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card"><h4>Biggest strengths</h4><ul>
+      <li><b>Founder–market fit that money can't buy.</b> A Chef de Partie who has worked London fine dining and Swiss five-star kitchens, building for the exact user he is. Competitors' founders sell to chefs; Richard <em>is</em> one. This is the single most investable fact in the whole project.</li>
+      <li><b>A live pilot with real data.</b> Not mockups: 173 real recipes, real prep sheets, real supplier price list (Caviezel Giovanettoni) partially imported, real attendance data. Most pre-seed decks would kill for this.</li>
+      <li><b>Extraordinary build velocity at near-zero burn.</b> ~$45 total AI spend; recipes → prep board → multi-tenant → realtime sync → staging environment in days. Capital efficiency is genuinely elite.</li>
+      <li><b>Unusual self-honesty in the documentation.</b> Estimated prices are labeled estimated; illustrative ARR is labeled illustrative; the status doc itself says "quality lags scope." Investors reward this; keep it.</li>
+      <li><b>A disciplined beachhead.</b> Canton Bern first, one named expansion target (Nooch, 3 Bern locations), monetization already reduced to one simple plan.</li>
+    </ul></div>
+    <div class="card redc"><h4>Biggest weaknesses</h4><ul>
+      <li><b>Capacity math that doesn't close.</b> An 80% kitchen job starting late July + solo development + a public trial on 1 August + CHF 990 onboarding days sold personally. Something in that sentence is false; the plan doesn't say which.</li>
+      <li><b>Velocity &gt; verification.</b> Dozens of features shipped without ever being opened on a real device; two script-order bugs and one RLS recursion already took the whole app down. The regression checklist exists — it has never been fully run.</li>
+      <li><b>English UI for a German-speaking market.</b> The Bern brigade — commis, casseroliers — is the actual daily user. This is flagged in the backlog and still unresolved. It is the largest product gap, ahead of any feature.</li>
+      <li><b>A cost tool built on estimated costs.</b> ~92% of ingredient prices are AI guesses. A chef who spots one wrong price stops trusting every number on the screen.</li>
+      <li><b>One 547&nbsp;KB HTML file.</b> Heroic for a prototype; a maintenance wall for a product. No tests, no build, no second contributor possible.</li>
+      <li><b>No POS integration story.</b> Every serious competitor computes <em>actual vs. theoretical</em> food cost from sales data. ChefOS currently can't, and no document mentions it.</li>
+    </ul></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card goldc"><h4>Biggest opportunities</h4><ul>
+      <li><b>The chef-led onboarding wedge.</b> "A working chef personally digitizes your kitchen for CHF 990" is a service no VC-funded competitor can credibly offer. It converts Richard's day job from a liability into the sales channel.</li>
+      <li><b>The line, not the office.</b> MarketMan, Apicbase, MarginEdge live on a manager's laptop weekly. ChefOS lives in a cook's wet hands hourly. Daily habitual use is the moat none of them have.</li>
+      <li><b>DACH German-first gap.</b> Most category leaders are English/Benelux/US-first. A genuinely German-native, Swiss-compliant (nDSG, L-GAV-aware, LEDo allergen declaration) tool has room.</li>
+      <li><b>Non-dilutive Swiss rails.</b> Venturelab, Innosuisse, cantonal Bern economic development — designed for exactly this profile, no equity cost.</li>
+      <li><b>Nooch as a repeatable chain play.</b> One branch as a normal customer → recipe-push across 10+ locations is a real 2027 expansion story.</li>
+    </ul></div>
+    <div class="card redc"><h4>Biggest risks</h4><ul>
+      <li><b>Key-person risk is total.</b> Richard is the developer, the sales team, the support desk, the onboarding service, and the domain expert. One bad month at the new job and ChefOS silently stops.</li>
+      <li><b>Gastro churn.</b> The monetization workshop's own estimate: 3–5%/month — restaurants close. Small ARR erodes fast.</li>
+      <li><b>Trial failure by logistics, not product.</b> Email login for outside addresses is still broken 19 days before the trial date.</li>
+      <li><b>Platform dependence.</b> Supabase free tier pauses after 7 days of inactivity; Anthropic API costs are uncapped on the account; GitHub Pages is the production host. All fine — all fragile.</li>
+      <li><b>Legal exposure ordered exactly backwards.</b> The heaviest-liability features (Working Time = payroll data, Print Labels = food-safety dates) shipped before any lawyer touched anything.</li>
+      <li><b>Scope gravity.</b> The MVP definition said "prep board + recipes." The product is now seven modules. The pull that caused that is still active.</li>
+    </ul></div>
+  </div>
+
+  <h3>Probability of success — stated honestly, not theatrically</h3>
+  <p>A single percentage would be false precision. The honest version is conditional on which game is being played:</p>
+  <div class="bars">
+    <div class="bar-row"><div class="bl">Profitable Swiss micro-SaaS<br><span class="small">CHF 50–100k ARR within 24 months, bootstrapped</span></div><div class="track"><div class="fill" style="width:35%"></div></div><div class="bv">~25–40%</div></div>
+    <div class="bar-row"><div class="bl">Solid regional player<br><span class="small">CHF 0.5–1M ARR in 4–5 yrs, small team, DACH</span></div><div class="track"><div class="fill g" style="width:12%"></div></div><div class="bv">~8–15%</div></div>
+    <div class="bar-row"><div class="bl">Venture-scale category leader<br><span class="small">From current solo/part-time position, unfunded</span></div><div class="track"><div class="fill r" style="width:4%"></div></div><div class="bv">&lt;5%</div></div>
+    <div class="bar-row"><div class="bl">Failure mode: quiet abandonment<br><span class="small">New job absorbs capacity, app decays — the base rate</span></div><div class="track"><div class="fill ghost" style="width:55%"></div></div><div class="bv">~50%+</div></div>
+  </div>
+  <p class="small">These are structured judgments from base rates for solo, part-time, pre-revenue founders — not calculations. The single biggest lever moving the top bar up and the bottom bar down is the same: protected weekly hours plus the two legal unblocks.</p>
+
+  <div class="note teal"><b>What an investor notices in the first five minutes:</b> (1) a founder who is a real chef — genuinely rare and immediately credible; (2) 3 users and CHF 0 revenue — so all the deck's charts are hypothesis; (3) shocking build velocity — impressive, then worrying, when they learn most of it was never tested on a device; (4) the honesty of the documents — a real differentiator; (5) the question they will actually ask: <em>"You start a new full-time-ish kitchen job in two weeks. Who runs this company?"</em> Have an answer before any investor conversation.</div>
+
+  <div class="note claude"><span class="tag">🤖 Claude's note — added 14 Jul, read live in-repo</span>Richard's ChefOS technical co-founder here — a few things have moved since this review's 13 July snapshot, all in the direction this review already predicted: <b>the founder no longer has a "starts in two weeks" job — it started, and the Hotel Schweizerhof employment ended the same week (signed Aufhebungsvereinbarung, last day 14 July).</b> Also since 13 July: ingredients are at ~2,000 rows (not 1,263, see Ticket 03 note below), <code>claude-proxy</code> is now actually deployed to production (it existed in code but had never been pushed — a real outage of every AI feature, found and fixed only because Richard reported it), and two more silent-failure bugs surfaced (Check List delete quietly no-op'ing; the proxy gap itself) — both exactly the "shipped without opening the app" pattern this review names as the root cause three times over. I agree with essentially all of this document's core thesis. My honest additions are below, at the sections they touch.</div>
+</section>
+<!-- ============================ 02 REALITY CHECK ============================ -->
+<section class="station" id="s02">
+  <div class="ticket"><span class="no">TICKET 02</span><h2>Reality check — where the documents disagree</h2><span class="brief">Cross-referencing · Deliverable 13 (part 1)</span></div>
+  <p class="lede">You asked for cross-referencing and no politeness. Every document was read against every other. The project's documentation is unusually honest — which makes the contradictions easy to find, and worth fixing before any outsider (investor, lawyer, Nooch buyer) reads the same stack.</p>
+
+  <div class="tscroll"><table>
+    <tr><th style="width:26%">Contradiction</th><th>What the documents say</th><th>Why it matters</th></tr>
+    <tr><td><b>MVP definition vs. actual product</b></td><td><span class="mono">MVP_DEFINITION.md</span> locks v1 to "Kitchen Flow + recipe system" and explicitly excludes food cost (Phase 3), reports, and more. The shipped product includes food cost, Order List, Print Labels, Working Time, Fridge Temp, Schedule, Chef Challenge — roughly Phases 1–4 material.</td><td>The scope discipline document exists and was overridden ~30 times in five days. Either update the MVP definition to match reality, or — better — treat this as evidence the scope-gravity risk is live and reinstate the discipline.</td></tr>
+    <tr><td><b>Roadmap status table is stale</b></td><td>The header table in <span class="mono">ROADMAP.md</span> still shows Phase 1 "in discussion — kickoff" and Phases 2–7 "not started," while the log below it records a shipped Check List (Phase 2), food cost (Phase 3), and Working Time (unplanned in any phase).</td><td>Anyone diligencing the repo sees a plan that stopped describing the project weeks ago. Ten minutes to fix; real credibility cost if unfixed.</td></tr>
+    <tr><td><b>VISUAL_GUIDE contradicts the security architecture</b></td><td>The guide (dated 07-10) states AI calls go "directly from the browser using the chef's own API key — never through ChefOS's servers." Since 07-13 the opposite is true and is the correct design: all 9 call sites route through the <code>claude-proxy</code> Edge Function.</td><td>An investor-facing document currently describes, as a feature, the exact security flaw you just fixed. Also stale: "535 ingredients" (now ~1,263), "Mise en Place" (renamed Check List), the Schweizerhof roster.</td></tr>
+    <tr><td><b>Founding price undercuts the price list by 73%</b></td><td><span class="mono">presentation.html</span>: Restaurant tier CHF 149/mo (CHF 1,788/yr). <span class="mono">FOUNDING_OFFER.md</span>: the same Restaurant-tier feature set for CHF 490/yr, forever — anchored against the <em>Chef Pro</em> price (588/yr), not the tier being delivered.</td><td>Either the list price is fiction or the founding price gives away the top tier at a 73% perpetual discount to your ten most important reference customers. Recommendation in Ticket 08: anchor founding at ~CHF 990/yr against the Restaurant tier, or explicitly scope founding to Chef-Pro-plus.</td></tr>
+    <tr><td><b>Trial date vs. trial blockers</b></td><td>Target: 25 outside users on 1 August. Also true on 13 July: outside email addresses cannot log in (Resend sandbox), the regression checklist has never been fully run, no device-matrix test, and the founder starts a new job in the same window.</td><td>The date is a wish, not a plan. <span class="mono">status.html</span> itself admits "realistically mid-August." Say mid-August everywhere and protect the credibility of every future date.</td></tr>
+    <tr><td><b>Data promises vs. data ambitions</b></td><td><span class="mono">legal.html</span> and the pilot agreement promise kitchen data is used for nothing but running the app. Monetization model 09 (benchmarking) would monetize that data.</td><td>The monetization workshop already caught this — correctly parked to 2028+ with opt-in and real anonymization. Keep it parked; the trust is worth more than the model.</td></tr>
+    <tr><td><b>This prompt vs. prior strategic reality</b></td><td>The brief asks for exits to Oracle, Google, Microsoft, OpenAI and a ladder to 10,000 restaurants. Switzerland has ~32,000 establishments total; ChefOS has 3 users.</td><td>The brief is written for a US venture-scale startup. ChefOS is a Swiss vertical SaaS at pilot stage. Ticket 10 answers the exit question honestly instead of decorating a fantasy.</td></tr>
+    <tr><td><b>"Flagship differentiator" without its proof</b></td><td><span class="mono">FEATURE_ROADMAP.md</span> names Kitchen Flow the flagship. The live Check List has never run through a real dinner service under pressure in a kitchen that isn't the founder's.</td><td>The core investment thesis — "reduces service stress" — is still an untested hypothesis. The August trial's real job is to test exactly this, not to demo seven modules.</td></tr>
+  </table></div>
+
+  <div class="note red"><b>The uncomfortable pattern behind all of these:</b> the project's building muscle is world-class and its verifying muscle is nearly unused. Three total-outage bugs in one week (two script-order, one RLS recursion) all share the same cause: shipping to production without opening the app. Every hour spent on a new feature before the regression pass is currently a negative-value hour.</div>
+
+  <div class="note claude"><span class="tag">🤖 Claude's note</span>One more contradiction to add to this table: the Nebenerwerb consent letter (<code>docs/NEBENERWERB_REQUEST.md</code>) was drafted while Richard was still employed at Hotel Schweizerhof — it needed <em>their</em> written consent to earn outside income. That employment ended 14 July. Whatever side-business consent is still legally needed now has to come from the <b>new</b> employer (Burrito Bandito &amp; Lido), not Schweizerhof — the draft's addressee needs updating before it gets sent, not just its content.</div>
+</section>
+
+<!-- ============================ 03 PRODUCT ANALYSIS ============================ -->
+<section class="station" id="s03">
+  <div class="ticket"><span class="no">TICKET 03</span><h2>Product analysis — module by module</h2><span class="brief">Deliverable 2 · expo stamps: FIRE = invest now · HOLD = keep, don't grow · 86 = cut</span></div>
+  <p class="lede">Each module rated 1–10 as a weighted read across value to the kitchen, uniqueness, usability, scalability, revenue impact, and cost to maintain. The redesign column is the highest-leverage change, not a wish list.</p>
+
+  <div class="tscroll"><table>
+    <tr><th>Module</th><th style="width:60px">Score</th><th>Honest read</th><th>Highest-leverage redesign</th><th style="width:70px">Call</th></tr>
+    <tr><td><b>Recipe engine</b><br><span class="small">20-field format, scaling, AI import</span></td><td class="num">8/10</td><td>The real asset. Ingredient-anchored scaling is genuinely better than servings-only competitors; 173 migrated recipes make demos real. The 20-field form is a tax nobody will pay per-recipe.</td><td>Progressive disclosure: 5 required fields, the rest behind "add detail." Let AI pre-fill the long tail from the method text.</td><td><span class="stamp fire">FIRE</span></td></tr>
+    <tr><td><b>Check List / Kitchen Flow</b><br><span class="small">stations, statuses, realtime, audit log</span></td><td class="num">7/10</td><td>The differentiator and the only module competitors truly lack: a line-level, hourly-use surface. The opt-in DON'T-DO default is smart. Realtime sync is 24 hours old and untested across real devices. Score becomes 9 the day a stranger's kitchen survives a Saturday service on it.</td><td>No redesign — <b>validation</b>. Instrument time-to-first-status-change and week-2 retention per station; that data is the company.</td><td><span class="stamp fire">FIRE</span></td></tr>
+    <tr><td><b>Ingredients &amp; Pricing</b><br><span class="small">1,263 items, filters, verified/estimated flags</span></td><td class="num">5/10</td><td>Impressive breadth, weak trust: 104 verified prices out of 1,263. To the app's credit, it now shows the difference. But "estimated" on a money screen is a demo feature, not a product feature.</td><td>Kill the ambition to verify 1,263. Verify the ~150 items the pilot kitchen actually buys, from real invoices, and show <em>"priced from your supplier, dd.mm"</em>. Depth beats breadth.</td><td><span class="stamp fire">FIRE</span></td></tr>
+    <tr><td><b>Food cost + nutrition</b><br><span class="small">per-recipe, yield/waste factors</span></td><td class="num">5/10</td><td>Correct math on uncertain inputs, and structurally limited: without POS sales data it can only ever compute <em>theoretical</em> cost, never actual-vs-theoretical — the number operators actually manage by.</td><td>Near term: confidence labeling ("cost based on 9 verified / 2 estimated prices"). 2027: one POS integration (Lightspeed is common in CH) changes this module's ceiling entirely.</td><td><span class="stamp hold">HOLD</span></td></tr>
+    <tr><td><b>Order List</b></td><td class="num">5/10</td><td>Useful glue, table stakes. Choco does supplier ordering for free; don't compete there yet — but this screen is where the future supplier/marketplace story (model 08) will live.</td><td>Keep simple. One addition: export/share as WhatsApp text — that's how Swiss kitchens actually send orders today.</td><td><span class="stamp hold">HOLD</span></td></tr>
+    <tr><td><b>Print Labels</b><br><span class="small">shelf-life dates, 5×3cm, print dialog</span></td><td class="num">6/10</td><td>Quietly strategic: a physical artifact in the kitchen every day is a churn anchor, and HACCP dating is a real legal need. Printer research is done and correct (Brother QL, buy outright).</td><td>Buy the CHF 130 printer this month; it converts a software demo into a physical habit. Keep the liability disclaimer visible on the label screen itself.</td><td><span class="stamp fire">FIRE</span></td></tr>
+    <tr><td><b>Working Time</b><br><span class="small">check-in/out, overtime, contract AI notes</span></td><td class="num">4/10</td><td>Off-thesis and legally the heaviest thing in the app: employee attendance data, payroll implications, nDSG "besonders schützenswert" territory, DPA required the day a kitchen pays. Built beautifully — for a different company. It exists because it solved <em>Richard's own</em> employment dispute, which is a great origin story and a bad strategy.</td><td>Freeze feature development. Keep it running for the pilot (it's sticky), but do not market it until a lawyer has blessed the data-processing setup.</td><td><span class="stamp hold">HOLD</span></td></tr>
+    <tr><td><b>Fridge Temp</b></td><td class="num">4/10</td><td>Manual logging is the weakest form of HACCP evidence and one more chore. Sensor route (SensorPush) is researched but unbought and unintegrated.</td><td>Leave as-is until 10+ paying kitchens; then sensor integration becomes a paid compliance add-on with real value.</td><td><span class="stamp hold">HOLD</span></td></tr>
+    <tr><td><b>Schedule</b></td><td class="num">3/10</td><td>Being rebuilt for the new pilot kitchen; competes with dedicated, mature staff-scheduling products (Planday et al.) that ChefOS will not out-build. Overlaps awkwardly with Working Time.</td><td>Merge into Working Time as a read-only "who's on today" view. Do not build scheduling as a product.</td><td><span class="stamp s86">86</span></td></tr>
+    <tr><td><b>Chef's Assistant (AI)</b></td><td class="num">6/10</td><td>Real delight, honest utility for substitutions/technique, zero moat (any competitor can wire the same API in a week). Costs compound per conversation — already documented, not yet fixed.</td><td>Trim/cap chat history (the known fix). Long term the moat is context: an assistant that knows <em>this kitchen's</em> recipes, stock and prep board is not copyable.</td><td><span class="stamp hold">HOLD</span></td></tr>
+    <tr><td><b>Chef Challenge</b></td><td class="num">2/10</td><td>Gamification for an audience (professional cooks mid-shift) that did not ask for it. Maintenance surface with no path to revenue.</td><td>Remove from the trial build. Fewer tiles = clearer product.</td><td><span class="stamp s86">86</span></td></tr>
+    <tr><td><b>Multi-tenant, teams, invites, security</b></td><td class="num">7/10</td><td>The unglamorous week that mattered most: Git, staging, server-side API key, expiring invites, audit log, error/usage tracking. This is what made ChefOS a system instead of a demo.</td><td>Two gaps remain: a tested backup <em>restore</em> (a backup never restored is a hope), and an RLS review pass — one recursion bug already took down production.</td><td><span class="stamp fire">FIRE</span></td></tr>
+  </table></div>
+
+  <h3>Portfolio shape</h3>
+  <div class="bars">
+    <div class="bar-row"><div class="bl">Recipe engine</div><div class="track"><div class="fill" style="width:80%"></div></div><div class="bv">8</div></div>
+    <div class="bar-row"><div class="bl">Check List (Kitchen Flow)</div><div class="track"><div class="fill" style="width:70%"></div></div><div class="bv">7</div></div>
+    <div class="bar-row"><div class="bl">Multi-tenant &amp; infra</div><div class="track"><div class="fill" style="width:70%"></div></div><div class="bv">7</div></div>
+    <div class="bar-row"><div class="bl">Print Labels</div><div class="track"><div class="fill" style="width:60%"></div></div><div class="bv">6</div></div>
+    <div class="bar-row"><div class="bl">Chef's Assistant</div><div class="track"><div class="fill" style="width:60%"></div></div><div class="bv">6</div></div>
+    <div class="bar-row"><div class="bl">Ingredients &amp; Pricing</div><div class="track"><div class="fill g" style="width:50%"></div></div><div class="bv">5</div></div>
+    <div class="bar-row"><div class="bl">Food cost / nutrition</div><div class="track"><div class="fill g" style="width:50%"></div></div><div class="bv">5</div></div>
+    <div class="bar-row"><div class="bl">Order List</div><div class="track"><div class="fill g" style="width:50%"></div></div><div class="bv">5</div></div>
+    <div class="bar-row"><div class="bl">Working Time</div><div class="track"><div class="fill g" style="width:40%"></div></div><div class="bv">4</div></div>
+    <div class="bar-row"><div class="bl">Fridge Temp</div><div class="track"><div class="fill g" style="width:40%"></div></div><div class="bv">4</div></div>
+    <div class="bar-row"><div class="bl">Schedule</div><div class="track"><div class="fill r" style="width:30%"></div></div><div class="bv">3</div></div>
+    <div class="bar-row"><div class="bl">Chef Challenge</div><div class="track"><div class="fill r" style="width:20%"></div></div><div class="bv">2</div></div>
+  </div>
+  <p class="small">The strategic read: everything scoring 7+ is either the wedge (recipes → prep board) or the plumbing that keeps it alive. Everything at 4 or below is horizontal sprawl. A focused ChefOS is five modules, not eleven.</p>
+
+  <div class="note claude"><span class="tag">🤖 Claude's note</span>This section's exact advice on Ingredients &amp; Pricing — <em>"kill the ambition to verify 1,263. Verify the ~150 items the pilot kitchen actually buys… depth beats breadth"</em> — is worth restating loudly, because the night after this review was written, the opposite happened: the catalog grew from 1,263 to <b>~2,000</b> rows (646 more AI-estimated items, added to hit a round target Richard set), while real supplier-verified prices only grew from 104 to 153. The <em>trust ratio</em> on the money screen went from ~8.2% verified to ~7.6% verified — worse, not better, on the exact metric this ticket flags as the module's real weakness. Nothing here was hidden (every estimated row is honestly labeled), but the direction of travel argues for pausing ingredient-volume work and doing the invoice-photo verification idea (Ticket 07) on the ~150 real items first.</div>
+</section>
+<!-- ============================ 04 COMPETITIVE ============================ -->
+<section class="station" id="s04">
+  <div class="ticket"><span class="no">TICKET 04</span><h2>Competitive landscape</h2><span class="brief">Deliverable 3 · pricing figures are public list/review-site anchors — verify before citing to investors</span></div>
+  <p class="lede">The category is crowded, well-funded, and almost entirely built for the <strong>back office</strong> — a manager at a laptop, weekly. Almost nobody owns the <strong>line</strong> — a cook with wet hands, hourly. That asymmetry is ChefOS's entire strategic opening.</p>
+
+  <div class="tscroll"><table>
+    <tr><th>Competitor</th><th>Core strength</th><th>Weakness ChefOS can exploit</th><th>Approx. pricing*</th><th>Target</th></tr>
+    <tr><td><b>Apicbase</b> <span class="small">(BE)</span></td><td>Deep multi-site F&amp;B suite: menu engineering, inventory, procurement, HACCP; 1,000+ sites; DE/FR/NL localized; Lightspeed integration</td><td>Weeks-long setup, enterprise sales process, overkill and overpriced for a 5–25-person single kitchen</td><td class="num">from ~€149–249/mo, custom quotes</td><td>Multi-unit groups, hotels</td></tr>
+    <tr><td><b>MarketMan</b> <span class="small">(US/global)</span></td><td>Inventory, purchasing, invoice OCR, vendor management, strong POS integrations</td><td>Manager-facing, English-first, no line-level prep workflow; per-location pricing stings small CH operators</td><td class="num">from ~$199/mo/location</td><td>Independents → mid groups</td></tr>
+    <tr><td><b>meez</b> <span class="small">(US)</span></td><td>Chef-built recipe ops; the best recipe cards and training focus in the industry; loved by chefs</td><td>US-centric (imperial, US suppliers, English), recipe-first with weak daily-ops surface; users publicly ask for a mobile app for their cooks — exactly ChefOS's home turf</td><td class="num">free tier; paid from ~$19–49/user/mo</td><td>Chefs, culinary teams</td></tr>
+    <tr><td><b>Choco</b> <span class="small">(DE)</span></td><td>Free ordering app for restaurants; monetizes distributors; huge funding; strong DACH presence</td><td>Ordering only — no recipes, prep, costing. A future integration target more than a competitor</td><td class="num">free (restaurant side)</td><td>Any kitchen that orders</td></tr>
+    <tr><td><b>E-Pack Pro / HACCP apps</b> <span class="small">(FR et al.)</span></td><td>Compliance-first: temperature, traceability, labels, audit trails; hardware bundles</td><td>Compliance is a chore product — used because one must, not loved; no recipe/prep brain</td><td class="num">~€30–100/mo + hardware</td><td>Compliance-driven kitchens</td></tr>
+    <tr><td><b>MarginEdge / Restaurant365 / Crunchtime</b> <span class="small">(US)</span></td><td>Back-office finance: AP automation, actual-vs-theoretical cost, accounting integration, enterprise ops</td><td>US market, accountant-facing, heavyweight; irrelevant to a Bern commis — and unreachable for ChefOS to fight. Don't.</td><td class="num">~$300+/mo → enterprise</td><td>US groups &amp; chains</td></tr>
+    <tr><td><b>Toast / Lightspeed / Oracle Simphony</b></td><td>POS platforms with inventory bolt-ons; own the transaction layer</td><td>Inventory modules are afterthoughts; nobody's cooks live in them. Lightspeed's Swiss POS base = ChefOS's best future integration partner, not enemy</td><td class="num">POS bundles, varies</td><td>POS-led operators</td></tr>
+    <tr><td><b>FoodNotify</b> <span class="small">(AT)</span> / <b>gastronovi</b> <span class="small">(DE)</span></td><td>The real DACH incumbents: German-native, modular F&amp;B management, supplier ordering</td><td>Broad and office-shaped; little line-level daily-use surface; Austrian/German focus leaves Swiss-specific compliance (CHF, LEDo, L-GAV context) thinner</td><td class="num">modular, ~€50–200/mo range</td><td>DACH gastronomy</td></tr>
+    <tr><td><b>Cucinovo</b> <span class="small">(EU, new)</span></td><td>Modern single-unit recipe costing + procurement at €29–79/mo — proof the "simple &amp; affordable" slot is being contested <em>right now</em></td><td>New, thin, no prep-board/line surface; but a direct warning: the affordable niche will not stay empty</td><td class="num">€29–79/mo</td><td>Single-unit restaurants</td></tr>
+  </table></div>
+  <p class="small">*Pricing anchors from public listings/review aggregators (Capterra, SoftwareAdvice, GetApp, vendor pages), July 2026 — directional, not quotes.</p>
+
+  <h3>The market map, honestly drawn</h3>
+  <svg viewBox="0 0 860 470" style="width:100%;height:auto;background:var(--well);border:1px solid var(--rule);border-radius:12px" role="img" aria-label="Positioning map">
+    <line x1="430" y1="30" x2="430" y2="440" stroke="#223d57" stroke-dasharray="4 5"/>
+    <line x1="40" y1="235" x2="820" y2="235" stroke="#223d57" stroke-dasharray="4 5"/>
+    <text x="430" y="20" fill="#9aa7b8" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, monospace" letter-spacing="2">ENTERPRISE / MULTI-SITE</text>
+    <text x="430" y="462" fill="#9aa7b8" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, monospace" letter-spacing="2">SINGLE KITCHEN / SMB</text>
+    <text x="46" y="228" fill="#9aa7b8" font-size="11" font-family="IBM Plex Mono, monospace" letter-spacing="2">BACK OFFICE · WEEKLY</text>
+    <text x="814" y="228" fill="#9aa7b8" font-size="11" text-anchor="end" font-family="IBM Plex Mono, monospace" letter-spacing="2">THE LINE · HOURLY</text>
+    <g font-family="-apple-system,sans-serif" font-size="13" fill="#c7d2de">
+      <circle cx="150" cy="105" r="7" fill="#5b6f86"/><text x="165" y="109">Restaurant365 · Crunchtime</text>
+      <circle cx="215" cy="150" r="7" fill="#5b6f86"/><text x="230" y="154">Apicbase</text>
+      <circle cx="185" cy="195" r="7" fill="#5b6f86"/><text x="200" y="199">MarketMan · MarginEdge</text>
+      <circle cx="300" cy="120" r="7" fill="#5b6f86"/><text x="315" y="124">Oracle Simphony · Toast · Lightspeed</text>
+      <circle cx="260" cy="290" r="7" fill="#5b6f86"/><text x="275" y="294">FoodNotify · gastronovi</text>
+      <circle cx="360" cy="345" r="7" fill="#5b6f86"/><text x="375" y="349">Cucinovo</text>
+      <circle cx="180" cy="360" r="7" fill="#5b6f86"/><text x="195" y="364">E-Pack Pro (compliance)</text>
+      <circle cx="500" cy="175" r="7" fill="#5b6f86"/><text x="515" y="179">Choco (ordering only)</text>
+      <circle cx="545" cy="300" r="7" fill="#F7C948"/><text x="560" y="304" fill="#F7C948">meez (recipes, US)</text>
+    </g>
+    <circle cx="690" cy="375" r="11" fill="#34F7D7"/>
+    <text x="690" y="352" fill="#34F7D7" font-size="14" font-weight="700" text-anchor="middle" font-family="-apple-system,sans-serif">ChefOS</text>
+    <ellipse cx="680" cy="365" rx="130" ry="80" fill="none" stroke="#34F7D7" stroke-opacity=".35" stroke-dasharray="5 6"/>
+    <text x="680" y="440" fill="#34F7D7" fill-opacity=".7" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, monospace">THE EMPTY QUADRANT</text>
+  </svg>
+
+  <h3>How ChefOS becomes the category leader (of the right category)</h3>
+  <div class="grid g2">
+    <div class="card"><h4>1 · Own the line, refuse the office</h4><p>Every incumbent's daily active user is a manager. ChefOS's is a cook. Win the surface that gets touched 40 times a shift — prep board, labels, "what's 86'd" — and the back-office modules become <em>your</em> upsell later, instead of you being their afterthought. Never chase inventory/accounting head-on; you lose on features and funding.</p></div>
+    <div class="card"><h4>2 · Sell the chef, not the software</h4><p>The onboarding service (a working chef digitizes your kitchen, CHF 990) is the one move no competitor can copy — their founders can't hold a knife. Every onboarding produces a reference kitchen, verified local prices, and a founding subscriber. The service <em>is</em> the go-to-market.</p></div>
+    <div class="card"><h4>3 · Be German-native and Swiss-legal</h4><p>German-first UI, CHF-first, LEDo allergen declarations, nDSG-clean data handling, L-GAV-aware working time. The US giants won't bother; the DACH incumbents are office-shaped. "Built in a Bern kitchen, in your language, for your Lebensmittelkontrolle" is a positioning nobody else can say.</p></div>
+    <div class="card"><h4>4 · Turn prep data into the moat</h4><p>Nobody on the map has line-level execution data: real prep times, real par levels, real 86 patterns per station per day. Two years of that in 50 kitchens powers forecasting nobody can replicate — <em>if</em> the data promises in legal.html are honored on the way (opt-in, real anonymity, 2028 not 2026).</p></div>
+  </div>
+</section>
+
+<!-- ============================ 05 UX AUDIT ============================ -->
+<section class="station" id="s05">
+  <div class="ticket"><span class="no">TICKET 05</span><h2>UX audit</h2><span class="brief">Deliverable 4 · ranked by impact</span></div>
+  <p class="lede">The design language is already unusually good for a solo build — flat navigation, big tiles, opt-in prep model, no passwords. The remaining friction isn't cosmetic; it's contextual: a kitchen is loud, wet, greasy, glare-lit, German-speaking, and has dead WiFi corners. Rank-ordered by impact:</p>
+
+  <div class="tscroll"><table>
+    <tr><th style="width:36px">#</th><th>Friction point</th><th>Why it matters on a real line</th><th>Fix</th></tr>
+    <tr><td class="num">1</td><td><b>English UI, German brigade</b></td><td>The chef reads English; the commis and casserolier — the people the Check List is <em>for</em> — often won't. Adoption dies quietly at the lowest rank, and your trial metrics will blame the product.</td><td>German UI before scale (the app already has an EN/DE/FR/IT/SK switcher for some surfaces — finish it for Check List item flows first, the highest-touch screen). Test in the August trial with one German-only user.</td></tr>
+    <tr><td class="num">2</td><td><b>No offline tolerance</b></td><td>Walk-ins, basements, prep cellars: WiFi dies exactly where prep happens. A board that blanks mid-count is deleted by dinner.</td><td>Not full offline (Phase 6) — just graceful degradation now: cache last-loaded board, queue status taps, visible "reconnecting" state. Days of work, not weeks.</td></tr>
+    <tr><td class="num">3</td><td><b>Wet hands, gloves, glare</b></td><td>Backlog already flags it. Small tap targets + status cycling by tap = mis-taps that corrupt the board and the trust in it.</td><td>44px minimum targets on status controls, high-contrast state colors, undo-toast on every status change (undo already exists for deletes — extend it).</td></tr>
+    <tr><td class="num">4</td><td><b>20-field recipe entry</b></td><td>The roadmap's own risk register called it a tax form. It still is. Every un-entered recipe weakens costing and the AI assistant.</td><td>Title + ingredients + method = save. Everything else is progressive, AI-prefilled, editable later. Measure: median time to save a new recipe &lt; 3 minutes.</td></tr>
+    <tr><td class="num">5</td><td><b>First-run emptiness for trial kitchens</b></td><td>25 outsiders join and see… Richard's data model with none of their recipes. The aha-moment (your kitchen, digitized) is exactly what they won't get self-serve.</td><td>A "scan your first prep sheet" guided flow as the forced first action for a new kitchen — the AI scan is already built; make it the front door.</td></tr>
+    <tr><td class="num">6</td><td><b>Magic-link login mid-shift</b></td><td>Email codes are great for onboarding, terrible at 17:55 with an expired session and no time to check mail.</td><td>Long session lifetimes on trusted devices + a kitchen-level PIN re-entry for shared tablets. (And fix Resend — Ticket 16, week 1.)</td></tr>
+    <tr><td class="num">7</td><td><b>Polish churn as procrastination</b></td><td>The log shows the Check List row redesigned three times in one day and the logo twice in two days — while the regression pass sat unrun. Iteration speed is being spent where it's cheapest, not where it matters.</td><td>Rule: UI polish only in response to a real user complaint or a trial observation. Otherwise the backlog decides.</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================ 06 UI RECOMMENDATIONS ============================ -->
+<section class="station" id="s06">
+  <div class="ticket"><span class="no">TICKET 06</span><h2>UI recommendations</h2><span class="brief">Deliverable 5 · short, because the system already exists</span></div>
+  <p class="lede">ChefOS already has what most pre-seed products lack: a coherent identity (navy/teal kitchen-notebook, unified across app and docs as of 07-13). The job now is <strong>codify and stop</strong>, not redesign. Enterprise-SaaS best practice at this stage is a frozen system, ruthlessly reused.</p>
+  <div class="grid g3">
+    <div class="card"><h4>Codify the tokens</h4><p>One CSS custom-property block is the design system: 6 colors, 3 type roles, 2 radii, 3 spacing steps. Everything in the app inherits; nothing gets a bespoke style. This also makes an eventual multi-file refactor mechanical instead of archaeological.</p></div>
+    <div class="card"><h4>Status colors are semantics, not decoration</h4><p>TO DO / CHECK / FINISH / DON'T DO and 🚩 low-stock must be distinguishable at 2 metres, at an angle, through glare — and never rely on hue alone (deuteranopia is ~5% of male cooks): pair color with shape/weight.</p></div>
+    <div class="card"><h4>Empty states direct action</h4><p>Every empty screen answers "what do I do?": empty Check List → "Scan your paper prep sheet"; empty Ingredients → "Import your supplier price list". Emptiness is your onboarding funnel, per the writing rule: an empty screen is an invitation to act.</p></div>
+    <div class="card"><h4>Typography: two sizes fewer</h4><p>Dense data screens (Ingredients, Check List) have accumulated micro-variants. Collapse to a strict scale (12/14/16/20/28). Consistency reads as reliability — which is the brand promise of a HACCP tool.</p></div>
+    <div class="card"><h4>Motion budget: zero new</h4><p>The sticky-header collapse and undo toasts are enough. Every added animation is battery, jank on old Androids in the device matrix you haven't tested yet, and review surface.</p></div>
+    <div class="card"><h4>German copy is a design task</h4><p>When DE localization lands, the register matters: kitchen German ("mise", "86", "auf Stellung") not office German. Have the pilot brigade sanity-check every Check List string — wrong register reads as tourist software.</p></div>
+  </div>
+</section>
+<!-- ============================ 07 FEATURE BRAINSTORM ============================ -->
+<section class="station" id="s07">
+  <div class="ticket"><span class="no">TICKET 07</span><h2>Feature brainstorm — behind a feature freeze</h2><span class="brief">Deliverable 6 &amp; 15 · every idea below is gated on a validated trial</span></div>
+  <p class="lede">The brief asks for five-years-ahead invention. Fine — but strategy first: <strong>ChefOS's problem is not a shortage of ideas; it is a surplus of unverified ones.</strong> Everything here is sequenced <em>after</em> the August trial proves the core. Ranked by (business value ÷ complexity), each with the honest expo call.</p>
+
+  <div class="tscroll"><table>
+    <tr><th>Feature</th><th>Problem → solution</th><th>Business value</th><th>Complexity / effort</th><th style="width:80px">When</th></tr>
+    <tr><td><b>Invoice-photo price sync</b></td><td>92% of prices are AI guesses → photograph each supplier delivery note; AI extracts line items and updates <em>verified</em> prices with date + source. (The contract/schedule photo-scan pipeline already proves the pattern.)</td><td>Converts the weakest module into a moat: living, kitchen-specific price data no competitor has. Also the natural bridge to supplier features later.</td><td>Medium · 1–2 weeks on existing scan infra</td><td><span class="stamp fire">FIRE</span><br><span class="small">Q4 2026</span></td></tr>
+    <tr><td><b>LEDo allergen pass-through</b></td><td>Swiss law requires allergen declaration to guests → recipes already hold allergens; generate the per-dish declaration sheet / menu annex automatically.</td><td>A legal-need feature = budget exists; strong Swiss-native positioning; near-zero marginal build (data is in the schema).</td><td>Low · days</td><td><span class="stamp fire">FIRE</span><br><span class="small">Q4 2026</span></td></tr>
+    <tr><td><b>Prep forecasting from Check List history</b></td><td>Par levels are folklore → learn from logged prep times, on-hand counts and day-of-week patterns; suggest tomorrow's quantities per station.</td><td>The first true "intelligence layer" feature and the reason the usage data matters. Needs months of real data — which the trial kitchens are already generating.</td><td>Medium-high · 2027, data-gated</td><td><span class="stamp hold">HOLD</span><br><span class="small">2027</span></td></tr>
+    <tr><td><b>Voice on the line (DE)</b></td><td>Hands are full → "Chef, Dashi ist fertig" marks the item done; "was ist 86?" answers hands-free. German first, kitchen vocabulary.</td><td>Demo-magical, genuinely useful on a hot line, on-brand. But hard to do reliably in a 90&nbsp;dB kitchen — pilot as an experiment, not a promise.</td><td>High · speech in noise is the hard part</td><td><span class="stamp hold">HOLD</span><br><span class="small">2027</span></td></tr>
+    <tr><td><b>Shift-handover digest</b></td><td>AM crew's context dies at 15:00 → auto-summary per station: what moved, what's low, notes, temps — one screen at shift change.</td><td>Cheap synthesis of data ChefOS already uniquely holds; deepens daily habit.</td><td>Low-medium</td><td><span class="stamp hold">HOLD</span><br><span class="small">2027</span></td></tr>
+    <tr><td><b>Inspection-ready HACCP pack</b></td><td>Lebensmittelkontrolle visits → one tap exports labels history, temp logs, cleaning checks for any date range, PDF.</td><td>"Survive the inspection in one tap" is a headline chefs repeat to each other. Gated on sensor integration + lawyer-checked liability language.</td><td>Medium</td><td><span class="stamp hold">HOLD</span><br><span class="small">2027</span></td></tr>
+    <tr><td><b>Multi-location recipe push</b></td><td>Chains drift from spec → central recipe/spec push to branches, local read-only + compliance view. The Nooch feature.</td><td>Unlocks the entire chain segment and enterprise pricing (model 07). Build only against a signed Nooch-type pilot, never on spec.</td><td>High · real architecture work</td><td><span class="stamp hold">HOLD</span><br><span class="small">2027, deal-gated</span></td></tr>
+    <tr><td><b>POS integration (Lightspeed first)</b></td><td>Theoretical cost ≠ actual cost → pull sales mix; compute actual-vs-theoretical variance, the number operators manage by.</td><td>Raises the food-cost module's ceiling from "calculator" to "controller". Also the feature acquirers in this space actually value.</td><td>High · partner/API dependent</td><td><span class="stamp hold">HOLD</span><br><span class="small">2027</span></td></tr>
+    <tr><td><b>Supplier marketplace / order routing</b></td><td>Order List → real orders to Transgourmet/Saviva/Pistor, commission model.</td><td>The biggest long-term prize (the MarketMan/Choco path) — and pure fantasy below ~50 active kitchens. Keep as the investor-vision slide it already is.</td><td>Very high · partnerships + volume</td><td><span class="stamp hold">HOLD</span><br><span class="small">2028+</span></td></tr>
+    <tr><td><b>Restaurant-GPT / agentic autonomy</b></td><td>The brief's "autonomous workflows, Vision AI, Kitchen Copilot" cluster.</td><td>Today this is deck vocabulary, not roadmap. The credible version already exists in embryo: an assistant grounded in <em>this kitchen's</em> live data. Grow that; skip the buzzwords.</td><td>—</td><td><span class="stamp s86">86</span><br><span class="small">as framed</span></td></tr>
+  </table></div>
+
+  <div class="note"><b>The five-year picture, in one sentence:</b> ChefOS starts as the board the line runs on, becomes the system that knows what the kitchen will need tomorrow (forecasting from its own prep data), and only then becomes the pipe the kitchen buys through (supplier flow) — each stage funded by the previous one, none skipped.</div>
+</section>
+
+<!-- ============================ 08 REVENUE ============================ -->
+<section class="station" id="s08">
+  <div class="ticket"><span class="no">TICKET 08</span><h2>Revenue model &amp; honest ARR scenarios</h2><span class="brief">Deliverable 7 · all figures are scenario estimates, not projections</span></div>
+  <p class="lede">The monetization workshop's conclusion is correct and this review endorses it: <strong>onboarding CHF ~990 + founding annual subscription is the entire plan for the next 12 months.</strong> The eleven-model analysis was good work; the discipline of picking two is better work. Three corrections, then the numbers.</p>
+
+  <div class="grid g3">
+    <div class="card redc"><h4>Fix 1 · The founding-price anchor</h4><p>CHF 490/yr for the <em>Restaurant</em> tier is 73% off its own list price (1,788/yr), forever, to your ten most visible reference customers — and it anchors "what ChefOS costs" in the tiny Bern market where everyone talks. Recommendation: founding at <b>CHF 990/yr</b> (still 45% off list, still a genuine gift), or keep 490 but scope it to Chef-Pro-level with Restaurant features as a discounted add-on. Cheap enough to say yes; expensive enough to mean it.</p></div>
+    <div class="card goldc"><h4>Fix 2 · Onboarding is the product</h4><p>Price it CHF 990 flat for ≤80 recipes, +CHF 5/recipe beyond — protect your only non-renewable resource (days off). Bundle test: onboarding + year one at CHF 1,780 as a single "digitalization package" invoice — one decision for the buyer, ~CHF 1.8k cash per kitchen for you.</p></div>
+    <div class="card"><h4>Fix 3 · Sequence stays legal-first</h4><p>Nothing above is real until the Nebenerwerb letter is sent (draft finished, 10 minutes) and the Einzelfirma/AHV registration exists (1–2 hours). These two tasks are worth more than every feature shipped this month combined. Refunds promise in the founding offer → keep prepaid cash mentally escrowed, as the workshop's lawyer said.</p></div>
+  </div>
+
+  <h3>Three scenarios, bottom-up <span class="small">(founding @ CHF 990/yr, onboarding attach 60% @ 990; later kitchens at list ≈ CHF 89/mo blended, churn 3%/mo netted)</span></h3>
+  <div class="tscroll"><table>
+    <tr><th></th><th>End 2026</th><th>End 2027</th><th>End 2028</th><th>What has to be true</th></tr>
+    <tr><td><b>Floor</b> <span class="small">trial fails criteria</span></td><td class="num">2 kitchens · ~CHF 3k total rev</td><td class="num">wind-down or pivot</td><td class="num">—</td><td>Retention &lt;40%, &lt;5 willing to pay. The criteria you already set — honor them: this outcome means stop or re-scope, not push harder.</td></tr>
+    <tr><td><b>Base</b> <span class="small">trial passes, nights-and-weekends pace</span></td><td class="num">5 founding · ~CHF 8k rev · ~5k ARR</td><td class="num">18 kitchens · ~CHF 24k ARR + ~10k services</td><td class="num">40 kitchens · ~CHF 55k ARR</td><td>2 onboardings/month max (your real day-off budget), Bern-only through 2027, German UI shipped, zero paid marketing — all word-of-mouth + workshops.</td></tr>
+    <tr><td><b>Upside</b> <span class="small">trial passes strongly + capacity unlocked</span></td><td class="num">8 founding · ~CHF 14k rev</td><td class="num">40 kitchens · ~CHF 55k ARR + Nooch pilot</td><td class="num">100 kitchens · ~CHF 140k ARR + first chain contract</td><td>A contractor or co-founder absorbs support/onboarding by mid-2027 (funded by services revenue or Innosuisse), Nooch converts, expansion to 2–3 neighbouring cantons.</td></tr>
+  </table></div>
+
+  <div class="bars">
+    <div class="bar-row"><div class="bl">2026 · Base</div><div class="track"><div class="fill" style="width:4%"></div></div><div class="bv">~8k</div></div>
+    <div class="bar-row"><div class="bl">2027 · Base</div><div class="track"><div class="fill" style="width:17%"></div></div><div class="bv">~34k</div></div>
+    <div class="bar-row"><div class="bl">2028 · Base</div><div class="track"><div class="fill" style="width:28%"></div></div><div class="bv">~55k</div></div>
+    <div class="bar-row"><div class="bl">2028 · Upside</div><div class="track"><div class="fill g" style="width:70%"></div></div><div class="bv">~140k</div></div>
+  </div>
+  <p class="small">Total revenue (services + subscription), CHF. Compare against presentation.html's illustrative curve: that chart assumes adoption velocity ChefOS's capacity model cannot deliver solo. Use these numbers with investors; keep the big chart clearly labeled vision.</p>
+
+  <p><b>Expansion revenue, in order, once earned:</b> modular add-ons at 30+ customers (2027) → sensor/compliance add-on → enterprise/multi-location with Nooch-class deals (2027–28) → sponsored local suppliers at 20–30 active kitchens (transparent per UWG, as the workshop noted) → marketplace commissions and benchmarking 2028+, only after re-consented terms. White-label, API monetization, international licensing: not before product-market fit is boringly proven in one country.</p>
+</section>
+
+<!-- ============================ 09 GTM ============================ -->
+<section class="station" id="s09">
+  <div class="ticket"><span class="no">TICKET 09</span><h2>Go-to-market ladder</h2><span class="brief">Deliverable 8 · re-scaled to Switzerland — the brief's "10,000 restaurants" is ~⅓ of every establishment in the country</span></div>
+  <div class="tscroll"><table>
+    <tr><th style="width:120px">Milestone</th><th>Sales motion</th><th>Team &amp; support</th><th>Technology gate</th><th>KPIs that matter</th><th>Funding</th></tr>
+    <tr><td><b>3 → 5 kitchens</b><br><span class="small">now – Oct 2026</span></td><td>Founder-led, in person, Bern only. The trial converts its own best users via the founding offer. First Nooch branch approached as a <em>normal customer</em>, not an enterprise deal.</td><td>Richard alone. Support = the feedback button + WhatsApp. Honest SLA: "answers within 24h, evenings."</td><td>Resend fixed · regression pass done · device matrix · backup restore tested · Supabase Pro (~$25/mo) for the trial</td><td>Week-2 team retention ≥40% · ≥5/25 willing to pay · &lt;10 critical errors · time-to-first-value per new kitchen</td><td>None. Services cash.</td></tr>
+    <tr><td><b>→ 15 kitchens</b><br><span class="small">2027 H1</span></td><td>Onboarding-led: every CHF 990 digitization day creates a subscriber + referral. One workshop per quarter (model 11) as lead gen. German UI is the unlock.</td><td>Still solo, but paying a bookkeeper; first freelance support hours if churn threatens.</td><td>Codebase split into modules (the 547&nbsp;KB file ends here) · billing = manual invoices still fine · uptime monitoring</td><td>Net revenue retention · onboarding→subscription conversion ≥80% · support hours/kitchen/month trending down</td><td>Apply: Venturelab, Innosuisse startup coaching — non-dilutive.</td></tr>
+    <tr><td><b>→ 40 kitchens</b><br><span class="small">2027 H2 – 2028</span></td><td>Referral engine + neighbouring cantons (SO, FR, LU). Nooch expands branch-by-branch if the first one retained. Hotel & Gastro Union / GastroBern channels.</td><td><b>The solo model breaks here.</b> First hire or committed co-founder: customer success/onboarding. This is the decision Ticket 13 forces.</td><td>Payment gateway (Stripe/Datatrans) · DPA + lawyer-reviewed ToS (Working Time!) · Berufshaftpflicht insurance · multi-location v1 only if Nooch signed</td><td>MRR ≥ CHF 3.5k · churn &lt;3%/mo · CAC ≈ 0 maintained · % revenue from services falling below 40%</td><td>Innosuisse project grant or CHF 100–300k angel — only if the venture path is chosen.</td></tr>
+    <tr><td><b>→ 100–150 kitchens</b><br><span class="small">2028–29</span></td><td>German-speaking CH covered; first partner-led onboarding (train a second chef to deliver the CHF 990 day). POS integration becomes the sales wedge for serious operators.</td><td>2–3 people: founder + CS + contract dev.</td><td>Real test suite · SOC-ish security posture for chain deals · forecasting features live on 2 years of prep data</td><td>ARR ~CHF 140k+ · logo retention ≥85%/yr · 2+ chain accounts</td><td>Seed round <em>or</em> profitable independence — both genuinely open at this size.</td></tr>
+    <tr><td><b>Beyond</b><br><span class="small">500+ · 2030 vision</span></td><td>Romandie/Ticino localization, then DACH — where FoodNotify/gastronovi wait. Only with a team, funding, and the supplier-flow model live.</td><td colspan="3">This row is vision, and should be labeled that way everywhere it appears — exactly as presentation.html already does. Its purpose is to show the market is big enough, not to be a plan.</td><td>—</td></tr>
+  </table></div>
+</section>
+<!-- ============================ 10 EXIT ============================ -->
+<section class="station" id="s10">
+  <div class="ticket"><span class="no">TICKET 10</span><h2>Exit strategy — the honest version</h2><span class="brief">Deliverable 9 · replacing the fantasy buyer list with the real one</span></div>
+  <p class="lede">Direct, because you asked for it: <strong>today ChefOS has no acquisition value.</strong> Acquirers buy revenue, retention data, customer relationships, or a team — ChefOS has none yet in transactable form. The code itself is worth roughly its rebuild cost, which AI has made small. That's not an insult; it's the starting line of every company. The question is what creates value from here, and who realistically pays for it.</p>
+
+  <div class="grid g2">
+    <div class="card"><h4>Who realistically buys a Swiss kitchen-ops SaaS</h4><ul>
+      <li><b>DACH vertical consolidators</b> — Apicbase, FoodNotify, gastronovi, Choco, or PE-backed roll-ups of hospitality software. They buy market entry: a Swiss customer base + German-Swiss product. The most probable acquirer class by far.</li>
+      <li><b>Swiss POS/payments players</b> — a Lightspeed-type wanting a back-of-house story for its Swiss base; integration partner today, acquirer later.</li>
+      <li><b>Food-service suppliers</b> — Transgourmet (Coop), Pistor, Saviva: a tool inside their customers' kitchens that shapes order flow is strategically priceless to them at even modest scale. The most interesting <em>strategic</em> buyer if the Order List → supplier path materializes.</li>
+      <li><b>An operator group</b> — a Swiss gastro group acquihiring the tool + the chef-founder for internal use. The modest but real floor outcome.</li>
+    </ul></div>
+    <div class="card redc"><h4>Who does not buy this — ever, at this shape</h4><p><b>Oracle, Google, Microsoft, Amazon, OpenAI, Salesforce, SAP, Block, DoorDash, Uber, Sysco, US Foods, Toast, PAR, NCR, Fiserv.</b> These acquire at tens of millions in ARR, in their home markets, with teams. Putting them on a pre-seed slide costs credibility with any investor who has seen one before. The earlier strategic guidance on this stands: smaller DACH vertical players and Swiss non-dilutive funding are the real path.</p>
+    <p>Comparable-transaction reality: small vertical SaaS in Europe trades at roughly <b>3–6× ARR</b> unless a strategic buyer needs the asset (data, geography, supplier flow), where premiums happen. Everything below uses that band.</p></div>
+  </div>
+
+  <h3>Scenario table <span class="small">— conditional, speculative by construction; each row assumes the Base/Upside paths of Ticket 08 actually happen</span></h3>
+  <div class="tscroll"><table>
+    <tr><th>Horizon</th><th>State required</th><th>Plausible outcome</th><th>Indicative range*</th><th>Probability-flavored honesty</th></tr>
+    <tr><td class="num"><b>2 yrs</b> <span class="small">(2028)</span></td><td>~40 kitchens, ~CHF 55k ARR, solo+contractor</td><td>No exit market. At best an acquihire / asset sale.</td><td class="num">CHF 0 – low 6 figures</td><td>Selling here means the job ate the company. Plan not to be here wanting out.</td></tr>
+    <tr><td class="num"><b>3–5 yrs</b> <span class="small">(2029–31)</span></td><td>100–200 kitchens, CHF 150–400k ARR, churn &lt;3%/mo, 1–2 chains, small team</td><td>Credible strategic interest from DACH consolidators or a supplier; also credibly <em>not selling</em> — a CHF 300k-ARR one-founder business is a very good life.</td><td class="num">~CHF 0.5 – 2.5M</td><td>Maybe a 1-in-5 chance of a real offer <em>conditional on</em> reaching this state at all.</td></tr>
+    <tr><td class="num"><b>7–10 yrs</b></td><td>DACH presence, supplier order-flow live, CHF 1M+ ARR, team of 5–10</td><td>The supplier-flow data makes a Transgourmet/Pistor-class buyer strategic rather than financial.</td><td class="num">CHF 5 – 15M+</td><td>Genuinely possible; requires 2–3 consecutive improbable things to go right, including the founder-capacity problem being solved years earlier.</td></tr>
+  </table></div>
+  <p class="small">*Indicative bands from small-European-vertical-SaaS multiples; not valuations, not promises. The honest summary: <b>optimize for a business worth keeping, and the option to sell appears as a side effect.</b> The reverse doesn't work.</p>
+</section>
+
+<!-- ============================ 11 ROADMAP ============================ -->
+<section class="station" id="s11">
+  <div class="ticket"><span class="no">TICKET 11</span><h2>Roadmap: now / next / later / future</h2><span class="brief">Deliverable 10 · dependencies flow strictly left to right</span></div>
+  <div class="grid g4">
+    <div class="card"><h4 style="color:var(--teal)">Now <span class="small">→ trial (Jul–Aug)</span></h4><ul>
+      <li>Send Nebenerwerb letter <span class="stamp fire">FIRE</span></li>
+      <li>Register Einzelfirma / AHV</li>
+      <li>Fix Resend / switch mailer (trial hard-blocker)</li>
+      <li>Run REGRESSION_CHECKLIST on real devices, twice</li>
+      <li>Deploy claude-proxy; verify backup <em>restore</em></li>
+      <li>Feature freeze — remove Chef Challenge from trial build</li>
+      <li>Buy the Brother QL (CHF ~130) for the pilot</li>
+      <li>Run the 25-user trial against the agreed criteria</li>
+    </ul></div>
+    <div class="card"><h4 style="color:var(--gold)">Next <span class="small">(Sep–Dec 2026)</span></h4><ul>
+      <li>Founding offers to trial's best kitchens (re-anchored price)</li>
+      <li>First invoices; onboarding days begin (cap: 2/month)</li>
+      <li>German UI for Check List + Recipes flows</li>
+      <li>Invoice-photo price sync (verified prices)</li>
+      <li>LEDo allergen declaration export</li>
+      <li>Recipe form → progressive disclosure</li>
+      <li>Offline-tolerant Check List (cache + queue)</li>
+      <li>Update stale docs: ROADMAP table, VISUAL_GUIDE, MVP scope</li>
+    </ul></div>
+    <div class="card"><h4>Later <span class="small">(2027)</span></h4><ul>
+      <li>Codebase split; first tests; CI beyond deploy</li>
+      <li>Payment gateway; lawyer-reviewed ToS + DPA; insurance</li>
+      <li>Venturelab / Innosuisse applications</li>
+      <li>Nooch branch #1 as normal customer → multi-location v1 if it converts</li>
+      <li>Prep forecasting v1 on accumulated data</li>
+      <li>Shift-handover digest · sensor integration</li>
+      <li><b>The fork:</b> hire/co-founder vs. stay-solo decision (Ticket 13)</li>
+    </ul></div>
+    <div class="card"><h4 style="color:var(--dim)">Future <span class="small">(2028+ · vision)</span></h4><ul>
+      <li>POS integration (actual-vs-theoretical cost)</li>
+      <li>Supplier order routing / sponsored placement</li>
+      <li>Benchmarking — only re-consented, 100+ kitchens</li>
+      <li>Voice on the line (DE)</li>
+      <li>Romandie/Ticino → DACH</li>
+      <li>Native apps only if the PWA measurably limits growth</li>
+    </ul></div>
+  </div>
+  <div class="note teal"><b>Dependency spine:</b> legal unblocks → trial → paying founding kitchens → German UI + verified prices → refactor → team capacity → chains/POS → supplier flow. Skipping a link doesn't accelerate the chain; it drops the plates.</div>
+</section>
+
+<!-- ============================ 12 SWOT ============================ -->
+<section class="station" id="s12">
+  <div class="ticket"><span class="no">TICKET 12</span><h2>SWOT</h2><span class="brief">Deliverable 11</span></div>
+  <div class="swot">
+    <div class="card"><h4>Strengths</h4><ul>
+      <li>Chef-founder authenticity; product decisions made on a real line</li>
+      <li>Live pilot, real data (recipes, prices, attendance), realtime multi-tenant infra</li>
+      <li>Near-zero burn; elite capital efficiency; AI-leveraged build speed</li>
+      <li>Coherent brand + unusually honest documentation</li>
+      <li>Focused beachhead (Bern) with a named expansion account</li>
+    </ul></div>
+    <div class="card redc"><h4>Weaknesses</h4><ul>
+      <li>Solo, part-time founder; total key-person risk; no team story</li>
+      <li>Verification deficit — three production outages in one week</li>
+      <li>English UI in a German market; ~92% estimated prices</li>
+      <li>Monolithic single-file codebase; no tests; no POS story</li>
+      <li>No entity, no reviewed contracts, uninsured liability surface (labels, payroll data)</li>
+    </ul></div>
+    <div class="card goldc"><h4>Opportunities</h4><ul>
+      <li>Empty quadrant: line-level daily-use tools, German-native, Swiss-compliant</li>
+      <li>Chef-led paid onboarding as an uncopyable GTM</li>
+      <li>Non-dilutive Swiss funding (Innosuisse, Venturelab, canton Bern)</li>
+      <li>Prep-execution data as a future forecasting moat</li>
+      <li>Supplier ecosystem (Transgourmet/Pistor/Saviva) as partner → buyer arc</li>
+    </ul></div>
+    <div class="card"><h4 style="color:var(--red)">Threats</h4><ul>
+      <li>New job absorbs the founder — the statistically dominant outcome</li>
+      <li>Gastro churn (3–5%/mo) + Swiss restaurant closures erode small ARR</li>
+      <li>Affordable-niche entrants (Cucinovo-class) close the window</li>
+      <li>DACH incumbents ship a "prep board" feature once the niche is proven</li>
+      <li>Platform risk: Supabase free-tier limits, uncapped AI costs, GitHub Pages hosting</li>
+      <li>A food-safety incident traced (fairly or not) to a ChefOS label, pre-insurance</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============================ 13 INVESTOR READINESS ============================ -->
+<section class="station" id="s13">
+  <div class="ticket"><span class="no">TICKET 13</span><h2>Investor readiness — would I invest?</h2><span class="brief">Deliverable 12 · written as the investor across the table</span></div>
+  <div class="grid g2">
+    <div class="card redc"><h4>As a pre-seed VC: no — not yet, and honestly, maybe never needed</h4><p><b>Why not:</b> solo part-time founder (the #1 pass reason in Europe, before anything else is read), zero revenue, 3 users, no entity, and a market framing — one Swiss canton — that can't return a fund. No priced round is justifiable today at any sensible valuation; raising now would mean bad terms for a story that gets strictly better with 90 days of patience.</p>
+    <p><b>What would flip it:</b> 5–10 paying kitchens with week-8 retention · churn data · German UI · a capacity answer (co-founder, contractor, or a credible solo-with-services plan) · and a founder who has chosen venture deliberately rather than by default. At that point a CHF 1.5–3M-cap SAFE conversation becomes normal Swiss pre-seed territory.</p></div>
+    <div class="card"><h4>As the honest advisor: the better question is <em>which game?</em></h4><p>ChefOS's economics — near-zero cost base, services cash flow, tiny beachhead — are a <b>textbook bootstrap</b>, and an awkward venture story. Venture demands DACH-or-bigger ambition, a team, and dilution; bootstrapping demands only what already exists plus discipline. Both are legitimate. Drifting between them is not: it produces founding prices set like a bootstrapper, decks written like a VC case, and a founder answering to neither logic.</p>
+    <p><b>Recommendation:</b> run the trial, take the founding revenue, apply for Innosuisse/Venturelab (non-dilutive keeps both doors open), and make the venture-vs-bootstrap decision explicitly in Q1 2027 with real retention data on the table. Until then, no investor meetings — only investor-ready documents.</p></div>
+  </div>
+</section>
+
+<!-- ============================ 14 PRIORITY MATRIX ============================ -->
+<section class="station" id="s14">
+  <div class="ticket"><span class="no">TICKET 14</span><h2>Priority matrix</h2><span class="brief">Deliverable 14</span></div>
+  <div class="axis">HIGH IMPACT</div>
+  <div class="pm">
+    <div class="card" style="border-color:var(--teal-dim)"><h4>High impact · Low effort — do this week</h4><ul>
+      <li>Nebenerwerb letter (10 min) + Einzelfirma/AHV (2 h)</li>
+      <li>Resend domain / Supabase mailer swap</li>
+      <li>Full regression pass on 3 real devices</li>
+      <li>Backup restore test · deploy claude-proxy · Anthropic cost cap</li>
+      <li>Re-anchor the founding price · fix stale docs</li>
+      <li>Buy the label printer</li>
+    </ul></div>
+    <div class="card goldc"><h4>High impact · High effort — schedule deliberately</h4><ul>
+      <li>German UI (Check List first)</li>
+      <li>Invoice-photo verified pricing</li>
+      <li>Offline-tolerant board</li>
+      <li>Codebase modularization (2027 Q1)</li>
+      <li>The capacity decision: co-founder / contractor / scoped-solo</li>
+    </ul></div>
+    <div class="card"><h4>Low impact · Low effort — batch when idle</h4><ul>
+      <li>LEDo allergen export (arguably high-impact — promote if a kitchen asks)</li>
+      <li>WhatsApp-text export for Order List</li>
+      <li>Recipe form progressive disclosure</li>
+      <li>Empty-state copy pass</li>
+    </ul></div>
+    <div class="card redc"><h4>Low impact · High effort — refuse</h4><ul>
+      <li>Schedule as a standalone module (vs. Planday-class tools)</li>
+      <li>Chef Challenge maintenance</li>
+      <li>Native apps in 2026–27 · desktop app</li>
+      <li>Home Cook tier (correctly deferred — keep it dead)</li>
+      <li>Marketplace/benchmarking builds before their preconditions</li>
+      <li>Any further logo/row-layout iteration without a user complaint</li>
+    </ul></div>
+  </div>
+  <div class="axis">LOW IMPACT</div>
+</section>
+<!-- ============================ 15 MISSING ============================ -->
+<section class="station" id="s15">
+  <div class="ticket"><span class="no">TICKET 15</span><h2>What's missing entirely</h2><span class="brief">Deliverable 15 · absent from all nineteen documents</span></div>
+  <div class="grid g3">
+    <div class="card redc"><h4>Business-critical gaps</h4><ul>
+      <li><b>POS / sales data.</b> Not one document mentions it — yet it's the ceiling on the food-cost value proposition and the thing every serious competitor has.</li>
+      <li><b>Insurance.</b> Berufshaftpflicht is named once (monetization) with no owner or date. Labels + payroll data without it is uninsured liability.</li>
+      <li><b>A support model.</b> What happens when a paying kitchen breaks at 18:30 Saturday and the founder is on a hot line until 23:00? Even an honest written SLA ("next morning") beats silence.</li>
+      <li><b>Churn &amp; cancellation flow.</b> No offboarding, no data-export UX, no exit survey — the founding offer promises exports "on request" with no mechanism.</li>
+      <li><b>Accounting reality.</b> First invoice implies bookkeeping, AHV contributions, tax handling of prepaid annual revenue. Zero pages on it.</li>
+    </ul></div>
+    <div class="card goldc"><h4>Product &amp; technical gaps</h4><ul>
+      <li><b>Any automated test.</b> The regression list is manual; the bug class it targets (script order) is exactly what a 5-line smoke test in CI catches for free.</li>
+      <li><b>Restore-tested backups.</b> Flagged in the backlog, still open — the single scariest line in the stack given real pilot data is in production.</li>
+      <li><b>Performance budget.</b> A 547&nbsp;KB HTML on a 2019 Android over kitchen WiFi — never measured.</li>
+      <li><b>Multi-tenant ingredient split.</b> The known architecture conflict (shared vs. per-kitchen ingredient table) is logged as an open decision and blocks clean scaling of pricing.</li>
+      <li><b>Recipe IP provenance.</b> The workshop's lawyer flagged it: some of the 173 recipes date from previous employers. Quietly audit before they're a paid product's content.</li>
+    </ul></div>
+    <div class="card"><h4>Founder-system gaps</h4><ul>
+      <li><b>A sustainability plan.</b> 80% kitchen job + solo SaaS has a well-known failure mode and no document addresses hours, rest, or what gets dropped in a bad week. This is the real risk register.</li>
+      <li><b>A bus-factor note.</b> If Richard is offline for a month, can anyone even access Supabase? A sealed-envelope credentials plan is one evening's work.</li>
+      <li><b>Competitor watch.</b> Cucinovo-class entrants appeared between two of your own documents. A quarterly 30-minute scan, calendared.</li>
+      <li><b>A definition of "enough."</b> Bootstrap vs. venture (Ticket 13) is ultimately this question. Writing it down once will settle a hundred future micro-decisions.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ============================ 16 MASTER PLAN ============================ -->
+<section class="station" id="s16">
+  <div class="ticket"><span class="no">TICKET 16</span><h2>Master plan — the next 12 months</h2><span class="brief">Deliverable 16 · weekly until the trial, monthly after · capacity-honest: ~10–12 h/week alongside the new job</span></div>
+
+  <div class="tscroll"><table>
+    <tr><th style="width:150px">When</th><th>Do</th><th>Done means</th></tr>
+    <tr><td class="num"><b>W29</b> · Jul 14–20</td><td>Send Nebenerwerb letter · start Einzelfirma/AHV registration · fix Resend/mailer · deploy claude-proxy · set Anthropic cost cap · <b>declare feature freeze</b></td><td>Outside email logs in · both legal blockers in motion · zero new features shipped</td></tr>
+    <tr><td class="num"><b>W30</b> · Jul 21–27</td><td>Full regression pass ×2 (own device + one old Android) · backup restore test · remove Chef Challenge from trial build · order Brother QL · new job starts: set the weekly ChefOS hours block now</td><td>Checklist green on 3 devices · restore proven · calendar shows protected hours</td></tr>
+    <tr><td class="num"><b>W31–32</b> · Aug 1–10</td><td>Soft-launch trial (rolling invites, 5 → 25) · watch error_logs daily · fix only breakage · personally onboard the first 2 outside kitchens with the scan-first flow</td><td>25 invited, ≥15 activated · realtime sync survives strangers · no outage &gt; 1 h</td></tr>
+    <tr><td class="num"><b>W33–35</b> · Aug</td><td>Trial runs · weekly usage review vs. the five agreed criteria · collect the "would you pay CHF X?" answers face-to-face where possible</td><td>Criteria measured, not vibes · ≥3 critical + ≥3 positive feedback items logged</td></tr>
+    <tr><td class="num"><b>Sep 2026</b></td><td><b>Go/no-go against your own criteria.</b> If go: founding offers (re-anchored) to the top kitchens, first invoices from the Einzelfirma, first paid onboarding day booked</td><td>≥3 founding kitchens paid · CHF &gt; 0 revenue exists · refund reserve set aside</td></tr>
+    <tr><td class="num"><b>Oct–Nov 2026</b></td><td>German UI for Check List + Recipes · invoice-photo price verification v1 · LEDo export · 2 onboarding days/month max · Nooch branch #1 first conversation (with a working German product in hand)</td><td>5 founding kitchens · pilot kitchen's real ingredient list 100% verified · Nooch meeting held</td></tr>
+    <tr><td class="num"><b>Dec 2026</b></td><td>Close the year: honest metrics memo (retention, churn, revenue, hours spent) · Venturelab application drafted · update every stale document in one pass</td><td>A one-page truthful 2026 report — the seed of every future pitch</td></tr>
+    <tr><td class="num"><b>Q1 2027</b></td><td><b>The fork, decided with data:</b> venture (co-founder search + Innosuisse + raise prep) or bootstrap (contractor from services cash, scope discipline) · begin codebase modularization either way · lawyer: ToS, DPA, pilot agreement, insurance</td><td>The decision is written down, with the reasoning · legal layer real</td></tr>
+    <tr><td class="num"><b>Q2 2027</b></td><td>15+ kitchens · payment gateway replaces manual invoicing · offline-tolerant board · quarterly workshop #1 as lead gen</td><td>MRR ≥ CHF 1.5k · support &lt; 2 h/week · churn measured, not guessed</td></tr>
+    <tr><td class="num"><b>Mid 2027</b></td><td>Nooch expands or a second small chain enters · prep-forecasting prototype on a year of real data · neighbouring-canton onboardings begin</td><td>~20–25 kitchens · first multi-location revenue <em>or</em> a deliberate decision to stay single-site</td></tr>
+  </table></div>
+
+  <div class="note claude"><span class="tag">🤖 Claude's note</span>Honest accountability note on the W29 "declare feature freeze" line: the night this review landed (13→14 July), five more things shipped at Richard's request — a whole-menu Recipes scan mode, an in-app tutorial, a "report a bug" button, a Print Labels ingredient autocomplete, and a confidentiality-acknowledgement gate at login. The last two are arguably risk-reduction (bug reporting supports the verification thesis directly; the confidentiality gate is a legal/trust safeguard), but the scan mode and tutorial are genuinely new features shipped <em>during</em> what this plan calls freeze week. <b>Chef Challenge — this review's own 86 call, "remove from the trial build" — is also still live and untouched.</b> None of this contradicts the review's judgment; if anything it's a live example of the exact scope-gravity pattern Ticket 01 and Ticket 02 warn about, including from the AI assistant that's supposed to help hold the line. Worth deciding explicitly, out loud, whether Chef Challenge comes out before the trial build locks.</div>
+
+  <h3>The five numbers that matter <span class="small">(everything else is decoration)</span></h3>
+  <div class="grid g4">
+    <div class="kpi"><div class="n teal">≥40%</div><div class="l">Trial teams active 3×/week in week 2 — the thesis test</div></div>
+    <div class="kpi"><div class="n teal">5</div><div class="l">Paying founding kitchens by October — the validation test</div></div>
+    <div class="kpi"><div class="n gold">&lt;3%</div><div class="l">Monthly churn once paying — the business test</div></div>
+    <div class="kpi"><div class="n gold">10–12 h</div><div class="l">Protected weekly ChefOS hours actually held — the survival test</div></div>
+  </div>
+  <div class="grid g4" style="margin-top:0">
+    <div class="kpi"><div class="n red">2 / month</div><div class="l">Onboarding-day hard cap — the founder-burnout guardrail. If demand exceeds it, raise the price, not the hours</div></div>
+  </div>
+
+  <div class="verdictline" style="margin-top:44px">
+    <div class="vh">Closing the ticket</div>
+    <div class="vt">ChefOS doesn't need to be dramatically better than Apicbase or MarketMan — it needs to be <span style="color:var(--teal)">the thing a Bern kitchen actually opens at 07:30, in German, that a working chef installed personally.</span> Everything in this report reduces to protecting that: two legal letters, one honest trial, five paying kitchens, and a founder who survives his own velocity.</div>
+  </div>
+
+  <div class="note claude" style="margin-top:26px"><span class="tag">🤖 Claude's overall take</span>Richard asked me directly what I think of this whole document: it's one of the better outside critiques a solo pre-seed founder could get — grounded in the real repo rather than a generic template, refuses to flatter, and its central thesis (verification and founder capacity are the actual bottleneck, not features) matches what I've watched happen from the inside all week. I'd act on it close to as-written: Tickets 01, 02, 09, 11, 13 and 16 in particular are worth re-reading whenever the next "just one more feature" urge shows up — mine included. My honest additions are the four notes above: the Nebenerwerb letter now targets the wrong employer, the ingredient trust ratio moved the wrong direction overnight, the "feature freeze" starting this week already has five exceptions, and Chef Challenge is still in the trial build despite its own 86 call. None of that changes the verdict — it's more evidence for it.</div>
+</section>
+
+<footer>
+  <p><b>Sources &amp; honesty notes.</b> Project documents (all read in full or via extraction): index.html (live app source), ROADMAP.md, MVP_DEFINITION.md, ARCHITECTURE.md, FEATURE_ROADMAP.md, status.html, tasklist.html, backlog.html, planning.html, monetization.html, presentation.html, VISUAL_GUIDE.html, legal.html, PILOT_AGREEMENT.md, FOUNDING_OFFER.md, NEBENERWERB_REQUEST.md, LABEL_PRINTER_RESEARCH.md, REGRESSION_CHECKLIST.md, README.md. Market pricing anchors: Capterra, SoftwareAdvice, GetApp, SourceForge and vendor listings retrieved July 2026 — directional only. All revenue, valuation and probability figures are scenario estimates and structured judgment, not forecasts. Nothing here is legal, tax, accounting or investment advice; the items flagged for a lawyer (ToS, DPA, pilot agreement, IP clauses, insurance) genuinely need one.</p>
+  <p style="margin-top:14px">ChefOS Critical Review · prepared 13 July 2026 · tickets 01–16 complete · <span class="mono" style="color:var(--teal)">FIRE WHEN READY</span></p>
+</footer>
+
+</div>
+</body>
+</html>
