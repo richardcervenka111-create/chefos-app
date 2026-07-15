@@ -299,7 +299,7 @@
         <div class="col-head"><span class="dot"></span><span data-sk="Čaká" data-en="Waiting"></span><span class="count"></span></div>
         <div class="col-body">
           <div class="ticket" style="border-color:var(--gold);"><b style="color:var(--gold);">💰 Prvý príjem — 2 blokátory, oba na Richardovi</b><span>1) Poslať Nebenerwerb žiadosť zamestnávateľovi (10 min, draft hotový), 2) Einzelfirma/AHV registrácia (1-2 h). Potom: founding-member ponuka do appky (Claude, draft hotový)</span></div>
-          <div class="ticket"><b>5 migrácií čaká na spustenie</b><span>db/74 (ingrediencie pre nové kuchyne), db/75 (nepovinný profil), db/76 (Order List oprava) — najprv staging; db/77 (HACCP tabuľky) + db/78 (log štítkov) — bezpečné rovno na produkciu</span></div>
+          <div class="ticket"><b>7 migrácií čaká na spustenie</b><span>Staging najprv: db/74 (ingrediencie pre nové kuchyne), db/75 (nepovinný profil), db/76 (Order List), db/79 (error_logs cap), db/80 (admin lockdown — zavrie aj eskalačnú dieru!). Rovno na produkciu bezpečné: db/77 (HACCP), db/78 (log štítkov)</span></div>
           <div class="ticket"><b>🧼 HACCP vlna 3</b><span>Školenia personálu + admin report — posledné dve dlaždice s "pripravujeme" bannerom. Vlna 2 (fritézový olej, škodcovia, expirácia štítkov) nasadená 15.7.</span></div>
           <div class="ticket"><b>Fakturácia / predplatné</b><span>Plán existuje (monetization.html) — na štart ručné faktúry, platobná brána až pri 20+ kuchyniach</span></div>
           <div class="ticket"><b>GmbH</b><span>Vedome odložené až po prvom reálnom príjme</span></div>
@@ -312,6 +312,7 @@
       <div class="col col-done">
         <div class="col-head"><span class="dot"></span><span data-sk="Hotovo" data-en="Done"></span><span class="count"></span></div>
         <div class="col-body">
+          <div class="ticket"><b>🔐 Health check + admin lockdown + Settings hub (15.7. v noci)</b><span>Trvalé guardy: audítory v git hookoch + CI + brána na deploy; nájdená a zavretá (db/80, staging first) eskalačná diera — ktokoľvek si mohol sám nastaviť is_admin. Nové: ⚙️ Settings hub na Home, 📲 návod na pridanie na plochu, viditeľnosť aktívnych filtrov ako štandard (plný teal), poličky receptov Moje/ChefOS/Firemné podľa autora</span></div>
           <div class="ticket"><b>🧼 HACCP vlna 2</b><span>Fritézový olej + Škodcovia zapnuté (enginy z vlny 1 ich mali pripravené), Expirácia štítkov postavená — tlač štítkov sa loguje s use-by dátumom (db/78), nová obrazovka ukazuje čo je po dátume / dnes-zajtra / v poriadku</span></div>
           <div class="ticket"><b>🌐 Vlastná doména + email login pre všetkých</b><span>15.7.: chefos.ch overená v Resend, custom SMTP zapnutý, appka beží na app.chefos.ch — Richard otestoval celý tok naživo (HTTPS, email link, automatické prihlásenie). Hlavný blokátor trialu odstránený</span></div>
           <div class="ticket"><b>🔴 → ✅ Kritický signup bug opravený (db/73)</b><span>handle_new_user() padal pre KAŽDÚ novú registráciu (search_path v SECURITY DEFINER) — každý invite aj trial signup by zlyhal. Objavené cez Richardov gmail test + Postgres logy, opravené priamo na produkcii</span></div>
@@ -427,9 +428,13 @@
           <div class="spend-what"><span data-sk="Doména chefos.ch (Hostpoint, 1. rok)" data-en="Domain chefos.ch (Hostpoint, year 1)"></span><span class="meta" data-sk="15.7.2026 — zľava na prvý rok, obnova ~CHF 15/rok od druhého roka" data-en="Jul 15, 2026 — first-year discount, renews at ~CHF 15/year from year 2"></span></div>
           <div class="spend-amount">CHF 5.00</div>
         </div>
+        <div class="spend-row">
+          <div class="spend-what"><span data-sk="Supabase Pro (mesačne, beží)" data-en="Supabase Pro (monthly, ongoing)"></span><span class="meta" data-sk="potvrdené Richardom 15.7. — denné zálohy v cene; samo-nahlásené, začiatok predplatného neevidovaný" data-en="confirmed by Richard Jul 15 — daily backups included; self-reported, subscription start date not recorded"></span></div>
+          <div class="spend-amount">~USD 25/mes</div>
+        </div>
         <div class="spend-total">
           <div class="spend-what" data-sk="Odhadovaný celkový beh projektu" data-en="Estimated total project run"></div>
-          <div class="spend-amount">~CHF 141</div>
+          <div class="spend-amount" data-sk="~CHF 141 + Supabase Pro mesačne" data-en="~CHF 141 + Supabase Pro monthly">~CHF 141 + Supabase Pro mesačne</div>
         </div>
       </div>
     </details>
@@ -677,6 +682,6 @@ renderPulse();
 </script>
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 03:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 03:45">🔄 Stav ChefOS k 15. 7. 2026, 03:45</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 04:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 04:45">🔄 Stav ChefOS k 15. 7. 2026, 04:45</div>
 </body>
 </html>

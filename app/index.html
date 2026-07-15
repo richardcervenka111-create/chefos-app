@@ -411,7 +411,15 @@
     color: var(--ink-dim);
     opacity: 0.85;
   }
-  .task-status-btn.active{ opacity: 1; }
+  /* STANDARD (Richard, 15.7., "nie prvýkrát riešime"): a selected filter must be unmissable —
+     full teal fill + dark text, never just an opacity change. Applies to every filter chip in
+     the app; Check List's status buttons keep their own semantic colors via the more-specific
+     .status-* rules below, which is intentional. */
+  .task-status-btn.active{
+    opacity: 1;
+    background: var(--copper); border-color: var(--copper);
+    color: #0A1A2F; font-weight: 800;
+  }
   .icon-choice-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin:8px 0; }
   .icon-choice-btn{
     font-size:22px; padding:8px 0; border-radius:8px;
@@ -452,7 +460,7 @@
   .prep-filter-toggle::after{ content:' ▾'; font-size:9px; opacity:0.6; }
   .prep-filter-toggle:active{ transform: scale(0.97); }
   .prep-filter-toggle:hover{ border-color: var(--copper-dim); }
-  .prep-filter-toggle.active{ border-color: var(--copper); background: rgba(52,247,215,0.16); color: var(--ink); }
+  .prep-filter-toggle.active{ border-color: var(--copper); background: var(--copper); color: #0A1A2F; font-weight: 800; }
   .prep-filter-toggle.active::after{ content:' ▴'; }
   .prep-flag{ margin-left:6px; font-size:14px; }
   /* Deliberately loud — Richard's own words, "do očí bijúca výstraha" (an eye-catching
@@ -729,9 +737,10 @@
   }
   .chip:active{ transform: scale(0.96); }
   .chip.active{
-    background: var(--copper-dim);
+    background: var(--copper);
     border-color: var(--copper);
-    color: #34F7D7;
+    color: #0A1A2F;
+    font-weight: 800;
   }
 
   /* ---------- List ---------- */
@@ -1005,7 +1014,7 @@
     color: var(--ink-dim);
     cursor:pointer;
   }
-  .scale-chip.active{ background: var(--copper-dim); border-color: var(--copper); color:#34F7D7; }
+  .scale-chip.active{ background: var(--copper); border-color: var(--copper); color:#0A1A2F; font-weight:800; }
   .scale-note{
     width:100%;
     font-size: 11px;
@@ -1447,6 +1456,51 @@
     <h1 class="title display">🧼 HACCP</h1>
   </div>
   <div class="home-grid" id="haccpGrid"></div>
+</div>
+
+<!-- Settings hub (Richard, 15.7., bod 5) — same tile design as Home/HACCP. Everything here
+     reuses an existing opener; only the language picker and the install guide are new. -->
+<div id="settingsView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Settings</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">⚙️ Settings</h1>
+  </div>
+  <div class="home-grid" id="settingsGrid"></div>
+</div>
+
+<div id="languagePickerOverlay" class="sheet-overlay" onclick="if(event.target===this) closeLanguagePicker()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🌐 Language</div>
+    <div id="languagePickerList"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeLanguagePicker()">Close</button>
+  </div>
+</div>
+
+<!-- Add-to-Home-Screen guide (Richard, 15.7., bod 6) — until there's a native app, this is
+     how the web app becomes an "app icon" on a phone. -->
+<div id="installGuideOverlay" class="sheet-overlay" onclick="if(event.target===this) closeInstallGuide()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📲 Add ChefOS to your phone</div>
+    <p class="sheet-text">ChefOS installs like an app — no App Store needed. One minute, once:</p>
+    <label class="form-label" style="margin-top:12px;">iPhone / iPad (Safari)</label>
+    <p class="sheet-text">1. Open <b>app.chefos.ch</b> in <b>Safari</b> (not Chrome/Instagram browser)<br>
+    2. Tap the <b>Share</b> button <span style="opacity:0.8;">(square with arrow ⬆️, bottom center)</span><br>
+    3. Scroll down, tap <b>"Add to Home Screen"</b><br>
+    4. Tap <b>Add</b> — the ChefOS icon appears like a normal app</p>
+    <label class="form-label" style="margin-top:12px;">Android (Chrome)</label>
+    <p class="sheet-text">1. Open <b>app.chefos.ch</b> in <b>Chrome</b><br>
+    2. Tap the <b>⋮ menu</b> (top right)<br>
+    3. Tap <b>"Add to Home screen"</b> → <b>Add</b></p>
+    <p class="sheet-text" style="color:var(--ink-faint);">Tip: opened from that icon, ChefOS runs full-screen without the browser bar — like a real app.</p>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeInstallGuide()">Close</button>
+  </div>
 </div>
 
 <!-- Generic reading log used by Goods Receiving / Core Cooking Temp / Cooling Log — same
@@ -6001,7 +6055,9 @@ async function createOwnKitchen(){
   if(error){ statusEl.textContent = 'Could not create: ' + error.message; return; }
   // Whoever creates a kitchen becomes its admin — otherwise nobody in a brand-new kitchen can
   // ever see the Admin/Currency tiles or approve anyone else, with no way to self-promote.
-  const { error: profErr } = await sb.from('profiles').update({ kitchen_id: kitchen.id, is_admin: true }).eq('id', currentUser.id);
+  // Admin lockdown (Richard, 15.7.): creating a kitchen no longer self-grants is_admin —
+  // admin rights are granted only by Richard personally (db/80 guards the column too).
+  const { error: profErr } = await sb.from('profiles').update({ kitchen_id: kitchen.id }).eq('id', currentUser.id);
   if(profErr){ statusEl.textContent = 'Could not save: ' + profErr.message; return; }
   history.replaceState(null, '', location.pathname);
   await startApp();
@@ -7007,13 +7063,13 @@ let activeCategory = "Favorites";
    output) — same set the old "AI Playground" option showed, just relabeled. 'company' = every
    non-AI recipe in the kitchen regardless of who added it (the whole shared recipe book).
    Reset to 'mine' on every showList() open, same reasoning as activeCategory above. */
-let recipeSourceFilter = "mine";
+let recipeSourceFilter = "chefos";
 let activeQuery = "";
 let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -7028,6 +7084,9 @@ const HOME_TILE_DEFS = [
   /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
      rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
   { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()' },
+  /* Settings hub (Richard, 15.7., bod 5) — one place for every setting; topbar icons stay
+     for muscle memory until Richard says to slim them. */
+  { key:'settings', icon:'⚙️', staticLabel:'Settings', onclick:'showSettings()' },
   { key:'chefAssistant', icon:'🎩', labelKey:'chefAssistant', staticLabel:"Chef's Assistant", onclick:'showChefAssistant()' },
   /* Chef Challenge — hidden from Home at Richard's request (2026-07-14), not deleted. The
      feature, its overlay, and all its code below are untouched; bringing it back later is
@@ -7117,6 +7176,51 @@ function renderHaccpGrid(){
     </button>
   `).join('');
 }
+
+/* ============================================================
+   Settings hub (bod 5, 15.7.) — every existing settings entry point gathered in one
+   Home-styled grid. Currency stays admin-only, mirroring the topbar icon's rule.
+   ============================================================ */
+const SETTINGS_TILE_DEFS = [
+  { key:'myProfile', icon:'👤', staticLabel:'My Profile & Security', onclick:'openMyProfileSettings()' },
+  { key:'scanSettings', icon:'🔑', staticLabel:'AI & Scan Settings', onclick:'openScanSettings()' },
+  { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
+  { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
+  { key:'reorderHome', icon:'↕️', staticLabel:'Reorder Home Icons', onclick:'openHomeReorder()' },
+  { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
+  { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
+  { key:'tutorial', icon:'❓', staticLabel:'Tutorial', onclick:'openTutorial()' },
+  { key:'legal', icon:'🔒', staticLabel:'Privacy & Terms', onclick:"window.open('legal.html','_blank')" },
+];
+function showSettings(){
+  logEvent('view_opened', {view:'settings'});
+  hideAllViews();
+  document.getElementById('settingsView').style.display = 'block';
+  const wrap = document.getElementById('settingsGrid');
+  wrap.innerHTML = SETTINGS_TILE_DEFS.filter(t=>!t.adminOnly || currentIsAdmin).map(tile => `
+    <button class="home-tile" onclick="${tile.onclick.replace(/"/g,'&quot;')}">
+      <span class="home-tile-icon">${tile.icon}</span>
+      <span class="home-tile-label">${tile.staticLabel}</span>
+    </button>
+  `).join('');
+  window.scrollTo(0,0);
+}
+const LANGUAGE_OPTIONS = [
+  { code:'en', label:'English' }, { code:'de', label:'Deutsch' }, { code:'fr', label:'Français' },
+  { code:'it', label:'Italiano' }, { code:'sk', label:'Slovenčina' }
+];
+function openLanguagePicker(){
+  const current = localStorage.getItem('chefos_lang') || 'en';
+  document.getElementById('languagePickerList').innerHTML = LANGUAGE_OPTIONS.map(o=>`
+    <button class="sheet-option" onclick="setLanguage('${o.code}'); closeLanguagePicker();">
+      <div><div class="sheet-option-title">${o.code===current ? '✓ ' : ''}${o.label}</div></div>
+    </button>
+  `).join('');
+  document.getElementById('languagePickerOverlay').classList.add('open');
+}
+function closeLanguagePicker(){ document.getElementById('languagePickerOverlay').classList.remove('open'); }
+function openInstallGuide(){ document.getElementById('installGuideOverlay').classList.add('open'); }
+function closeInstallGuide(){ document.getElementById('installGuideOverlay').classList.remove('open'); }
 
 let _homeReorderList = [];
 function openHomeReorder(){
@@ -7210,9 +7314,9 @@ function renderRecipeSummaryBar(){
   const el = document.getElementById('recipeSummarySlot');
   if(!el) return;
   const all = allRecipes();
-  const aiCount = all.filter(r=>(r.tags||[]).includes('AI-generated')).length;
-  const mineCount = all.filter(r=>!(r.tags||[]).includes('AI-generated') && r.createdBy === currentUser.id).length;
-  const companyCount = all.filter(r=>!(r.tags||[]).includes('AI-generated')).length;
+  const aiCount = all.filter(r=>!r.createdBy).length;                                    // ChefOS library shelf
+  const mineCount = all.filter(r=>r.createdBy === currentUser.id).length;                 // Moje
+  const companyCount = all.filter(r=>r.createdBy && r.createdBy !== currentUser.id).length; // Firemné (teammates)
   el.innerHTML = `
     <div class="prep-summary-row2" style="padding:8px 18px 12px 18px;">
       <span class="prep-section-name" onclick="openRecipeCategoryPicker()" title="Switch section">${categoryIcon(activeCategory)} ${activeCategory}</span>
@@ -7497,10 +7601,13 @@ let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false,
 function passesRecipeFilters(r, q){
   if(activeCategory === 'Favorites' && !isFavorite(r.id)) return false;
   if(activeCategory !== 'Favorites' && activeCategory !== 'All' && activeCategory !== 'Newest' && r.category !== activeCategory) return false;
-  const isAiGenerated = (r.tags||[]).includes('AI-generated');
-  if(recipeSourceFilter === 'chefos' && !isAiGenerated) return false;
-  if(recipeSourceFilter === 'company' && isAiGenerated) return false;
-  if(recipeSourceFilter === 'mine' && (isAiGenerated || r.createdBy !== currentUser.id)) return false;
+  // Shelves (Richard, 15.7.): ChefOS = the built-in library — every recipe with no author
+  // (all 173 migrated ones and anything else unattributed). Moje = created by me (including
+  // my AI-generated saves). Firemné = created by a teammate. 'AI-generated' stays a tag/badge,
+  // no longer the shelf axis.
+  if(recipeSourceFilter === 'chefos' && r.createdBy) return false;
+  if(recipeSourceFilter === 'company' && (!r.createdBy || r.createdBy === currentUser.id)) return false;
+  if(recipeSourceFilter === 'mine' && r.createdBy !== currentUser.id) return false;
   if(!matchesQuery(r, q)) return false;
   if(DIET_FILTER_OPTIONS.some(o=>dietFilter[o.key])){
     const diet = computeDietTags(r);
@@ -8294,7 +8401,7 @@ function showList(){
   // created_by tracking entirely, so they'd all be invisible under a 'mine' filter for
   // literally everyone. 'company' (all non-AI recipes, regardless of who added them) is what
   // "My Recipes" always meant in practice before this 3-way split existed.
-  recipeSourceFilter = 'company';
+  recipeSourceFilter = 'chefos'; // the library shelf holds the 173 migrated recipes — always reachable on open
   renderRecipeSummaryBar();
   renderList();
   window.scrollTo(0,0);
