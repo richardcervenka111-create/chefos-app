@@ -10,7 +10,16 @@ Scans every db/*.sql migration and fails loudly when:
   4. migration numbers are duplicated (two files claiming the same number),
   5. a migration contains a destructive statement (DROP TABLE, TRUNCATE,
      DELETE without WHERE) that isn't explicitly acknowledged with a
-     `-- DESTRUCTIVE: <reason>` comment in the same file.
+     `-- DESTRUCTIVE: <reason>` comment in the same file,
+  6. an RLS policy created ON table X subqueries X itself inside its own
+     USING/WITH CHECK body — Postgres re-applies X's policies to that inner
+     subquery and recurses until error 42P17, which poisons EVERY query
+     against the table for EVERY user (a full outage of anything touching
+     it). The fix is always the same: move the lookup into a SECURITY
+     DEFINER function (see my_kitchen_id() in db/55). This exact bug shipped
+     TWICE — db/53 (2026-07-13, full-app outage) and db/86 (2026-07-16,
+     locked the super-admin out of his own account) — which is why it is now
+     a hard check and not a code-review memory.
 
 Why this exists (health check 2026-07-15): ChefOS had three real RLS incidents
 in one week (db/53 recursion outage, db/62 column-grant lockout, the pre-db/34
@@ -51,9 +60,22 @@ NO_TENANT_OK = {
 # Tables allowed to skip RLS entirely (none today — keep empty on purpose).
 NO_RLS_OK = set()
 
+# Historical migrations that contain the self-referencing-policy bug and are ALREADY
+# superseded by a later fix migration. They stay in the repo as an accurate record of what
+# ran on production (rewriting an applied migration would make the repo lie about history),
+# so the recursion check skips exactly these files and nothing else.
+RECURSIVE_POLICY_SUPERSEDED = {
+    '53_invite_expiry_and_remove_member.sql',  # fixed by db/55 (2026-07-13 outage)
+    '86_admin_permissions_rls.sql',            # fixed by db/90 (2026-07-16 super-admin lockout)
+}
+
 create_re = re.compile(r'create\s+table\s+(?:if\s+not\s+exists\s+)?([a-z_]+)\s*\(', re.I)
 enable_rls_re = re.compile(r'alter\s+table\s+([a-z_]+)\s+enable\s+row\s+level\s+security', re.I)
 policy_re = re.compile(r'create\s+policy\s+.+?\s+on\s+([a-z_]+)', re.I)
+# Whole CREATE POLICY statement, so the body can be inspected for self-reference. Policy
+# bodies never contain a semicolon (they're a single USING/WITH CHECK expression), so
+# non-greedy up to ";" captures exactly one statement.
+policy_stmt_re = re.compile(r'create\s+policy\s+"[^"]+"\s+on\s+([a-z_]+)(.*?);', re.I | re.S)
 destructive_re = re.compile(r'\b(drop\s+table|truncate\s+table|truncate\s+[a-z_]+\s*;)', re.I)
 delete_re = re.compile(r'\bdelete\s+from\s+([a-z_]+)\s*;', re.I)  # DELETE with no WHERE before ;
 
@@ -93,6 +115,16 @@ def main():
             rls_enabled.add(t.lower())
         for t in policy_re.findall(sql):
             has_policy.add(t.lower())
+
+        if base not in RECURSIVE_POLICY_SUPERSEDED:
+            for t, body in policy_stmt_re.findall(sql):
+                if re.search(r'\bfrom\s+' + re.escape(t) + r'\b', body, re.I):
+                    violations.append(
+                        f'{base}: policy on "{t}" subqueries "{t}" inside its own body — '
+                        f'infinite RLS recursion (42P17), breaks every query on the table for everyone. '
+                        f'Use a SECURITY DEFINER helper instead (pattern: my_kitchen_id() in db/55). '
+                        f'This exact bug caused the db/53 outage AND the db/86 admin lockout.'
+                    )
 
         for m2 in destructive_re.finditer(sql):
             if '-- DESTRUCTIVE:' not in raw:

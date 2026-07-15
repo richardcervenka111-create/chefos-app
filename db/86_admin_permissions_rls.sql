@@ -1,3 +1,11 @@
+-- ⚠️ PARTIALLY SUPERSEDED BY db/90: the two profiles policies below ("remove kitchen member",
+-- "super-admin reads all profiles") subquery `profiles` from inside a policy ON `profiles` --
+-- infinite RLS recursion (42P17), the same bug as db/53. Running this file caused the
+-- 2026-07-16 super-admin lockout; db/90 replaces both policies with SECURITY DEFINER helpers.
+-- Kept unedited as the accurate record of what ran on production. If replaying migrations on
+-- a fresh environment, run db/90 immediately after this file. The auditor's recursion check
+-- (scripts/audit_db.py check #6) skips exactly this file via RECURSIVE_POLICY_SUPERSEDED.
+--
 -- ChefOS -- wire the granular admin_perms (db/85) into actual RLS policies, and fix a real
 -- bug found while doing this: email_contacts' INSERT policy required is_admin, but the app
 -- inserts an access_request-sourced row from renderTeamGate() for EVERY new signup, almost

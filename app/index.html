@@ -1443,6 +1443,10 @@
         <button class="icon-btn" onclick="openCurrencySettings()" title="Currency" id="currencyIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10h11l-3-3"/><path d="M17 14H6l3 3"/></svg>
         </button>
+        <!-- Custom Ingredients (bod 2, 16.7.) — admin-only, same visibility rule as Currency. -->
+        <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+        </button>
         <span class="sync-status saved" id="homeSyncStatus"></span>
       </div>
     </div>
@@ -2955,6 +2959,35 @@
     <div class="sheet-row">
       <button class="save-btn" onclick="saveWorkingTimeContractedHours()">Save</button>
       <button class="sheet-cancel" onclick="closeWorkingTimeContractedHours()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Ingredients (bod 2, 16.7.) — admin-only separate list, added via file upload.
+     Reuses the same shared scanOverlay/readFileForScan pipeline as every other AI scan feature. -->
+<div id="customIngredientsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeCustomIngredients()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🏷️ Custom Ingredients</div>
+    <p class="sheet-text">Your own ingredients, kept separate from the main catalog. Upload a price list, photo, or document and Claude will read it in.</p>
+    <button class="save-btn" style="width:100%;" onclick="triggerCustomIngredientScan()">📎 Upload file</button>
+    <div id="customIngredientsList" style="margin-top:12px; max-height:300px; overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeCustomIngredients()">Close</button>
+  </div>
+</div>
+<input type="file" id="customIngredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv" style="display:none;" onchange="handleCustomIngredientFileSelected(event)">
+
+<!-- Review what Claude extracted from the uploaded file before saving any of it -->
+<div id="customIngredientReviewOverlay" class="sheet-overlay" onclick="if(event.target===this) closeCustomIngredientReview()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Review — <span id="cir_count"></span> selected</div>
+    <p class="sheet-text">Tap any item to leave it out.</p>
+    <div id="cir_list" style="max-height:320px; overflow-y:auto;"></div>
+    <div class="sheet-status" id="customIngredientReviewStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="saveCustomIngredientReview()">Save</button>
+      <button class="sheet-cancel" onclick="closeCustomIngredientReview()">Discard</button>
     </div>
   </div>
 </div>
@@ -5970,6 +6003,22 @@ async function startApp(){
     return;
   }
 
+  // Returning users still need their access_requests status re-checked on every login, not
+  // just once at signup (bod 3, 16.7.) -- kitchen_id being set was being treated as "vetted
+  // forever", so denying someone AFTER they'd already joined had zero effect. Only blocks on
+  // an explicit 'denied' status -- a missing row (every account that predates the
+  // access-request system) or 'pending'/'approved' must never lock out an existing legitimate
+  // team member who's done nothing wrong.
+  if(!currentIsAdmin){
+    const email = (currentUser.email || '').toLowerCase();
+    const { data: reqRow } = await sb.from('access_requests').select('status').eq('email', email).order('requested_at', { ascending:false }).limit(1).maybeSingle();
+    if(reqRow && reqRow.status === 'denied'){
+      document.getElementById('teamGateView').style.display = 'block';
+      document.getElementById('teamGateContent').innerHTML = `<p class="lede">This email hasn't been approved for ChefOS. If you think that's a mistake, reach out to whoever invited you.</p>`;
+      return;
+    }
+  }
+
   if(!(await hasAcceptedConfidentiality())){
     document.getElementById('confidentialityGateView').style.display = 'block';
     return;
@@ -7575,6 +7624,8 @@ function renderHomeGrid(){
   if(hasAdminPerm('approve_access')) refreshAdminPendingBadge();
   const currencyBtn = document.getElementById('currencyIconBtn');
   if(currencyBtn) currencyBtn.style.display = currentIsAdmin ? 'flex' : 'none';
+  const customIngredientsBtn = document.getElementById('customIngredientsIconBtn');
+  if(customIngredientsBtn) customIngredientsBtn.style.display = currentIsAdmin ? 'flex' : 'none';
 }
 
 /* ============================================================
@@ -13231,6 +13282,184 @@ async function saveContractReview(){
   _contractNotesOpen = true;
   closeContractReview();
   renderWorkingTimeSettings();
+}
+
+/* ---------- Custom Ingredients (bod 2, 16.7.) — admin-only, deliberately a separate list from
+   the main Ingredients catalog (db/88): whatever gets uploaded here goes straight to
+   custom_ingredients, never touches the curated 2000-item price book. Same
+   scanOverlay/readFileForScan pipeline every other AI scan feature uses, so the file-upload
+   experience is consistent across the app. ---------- */
+async function openCustomIngredients(){
+  document.getElementById('customIngredientsOverlay').classList.add('open');
+  await renderCustomIngredientsList();
+}
+function closeCustomIngredients(){ document.getElementById('customIngredientsOverlay').classList.remove('open'); }
+let _customIngredientRows = [];
+async function renderCustomIngredientsList(){
+  const el = document.getElementById('customIngredientsList');
+  el.innerHTML = '<p class="lede">Loading…</p>';
+  const { data, error } = await sb.from('custom_ingredients').select('*').order('created_at', { ascending:false });
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  _customIngredientRows = data || [];
+  if(!_customIngredientRows.length){ el.innerHTML = '<div class="empty-state">No custom ingredients yet.</div>'; return; }
+  el.innerHTML = _customIngredientRows.map(r=>`
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(r.name||'').replace(/</g,'&lt;')}</div>
+          <div class="meta">${[r.category, r.unit, r.price!=null?String(r.price):null].filter(Boolean).join(' · ') || '—'}${r.source_file_name ? ' · from ' + r.source_file_name.replace(/</g,'&lt;') : ''}</div>
+        </div>
+        ${currentIsAdmin ? `<button class="task-status-btn" onclick="deleteCustomIngredient('${r.id}')">🗑️</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+async function deleteCustomIngredient(id){
+  if(!confirm('Remove this custom ingredient?')) return;
+  const { error } = await sb.from('custom_ingredients').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  renderCustomIngredientsList();
+}
+function triggerCustomIngredientScan(){
+  if(!_anthropicKey){
+    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
+    return;
+  }
+  document.getElementById('customIngredientScanInput').value = '';
+  document.getElementById('customIngredientScanInput').click();
+}
+function handleCustomIngredientFileSelected(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  readFileForScan(file, runCustomIngredientScan);
+}
+async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
+  const tool = {
+    name: 'record_custom_ingredients',
+    description: 'Extract every distinct ingredient/product listed in this document.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        ingredients: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type:'string', description:'Ingredient/product name' },
+              unit: { type:'string', description:'Unit the price is quoted in, e.g. kg, l, pc, g — omit if not stated' },
+              price: { type:'number', description:'Price if stated in the document — omit if not present' },
+              category: { type:'string', description:'A short category like Produce, Dairy, Meat, Dry Goods — only if reasonably inferable, omit otherwise' },
+              note: { type:'string', description:'Anything else worth keeping about this item, optional' }
+            },
+            required: ['name']
+          },
+          description: 'One entry per distinct ingredient/product found — a supplier price list, handwritten list, spec sheet, or similar.'
+        }
+      },
+      required: ['ingredients']
+    }
+  };
+  const data = await callClaudeAPI({
+    model: 'claude-sonnet-5',
+    max_tokens: 4096,
+    tools: [tool],
+    tool_choice: { type:'tool', name:'record_custom_ingredients' },
+    messages: [{
+      role: 'user',
+      content: [
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is a document listing ingredients or products for a professional kitchen — could be a supplier price list, a handwritten list, or a spec sheet, as a photo, PDF, or document text. Extract every distinct item using the record_custom_ingredients tool. If something is not present, leave that field empty rather than guessing.' }
+      ]
+    }]
+  });
+  const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+  if(!toolUse) throw new Error('Claude could not read this file — try a clearer photo or PDF.');
+  return toolUse.input;
+}
+async function runCustomIngredientScan(base64, mediaType, fileName){
+  const overlay = document.getElementById('scanOverlay');
+  const spinner = document.getElementById('scanSpinner');
+  const statusEl = document.getElementById('scanStatus');
+  const errorEl = document.getElementById('scanError');
+  const closeBtn = document.getElementById('scanCloseBtn');
+
+  spinner.style.display = 'block';
+  statusEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
+  overlay.classList.add('open');
+  startBgScan('Custom ingredients scan');
+
+  const messages = ['Reading the file…', 'Finding ingredients…', 'Extracting prices & units…'];
+  let msgIdx = 0;
+  statusEl.textContent = messages[0];
+  clearInterval(_scanMsgTimer);
+  _scanMsgTimer = setInterval(()=>{
+    msgIdx = (msgIdx + 1) % messages.length;
+    statusEl.textContent = messages[msgIdx];
+  }, 2400);
+
+  try{
+    const input = await callClaudeCustomIngredientVision(base64, mediaType, fileName);
+    finishBgScan(()=> openCustomIngredientReview(input, fileName));
+  } catch(err){
+    clearInterval(_scanMsgTimer);
+    _bgScan = null; updateBgScanPill();
+    logClientError('runCustomIngredientScan failed: ' + (err.message || err), err.stack);
+    spinner.style.display = 'none';
+    statusEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = err.message || 'Something went wrong reading that file.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
+    closeBtn.style.display = 'block';
+    overlay.classList.add('open');
+  }
+}
+let _pendingCustomIngredients = [];
+let _pendingCustomIngredientSource = '';
+function openCustomIngredientReview(input, fileName){
+  _pendingCustomIngredients = (input.ingredients || []).map(x=>({ ...x, _include:true }));
+  _pendingCustomIngredientSource = fileName || '';
+  renderCustomIngredientReviewList();
+  document.getElementById('customIngredientReviewOverlay').classList.add('open');
+}
+function renderCustomIngredientReviewList(){
+  document.getElementById('cir_count').textContent = _pendingCustomIngredients.filter(x=>x._include).length;
+  document.getElementById('cir_list').innerHTML = _pendingCustomIngredients.map((ing,i)=>`
+    <div class="chip${ing._include?' active':''}" style="width:100%; text-align:left; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleCustomIngredientInclude(${i})">
+      <span><strong>${(ing.name||'').replace(/</g,'&lt;')}</strong><br><span style="font-weight:400; font-size:12px;">${[ing.category, ing.unit, ing.price!=null?String(ing.price):null].filter(Boolean).join(' · ') || '—'}</span></span>
+      <span>${ing._include?'✓':''}</span>
+    </div>
+  `).join('');
+}
+function toggleCustomIngredientInclude(i){
+  _pendingCustomIngredients[i]._include = !_pendingCustomIngredients[i]._include;
+  renderCustomIngredientReviewList();
+}
+function closeCustomIngredientReview(){
+  document.getElementById('customIngredientReviewOverlay').classList.remove('open');
+  _pendingCustomIngredients = [];
+}
+async function saveCustomIngredientReview(){
+  const statusEl = document.getElementById('customIngredientReviewStatus');
+  const toSave = _pendingCustomIngredients.filter(x=>x._include && x.name && x.name.trim());
+  if(!toSave.length){ statusEl.textContent = 'Nothing selected.'; return; }
+  statusEl.textContent = 'Saving…';
+  const rows = toSave.map(x=>({
+    kitchen_id: currentKitchenId,
+    name: x.name.trim(),
+    unit: x.unit || null,
+    price: x.price != null ? x.price : null,
+    category: x.category || null,
+    note: x.note || null,
+    source_file_name: _pendingCustomIngredientSource || null,
+    created_by: currentUser.id
+  }));
+  const { error } = await sb.from('custom_ingredients').insert(rows);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  closeCustomIngredientReview();
+  await openCustomIngredients();
 }
 
 /* ---------- Upload Schedule — scan a real roster (Dienstplan, same format the Schedule
