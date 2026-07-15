@@ -34,7 +34,7 @@ begin
   where rel.relname = 'order_list_items'
     and con.contype = 'u'
     and (
-      select array_agg(attname order by attnum)
+      select array_agg(attname::text order by attnum)
       from pg_attribute
       where attrelid = con.conrelid and attnum = any(con.conkey)
     ) = array['kitchen_id','station','ingredient_id'];
