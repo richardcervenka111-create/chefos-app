@@ -3,16 +3,21 @@
 *Living document — status updated as we complete each phase. We do not start a phase's tasks
 until the previous phase is explicitly approved by Richard.*
 
+> **Status sync 2026-07-15 (health check):** this table was frozen at 2026-07-08 while the
+> project moved on — a code-vs-docs contradiction. Statuses below are now corrected. The
+> LIVING status source is `visual data/status.html` (daily) — this file records phase
+> definitions and decisions, not day-to-day progress.
+
 | # | Phase | Status | Objective |
 |---|---|---|---|
-| 0 | Foundation & Validation | **Approved 2026-07-08** | Define exactly what ChefOS v1 is, for whom, and on what technical foundation |
-| 1 | Core Recipe Engine | **In discussion — kickoff** | Rebuild the recipe backbone (full standardized format, calculator, AI import) on real, shared infrastructure |
-| 2 | Kitchen Flow MVP | Not started | The live prep board, multi-user roles, tested in the real pilot kitchen |
-| 3 | Inventory, Food Cost & Shopping | Not started | Connect recipes to real stock levels and real cost numbers |
+| 0 | Foundation & Validation | **Done 2026-07-08** | Define exactly what ChefOS v1 is, for whom, and on what technical foundation |
+| 1 | Core Recipe Engine | **Done 2026-07-09** (1a data foundation + 1b AI import live) | Rebuild the recipe backbone (full standardized format, calculator, AI import) on real, shared infrastructure |
+| 2 | Kitchen Flow MVP | **Largely built, not service-tested** — Check List live since 2026-07-09-10, roles/live-service validation pending | The live prep board, multi-user roles, tested in the real pilot kitchen |
+| 3 | Inventory, Food Cost & Shopping | **Partially pulled forward** — priced ingredients (~1,300 live), food cost + yield, Order List; real stock tracking not started | Connect recipes to real stock levels and real cost numbers |
 | 4 | Production Planning & Reports | Not started | Service planning, prep forecasting groundwork, basic analytics |
-| 5 | Intelligence Layer | Not started | Real AI recommendations, once there's real usage data to learn from |
+| 5 | Intelligence Layer | Not started (daily ingredient agent exists as a precursor) | Real AI recommendations, once there's real usage data to learn from |
 | 6 | Platform Expansion | Not started | Native mobile + desktop apps, offline mode, multi-location support |
-| 7 | Launch | Not started | App Store / Play Store submission, pricing, onboarding, go-to-market |
+| 7 | Launch | Not started — public trial (25 users) targeted 2026-08-01 as its precursor | App Store / Play Store submission, pricing, onboarding, go-to-market |
 
 ## Phase 0 — Foundation & Validation (current)
 

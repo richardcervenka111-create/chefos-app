@@ -41,6 +41,9 @@ SECRET_PATTERNS = [
     (re.compile(r'sb_secret_[a-zA-Z0-9_\-]+'), 'Supabase secret key'),
 ]
 
+def css_files():
+    return sorted(glob.glob(os.path.join(REPO, 'app', '*.css')))
+
 def html_files():
     files = [os.path.join(REPO, 'app', 'index.html')]
     files += sorted(glob.glob(os.path.join(REPO, 'app', '*.html')))
@@ -130,6 +133,12 @@ def main():
         s = open(path, encoding='utf-8', errors='replace').read()
         check_structure(path, s, violations)
         check_secrets(path, s, violations)
+    for path in css_files():
+        css = open(path, encoding='utf-8', errors='replace').read()
+        rel = os.path.relpath(path, REPO)
+        if css.count('{') != css.count('}'):
+            violations.append(f'{rel}: unbalanced CSS braces ({css.count("{")} vs {css.count("}")})')
+        check_secrets(path, css, violations)
     s = open(app_index, encoding='utf-8', errors='replace').read()
     check_dead_buttons(app_index, s, violations)
     check_ghost_tables(s, violations)
