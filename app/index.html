@@ -1522,6 +1522,26 @@
   </div>
 </div>
 
+<!-- HACCP — Label Expiry (wave 2, 15.7.): every printed label is now logged (print_label_log,
+     db/78) with its computed use-by date, and this screen shows what's expired / expiring /
+     fine. "Used or discarded" removes the row — the log tracks what's physically in the
+     kitchen, not print history. -->
+<div id="labelExpiryView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="showHACCP()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      HACCP
+    </button>
+    <div class="bar-spacer"></div>
+    <span class="sync-status saved" id="labelExpirySyncStatus"></span>
+  </div>
+  <div class="detail-content">
+    <h2 class="recipe-title display">🏷️ Label Expiry</h2>
+    <p class="recipe-meta">Every label printed from Print Labels lands here with its use-by date. Tap "Used / discarded" once the product is gone — what's left is what's actually in your kitchen.</p>
+    <div id="labelExpiryList" style="margin-top:16px;"></div>
+  </div>
+</div>
+
 <!-- Shown instead of Home when a brand-new signup has no kitchen yet: either waiting for
      Richard's manual access approval, or (once approved) creating their own kitchen/team or
      joining one via an invite link. Existing users always have a kitchen_id already, so they
@@ -6993,7 +7013,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -7075,9 +7095,9 @@ const HACCP_TILE_DEFS = [
   { key:'coolingLog', icon:'❄️', staticLabel:'Cooling Log', onclick:"showHaccpMeasurement('cooling')" },
   { key:'cleaningChecklist', icon:'🧽', staticLabel:'Cleaning', onclick:"showHaccpChecklist('cleaning')" },
   { key:'hygieneChecklist', icon:'🧑‍⚕️', staticLabel:'Personal Hygiene', onclick:"showHaccpChecklist('hygiene')" },
-  { key:'fryerOil', icon:'🍳', staticLabel:'Fryer Oil', onclick:"openPausedFeature('🍳 Fryer Oil Quality', 'Coming in the next HACCP wave — logging oil quality readings per fryer.')" },
-  { key:'pestControl', icon:'🐀', staticLabel:'Pest Control', onclick:"openPausedFeature('🐀 Pest Control', 'Coming in the next HACCP wave — a recurring checklist for trap checks and pest-control visits.')" },
-  { key:'labelExpiry', icon:'🏷️', staticLabel:'Label Expiry', onclick:"openPausedFeature('🏷️ Label Expiry', 'Coming in the next HACCP wave — tracking which printed labels are near or past their use-by date.')" },
+  { key:'fryerOil', icon:'🍳', staticLabel:'Fryer Oil', onclick:"showHaccpMeasurement('fryer_oil')" },
+  { key:'pestControl', icon:'🐀', staticLabel:'Pest Control', onclick:"showHaccpChecklist('pest_control')" },
+  { key:'labelExpiry', icon:'🏷️', staticLabel:'Label Expiry', onclick:'showLabelExpiry()' },
   { key:'staffTraining', icon:'🎓', staticLabel:'Staff Training', onclick:"openPausedFeature('🎓 Staff Training', 'Coming soon — a record of who has completed hygiene/food-safety training and when.')" },
   { key:'haccpReport', icon:'📊', staticLabel:'Report', onclick:"openPausedFeature('📊 HACCP Report', 'Coming soon — one summary screen across everything here, for inspections.')" }
 ];
@@ -10779,6 +10799,26 @@ async function printAllLabels(){
     }
   });
   sheet.innerHTML = html;
+
+  // HACCP Label Expiry (db/78): remember what was printed and when it expires. One row per
+  // queue entry (with qty), not per physical copy. A failure here must never block the actual
+  // print — labels for the kitchen matter more than the log — so errors only go to error_logs.
+  try{
+    const localDateStr = (d)=> d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const logRows = _printQueue.map(p=>({
+      kitchen_id: currentKitchenId,
+      name: p.name,
+      qty: p.qty,
+      station: p.station || null,
+      use_by: shelfByName[p.name] != null ? localDateStr(new Date(printDate.getTime() + shelfByName[p.name]*86400000)) : null,
+      printed_by: currentUser.id
+    }));
+    const { error: logErr } = await sb.from('print_label_log').insert(logRows);
+    if(logErr) logClientError('print_label_log insert failed: ' + logErr.message);
+  } catch(e){
+    logClientError('print_label_log insert failed: ' + (e.message || e), e.stack);
+  }
+
   document.body.classList.add('printing-labels');
   window.print();
 }
@@ -14561,6 +14601,95 @@ async function deactivateHaccpChecklistItem(id){
   await sb.from('haccp_checklist_items').update({ active:false }).eq('id', id);
   await loadHaccpChecklist();
   renderHaccpChecklistManageList();
+}
+
+/* ============================================================
+   HACCP — Label Expiry (wave 2, 15.7.). Reads print_label_log (filled by printAllLabels,
+   db/78) and groups by urgency: expired first, then expiring within a day, then the rest.
+   Rows without a use-by date (product had no shelf life set at print time) sit in their own
+   group at the bottom — visible, not hidden, so missing shelf-life settings get noticed.
+   ============================================================ */
+let _labelExpiryRows = [];
+
+function setLabelExpiryStatus(state){
+  const el = document.getElementById('labelExpirySyncStatus');
+  if(!el) return;
+  if(state === 'saving'){ el.textContent = 'Loading…'; el.className = 'sync-status saving'; }
+  else if(state === 'offline'){ el.textContent = 'Not saved'; el.className = 'sync-status offline'; }
+  else { el.textContent = 'Saved'; el.className = 'sync-status saving'; setTimeout(()=>{ el.className='sync-status saved'; }, 1200); }
+}
+
+async function showLabelExpiry(){
+  logEvent('view_opened', {view:'haccp_label_expiry'});
+  hideAllViews();
+  document.getElementById('labelExpiryView').style.display = 'block';
+  await loadLabelExpiry();
+  window.scrollTo(0,0);
+}
+
+async function loadLabelExpiry(){
+  setLabelExpiryStatus('saving');
+  const { data, error } = await sb.from('print_label_log').select('*')
+    .eq('kitchen_id', currentKitchenId)
+    .order('use_by', { ascending:true, nullsFirst:false })
+    .order('printed_at', { ascending:false });
+  if(error){ setLabelExpiryStatus('offline'); return; }
+  _labelExpiryRows = data || [];
+  setLabelExpiryStatus('saved');
+  renderLabelExpiry();
+}
+
+function labelExpiryBucket(row){
+  if(!row.use_by) return 'nodate';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const useBy = new Date(row.use_by + 'T00:00:00');
+  const days = Math.round((useBy - today) / 86400000);
+  if(days < 0) return 'expired';
+  if(days <= 1) return 'soon';
+  return 'ok';
+}
+
+function renderLabelExpiry(){
+  const el = document.getElementById('labelExpiryList');
+  if(!_labelExpiryRows.length){
+    el.innerHTML = '<div class="empty-state">Nothing tracked yet — labels land here automatically the next time you print from Print Labels.</div>';
+    return;
+  }
+  const buckets = { expired:[], soon:[], ok:[], nodate:[] };
+  _labelExpiryRows.forEach(r=> buckets[labelExpiryBucket(r)].push(r));
+  const groupDefs = [
+    { key:'expired', title:'🔴 Past use-by — throw away', color:'var(--danger, #FF7A68)' },
+    { key:'soon', title:'🟡 Use today or tomorrow', color:'var(--gold, #F7C948)' },
+    { key:'ok', title:'✅ Still fine', color:'var(--copper, var(--accent))' },
+    { key:'nodate', title:'⚪ No use-by date (no shelf life set when printed)', color:'var(--ink-dim)' }
+  ];
+  el.innerHTML = groupDefs.map(g=>{
+    const rows = buckets[g.key];
+    if(!rows.length) return '';
+    return `
+      <label class="form-label" style="margin-top:18px; color:${g.color};">${g.title} (${rows.length})</label>
+      ${rows.map(r=>`
+        <div class="task-row">
+          <div class="task-row-top">
+            <div class="info" style="flex:1;">
+              <div class="name task-text">${(r.name||'').replace(/</g,'&lt;')}${r.qty > 1 ? ` <span class="meta">× ${r.qty}</span>` : ''}</div>
+              <div class="meta">${r.use_by ? 'Use by ' + new Date(r.use_by + 'T00:00:00').toLocaleDateString('sk-SK') + ' · ' : ''}printed ${new Date(r.printed_at).toLocaleDateString('sk-SK')}${r.station ? ' · ' + r.station.replace(/</g,'&lt;') : ''}</div>
+            </div>
+          </div>
+          <div class="task-status-group">
+            <button class="task-status-btn" onclick="removeLabelExpiryRow('${r.id}')">✓ Used / discarded</button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  }).join('');
+}
+
+async function removeLabelExpiryRow(id){
+  setLabelExpiryStatus('saving');
+  const { error } = await sb.from('print_label_log').delete().eq('id', id).eq('kitchen_id', currentKitchenId);
+  if(error){ alert('Could not remove: ' + error.message); setLabelExpiryStatus('offline'); return; }
+  await loadLabelExpiry();
 }
 </script>
 </body>
