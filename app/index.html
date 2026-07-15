@@ -1679,6 +1679,17 @@
   <button class="dropdown-item" onclick="openFeedback('question')" style="display:flex; align-items:center; gap:8px; width:100%; padding:10px 14px; background:none; border:none; text-align:left; font-size:13px; color:var(--ink); cursor:pointer; border-top:1px solid var(--rule);">❓ Ask a question</button>
 </div>
 
+<!-- Preview as Normal User (bod 2, 16.7.) — admin-only entry point (Settings tile), but this
+     exit banner deliberately lives outside ALL_VIEW_IDS and doesn't depend on currentIsAdmin
+     at all (togglePreviewAsUser() sets currentIsAdmin=false while previewing, so a check here
+     would make the only way out disappear). Purely a client-side UI simulation — RLS is
+     server-enforced regardless, so this can't accidentally grant or hide real data access,
+     only what buttons/tiles render. -->
+<div id="previewAsUserBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:var(--copper); color:#1a1a1a; padding:10px 16px; text-align:center; font-size:13px; font-weight:600; align-items:center; justify-content:center; gap:10px;">
+  👁️ Previewing as a normal user
+  <button onclick="exitPreviewAsUser()" style="background:#1a1a1a; color:#fff; border:none; padding:5px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Exit Preview</button>
+</div>
+
 <!-- Confidentiality acknowledgement — Richard wants everyone to explicitly agree not to share
      a kitchen's recipes/prices/data outside the app before they can use it. Shown once per
      person per CONFIDENTIALITY_VERSION (see hasAcceptedConfidentiality below); recorded as an
@@ -3031,6 +3042,7 @@
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="dayDetailTitle"></div>
     <div id="dayDetailEntries"></div>
+    <div id="dayDetailActivity"></div>
     <label class="form-label">Note</label>
     <textarea class="form-field" id="dayDetailNote" rows="3" placeholder="Anything worth remembering about this day…" onchange="saveDayDetailNote()"></textarea>
     <div id="dayDetailPhotoWrap" style="margin-top:10px;"></div>
@@ -5740,6 +5752,29 @@ function hasAdminPerm(key){ return currentIsAdmin || !!currentAdminPerms[key]; }
    RLS/security role, recipes are already scoped by kitchen_id regardless of this value. */
 let currentAccountType = null;
 let currentUserName = '';
+/* Preview as Normal User (bod 2, 16.7.) — client-side only, RLS is unaffected either way. Saves
+   the real admin state, temporarily fakes non-admin, re-renders whatever's currently visible.
+   The exit banner (outside ALL_VIEW_IDS, see its own comment) is the only way back — it
+   deliberately doesn't depend on currentIsAdmin, which this sets to false while active. */
+let _realIsAdmin = null;
+let _realAdminPerms = null;
+let _isPreviewingAsUser = false;
+function togglePreviewAsUser(){
+  _realIsAdmin = currentIsAdmin;
+  _realAdminPerms = currentAdminPerms;
+  currentIsAdmin = false;
+  currentAdminPerms = {};
+  _isPreviewingAsUser = true;
+  document.getElementById('previewAsUserBanner').style.display = 'flex';
+  showHome();
+}
+function exitPreviewAsUser(){
+  currentIsAdmin = _realIsAdmin;
+  currentAdminPerms = _realAdminPerms;
+  _isPreviewingAsUser = false;
+  document.getElementById('previewAsUserBanner').style.display = 'none';
+  showHome();
+}
 
 /* ============================================================
    LANGUAGE / TRANSLATIONS
@@ -8112,6 +8147,7 @@ const SETTINGS_TILE_DEFS = [
   { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
   { key:'accountType', icon:'📖', staticLabel:'Account Type', onclick:'openAccountTypeSettings()', dynamicLabel:()=> 'Account Type: ' + (currentAccountType==='company' ? 'Company' : currentAccountType==='personal' ? 'Personal' : 'Not set') },
+  { key:'previewAsUser', icon:'👁️', staticLabel:'Preview as Normal User', onclick:'togglePreviewAsUser()', adminOnly:true },
   { key:'reorderHome', icon:'↕️', staticLabel:'Reorder Home Icons', onclick:'openHomeReorder()' },
   { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
   { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
@@ -13661,6 +13697,37 @@ async function openDayDetail(dayStr){
   _workingTimeDayNotes[dayStr] = noteRow || null;
   document.getElementById('dayDetailNote').value = noteRow ? (noteRow.note || '') : '';
   renderDayDetailPhoto(noteRow);
+  await renderDayDetailActivity(dayStart, dayEnd);
+}
+/* Orders + labels for this day (bod 8, 16.7.) — deliberately NOT a "tasks completed" count:
+   neither tasks nor prep_items track who marked something done or when, only who created it —
+   fabricating a per-person completion number would be dishonest. print_label_log is a real
+   append-only history (printed_by + printed_at), so that count is exact. order_list_items is a
+   live, editable list (unique per kitchen/station/ingredient/person, db/76) rather than an
+   order history — updated_at only reflects the LAST time that line was touched, so this shows
+   "still-current orders last touched this day", not a full log of every order ever placed. */
+async function renderDayDetailActivity(dayStart, dayEnd){
+  const el = document.getElementById('dayDetailActivity');
+  el.innerHTML = `<p class="sheet-text">Loading…</p>`;
+  const [{ data: orders }, { data: labels }] = await Promise.all([
+    sb.from('order_list_items').select('station, quantity, unit, ingredient_id')
+      .eq('created_by', currentUser.id).gte('updated_at', dayStart).lt('updated_at', dayEnd),
+    sb.from('print_label_log').select('name, qty, station')
+      .eq('printed_by', currentUser.id).gte('printed_at', dayStart).lt('printed_at', dayEnd)
+  ]);
+  let html = '';
+  if(orders && orders.length){
+    html += `<label class="form-label" style="margin-top:14px;">🛒 Order List touched this day</label>`;
+    html += orders.map(o=>{
+      const ing = _ingredients.find(i=>i.id===o.ingredient_id);
+      return `<div class="wt-settings-row"><div>${(ing && ing.name) || 'Unknown'} · ${o.station||''}</div><div class="wt-vacation-days">${o.quantity ?? ''} ${o.unit||''}</div></div>`;
+    }).join('');
+  }
+  if(labels && labels.length){
+    html += `<label class="form-label" style="margin-top:14px;">🏷️ Labels printed this day</label>`;
+    html += labels.map(l=>`<div class="wt-settings-row"><div>${l.name} · ${l.station||''}</div><div class="wt-vacation-days">×${l.qty}</div></div>`).join('');
+  }
+  el.innerHTML = html;
 }
 function closeDayDetail(){
   document.getElementById('dayDetailOverlay').classList.remove('open');
