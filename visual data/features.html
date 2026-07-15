@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Funkcie & zdravie appky</title>
+<style>
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4);
+    --danger:#FF7A68; --danger-dim:rgba(255,122,104,0.4);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px 100px 24px; }
+
+  header.hero{ padding:48px 0 34px 0; border-bottom:1px solid var(--rule); }
+  .topline{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .brandmark{ display:flex; align-items:center; gap:9px; }
+  .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:0.02em; color:var(--accent); }
+  .lang-toggle{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .lang-toggle:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
+  h1.title{ font-size:32px; font-weight:700; margin:0 0 14px 0; line-height:1.15; }
+  .lede{ color:var(--ink-dim); font-size:15px; max-width:68ch; line-height:1.65; }
+  .meta-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:26px; }
+  @media (max-width:720px){ .meta-row{ grid-template-columns:1fr 1fr; } }
+  .meta-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 16px; }
+  .meta-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); margin-bottom:4px; }
+  .meta-value{ font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:700; color:var(--ink); }
+
+  .wrap > .lede.note{ margin-top:18px; padding:14px 16px; background:var(--paper); border:1px solid var(--rule); border-radius:10px; font-size:12.5px; }
+
+  /* ---------- Tile cards ---------- */
+  .tiles{ margin-top:24px; display:flex; flex-direction:column; gap:14px; }
+  details.tile{ background:var(--paper); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
+  details.tile[open]{ border-color:var(--accent-dim); }
+  details.tile summary{
+    list-style:none; cursor:pointer; padding:16px 20px; display:flex; align-items:center; gap:12px; user-select:none;
+  }
+  details.tile summary::-webkit-details-marker{ display:none; }
+  .tile-icon{ font-size:22px; flex:none; }
+  .tile-name{ font-size:15px; font-weight:700; color:var(--ink); flex:1; }
+  .tile-badge{ font-size:10px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:3px 9px; border-radius:20px; flex:none; }
+  .tile-badge.live{ background:rgba(52,247,215,0.12); color:var(--accent); border:1px solid var(--accent-dim); }
+  .tile-badge.wip{ background:rgba(247,201,72,0.12); color:var(--gold); border:1px solid var(--gold-dim); }
+  .tile-badge.hidden{ background:rgba(255,122,104,0.1); color:var(--danger); border:1px solid var(--danger-dim); }
+  summary::after{ content:'▶'; margin-left:6px; font-size:11px; color:var(--ink-dim); transition:transform .15s; flex:none; }
+  details.tile[open] summary::after{ transform:rotate(90deg); }
+  .tile-body{ padding:0 20px 20px 20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .tile-body{ grid-template-columns:1fr; } }
+  .tile-col h4{ margin:0 0 8px 0; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); font-weight:700; }
+  .tile-col.full{ grid-column:1 / -1; }
+  ul.feat{ margin:0; padding-left:18px; }
+  ul.feat li{ font-size:12.5px; color:var(--ink-dim); line-height:1.65; padding:2px 0; }
+  ul.good li::marker{ color:var(--accent); }
+  ul.bad li::marker{ color:var(--danger); }
+  ul.notes li::marker{ color:var(--gold); }
+  ul.good li, ul.bad li, ul.notes li{ color:var(--ink); }
+
+  .callout{ border:1px solid var(--rule); background:var(--paper); border-radius:10px; padding:16px 18px; margin-top:20px; }
+  .callout .k{ font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-dim); font-weight:700; margin-bottom:7px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
+  .callout code{ background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:4px; font-size:12px; color:var(--accent); }
+
+  footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:40px 0 20px 0; }
+
+  /* ---------- Controls (2026-07-15 Visual Data Standards redesign) ---------- */
+  .controls{ display:flex; align-items:center; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  #tileSearch{
+    flex:1; min-width:150px; background:var(--paper); border:1px solid var(--rule); border-radius:20px;
+    color:var(--ink); font-family:inherit; font-size:12px; padding:6px 14px; outline:none;
+  }
+  #tileSearch::placeholder{ color:var(--ink-faint); }
+  #tileSearch:focus{ border-color:var(--accent-dim); }
+  .fbtn{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+    padding:5px 11px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s; white-space:nowrap;
+  }
+  .fbtn:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  details.tile.filtered-out{ display:none; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap" style="padding:0; border:none;">
+    <div class="topline">
+      <div class="brandmark">
+        <svg width="24" height="24" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
+        <span class="word">ChefOS</span>
+      </div>
+      <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
+    </div>
+    <div class="kicker" data-sk="Dlaždica po dlaždici" data-en="Tile by tile"></div>
+    <h1 class="title" data-sk="Čo appka vie, čo jej chýba" data-en="What the app can do, what it's missing"></h1>
+    <p class="lede" data-sk="Jedna karta na každú dlaždicu z Home: čo presne robí, čo naozaj funguje dobre, kde sú medzery, a poznámky/nápady z našich rozhovorov, ktoré sa jej týkajú. Aktualizuje sa denne — časť „Nedostatky" čerpá zo statického denného code-auditu (viac v poznámke nižšie)." data-en="One card per Home tile: exactly what it does, what genuinely works well, where the gaps are, and notes/ideas from our conversations that relate to it. Updated daily — the &quot;Shortcomings&quot; section is fed by a daily static code audit (more in the note below)."></p>
+    <div class="meta-row">
+      <div class="meta-card"><div class="meta-label" data-sk="Dlaždíc na Home" data-en="Tiles on Home"></div><div class="meta-value">11</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Naživo funkčné" data-en="Live & working"></div><div class="meta-value">9</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Len placeholder" data-en="Placeholder only"></div><div class="meta-value">1</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Pozastavené / skryté" data-en="Paused / hidden"></div><div class="meta-value">2</div></div>
+    </div>
+    <div class="controls">
+      <input id="tileSearch" type="search" placeholder="Hľadať vo funkciách…" oninput="filterTiles()">
+      <button class="fbtn" onclick="setAllTiles(true)" data-sk="Rozbaliť všetko" data-en="Expand all"></button>
+      <button class="fbtn" onclick="setAllTiles(false)" data-sk="Zbaliť všetko" data-en="Collapse all"></button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="tiles">
+
+  <details class="tile" open>
+    <summary><span class="tile-icon">⏱️</span><span class="tile-name">Working Time</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full">
+        <h4 data-sk="Čo robí" data-en="What it does"></h4>
+        <ul class="feat">
+          <li data-sk="Check-in/check-out s bežiacim časomierom, prestávky (+5/10/15/30 min)" data-en="Check-in/check-out with a live running timer, breaks (+5/10/15/30 min)"></li>
+          <li data-sk="Mesačné hodiny + nadčas (nad 8h/deň), odpočet do najbližšej dovolenky" data-en="Monthly hours + overtime (over 8h/day), countdown to next vacation"></li>
+          <li data-sk="AI sken zmluvy — vytiahne kontraktované hodiny/dovolenku, napíše 4-6 bodov s ikonou tónu (⚠️/✅/ℹ️)" data-en="AI contract scan — extracts contracted hours/vacation, writes 4-6 points with a tone icon (⚠️/✅/ℹ️)"></li>
+          <li data-sk="&quot;Forgot to check in/out?&quot; — spätné dopísanie času v ohraničenom okne" data-en='"Forgot to check in/out?" — backdate the time within a bounded window'></li>
+          <li data-sk="Jednorazová snímka polohy presne pri check-in/out (nie priebežné sledovanie)" data-en="One-time location snapshot exactly at check-in/out (not continuous tracking)"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4>
+        <ul class="feat good">
+          <li data-sk="Časomiera + prestávky naživo overené Richardom" data-en="Timer + breaks confirmed live by Richard"></li>
+          <li data-sk="Tón zmluvy (dobré aj zlé) rieši sťažnosť, že to bolo len o rizikách" data-en="Contract tone (good and bad) fixes the &quot;only risks&quot; complaint"></li>
+          <li data-sk="Zmluvné poznámky sú súkromné — RLS diera nájdená a opravená (db/62)" data-en="Contract notes are private — RLS gap found and fixed (db/62)"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Poloha závisí od povolenia prehliadača — ak ju zamietneš, appka to nijako neukáže" data-en="Location depends on browser permission — if denied, the app shows nothing"></li>
+          <li data-sk="Notifikácia o zmene funguje len keď appka beží na popredí, nie skutočne na pozadí" data-en="Shift notification only fires while the app is foregrounded, not truly in the background"></li>
+          <li data-sk="Forgot-to-check-in/poloha ešte nikdy neboli otestované naživo na reálnom telefóne" data-en="Forgot-to-check-in/location have never been tested live on a real phone"></li>
+        </ul>
+      </div>
+      <div class="tile-col full">
+        <h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4>
+        <ul class="feat notes">
+          <li data-sk="Apple Watch/Garmin idea (mental-health hands-free ovládanie) — čaká na Xcode/hodinky na testovanie" data-en="Apple Watch/Garmin idea (mental-health hands-free control) — waiting on Xcode/watch hardware to test"></li>
+          <li data-sk="GPS ako plná história pohybu bola zámerne zamietnutá (právne aj technicky) v prospech jednorazovej snímky" data-en="Full GPS movement history was deliberately rejected (legal + technical) in favour of a one-time snapshot"></li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">📖</span><span class="tile-name">Recipes</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full">
+        <h4 data-sk="Čo robí" data-en="What it does"></h4>
+        <ul class="feat">
+          <li data-sk="173 reálnych receptov, plný 20-poľový formát v databáze" data-en="173 real recipes, full 20-field format in the database"></li>
+          <li data-sk="AI sken fotky/PDF na import, &quot;Generate Method with AI&quot;" data-en="AI photo/PDF scan import, &quot;Generate Method with AI&quot;"></li>
+          <li data-sk="Cost + výživový engine s rozpisom po ingrediencii" data-en="Cost + nutrition engine with per-ingredient breakdown"></li>
+          <li data-sk="Sken celého menu (nie len jeden recept) — rozpozná jedlá a napíše plný recept pre každé" data-en="Whole-menu scan (not just one recipe) — detects dishes and writes a full recipe for each"></li>
+          <li data-sk="&quot;Ask Chef's Assistant&quot; — AI generátor nových nápadov na jedlá" data-en='"Ask Chef\'s Assistant" — AI new-dish idea generator'></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4>
+        <ul class="feat good">
+          <li data-sk="Ingrediencie a postup sú už na profesionálnej úrovni pri väčšine receptov" data-en="Ingredients and method are already professional-grade for most recipes"></li>
+          <li data-sk="7 diétnych filtrov, vyhľadávanie vždy cez všetky recepty" data-en="7 diet filters, search always covers every recipe"></li>
+          <li data-sk="Nové 15.7.: prepínač &quot;Moje recepty / AI Playground&quot; — AI-generované jedlá (Chef's Assistant, Chef Challenge, Menu Scan) sú teraz oddelené od skutočných 173 receptov, nezobrazujú sa medzi nimi predvolene" data-en="New 15.7.: &quot;My Recipes / AI Playground&quot; toggle — AI-generated dishes (Chef's Assistant, Chef Challenge, Menu Scan) are now kept separate from the real 173 recipes, hidden from the default view"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Formulár ukazuje len časť z 20 polí — chef_notes/storage/plating_suggestions atď. sa nedajú zatiaľ editovať v appke" data-en="Form shows only some of the 20 fields — chef_notes/storage/plating_suggestions etc. can't be edited in the app yet"></li>
+          <li data-sk="Michelin-chef prepis: 31 receptov hotových (Šaláty 11/11, Dressingy 8/11, Bakery &amp; Bread 12/12 — 15.7.). Ďalšia na rade je Plated Desserts (35), ale tá obsahuje viacero ázijsky-ladených položiek (Japanese Šišky, Green Tea, Baonut, Yuzu, Kinako) — čaká na Richardovo rozhodnutie, rovnaká otvorená otázka ako pri Yuzu Cauliflower/karamelizovanej cibuli predtým" data-en="Michelin-chef pass: 31 recipes done (Salads 11/11, Dressings 8/11, Bakery &amp; Bread 12/12 — 15.7.). Next up is Plated Desserts (35), but it contains several Asian-leaning items (Japanese doughnuts, green tea, bao, yuzu, kinako) — waiting on Richard's call, same open question as the earlier Yuzu Cauliflower/caramelized onion borderline cases"></li>
+          <li data-sk="Oprava 15.7.: Richard potvrdil, že fotosken JE testovaný naživo a väčšinou funguje — ale občas zlyhá, dôvod zatiaľ neznámy. Pridané logovanie zlyhaní (error_logs) do všetkých 4 sken funkcií (recept, menu, prep sheet, zmluva), nech sa dá dôvod skutočne vystopovať namiesto hádania" data-en="Fixed 15.7.: Richard confirmed the photo scan IS tested live and mostly works — but occasionally fails, reason unknown so far. Added failure logging (error_logs) to all 4 scan functions (recipe, menu, prep sheet, contract) so the reason can actually be traced instead of guessed at"></li>
+        </ul>
+      </div>
+      <div class="tile-col full">
+        <h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4>
+        <ul class="feat notes">
+          <li data-sk="Dôležité: denná kontrola zdravia appky (🩺) NEODHALÍ toto zlyhávanie — je to statický code-audit, nevie skúšať sken naživo. Logovanie zlyhaní je skutočná odpoveď: bude sa dať prezrieť error_logs a nájsť vzor (konkrétny typ fotky? čas dňa? veľkosť súboru?)" data-en="Important: the daily feature-health-check (🩺) will NOT catch this — it's a static code audit, it can't actually run the scan live. The failure logging is the real fix: error_logs can be reviewed later to find a pattern (specific photo type? time of day? file size?)"></li>
+          <li data-sk="Netestované naživo: nový prepínač funguje na logike (overené simuláciou), ale nebol ešte skúšaný v prehliadači — v pláne pred verejným trialom" data-en="Not yet tested live: the new toggle's logic was verified by simulation, but hasn't been clicked through in a real browser yet — queued for the pre-trial manual test pass"></li>
+          <li data-sk="Osobný/pro profil (verejná/súkromná viditeľnosť, bio, foto) — veľká myšlienka, nezačaté" data-en="Personal/pro profile (public/private visibility, bio, photo) — big idea, not started"></li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🧂</span><span class="tile-name">Ingredients</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full">
+        <h4 data-sk="Čo robí" data-en="What it does"></h4>
+        <ul class="feat">
+          <li data-sk="2000 ingrediencií, cost + výživový matching engine" data-en="2,000 ingredients, cost + nutrition matching engine"></li>
+          <li data-sk="Filtre: kuchyňa, sezóna, skladovanie, overenosť ceny — kombinovateľné" data-en="Filters: cuisine, season, storage, price-verified — combinable"></li>
+          <li data-sk="Predvolené zobrazenie: najprv &quot;sezóna teraz&quot;, potom &quot;budúci mesiac&quot;" data-en='Default view: "in season now" first, then "next month"'></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4>
+        <ul class="feat good">
+          <li data-sk="104 reálne ceny od skutočného dodávateľa importované" data-en="104 real prices imported from an actual supplier"></li>
+          <li data-sk="Denný AI agent teraz priebežne dopĺňa/overuje dáta" data-en="Daily AI agent now continuously fills/verifies data"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Len ~7,6% cien je overených (153/2000) — pomer sa pri rozšírení dokonca zhoršil" data-en="Only ~7.6% of prices are verified (153/2,000) — the ratio actually got worse as the DB grew"></li>
+          <li data-sk="Zvyšok je AI odhad, nikdy neoverený voči reálnemu švajčiarskemu trhu" data-en="The rest is AI-estimated, never checked against the real Swiss market"></li>
+        </ul>
+      </div>
+      <div class="tile-col full">
+        <h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4>
+        <ul class="feat notes"><li data-sk="Denný agent (CHF 30/mesiac strop) má práve toto overovanie ako prioritu č.1" data-en="The daily agent (CHF 30/month cap) has exactly this verification as priority #1"></li></ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">📋</span><span class="tile-name">Check List</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full">
+        <h4 data-sk="Čo robí" data-en="What it does"></h4>
+        <ul class="feat">
+          <li data-sk="Prep listy zoskupené po jedlách naprieč všetkými 8 stanicami" data-en="Prep sheets grouped by dish across all 8 stations"></li>
+          <li data-sk="AI sken fotky/PDF prep listu, reálne crowd-sourced časy prípravy" data-en="AI photo/PDF prep-sheet scan, real crowd-sourced prep times"></li>
+          <li data-sk="Audit log (kto čo zmenil), realtime sync naprieč zariadeniami" data-en="Audit log (who changed what), realtime cross-device sync"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4>
+        <ul class="feat good">
+          <li data-sk="Delete-bug (tichý no-op cez RLS) nájdený a opravený, potvrdené naživo" data-en="Delete bug (silent RLS no-op) found and fixed, confirmed live"></li>
+          <li data-sk="AI sken funguje naživo od opravy claude-proxy nasadenia" data-en="AI scan works live since the claude-proxy deployment fix"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Zlúčenie duplicitných úloh naprieč jedlami stále nehotové" data-en="Merging duplicate tasks across dishes still not built"></li>
+          <li data-sk="Väčšina funkcií za posledný týždeň nikdy naživo neotestovaná v prehliadači" data-en="Most of the last week's features have never been live-tested in a browser"></li>
+        </ul>
+      </div>
+      <div class="tile-col full">
+        <h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4>
+        <ul class="feat notes"><li data-sk="Toto je jadro appky pre verejný trial (spolu s Recipes/Ingredients/Chef's Assistant)" data-en="This is the core of the app for the public trial (along with Recipes/Ingredients/Chef's Assistant)"></li></ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🛒</span><span class="tile-name">Order List</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full">
+        <h4 data-sk="Čo robí" data-en="What it does"></h4>
+        <ul class="feat">
+          <li data-sk="Zobrazuje len vybrané položky na objednanie, reálna tlač" data-en="Shows only selected items to order, real print"></li>
+          <li data-sk="Skupinové akcie: výber + hromadné mazanie, zoskupenie podľa sekcie" data-en="Bulk actions: select + bulk delete, group by section"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4>
+        <ul class="feat good"><li data-sk="Skrytý bug so stratenými poznámkami pri ukladaní nájdený a opravený" data-en="A latent bug where notes were silently dropped on save was found and fixed"></li></ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Vizuál ešte nezodpovedá redizajnu Check Listu (dlaždicový štýl)" data-en="Visual style doesn't match Check List's icon-tile redesign yet"></li>
+          <li data-sk="&quot;Send to supplier&quot; je zatiaľ len placeholder tlačidlo" data-en='"Send to supplier" is still just a placeholder button'></li>
+        </ul>
+      </div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="Nič nové z rozhovorov, čaká v Priorita 2 zozname" data-en="Nothing new from conversations, sits in the Priority 2 list"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🌡️</span><span class="tile-name">Fridge Temp</span><span class="tile-badge hidden" data-sk="Pozastavená (dlaždica viditeľná)" data-en="Paused (tile still visible)"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Manuálne zapisovanie teplôt chladničiek (HACCP)" data-en="Manual fridge-temperature logging (HACCP)"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Základná manuálna verzia je funkčná" data-en="Basic manual version is functional"></li></ul></div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="&quot;Naskenuj QR a vidíš živú teplotu&quot; vízia zatiaľ nepostavená" data-en='"Scan a QR and see live temperature" vision not yet built'></li>
+          <li data-sk="iOS Safari nevie čítať Bluetooth/NFC senzory priamo z webu — treba WiFi/cloud senzor" data-en="iOS Safari can't read Bluetooth/NFC sensors from a website — needs a WiFi/cloud sensor"></li>
+        </ul>
+      </div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes">
+        <li data-sk="SensorPush odporúčaný (~CHF 150/chladnička), fyzicky nekúpený" data-en="SensorPush recommended (~CHF 150/fridge), not yet purchased"></li>
+        <li data-sk="Od 15.7.: dlaždica ostáva na Home, ale po ťuknutí ukáže len banner &quot;pracujeme na tom&quot; — kým nevyriešime, ako sa teplota dostane do appky reálne (senzor)" data-en='From Jul 15: the tile stays on Home, but tapping it just shows a "working on it" banner — until how temperature data actually gets into the app is solved (a real sensor)'></li>
+      </ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🎩</span><span class="tile-name">Chef's Assistant</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="AI chat (Michelin persona) — substitúcie, techniky, nové recepty na mieru" data-en="AI chat (Michelin persona) — substitutions, technique, custom new recipes"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Funguje naživo od opravy claude-proxy; mobilná klávesnica opravená" data-en="Works live since the claude-proxy fix; mobile keyboard bug fixed"></li></ul></div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Cena za jednu správu sa nikde nezobrazuje adminovi" data-en="Cost per message isn't shown anywhere to the admin"></li>
+          <li data-sk="Mesačný report (5 dobrých/5 zlých) je zatiaľ len nápad, nepostavené" data-en="Monthly report (5 good/5 bad) is still just an idea, not built"></li>
+        </ul>
+      </div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="Chef-coverage/wellness nápad (učenie sa ingrediencií/receptov) sa naň voľne viaže" data-en="The chef-coverage/wellness idea (learning ingredients/recipes) loosely connects here"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🗣️</span><span class="tile-name">Team Meetings</span><span class="tile-badge hidden" data-sk="Len placeholder" data-en="Placeholder only"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Zatiaľ len &quot;pracujeme na tom&quot; obrazovka — žiadna reálna funkcia" data-en='Currently just a "we\'re working on it" screen — no real function'></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="—" data-en="—"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4><ul class="feat bad"><li data-sk="Rozsah vôbec nerozhodnutý" data-en="Scope not decided at all"></li></ul></div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="Kandidáti: auto-agenda z Check Listu/rozvrhu, zdieľaná denná poznámka, alebo log stretnutí" data-en="Candidates: auto-agenda from Check List/schedule, a shared daily note, or a meeting log"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🔗</span><span class="tile-name">My Team</span><span class="tile-badge live" data-sk="Naživo — znova zapnutá" data-en="Live — turned back on"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat">
+        <li data-sk="QR pozvánka s logom, brána so schvaľovaním, expirujúce/odvolateľné pozvánky" data-en="QR invite with logo, approval gate, expiring/revocable invites"></li>
+        <li data-sk="Nové 15.7.: pozvánka aj emailom — pošle skutočný prihlasovací email (cez vlastnú doménu chefos.ch + Resend, žiadny limit 2/hodinu) s odkazom na pripojenie k tejto kuchyni zabudovaným priamo v ňom" data-en="New Jul 15: invite by email too — sends a real login email (via the chefos.ch custom domain + Resend, no 2/hour limit) with the join-this-kitchen link built directly in"></li>
+      </ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Celý multi-tím tok postavený end-to-end; opäť zapnutá, keďže email login teraz funguje aj pre cudzie adresy" data-en="The whole multi-team flow is built end-to-end; turned back on now that email login works for outside addresses too"></li></ul></div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="&quot;Team worker&quot; vs. &quot;friend&quot; tag — význam a prístupové práva stále nerozhodnuté" data-en='"Team worker" vs. "friend" tag — meaning and access rights still undecided'></li>
+          <li data-sk="QR sken nikdy neoverený naživo na neznámom telefóne" data-en="QR scan never confirmed live on an unfamiliar phone"></li>
+          <li data-sk="Prihlasovací email cez novú doménu otestovaný naživo (15.7., odkaz aj kód fungujú) — samotné tlačidlo &quot;Send invite email&quot; ešte čaká na svoj prvý reálny test na cudzej kuchyni" data-en="Login email over the new domain tested live (Jul 15, both link and code work) — the &quot;Send invite email&quot; button itself still awaits its first real test inviting an outside kitchen"></li>
+        </ul>
+      </div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="Osobný/pro profil idea (verejný/súkromný, foto, bio) sa najviac týka práve tejto dlaždice" data-en="The personal/pro profile idea (public/private, photo, bio) relates most directly to this tile"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🏷️</span><span class="tile-name">Print Labels</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Natívny tlačový dialóg, automatické &quot;use by&quot; dátumy, zoskupenie podľa sekcie" data-en='Native print dialog, automatic "use by" dates, group by section'></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Funguje bez akéhokoľvek fyzického nákupu — cez existujúci tlačový dialóg" data-en="Works without any physical purchase — via the existing print dialog"></li></ul></div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Žiadny skutočný ovládač termotlačiarne — len OS tlačový dialóg" data-en="No real thermal-printer driver — just the OS print dialog"></li>
+          <li data-sk="Autocomplete pri pridávaní ingrediencie do štítku bol žiadaný, ešte nepostavený" data-en="Ingredient autocomplete when adding a label was requested, not yet built"></li>
+        </ul>
+      </div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="Brother QL-820NWB odporúčaný (~CHF 130), fyzicky nekúpený" data-en="Brother QL-820NWB recommended (~CHF 130), not yet purchased"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🛡️</span><span class="tile-name">Admin</span><span class="tile-badge live" data-sk="Naživo" data-en="Live"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Manuálne schvaľovanie prístupových žiadostí (uzavretý trial)" data-en="Manual access-request approval (closed trial)"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Zabránilo neschváleným prihláseniam počas pilotu" data-en="Has prevented unapproved logins during the pilot"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4><ul class="feat bad"><li data-sk="Zariadenie-úrovňové oprávnenia (odlišné od rolí) stále nepostavené" data-en="Device-level permissions (distinct from roles) still not built"></li></ul></div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="—" data-en="—"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">💱</span><span class="tile-name">Currency</span><span class="tile-badge live" data-sk="Naživo — teraz ikona hore, nie dlaždica" data-en="Live — now a top icon, not a tile"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Kuchynský prepínač EUR/CHF/USD, predvolene CHF" data-en="Kitchen-wide EUR/CHF/USD switcher, defaulted to CHF"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Jednoduché, malé, nemalo dôvod zlyhať" data-en="Simple, small, hasn't had a reason to fail"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4><ul class="feat bad"><li data-sk="Žiadne — malá funkcia bez známych problémov" data-en="None known — small feature, nothing flagged"></li></ul></div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="15.7.: presunuté z veľkej Home dlaždice na malú ikonu hore vpravo (vedľa jazyka/tutorialu/feedbacku), viditeľnú len adminovi" data-en="Jul 15: moved from a big Home tile to a small top-right icon (next to language/tutorial/feedback), visible only to the admin"></li></ul></div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🎯</span><span class="tile-name">Chef Challenge</span><span class="tile-badge hidden" data-sk="Skrytá z Home" data-en="Hidden from Home"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Poskladá menu len z ingrediencií pod zvolenú cenu (napr. 1 CHF) — reálne priazované, nie AI odhad" data-en="Builds a menu only from ingredients under a chosen price (e.g. 1 CHF) — real priced items, not an AI guess"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Kód a funkcia netknuté — jeden riadok na návrat" data-en="Code and function untouched — one line to bring it back"></li></ul></div>
+      <div class="tile-col"><h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4><ul class="feat bad"><li data-sk="Skrytá na tvoju žiadosť 14.7. — už nie je viditeľná na Home" data-en="Hidden at your request on Jul 14 — no longer visible on Home"></li></ul></div>
+      <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes"><li data-sk="—" data-en="—"></li></ul></div>
+    </div>
+  </details>
+
+</div>
+
+<div class="callout">
+  <div class="k" data-sk="Čo znamená „denne aktualizované&quot;" data-en='What "updated daily" means'></div>
+  <p data-sk='Sekcia „Nedostatky" pri každej dlaždici sa dopĺňa denným statickým code-auditom (nová automatizovaná úloha — pozri <code>automation.html</code>). Dôležité: agent nemá prístup k reálnemu telefónu/prehliadaču, takže tento audit vie skontrolovať len kód (chýbajúce funkcie, nezhody s databázou, štrukturálne chyby) — nevie potvrdiť, že niečo naozaj funguje v rukách skutočného kuchára. To zostáva jediný spôsob, ako niečo naozaj overiť: ty to musíš vyskúšať naživo.' data-en='The "Shortcomings" section under each tile is filled in by a daily static code audit (a new automated task — see <code>automation.html</code>). Important: the agent has no access to a real phone/browser, so this audit can only check the code itself (missing functions, mismatches with the database, structural errors) — it cannot confirm something actually works in a real chef\'s hands. That remains the only real way to verify anything: you have to try it live.'></p>
+</div>
+
+</div>
+<footer class="foot" data-sk="ChefOS — funkcie a zdravie appky, dlaždica po dlaždici · aktualizuje sa denne · 15. 7. 2026" data-en="ChefOS — features and app health, tile by tile · updates daily · Jul 15, 2026"></footer>
+
+<script>
+(function(){
+  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  function apply(){
+    document.querySelectorAll('[data-sk]').forEach(el=>{
+      const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+      if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+    });
+    const btn = document.getElementById('langBtn');
+    if(btn) btn.textContent = lang === 'sk' ? 'EN' : 'SK';
+    document.documentElement.lang = lang;
+  }
+  window.toggleLang = function(){
+    lang = lang === 'sk' ? 'en' : 'sk';
+    localStorage.setItem('chefos_doc_lang', lang);
+    apply();
+    const search = document.getElementById('tileSearch');
+    if(search) search.placeholder = lang === 'sk' ? 'Hľadať vo funkciách…' : 'Search features…';
+  };
+  window.setAllTiles = function(open){
+    document.querySelectorAll('details.tile').forEach(t=>{ t.open = open; });
+  };
+  window.filterTiles = function(){
+    const q = document.getElementById('tileSearch').value.trim().toLowerCase();
+    document.querySelectorAll('details.tile').forEach(t=>{
+      const hit = !q || t.textContent.toLowerCase().indexOf(q) !== -1;
+      t.classList.toggle('filtered-out', !hit);
+      if(q && hit) t.open = true;
+    });
+  };
+  apply();
+})();
+</script>
+</body>
+</html>
