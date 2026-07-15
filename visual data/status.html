@@ -311,6 +311,7 @@
       <div class="col col-done">
         <div class="col-head"><span class="dot"></span><span data-sk="Hotovo" data-en="Done"></span><span class="count"></span></div>
         <div class="col-body">
+          <div class="ticket"><b>📦 Popoludňajšia 11-bodová dávka (16.7.)</b><span>Custom Ingredients presunuté z Home do Ingredients; 🛡️ Admin → "Preview as Normal User" (dočasný pohľad očami bežného účtu, trvalý banner na návrat); refresh tlačidlo v Access Requests; "Coming soon" stena (db/96) pre kohokoľvek bez invite/QR odkazu a bez session, ovládaná priamo v SQL, fail-open; Settings dostal reorder ikonu ako Home; typ účtu (Personal/Company) vidieť priamo v Settings; Working Time deň-detail teraz ukazuje objednávky a vytlačené štítky (vedome bez "splnených úloh" — dáta na to neexistujú); 👋 Add Friend QR funguje aj ako pozvánka do kuchyne pre každého (db/95, vedomé čiastočné zrušenie db/81); Tutorial dostal HACCP, Connections a Admin sekcie</span></div>
           <div class="ticket"><b>🔴 → ✅ Incident 16.7.: super-admin lockout, opravené a trvalo zablokované</b><span>Pár hodín po spustení db/85+86 sa Richard nevedel prihlásiť do vlastného admin účtu. Dve navrstvené chyby (obe Claudove, obe neviditeľné v SQL editore): rekurzívna RLS politika (rovnaká trieda ako výpadok 13.7.) + chýbajúci column grant pre nové stĺpce. Opravené naživo (db/90) do pár minút od nahlásenia; auditor teraz TRVALO odmietne commit s touto triedou chyby (overené, že chytá aj historický db/53 aj dnešný db/86)</span></div>
           <div class="ticket"><b>🛡️ Admin hub + 🏷️ Custom Ingredients + 📖 Share My Recipes (16.7.)</b><span>Admin dlaždica prerobená na hub v dizajne Home: Add Admin (Kitchen Admin vs Head Admin, dva reálne rôzne prístupy), Admin Directory s on/off prepínačmi. Nová admin-only ikonka Custom Ingredients — upload súboru, AI extrakcia, samostatný zoznam. Share My Recipes dobehnuté presne podľa dohody (opt-in, read-only, len chef_connections priatelia) + nová 👨‍🍳 Chef Friends obrazovka — prvý zoznam prepojení vôbec</span></div>
           <div class="ticket"><b>📚 Nové kuchyne dostávajú ChefOS recepty (16.7.)</b><span>db/87 — rovnaký bug ako pri ingredienciách (db/74), teraz pre recepty: nová kuchyňa dostane celú knižnicu bez autora, nikdy nie niečie osobné recepty. Access-request 'denied' status sa odteraz kontroluje pri každom prihlásení, nielen pri prvom signupe</span></div>
@@ -688,6 +689,6 @@ renderPulse();
 </script>
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 16:30" data-en="🔄 ChefOS state as of Jul 15, 2026, 16:30">🔄 Stav ChefOS k 15. 7. 2026, 16:30</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 20:15" data-en="🔄 ChefOS state as of Jul 15, 2026, 20:15">🔄 Stav ChefOS k 15. 7. 2026, 20:15</div>
 </body>
 </html>
