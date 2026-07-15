@@ -1373,10 +1373,19 @@
     <p class="kicker" data-i18n="kicker">Kitchen Notebook</p>
     <h1 class="title display">ChefOS</h1>
     <p class="login-tagline" data-i18n="signInTagline">Sign in to your kitchen</p>
+    <div id="loginFaceIdBlock" style="display:none; margin-bottom:14px;">
+      <button class="save-btn" style="width:100%;" onclick="signInWithFaceId()">🔓 Sign in with Face ID</button>
+      <p style="text-align:center; margin:10px 0 0 0; color:var(--ink-faint); font-size:12px;">or use your email below</p>
+    </div>
     <div id="loginStep1">
       <label class="form-label" data-i18n="yourEmail">Your email</label>
       <input id="loginEmail" class="form-field" type="email" placeholder="you@restaurant.com" autocomplete="email">
       <button class="save-btn" style="width:100%;" onclick="sendLoginCode()" data-i18n="sendCode">Send me a code</button>
+      <p style="text-align:center; margin-top:10px;"><a href="#" onclick="togglePasswordLogin(); return false;" id="passwordLoginToggleLink" style="color:var(--ink-faint); font-size:12px;">Have a password? Sign in with it instead</a></p>
+      <div id="loginPasswordBlock" style="display:none; margin-top:8px;">
+        <input id="loginPassword" class="form-field" type="password" placeholder="Password" autocomplete="current-password">
+        <button class="save-btn" style="width:100%; margin-top:8px;" onclick="signInWithPassword()">Sign in</button>
+      </div>
       <div class="form-status" id="loginStatus1"></div>
     </div>
     <div id="loginStep2" style="display:none;">
@@ -1538,7 +1547,17 @@
     <textarea class="form-field" id="mps_bio" rows="3" placeholder="A short bio (optional)" style="margin-top:10px;"></textarea>
     <button class="save-btn" style="width:100%; margin-top:14px;" onclick="saveMyProfileSettings()">Save</button>
     <div class="form-status" id="myProfileSettingsStatus"></div>
-    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeMyProfileSettings()">Close</button>
+
+    <div style="margin-top:22px; padding-top:16px; border-top:1px solid var(--line, rgba(255,255,255,0.1));">
+      <label class="form-label">Account &amp; Security</label>
+      <input class="form-field" id="mps_new_password" type="password" placeholder="New password (min 8 characters)" autocomplete="new-password" style="margin-top:8px;">
+      <button class="save-btn" style="width:100%; margin-top:8px;" onclick="setAccountPassword()">Set password</button>
+      <div class="form-status" id="accountPasswordStatus"></div>
+      <div id="faceIdSettingsBlock" style="margin-top:14px;"></div>
+      <div class="form-status" id="faceIdSettingsStatus"></div>
+    </div>
+
+    <button class="sheet-cancel" style="width:100%; margin-top:14px;" onclick="closeMyProfileSettings()">Close</button>
   </div>
 </div>
 
@@ -5347,6 +5366,211 @@ async function verifyLoginCode(){
   await startApp();
 }
 
+/* ---------- Password + Face ID login (bod 6, 15.7.) ----------
+   Password: plain Supabase email+password auth, set from My Profile > Account & Security
+   (sb.auth.updateUser) and used to sign in via sb.auth.signInWithPassword — a second way in,
+   the emailed code still always works too.
+
+   Face ID: real OS-level biometric (WebAuthn platform authenticator, Face ID/Touch ID/Windows
+   Hello) used as a per-device unlock, NOT a server-verified auth factor — ChefOS has no backend
+   of its own to verify WebAuthn assertions against, and building one (challenge storage, public
+   key storage, attestation verification) is a much bigger addition than this warrants. Instead:
+   enabling Face ID creates a real platform-authenticator credential and stores the CURRENT
+   session's refresh token in this device's localStorage next to it. Signing in with Face ID
+   asks the OS for a biometric assertion first — Face ID/Touch ID/Windows Hello never let a
+   different enrolled face/fingerprint succeed — and only on a successful match does it hand the
+   stored refresh token to Supabase (sb.auth.refreshSession) to resume that session. No biometric
+   data ever reaches ChefOS or Supabase; the device's secure enclave never releases it. This is
+   deliberately safe on SHARED kitchen tablets too: even though the stored refresh token sits in
+   that tablet's localStorage, a teammate picking it up can't produce a valid assertion for
+   someone else's enrolled biometric, so their Face ID button just does nothing for them.
+   Supabase rotates the refresh token on every use, so the stored one is overwritten after each
+   successful unlock — otherwise the SECOND Face ID sign-in on a device would silently fail. */
+let _faceIdPlatformAvailable = false;
+async function detectFaceIdAvailability(){
+  try{
+    if(window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable){
+      _faceIdPlatformAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    }
+  } catch(e){ _faceIdPlatformAvailable = false; }
+}
+function isFaceIdAvailable(){
+  return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create) && _faceIdPlatformAvailable;
+}
+function getFaceIdDevices(){
+  try{ return JSON.parse(localStorage.getItem('chefos_faceid_devices') || '[]'); } catch(e){ return []; }
+}
+function saveFaceIdDevices(list){
+  localStorage.setItem('chefos_faceid_devices', JSON.stringify(list));
+}
+function bufToBase64Url(buf){
+  const bytes = new Uint8Array(buf);
+  let str = '';
+  for(let i=0;i<bytes.length;i++) str += String.fromCharCode(bytes[i]);
+  return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function base64UrlToBuf(b64url){
+  const b64 = b64url.replace(/-/g,'+').replace(/_/g,'/') + '=='.slice(0, (4 - b64url.length % 4) % 4);
+  const str = atob(b64);
+  const bytes = new Uint8Array(str.length);
+  for(let i=0;i<str.length;i++) bytes[i] = str.charCodeAt(i);
+  return bytes.buffer;
+}
+function randomChallenge(){
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return arr;
+}
+
+function togglePasswordLogin(){
+  const block = document.getElementById('loginPasswordBlock');
+  const isOpen = block.style.display !== 'none';
+  block.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('passwordLoginToggleLink').textContent = isOpen ? 'Have a password? Sign in with it instead' : 'Use the emailed code instead';
+}
+
+async function signInWithPassword(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const statusEl = document.getElementById('loginStatus1');
+  if(!email || !password){ statusEl.textContent = 'Enter your email and password.'; statusEl.className='form-status error'; return; }
+  statusEl.className = 'form-status';
+  statusEl.textContent = 'Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){
+    statusEl.textContent = 'Could not sign in: ' + error.message;
+    statusEl.className = 'form-status error';
+    return;
+  }
+  await startApp();
+}
+
+async function setAccountPassword(){
+  const pw = document.getElementById('mps_new_password').value;
+  const statusEl = document.getElementById('accountPasswordStatus');
+  if(!pw || pw.length < 8){
+    statusEl.textContent = 'Password must be at least 8 characters.';
+    statusEl.className = 'form-status error';
+    return;
+  }
+  statusEl.className = 'form-status';
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if(error){
+    statusEl.textContent = 'Could not set password: ' + error.message;
+    statusEl.className = 'form-status error';
+    return;
+  }
+  document.getElementById('mps_new_password').value = '';
+  statusEl.textContent = 'Password set — you can now sign in with your email + this password too.';
+  statusEl.className = 'form-status success';
+}
+
+function renderLoginFaceIdBlock(){
+  const block = document.getElementById('loginFaceIdBlock');
+  if(!block) return;
+  block.style.display = (getFaceIdDevices().length && isFaceIdAvailable()) ? 'block' : 'none';
+}
+
+async function signInWithFaceId(){
+  const statusEl = document.getElementById('loginStatus1');
+  const devices = getFaceIdDevices();
+  if(!devices.length) return;
+  statusEl.className = 'form-status';
+  statusEl.textContent = 'Waiting for Face ID…';
+  try{
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge: randomChallenge(),
+        allowCredentials: devices.map(d=>({ id: base64UrlToBuf(d.credentialId), type:'public-key' })),
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    const matchedId = bufToBase64Url(assertion.rawId);
+    const device = devices.find(d=>d.credentialId === matchedId);
+    if(!device){
+      statusEl.textContent = 'That Face ID is not linked to an account here.';
+      statusEl.className = 'form-status error';
+      return;
+    }
+    statusEl.textContent = 'Signing in…';
+    const { data, error } = await sb.auth.refreshSession({ refresh_token: device.refreshToken });
+    if(error || !data.session){
+      saveFaceIdDevices(devices.filter(d=>d.credentialId !== matchedId));
+      renderLoginFaceIdBlock();
+      statusEl.textContent = 'Face ID sign-in expired on this device — sign in with your email once to re-enable it.';
+      statusEl.className = 'form-status error';
+      return;
+    }
+    device.refreshToken = data.session.refresh_token;
+    saveFaceIdDevices(devices.map(d=> d.credentialId===matchedId ? device : d));
+    statusEl.textContent = '';
+    await startApp();
+  } catch(err){
+    statusEl.textContent = 'Face ID did not work: ' + (err.message || err);
+    statusEl.className = 'form-status error';
+  }
+}
+
+async function enableFaceIdOnDevice(){
+  const statusEl = document.getElementById('faceIdSettingsStatus');
+  statusEl.className = 'form-status';
+  if(!isFaceIdAvailable()){
+    statusEl.textContent = 'Face ID / Touch ID is not available on this device or browser.';
+    statusEl.className = 'form-status error';
+    return;
+  }
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){ statusEl.textContent = 'Sign in again first.'; statusEl.className = 'form-status error'; return; }
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: randomChallenge(),
+        rp: { name: 'ChefOS', id: location.hostname },
+        user: {
+          id: new TextEncoder().encode(currentUser.id),
+          name: currentUser.email || 'chefos-user',
+          displayName: currentUserName || currentUser.email || 'ChefOS user'
+        },
+        pubKeyCredParams: [{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
+        authenticatorSelection: { authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred' },
+        timeout: 60000,
+        attestation: 'none'
+      }
+    });
+    const credentialId = bufToBase64Url(cred.rawId);
+    const devices = getFaceIdDevices().filter(d=>d.credentialId !== credentialId);
+    devices.push({ credentialId, email: currentUser.email, label: currentUserName || currentUser.email, refreshToken: session.refresh_token });
+    saveFaceIdDevices(devices);
+    statusEl.textContent = '';
+    renderFaceIdSettingsBlock();
+  } catch(err){
+    statusEl.textContent = 'Could not enable Face ID: ' + (err.message || err);
+    statusEl.className = 'form-status error';
+  }
+}
+
+function removeFaceIdFromDevice(credentialId){
+  saveFaceIdDevices(getFaceIdDevices().filter(d=>d.credentialId !== credentialId));
+  document.getElementById('faceIdSettingsStatus').textContent = '';
+  renderFaceIdSettingsBlock();
+}
+
+function renderFaceIdSettingsBlock(){
+  const el = document.getElementById('faceIdSettingsBlock');
+  if(!el) return;
+  if(!isFaceIdAvailable()){
+    el.innerHTML = '<div class="meta">Face ID / Touch ID is not available on this device or browser.</div>';
+    return;
+  }
+  const mine = getFaceIdDevices().find(d=>d.email === (currentUser && currentUser.email));
+  el.innerHTML = mine ? `
+    <div class="meta" style="margin-bottom:6px;">✅ Face ID is enabled for you on this device.</div>
+    <button class="sheet-cancel" style="width:100%;" onclick="removeFaceIdFromDevice('${mine.credentialId}')">Remove Face ID from this device</button>
+  ` : `<button class="save-btn" style="width:100%;" onclick="enableFaceIdOnDevice()">Enable Face ID on this device</button>`;
+}
+
 async function startApp(){
   const { data: { user } } = await sb.auth.getUser();
   if(!user) return;
@@ -5494,6 +5718,9 @@ function openMyProfileSettings(){
     document.getElementById('mps_bio').value = (data && data.bio) || '';
   });
   document.getElementById('myProfileSettingsStatus').textContent = '';
+  document.getElementById('accountPasswordStatus').textContent = '';
+  document.getElementById('mps_new_password').value = '';
+  renderFaceIdSettingsBlock();
   document.getElementById('myProfileSettingsOverlay').classList.add('open');
 }
 function closeMyProfileSettings(){
@@ -5899,6 +6126,8 @@ async function reviewAccessRequest(id, status){
   // once someone is fully inside the app. It's a fixed-position button outside every view
   // container, so showing it unconditionally here is safe everywhere.
   document.getElementById('globalFeedbackBtn').style.display = 'flex';
+  await detectFaceIdAvailability();
+  renderLoginFaceIdBlock();
   const { data: { session } } = await sb.auth.getSession();
   if(session) await startApp();
 })();
