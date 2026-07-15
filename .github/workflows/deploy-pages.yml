@@ -15,7 +15,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Health check 2026-07-15: production deploy is GATED on the same auditors that run in
+  # the local git hooks. A structural break, dead button, ghost table, missing-RLS
+  # migration or committed secret now fails the deploy instead of reaching the pilot
+  # kitchen. Local hooks can be skipped (--no-verify); this job cannot.
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: DB migration audit (tenant scoping, RLS, destructive statements)
+        run: python3 scripts/audit_db.py
+      - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)
+        run: python3 scripts/audit_app.py
+
   deploy:
+    needs: checks
     runs-on: ubuntu-latest
     environment:
       name: github-pages

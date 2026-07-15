@@ -1,3 +1,36 @@
+# db/ — Migration rules (the contract)
+
+Established by the 2026-07-15 health check. These rules are partly **enforced by
+machines** — `scripts/audit_db.py` runs in every git hook and in CI and fails the
+commit/push/deploy on violation.
+
+1. **Every schema change is a numbered file here.** Never type ad-hoc SQL into the
+   Supabase editor for anything you want to keep — if it's not in a `db/NN_*.sql` file,
+   it doesn't exist.
+2. **Numbers never repeat.** Check the highest existing number first.
+   *(Enforced: audit_db.py fails on duplicates.)*
+3. **Staging first** for anything that touches data or constraints. Pure new tables and
+   pure function/policy redefinitions may go straight to production; anything that
+   UPDATEs, DELETEs, backfills or changes constraints runs on `chefos-staging` first.
+   State the class in the file header.
+4. **Every new table carries `kitchen_id`** unless genuinely per-user/global — then add
+   it to the whitelist in `scripts/audit_db.py` *with a reason*.
+   *(Enforced: audit_db.py fails otherwise.)*
+5. **Every new table gets RLS enabled AND at least one policy** in the same file. RLS
+   without policies silently blocks everything; no RLS leaks everything.
+   *(Enforced: audit_db.py fails otherwise.)*
+6. **Destructive statements** (`DROP TABLE`, `TRUNCATE`, `DELETE` without `WHERE`)
+   require a `-- DESTRUCTIVE: <reason>` comment in the file AND Richard's explicit
+   approval before running anywhere. *(Enforced: audit_db.py fails without the comment.)*
+7. **After any migration touching RLS policies**, run
+   `scripts/tenant_isolation_test.sql` in the staging SQL editor — it raises an
+   exception on any cross-kitchen leak. All three historical RLS incidents (db/53
+   outage, db/55, db/62 lockout) belonged to exactly this class.
+8. **Who runs migrations:** Richard, personally, via the Supabase SQL editor — staging
+   first per rule 3. Claude writes files, never executes against production.
+
+---
+
 # ChefOS — Database setup (Phase 1a)
 
 Run these two files, in order, in the Supabase Dashboard → SQL Editor → New query:
