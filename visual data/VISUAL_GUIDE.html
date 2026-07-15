@@ -1,0 +1,1416 @@
+<!doctype html>
+<html data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Visual Product Guide</title>
+<style>
+  :root{
+    --bg: #0A1A2F;
+    --paper: #122845;
+    --paper-raised: #0f2340;
+    --ink: #fff;
+    --ink-dim: #9C949E;
+    --ink-faint: rgba(156,148,158,0.6);
+    --rule: #223d57;
+    --copper: #34F7D7;
+    --copper-dim: rgba(52,247,215,0.4);
+    --sage: #F7C948;
+    --shadow: 0 8px 28px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0; height:100%; max-width:100vw; overflow-x:hidden;}
+  body{
+    background: var(--bg);
+    background-image: radial-gradient(ellipse 900px 500px at 50% -120px, rgba(52,247,215,0.06), transparent);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--copper); color: #0A1A2F; }
+  button, input, select, textarea{ font: inherit; }
+  button{ cursor:pointer; transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease; }
+  a{ transition: color 0.15s ease; }
+  input, select, textarea{ transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible{
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--copper);
+    border-radius: 4px;
+  }
+  .display{
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-weight: 700;
+  }
+  .mono{
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  }
+
+  /* ---------- Login ---------- */
+  #loginView{
+    min-height: 100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding: 24px;
+  }
+  #loginView .box{
+    width:100%; max-width:380px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 40px 32px 32px 32px;
+    box-shadow: var(--shadow);
+    animation: loginRise 0.5s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes loginRise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .login-mark{ font-size:34px; text-align:center; margin-bottom:14px; }
+  #loginView .kicker, #loginView h1{ text-align:center; }
+  #loginView h1.title{ margin-bottom:6px; }
+  .login-tagline{
+    text-align:center; color:var(--ink-dim); font-size:14px;
+    margin: 0 0 30px 0; line-height:1.5;
+  }
+  .form-status{ font-size:12px; color:var(--sage); min-height:16px; margin: 8px 0 4px 0; }
+  .form-status.error{ color:#FF7A68; }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position: sticky; top:0; z-index: 10;
+    background: var(--bg);
+    padding: 22px 18px 12px 18px;
+  }
+  .kicker{
+    color: var(--copper);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 4px 0;
+    font-weight: 600;
+  }
+  .sync-status{
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display:flex; align-items:center; gap:5px;
+  }
+  .sync-status::before{ content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .sync-status.saving, .sync-status.offline{ opacity: 1; }
+  .sync-status.saved{ opacity: 0; }
+  .sync-status.offline{ color: #34F7D7; }
+  h1.title{
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-weight: 700;
+    font-size: 30px;
+    margin: 0 0 16px 0;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .search-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 11px 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .search-wrap:focus-within{ border-color: var(--copper-dim); box-shadow: 0 0 0 3px var(--copper-wash, rgba(205,143,95,0.12)); }
+  .search-wrap svg{ flex:none; opacity:0.55; }
+  #search{
+    flex:1;
+    background:none; border:none; outline:none;
+    color: var(--ink);
+    font-size: 16px;
+    font-family: inherit;
+  }
+  #search::placeholder{ color: var(--ink-dim); }
+  .nav-row{ display:flex; gap:8px; margin-top:12px; }
+  .ingredients-nav-btn{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    flex:1;
+    background: var(--paper-raised); border: 1px solid var(--rule);
+    color: var(--ink-dim);
+    font-family: inherit; font-size: 11.5px; font-weight:500;
+    padding: 12px 6px 10px 6px; border-radius: 12px;
+    text-align:center;
+  }
+  .ingredients-nav-btn svg{ display:none; }
+  .ingredients-nav-btn:active{ background: var(--surface-raised, var(--paper-raised)); transform: scale(0.97); }
+  .ingredients-nav-btn:hover{ border-color: var(--copper-dim); color: var(--ink); }
+  .nav-icon{ font-size: 18px; line-height:1; }
+
+  /* ---------- Home dashboard ---------- */
+  .home-grid{
+    display:grid; grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    padding: 10px 18px 40px 18px;
+  }
+  .home-tile{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    aspect-ratio: 1;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    color: var(--ink);
+    font-family: inherit; font-size: 14.5px; font-weight:600;
+    padding: 16px;
+  }
+  .home-tile:hover{ border-color: var(--copper-dim); background: var(--surface, var(--paper-raised)); transform: translateY(-2px); }
+  .home-tile:active{ transform: scale(0.97); }
+  .home-tile-icon{
+    font-size: 32px; line-height:1;
+    width:56px; height:56px;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--paper); border:1px solid var(--rule); border-radius:14px;
+  }
+  @media (min-width: 560px){
+    .home-grid{ grid-template-columns: repeat(3, 1fr); max-width:640px; margin:0 auto; }
+  }
+
+  /* ---------- Schedule: week nav + grid ---------- */
+  .date-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .week-label{ font-family:"SF Mono",Menlo,monospace; font-size:13px; color:var(--ink-dim); text-align:center; flex:1; }
+  .schedule-grid-wrap{ overflow-x:auto; padding: 4px 0 8px 0; -webkit-overflow-scrolling:touch; }
+  table.schedule-grid{ border-collapse:collapse; width:100%; min-width:640px; }
+  table.schedule-grid th, table.schedule-grid td{ border-bottom:1px solid var(--rule); padding:0; }
+  table.schedule-grid thead th{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint);
+    font-weight:600; padding:8px 6px; text-align:center; background:var(--bg);
+    position:sticky; top:0; z-index:2;
+  }
+  table.schedule-grid thead th.name-col{ text-align:left; padding-left:18px; }
+  table.schedule-grid .name-col{
+    position:sticky; left:0; z-index:1;
+    background:var(--bg);
+    padding: 10px 12px 10px 18px;
+    font-size:13.5px; white-space:nowrap;
+    box-shadow: 1px 0 0 var(--rule);
+  }
+  table.schedule-grid .section-row td{
+    background: var(--paper-raised);
+    font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--sage); font-weight:600;
+    padding: 8px 12px 8px 18px;
+  }
+  table.schedule-grid .cell-btn{
+    width:100%; min-width:60px; height:44px;
+    background:none; border:none; border-left:1px solid var(--rule);
+    color: var(--ink); font-family:"SF Mono",Menlo,monospace; font-size:12px; font-weight:600;
+    cursor:pointer;
+  }
+  table.schedule-grid .cell-btn:hover{ background: var(--paper-raised); }
+  table.schedule-grid .cell-btn.absence{ color: var(--ink-faint); font-weight:400; }
+  table.schedule-grid .cell-btn.empty{ color: var(--rule); }
+  .staff-add-row{ display:flex; gap:8px; margin-top:10px; }
+  .staff-add-row input{ flex:1; }
+
+  /* ---------- Fridge temperature ---------- */
+  .fridge-card{
+    display:flex; align-items:center; gap:14px;
+    background: var(--paper-raised); border:1px solid var(--rule); border-radius:12px;
+    padding:14px 16px; margin-bottom:12px; cursor:pointer;
+    transition: border-color 0.15s ease;
+  }
+  .fridge-card:hover{ border-color: var(--copper-dim); }
+  .fridge-status-dot{ width:12px; height:12px; border-radius:50%; flex:none; }
+  .fridge-status-dot.ok{ background: var(--sage); }
+  .fridge-status-dot.warn{ background: #FF7A68; }
+  .fridge-status-dot.none{ background: var(--rule); }
+  .fridge-card .info{ flex:1; }
+  .fridge-card .name{ font-size:15.5px; font-weight:600; }
+  .fridge-card .meta{ font-size:12.5px; color:var(--ink-dim); margin-top:2px; }
+  .fridge-card .reading{ font-family:"SF Mono",Menlo,monospace; font-size:20px; color:var(--copper); font-weight:600; }
+  .fridge-log-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--rule); font-size:14px; }
+  .fridge-log-row .temp{ font-family:"SF Mono",Menlo,monospace; color:var(--copper); font-weight:600; }
+  .fridge-log-row .temp.warn{ color:#FF7A68; }
+
+  /* ---------- Bottom action sheet (used by the ingredient info panel) ---------- */
+  .sheet-overlay{
+    position:fixed; inset:0;
+    background: rgba(10,9,7,0.6);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index: 50;
+  }
+  .sheet-overlay.open{ display:flex; }
+  .sheet{
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-bottom: none;
+    border-radius: 18px 18px 0 0;
+    padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+    width: 100%;
+    max-width: 480px;
+    box-sizing: border-box;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .sheet-handle{
+    width: 36px; height: 4px; border-radius: 999px;
+    background: var(--rule);
+    margin: 8px auto 14px auto;
+  }
+  .sheet-cancel{
+    width:100%;
+    margin-top:14px;
+    background:none;
+    border:1px solid var(--rule);
+    color: var(--ink-dim);
+    padding:12px;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:14px;
+  }
+  .ingredient-info-title{ font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:19px; margin:4px 0 4px 0; }
+  .ingredient-info-row{ margin: 12px 0; }
+  .ingredient-info-row .label{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--sage); margin-bottom:3px; }
+  .ingredient-info-row .value{ font-size:14px; line-height:1.5; }
+
+  /* ---------- Add-choice sheet options + API key settings ---------- */
+  .sheet-option{
+    display:flex; align-items:center; gap:14px;
+    width:100%;
+    background:none; border:none;
+    border-top: 1px solid var(--rule);
+    padding: 14px 4px;
+    color: var(--ink);
+    text-align:left;
+    font-family: inherit;
+  }
+  .sheet-option:first-of-type{ border-top:none; }
+  .sheet-option svg{ flex:none; color: var(--copper); }
+  .sheet-option-title{ font-size:15px; font-weight:600; }
+  .sheet-option-sub{ font-size:12px; color:var(--ink-dim); margin-top:2px; }
+  .sheet-title{ font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:19px; margin:4px 0 10px 0; }
+  .sheet-text{ font-size:13px; color:var(--ink-dim); line-height:1.5; margin:0 0 16px 0; }
+  .sheet-link{ color:var(--copper); }
+  .sheet-row{ display:flex; gap:10px; margin-bottom: 8px; }
+  .sheet-row .save-btn, .sheet-row .danger-btn{ flex:1; margin-top:0; text-align:center; }
+  .sheet-status{ font-size:12px; color:var(--sage); min-height:16px; margin: 8px 0 4px 0; }
+
+  /* ---------- Photo scan progress overlay ---------- */
+  .scan-overlay{
+    position:fixed; inset:0;
+    background: rgba(23,21,18,0.94);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index: 60;
+  }
+  .scan-overlay.open{ display:flex; }
+  .scan-box{ text-align:center; padding: 20px; max-width:320px; }
+  .scan-spinner{
+    width:40px; height:40px;
+    border-radius:50%;
+    border: 3px solid var(--rule);
+    border-top-color: var(--copper);
+    margin: 0 auto 18px auto;
+    animation: scan-spin 0.8s linear infinite;
+  }
+  @keyframes scan-spin{ to{ transform: rotate(360deg); } }
+  .scan-status{ font-size:14px; color:var(--ink-dim); }
+  .scan-error{ font-size:13px; color:#FF7A68; margin-top:14px; }
+
+  /* ---------- Task rows (Mise en Place) ---------- */
+  .task-row{ padding:14px 18px; border-bottom:1px solid var(--rule); }
+  .task-row.status-finish .task-text{ text-decoration:line-through; color:var(--ink-dim); }
+  .task-row-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .task-status-group{ display:flex; gap:6px; margin-top:9px; }
+  .task-col-header{
+    display:flex; justify-content:space-between;
+    padding: 10px 18px 6px 18px;
+    font-size: 11px; text-transform:uppercase; letter-spacing:0.1em;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--rule);
+  }
+  .task-status-btn{
+    flex:none;
+    font-family: inherit; font-size: 11px; font-weight:700; letter-spacing:0.04em;
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--rule); background: var(--paper);
+    color: var(--ink-dim);
+    opacity: 0.85;
+  }
+  .task-status-btn.active{ opacity: 1; }
+  .task-status-btn.status-todo{ color: var(--ink-dim); border-color: var(--rule); }
+  .task-status-btn.status-todo.active{ color: var(--ink); border-color: var(--ink-dim); background: rgba(236,229,216,0.14); }
+  .task-status-btn.status-check{ color: var(--copper); border-color: var(--copper-dim); }
+  .task-status-btn.status-check.active{ background: rgba(205,143,95,0.15); }
+  .task-status-btn.status-finish{ color: var(--sage); border-color: var(--sage); }
+  .task-status-btn.status-finish.active{ background: rgba(150,165,134,0.15); }
+  .task-status-btn.status-dontdo{ color:#FF7A68; border-color:#b3453a; }
+  .task-status-btn.status-dontdo.active{ background: rgba(217,122,111,0.15); }
+  .task-priority-badge{
+    flex:none; width:22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:600;
+    border: 1px solid var(--rule);
+  }
+  .priority-1, .priority-2{ color:#FF7A68; border-color:#b3453a; }
+  .priority-3{ color: var(--copper); border-color: var(--copper-dim); }
+  .priority-4, .priority-5{ color: var(--sage); border-color: var(--sage); }
+
+  /* ---------- Prep sheet (dish-grouped, e.g. SKY) ---------- */
+  .prep-section-summary{
+    display:flex; gap:8px; flex-wrap:wrap;
+    padding: 10px 18px;
+    font-size: 13px; color: var(--ink);
+  }
+  .prep-section-summary b{ color: var(--ink); font-family:"SF Mono",Menlo,monospace; }
+  .prep-section-summary > span:not(.prep-filter-toggle){ padding:5px 10px; }
+  .prep-filter-toggle{
+    cursor:pointer; padding:5px 10px; border-radius:999px;
+    border:1px solid var(--rule); background: var(--paper-raised, var(--paper));
+  }
+  .prep-filter-toggle::after{ content:' ▾'; font-size:9px; opacity:0.6; }
+  .prep-filter-toggle:active{ transform: scale(0.97); }
+  .prep-filter-toggle:hover{ border-color: var(--copper-dim); }
+  .prep-filter-toggle.active{ border-color: var(--copper); background: rgba(205,143,95,0.16); color: var(--ink); }
+  .prep-filter-toggle.active::after{ content:' ▴'; }
+  .prep-flag{ margin-left:6px; font-size:14px; }
+  .prep-item-dish{ color: var(--ink); opacity:0.75; font-weight:400; font-size:12.5px; }
+  .prep-dish-card{ border-bottom: 1px solid var(--rule); padding: 4px 0 12px 0; }
+  .prep-dish-header{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    padding: 14px 18px 10px 18px;
+    background: rgba(205,143,95,0.16);
+    border-left: 3px solid var(--copper);
+  }
+  .prep-dish-name{ font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size: 17px; color: var(--copper); }
+  .prep-dish-header-right{ display:flex; align-items:baseline; gap:12px; flex:none; }
+  .prep-dish-price{ font-family:"SF Mono",Menlo,monospace; font-size:13px; color: var(--copper); }
+  .prep-dish-total-time{ font-family:"SF Mono",Menlo,monospace; font-size:13px; color: var(--ink); }
+  .prep-item-table{ padding: 4px 18px 0 18px; }
+  .prep-item-row{
+    padding: 10px 6px;
+    border-top: 1px solid var(--rule);
+    background: rgba(150,165,134,0.12);
+  }
+  .prep-item-name{ font-size: 15px; font-weight:500; color: var(--sage); overflow-wrap:anywhere; display:block; margin-bottom:8px; }
+  .prep-item-fields{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .prep-field{ min-width:0; }
+  .prep-field-label{
+    display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    color: var(--ink); opacity:0.8; font-weight:600; margin-bottom:4px;
+  }
+  .prep-input{
+    width:100%; min-width:0;
+    background: var(--paper-raised, var(--paper)); border: 1px solid var(--rule); border-radius:6px;
+    color: var(--ink); font-family:"SF Mono",Menlo,monospace; font-size:13.5px; font-weight:600;
+    padding: 7px 6px;
+  }
+  .prep-priority{ font-family:inherit; font-size:13px; font-weight:600; padding:7px 2px; }
+  .prep-time-remaining{
+    margin-left:auto; padding:5px 10px; border-radius:999px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid var(--copper-dim);
+    color: var(--copper); background: rgba(205,143,95,0.1);
+  }
+  .prep-status-group{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .prep-item-clock{
+    font-family:"SF Mono",Menlo,monospace; font-size:12px; font-weight:600;
+    color: var(--copper); margin-left:4px;
+  }
+  @media (max-width: 420px){
+    .prep-item-fields{ gap:5px; }
+    .prep-input{ font-size:12px; padding:6px 4px; }
+  }
+
+  /* ---------- Chef's Assistant (chat) ---------- */
+  #chefAssistantView{ display:flex; flex-direction:column; height:100vh; }
+  .chef-chat-messages{
+    flex:1; overflow-y:auto;
+    padding: 8px 18px 18px 18px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .chef-msg{
+    max-width: 82%;
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-size: 14.5px; line-height:1.5;
+    white-space: pre-wrap; overflow-wrap:anywhere;
+  }
+  .chef-msg.user{
+    align-self:flex-end;
+    background: var(--copper-dim); color:#fff;
+    border-bottom-right-radius:4px;
+  }
+  .chef-msg.assistant{
+    align-self:flex-start;
+    background: var(--paper-raised, var(--paper)); border:1px solid var(--rule); color:var(--ink);
+    border-bottom-left-radius:4px;
+  }
+  .chef-msg.assistant.pending{ color:var(--ink-dim); font-style:italic; }
+  .chef-chat-input-bar{
+    display:flex; gap:10px; align-items:flex-end;
+    padding: 12px 18px calc(14px + env(safe-area-inset-bottom)) 18px;
+    border-top: 1px solid var(--rule);
+    background: var(--bg);
+  }
+  .chef-chat-input{
+    flex:1; resize:none; max-height:120px;
+    background: var(--paper-raised, var(--paper)); border:1px solid var(--rule); border-radius:12px;
+    color: var(--ink); font-family:inherit; font-size:15px;
+    padding: 10px 14px;
+  }
+  .chef-chat-send{
+    flex:none; padding:10px 18px; border-radius:12px; border:none;
+    background: var(--copper); color:#1c1510; font-weight:700; font-size:14px;
+  }
+  .chef-chat-send:disabled{ opacity:0.5; }
+  .chef-empty-state{ color:var(--ink-dim); font-size:14px; padding:18px; text-align:center; }
+
+  /* ---------- Quick-add checklist (Mise en Place / Order List) ---------- */
+  .qa-row{
+    display:flex; align-items:center; gap:12px;
+    padding: 12px 14px; margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: rgba(150,165,134,0.10);
+  }
+  .qa-row.selected{ background: rgba(217,58,58,var(--qa-alpha, 0.2)); border-color: rgba(217,58,58,0.4); }
+  .qa-checkbox{
+    flex:none; width:24px; height:24px; border-radius:6px;
+    border: 1.5px solid var(--rule); background: var(--paper);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qa-row.selected .qa-checkbox{ background:#FF7A68; border-color:#FF7A68; }
+  .qa-info{ flex:1; min-width:0; }
+  .qa-info .name{ font-size:15px; font-weight:500; }
+  .qa-info .meta{ font-size:12.5px; color:var(--ink-dim); margin-top:2px; }
+  .qa-row.order-checked{ background: rgba(205,143,95,0.16); border-color: var(--copper-dim); }
+  .qa-row.order-checked .qa-checkbox{ background: var(--copper); border-color: var(--copper); }
+  .qa-qty-input{
+    flex:none; width:64px;
+    background: var(--paper); border: 1px solid var(--rule); border-radius:6px;
+    color: var(--ink); font-family:"SF Mono",Menlo,monospace; font-size:13px; padding:5px 6px;
+  }
+  .qa-priority{
+    flex:none; width:52px;
+    background: var(--paper); border: 1px solid var(--rule); border-radius:6px;
+    color: var(--ink); font-family:inherit; font-size:13px; padding:5px;
+  }
+  .cuisine-badge{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(205,143,95,0.12);
+    border: 1px solid var(--copper-dim);
+    color: var(--copper);
+    flex: none;
+    margin-left: 6px;
+  }
+  .ingredient-row .price{
+    font-family: "SF Mono", Menlo, monospace;
+    color: var(--copper);
+    font-size: 14px;
+    flex: none;
+  }
+
+  /* ---------- Category filter chips ---------- */
+  .chips{
+    display:flex; gap:8px;
+    overflow-x:auto;
+    padding: 12px 18px 4px 18px;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+
+  /* ---------- Mise en Place sticky header ----------
+     Topbar + station chips + (when a prep sheet is open) the status summary all live inside
+     one sticky block, so there is exactly one solid edge where the header ends and the
+     scrolling list begins — no gaps or see-through seams between separately-stuck pieces. */
+  .tasks-sticky-header{
+    position: sticky; top:0; z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+  .tasks-sticky-header .topbar{ position:static; padding-bottom:8px; }
+  .tasks-sticky-header .chips{ position:static; padding-top:4px; }
+  .tasks-sticky-header .prep-section-summary{ border-bottom:none; padding-top:6px; }
+  .chip{
+    flex:none;
+    padding: 8px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    color: var(--ink-dim);
+    font-size: 13px;
+    font-weight: 500;
+    white-space:nowrap;
+    background: var(--paper);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .chip:active{ transform: scale(0.96); }
+  .chip.active{
+    background: var(--copper-dim);
+    border-color: var(--copper);
+    color: #fff;
+  }
+
+  /* ---------- List ---------- */
+  #listView{ display:none; padding: 6px 0 40px 0; }
+  .section-label{
+    padding: 20px 18px 8px 18px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--rule);
+    margin-top: 4px;
+  }
+  .section-label:first-child{ border-top:none; }
+  .recipe-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--rule);
+    cursor:pointer;
+    transition: background-color 0.15s ease;
+  }
+  .recipe-row:hover{ background: var(--paper-raised); }
+  .recipe-row:active{ background: var(--paper-raised); }
+  .recipe-row .chevron{ transition: transform 0.15s ease; }
+  .recipe-row:hover .chevron{ transform: translateX(2px); color: var(--copper); }
+  .recipe-row .idx{
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--copper);
+    width: 22px;
+    flex:none;
+  }
+  .recipe-row .info, .info{ flex:1; min-width:0; }
+  .recipe-row .name{
+    font-size: 16.5px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .recipe-row .meta{
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .recipe-row .chevron{ flex:none; color: var(--ink-dim); }
+  .thumb{
+    flex:none;
+    width:48px; height:48px;
+    border-radius:8px;
+    object-fit:cover;
+    border:1px solid var(--rule);
+  }
+  .hero{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+    border-radius:10px;
+    margin-bottom:16px;
+    border:1px solid var(--rule);
+  }
+  .empty-state{
+    padding: 70px 24px;
+    text-align:center;
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    line-height:1.6;
+    max-width: 34ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- Detail view ---------- */
+  #detailView{ display:none; }
+  .detail-bar{
+    position: sticky; top:0; z-index:10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .back-btn{
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none;
+    color: var(--copper);
+    font-size: 15px;
+    font-family: inherit;
+    padding: 6px 4px;
+    cursor:pointer;
+    border-radius: 6px;
+  }
+  .back-btn:hover{ color: #F7C948; }
+  .detail-content{ padding: 20px 18px 60px 18px; }
+  .detail-cat{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--copper);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  h2.recipe-title{
+    font-size: clamp(26px, 5vw, 32px);
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .recipe-meta{
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    margin-bottom: 24px;
+  }
+  .block{ margin-bottom: 28px; }
+  .block h3{
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    color: var(--sage);
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+  table.ing{
+    width:100%;
+    border-collapse: collapse;
+  }
+  table.ing tr{ border-bottom: 1px solid var(--rule); }
+  table.ing tr:last-child{ border-bottom:none; }
+  table.ing td{
+    padding: 9px 0;
+    font-size: 15px;
+    vertical-align: top;
+  }
+  table.ing td.qty{
+    text-align:right;
+    font-family: "SF Mono", Menlo, monospace;
+    color: var(--copper);
+    max-width: 40vw;
+    padding-left: 12px;
+    font-size: 14px;
+  }
+  .method-list{
+    margin:0; padding:0;
+    list-style:none;
+    counter-reset: step;
+  }
+  .method-list li{
+    counter-increment: step;
+    padding: 4px 0 14px 34px;
+    position:relative;
+    font-size: 15.5px;
+    line-height:1.5;
+  }
+  .method-list li::before{
+    content: counter(step);
+    position:absolute;
+    left:0; top:2px;
+    width:24px; height:24px;
+    border-radius:50%;
+    background: var(--paper-raised);
+    border: 1px solid var(--copper-dim);
+    color: var(--copper);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .plain-text{ font-size:15px; line-height:1.55; }
+  .bullet-list{ margin:0; padding-left: 18px; }
+  .bullet-list li{ font-size:15px; line-height:1.6; margin-bottom:4px; }
+
+  /* ---------- Detail bar extras ---------- */
+  .bar-spacer{ flex:1; }
+  .icon-btn{
+    background:none; border:none;
+    color: var(--ink-dim);
+    padding: 7px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    border-radius: 9px;
+  }
+  .icon-btn:hover{ background: var(--paper-raised); color: var(--ink); }
+  .icon-btn:active{ background: var(--paper-raised); transform: scale(0.92); }
+  .icon-btn.active{ color: var(--copper); }
+  .icon-btn.active svg{ fill: var(--copper); }
+  .fav-star{
+    flex:none;
+    background:none; border:none;
+    color: var(--ink-dim);
+    padding: 4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .fav-star.active{ color: var(--copper); }
+  .fav-star.active svg{ fill: var(--copper); }
+
+  /* ---------- Cost badge ---------- */
+  .cost-block{
+    display:flex; flex-wrap:wrap; gap:14px 18px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+  }
+  .cost-item{ flex: 1 1 38%; min-width:80px; }
+  .cost-item .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.09em; color:var(--ink-dim); font-weight:500; }
+  .cost-item .value{ font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600; color:var(--copper); margin-top:3px; }
+  .cost-info-btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:16px; height:16px; margin-left:6px;
+    border-radius:50%;
+    border: 1px solid var(--ink-dim);
+    background:none; color:var(--ink-dim);
+    font-size:10px; font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-style:italic;
+    vertical-align:middle; line-height:1;
+    padding:0;
+  }
+  .cost-info-btn:active{ background:var(--paper-raised); }
+  .cost-breakdown{
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: -8px 0 20px 0;
+  }
+  .cost-breakdown-row{
+    display:flex; justify-content:space-between; gap:10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+  }
+  .cost-breakdown-row:last-child{ border-bottom:none; }
+
+  /* ---------- Allergen badges ---------- */
+  .allergen-row{
+    display:flex; flex-wrap:wrap; gap:6px;
+    margin-bottom: 20px;
+  }
+  .allergen-badge{
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(205,143,95,0.12);
+    border: 1px solid var(--copper-dim);
+    color: var(--copper);
+  }
+
+  /* ---------- Scaling bar ---------- */
+  .scale-bar{
+    display:flex; align-items:center; gap:8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 10px 12px;
+    background: var(--paper-raised);
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+  }
+  .scale-label{ font-size:12px; color:var(--ink-dim); flex:none; margin-right:2px; }
+  .scale-chip{
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-dim);
+    cursor:pointer;
+  }
+  .scale-chip.active{ background: var(--copper-dim); border-color: var(--copper); color:#fff; }
+  .scale-note{
+    width:100%;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ---------- Advanced scaling (by yield / by ingredient) ---------- */
+  .scale-advanced{
+    margin-bottom: 20px;
+    padding: 12px;
+    background: var(--paper-raised);
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+  }
+  .scale-advanced-title{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sage);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .scale-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .scale-row:last-of-type{ margin-bottom: 0; }
+  .scale-row-label{
+    font-size: 12.5px;
+    color: var(--ink);
+    flex: none;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .scale-input{
+    width: 64px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  .scale-select{
+    flex: 1;
+    min-width: 120px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  .scale-arrow{ color: var(--ink-dim); font-size: 13px; flex: none; }
+  .scale-apply-btn{
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 6px;
+    flex: none;
+  }
+  .scale-apply-btn:active{ background: var(--copper-dim); }
+  .scale-result{
+    font-size: 12px;
+    color: var(--copper);
+    margin-top: 6px;
+    min-height: 16px;
+  }
+
+  /* ---------- Stat badges (yield / time / difficulty) ---------- */
+  .stat-row{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-pill{
+    display:flex;
+    align-items:center;
+    gap: 5px;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+  }
+  .stat-pill svg{ flex:none; color: var(--copper); }
+  .diff-easy{ color: var(--sage); }
+  .diff-medium{ color: var(--copper); }
+  .diff-hard{ color: #FF7A68; }
+  .list-diff-dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    margin-right:5px;
+    vertical-align:middle;
+  }
+  .dot-easy{ background: var(--sage); }
+  .dot-medium{ background: var(--copper); }
+  .dot-hard{ background: #FF7A68; }
+
+  /* ---------- Notes ---------- */
+  .notes-block{ margin-top: 30px; }
+  .notes-block h3{
+    font-size: 13px; text-transform:uppercase; letter-spacing:0.1em;
+    color: var(--sage); margin: 0 0 8px 0; font-weight:600;
+  }
+  #notesArea{
+    width:100%;
+    min-height: 80px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .notes-status{ font-size:11px; color:var(--ink-dim); margin-top:6px; height:14px; }
+
+  /* ---------- FAB (add recipe) ---------- */
+  .fab{
+    position: fixed;
+    right: 20px; bottom: 24px;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
+    z-index: 20;
+    transition: background-color 0.15s ease, transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s ease;
+  }
+  .fab:hover{ transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.15); }
+  .fab:active{ background: var(--copper-dim); transform: scale(0.94); }
+
+  /* ---------- Add/Edit form ---------- */
+  #formView{ display:none; }
+  .save-btn{
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .save-btn:hover{ background: #F7C948; }
+  .save-btn:active{ background: var(--copper-dim); transform: scale(0.98); }
+  .form-label{
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--sage);
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    display:block;
+  }
+  .form-field{
+    width:100%;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 11px 13px;
+    margin-bottom: 18px;
+    box-sizing: border-box;
+  }
+  .form-field:focus{ border-color: var(--copper-dim); outline:none; }
+  .form-field::placeholder{ color: var(--ink-faint); }
+  select.form-field{
+    appearance:none; -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a89f8f' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+  }
+  .row-pair{
+    display:flex; gap:8px;
+    margin-bottom: 8px;
+  }
+  .row-pair input{ flex:1; }
+  .row-pair input.qty-input{ flex: none; width: 90px; }
+  .row-remove{
+    flex:none;
+    background:none; border:none;
+    color: var(--ink-dim);
+    width: 36px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .add-row-btn{
+    background:none;
+    border: 1px dashed var(--rule);
+    color: var(--copper);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .step-row{
+    display:flex; gap:8px; align-items:flex-start;
+    margin-bottom: 8px;
+  }
+  .step-row textarea{
+    flex:1;
+    min-height: 44px;
+    font-family: inherit;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 14px;
+    padding: 8px 10px;
+    resize: vertical;
+  }
+  .danger-btn{
+    background:none;
+    border: 1px solid #b3453a;
+    color: #FF7A68;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-top: 30px;
+  }
+
+  /* ---------- Collapsible "More details" section in the recipe form ---------- */
+  .more-details{
+    margin-top: 8px;
+    border-top: 1px solid var(--rule);
+    padding-top: 4px;
+  }
+  .more-details summary{
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--copper);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .more-details summary::-webkit-details-marker{ display:none; }
+  .more-details summary::before{
+    content: '+';
+    font-family: monospace;
+    font-size: 16px;
+    transition: transform 0.15s;
+  }
+  .more-details[open] summary::before{ content: '−'; }
+  .more-details textarea.form-field{ resize: vertical; font-family: inherit; }
+
+  @media print{
+    body{ background:#fff; color:#000; }
+    .no-print, .topbar, .chips, #listView, .icon-btn, .back-btn, .scale-note{ display:none !important; }
+    #detailView{ display:block !important; }
+    .detail-bar{ display:none !important; }
+    .hero{ display:none; }
+    .detail-content{ padding: 0; }
+    .detail-cat{ color:#555; }
+    h2.recipe-title{ color:#000; }
+    .block h3{ color:#000; border-bottom:1px solid #ccc; padding-bottom:4px; }
+    table.ing td{ color:#000; border-bottom:1px solid #ddd; }
+    table.ing td.qty{ color:#000; }
+    .method-list li::before{ background:#fff; border-color:#000; color:#000; }
+    .allergen-row, .cost-block, .scale-bar, .scale-advanced, .notes-block{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+<style>
+  /* ---- documentation-page-only styles, layered on top of the real app CSS above ---- */
+  body{ max-width:920px; margin:0 auto; padding:0 0 100px 0; }
+  .doc-cover{
+    padding: 60px 24px 40px 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .doc-kicker{ color:var(--copper); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
+  .doc-title{ font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:40px; margin:0 0 14px 0; }
+  .doc-title b{ color:var(--copper); font-weight:400; font-style:italic; }
+  .doc-lede{ color:var(--ink-dim); font-size:15px; max-width:60ch; line-height:1.6; }
+  .doc-stats{ display:flex; gap:28px; flex-wrap:wrap; margin-top:26px; }
+  .doc-stat b{ display:block; font-family:"SF Mono",Menlo,monospace; font-size:22px; color:var(--ink); }
+  .doc-stat span{ font-size:12px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.06em; }
+
+  .doc-section{ padding: 44px 24px; border-bottom:1px solid var(--rule); }
+  .doc-section-num{ font-family:"SF Mono",Menlo,monospace; color:var(--copper); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px; }
+  .doc-section-title{ font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:26px; margin:0 0 10px 0; }
+  .doc-section-desc{ color:var(--ink-dim); font-size:14px; max-width:64ch; line-height:1.65; margin-bottom:26px; }
+  .doc-mock{
+    background: var(--paper); border:1px solid var(--rule); border-radius:16px;
+    overflow:hidden; max-width:420px;
+    box-shadow: var(--shadow);
+  }
+  .doc-mock-wide{ max-width:100%; }
+  .doc-caption{ font-size:12px; color:var(--ink-faint); margin-top:12px; font-style:italic; }
+  .doc-two-col{ display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  .doc-note{
+    background: rgba(205,143,95,0.08); border:1px solid var(--copper-dim); border-radius:10px;
+    padding:12px 16px; font-size:13px; color:var(--ink-dim); margin-top:18px; max-width:64ch;
+  }
+  .doc-note b{ color:var(--copper); }
+  footer.doc-footer{ text-align:center; padding:40px 24px; color:var(--ink-faint); font-size:12px; }
+</style>
+
+<div class="doc-cover">
+  <div class="doc-kicker">ChefOS — Visual Product Guide</div>
+  <h1 class="doc-title">Chef<b>OS</b></h1>
+  <p class="doc-lede">Every screen in the product today, shown with the app's real design system and real data — not placeholder mockups. Built for Richard Červenka as a working reference and an investor-facing walkthrough.</p>
+  <div class="doc-stats">
+    <div class="doc-stat"><b>9</b><span>Screens</span></div>
+    <div class="doc-stat"><b>173</b><span>Recipes</span></div>
+    <div class="doc-stat"><b>535</b><span>Ingredients</span></div>
+    <div class="doc-stat"><b>3</b><span>AI features</span></div>
+  </div>
+</div>
+
+<!-- 1. LOGIN -->
+<div class="doc-section">
+  <div class="doc-section-num">01 · Entry</div>
+  <h2 class="doc-section-title">Login</h2>
+  <p class="doc-section-desc">No passwords. A cook types their email, gets a one-time code, and is in. Authentication runs on Supabase Auth with custom SMTP (Resend) for reliable delivery.</p>
+  <div class="doc-mock">
+    <div style="padding:40px 28px;">
+      <div class="login-mark" style="font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:15px; letter-spacing:0.14em; color:var(--copper); text-transform:uppercase; margin-bottom:6px;">Kitchen Notebook</div>
+      <div style="font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:30px; margin-bottom:6px;">Chef<span style="color:var(--copper); font-style:italic;">OS</span></div>
+      <div style="color:var(--ink-dim); font-size:13px; margin-bottom:26px;">Sign in to your kitchen</div>
+      <label class="form-label">Your email</label>
+      <input class="form-field" type="email" placeholder="you@restaurant.com" disabled>
+      <button class="save-btn" style="width:100%; margin-top:14px;">Send me a code</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. HOME -->
+<div class="doc-section">
+  <div class="doc-section-num">02 · Navigation</div>
+  <h2 class="doc-section-title">Home</h2>
+  <p class="doc-section-desc">Seven tiles, one tap each. No nested menus — everything a kitchen needs is one level deep.</p>
+  <div class="doc-mock doc-mock-wide" style="max-width:520px;">
+    <div style="padding:22px 18px 6px 18px;">
+      <p class="kicker">Kitchen Notebook</p>
+      <h1 class="title display" style="font-size:28px;">ChefOS</h1>
+    </div>
+    <div class="home-grid" style="padding:14px 18px 22px 18px;">
+      <div class="home-tile"><span class="home-tile-icon">📖</span><span class="home-tile-label">Recipes</span></div>
+      <div class="home-tile"><span class="home-tile-icon">🧂</span><span class="home-tile-label">Ingredients</span></div>
+      <div class="home-tile"><span class="home-tile-icon">📋</span><span class="home-tile-label">Mise en Place</span></div>
+      <div class="home-tile"><span class="home-tile-icon">🛒</span><span class="home-tile-label">Order List</span></div>
+      <div class="home-tile"><span class="home-tile-icon">🗓️</span><span class="home-tile-label">Schedule</span></div>
+      <div class="home-tile"><span class="home-tile-icon">🌡️</span><span class="home-tile-label">Fridge Temp</span></div>
+      <div class="home-tile"><span class="home-tile-icon">🎩</span><span class="home-tile-label">Chef's Assistant</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. RECIPES -->
+<div class="doc-section">
+  <div class="doc-section-num">03 · Core</div>
+  <h2 class="doc-section-title">Recipes</h2>
+  <p class="doc-section-desc">All 173 recipes from Richard's original recipe book, migrated and now editable, scalable, and cost/nutrition-calculated against the real ingredients table. Every recipe covers the full 20-field professional spec (yield, times, station, allergens, plating notes, and more).</p>
+  <div class="doc-two-col">
+    <div class="doc-mock" style="padding:16px 4px;">
+      <div style="padding:0 16px 10px 16px;">
+        <div class="search-wrap"><span style="opacity:0.5;">🔍</span><input class="form-field" style="border:none; padding:0;" placeholder="Search recipes or ingredients…" disabled></div>
+      </div>
+      <div class="chips" style="padding:8px 16px;">
+        <div class="chip active">All</div><div class="chip">Soups</div><div class="chip">Mains</div>
+      </div>
+      <div class="section-label">SOUPS · 20</div>
+      <div class="recipe-row" style="padding:12px 16px;">
+        <div class="info"><div class="name">"SPA" Soup / Dressing Base</div><div class="meta">11 ingredients</div></div>
+        <span>★</span>
+      </div>
+      <div class="recipe-row" style="padding:12px 16px;">
+        <div class="info"><div class="name">Classic Chicken Noodle Soup</div><div class="meta">Serves 6</div></div>
+        <span>☆</span>
+      </div>
+    </div>
+    <div class="doc-mock" style="padding:20px 18px;">
+      <div class="prep-dish-name" style="margin-bottom:4px;">Ingredients</div>
+      <div style="font-size:13px; color:var(--ink-dim); margin-bottom:14px;">Cost + nutrition calculated automatically by matching each line against the 535-item ingredient table.</div>
+      <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid var(--rule); font-size:14px;"><span>Garlic, minced</span><span class="mono">10 g</span></div>
+      <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid var(--rule); font-size:14px;"><span>Chicken stock</span><span class="mono">1.2 L</span></div>
+      <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--rule); display:flex; justify-content:space-between;"><b>Est. cost</b><span class="mono" style="color:var(--copper);">CHF 4.80</span></div>
+    </div>
+  </div>
+  <div class="doc-note"><b>AI-assisted, two ways:</b> "Scan a photo" reads a handwritten or printed recipe (camera or file) and structures it automatically. "✨ Generate method with AI" writes the step-by-step method from just a title and ingredient list. Both call Claude directly from the browser using the chef's own API key — never through ChefOS's servers.</div>
+</div>
+
+<!-- 4. INGREDIENTS -->
+<div class="doc-section">
+  <div class="doc-section-num">04 · Foundation</div>
+  <h2 class="doc-section-title">Ingredients &amp; Pricing</h2>
+  <p class="doc-section-desc">535 ingredients with price, unit, category, allergens, origin, season, and substitutes — the data every cost and nutrition calculation in the app is built on.</p>
+  <div class="doc-mock" style="padding:16px 4px; max-width:480px;">
+    <div class="ingredient-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--rule);">
+      <div><div style="font-size:14.5px;">Garlic, minced</div><div style="font-size:12px; color:var(--ink-dim);">Produce</div></div>
+      <span class="price">€0.006/g</span>
+    </div>
+    <div class="ingredient-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+      <div><div style="font-size:14.5px;">Parmesan, grated</div><div style="font-size:12px; color:var(--ink-dim);">Dairy</div></div>
+      <span class="price">€0.021/g</span>
+    </div>
+  </div>
+</div>
+
+<!-- 5. MISE EN PLACE -->
+<div class="doc-section">
+  <div class="doc-section-num">05 · Daily operations</div>
+  <h2 class="doc-section-title">Mise en Place</h2>
+  <p class="doc-section-desc">Two working styles, chosen per station. Most stations get a flat prioritized task checklist. Stations with a real paper prep sheet — like SKY — get a dish-grouped prep sheet that matches the paper original exactly.</p>
+
+  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:10px;"><b style="color:var(--ink);">Flat checklist</b> — any station, tasks linked to tagged recipes, three-way status.</p>
+  <div class="doc-mock" style="padding:0; max-width:480px; margin-bottom:34px;">
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;"><div class="name task-text">Prep dashi stock</div><div class="meta">45 min</div></div>
+        <div class="task-priority-badge priority-1">1</div>
+      </div>
+      <div class="task-status-group">
+        <button class="task-status-btn status-todo active">TO DO</button>
+        <button class="task-status-btn status-check">CHECK</button>
+        <button class="task-status-btn status-finish">FINISH</button>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:10px;"><b style="color:var(--ink);">SKY prep sheet</b> — dish-grouped, matching the real paper sheet: 25 dishes, 69 ingredients.</p>
+  <div class="doc-mock" style="padding:0; max-width:480px;">
+    <div class="prep-section-summary" style="padding:12px 16px; border-bottom:1px solid var(--rule);">
+      <span class="prep-filter-toggle"><b>3</b> to do</span>
+      <span class="prep-filter-toggle"><b>1</b> check</span>
+      <span class="prep-filter-toggle"><b>2</b> finish</span>
+      <span><b>63</b> don't do</span>
+      <span class="prep-time-remaining">⏱ <b>22</b> min left</span>
+    </div>
+    <div class="prep-dish-header">
+      <span class="prep-dish-name">Kopfsalat</span>
+      <div class="prep-dish-header-right"><span class="prep-dish-total-time">Total prep: 8 min</span><span class="prep-dish-price">18 CHF</span></div>
+    </div>
+    <div class="prep-item-table" style="padding:10px 16px 16px 16px;">
+      <div class="prep-item-row status-todo" style="background:none; border:none; padding:6px 0;">
+        <span class="prep-item-name">Kopfsalatherz</span>
+        <div class="prep-item-fields">
+          <div class="prep-field"><span class="prep-field-label">On hand</span><div class="prep-input" style="display:flex; align-items:center;">1</div></div>
+          <div class="prep-field"><span class="prep-field-label">Priority</span><div class="prep-input" style="display:flex; align-items:center;">1 · critical</div></div>
+        </div>
+        <div class="prep-status-group">
+          <button class="task-status-btn status-todo active">TO DO</button>
+          <button class="task-status-btn status-check">CHECK</button>
+          <button class="task-status-btn status-finish">FINISH</button>
+          <button class="task-status-btn status-dontdo">DON'T DO</button>
+          <span class="prep-item-clock">⏱ 10 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="doc-note">Every ingredient defaults to <b>DON'T DO</b> — the cook opts items <i>in</i> for today rather than clearing a full list. A 🚩 flag appears if ON HAND falls below the ingredient's minimum. The header (sections + status counts) stays pinned while scrolling.</div>
+</div>
+
+<!-- 6. ORDER LIST -->
+<div class="doc-section">
+  <div class="doc-section-num">06 · Purchasing</div>
+  <h2 class="doc-section-title">Order List</h2>
+  <p class="doc-section-desc">Quick-check ingredients by station to build a shopping list, with quantities and running totals pulled from the same ingredient table used everywhere else.</p>
+  <div class="doc-mock" style="padding:16px; max-width:480px;">
+    <div class="qa-row order-checked">
+      <div class="qa-checkbox">✓</div>
+      <div class="qa-info"><div class="name">Chicken stock</div><div class="meta">Soups · Sauces</div></div>
+      <input class="qa-qty-input mono" value="4 L" disabled>
+    </div>
+    <div class="qa-row">
+      <div class="qa-checkbox"></div>
+      <div class="qa-info"><div class="name">Parmesan, grated</div><div class="meta">Dairy</div></div>
+      <input class="qa-qty-input mono" value="" placeholder="qty" disabled>
+    </div>
+  </div>
+</div>
+
+<!-- 7. SCHEDULE -->
+<div class="doc-section">
+  <div class="doc-section-num">07 · Staffing</div>
+  <h2 class="doc-section-title">Schedule</h2>
+  <p class="doc-section-desc">A real shift-code grid — staff × date — matching a genuine Swiss kitchen roster format: shift codes with real hours and break windows, staff grouped by station (Management, SKY, Bankett, Saucier, Entremetier, Gardemanger, Patisserie, Frühstück). Original reference roster retired 2026-07-13 along with the pilot-kitchen change; rebuilding against Burrito Bandito &amp; Lido's own roster.</p>
+  <div class="doc-mock doc-mock-wide" style="padding:14px; overflow-x:auto;">
+    <table class="schedule-grid" style="min-width:480px;">
+      <thead><tr><th style="text-align:left; padding:8px; font-size:11px; color:var(--ink-dim);">Staff</th><th style="padding:8px; font-size:11px; color:var(--ink-dim);">Mon</th><th style="padding:8px; font-size:11px; color:var(--ink-dim);">Tue</th><th style="padding:8px; font-size:11px; color:var(--ink-dim);">Wed</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:8px; font-size:13px;">A. Meier</td><td style="text-align:center;"><span class="chip" style="font-size:11px; padding:4px 8px;">PJM</span></td><td style="text-align:center;"><span class="chip" style="font-size:11px; padding:4px 8px;">FR</span></td><td style="text-align:center;"><span class="chip" style="font-size:11px; padding:4px 8px;">JTD</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 8. FRIDGE TEMP -->
+<div class="doc-section">
+  <div class="doc-section-num">08 · Compliance</div>
+  <h2 class="doc-section-title">Fridge Temperature</h2>
+  <p class="doc-section-desc">A running log per fridge/freezer — quick daily readings, timestamped, for HACCP-style temperature compliance records.</p>
+  <div class="doc-mock" style="padding:16px; max-width:480px;">
+    <div class="fridge-card" style="display:flex; justify-content:space-between; align-items:center; padding:14px 4px;">
+      <div><div style="font-size:14.5px;">Walk-in Cooler 1</div><div style="font-size:12px; color:var(--ink-dim);">Last reading: 3.2°C, 08:14</div></div>
+      <span style="color:var(--sage); font-family:'SF Mono',Menlo,monospace;">OK</span>
+    </div>
+  </div>
+</div>
+
+<!-- 9. CHEF'S ASSISTANT -->
+<div class="doc-section">
+  <div class="doc-section-num">09 · New — AI</div>
+  <h2 class="doc-section-title">Chef's Assistant</h2>
+  <p class="doc-section-desc">A Michelin-starred-chef persona for quick, confident kitchen judgment calls — substitutions, technique, what to do about a shortfall. Session-only chat, calling Claude directly from the browser.</p>
+  <div class="doc-mock" style="padding:0; max-width:480px;">
+    <div class="chef-chat-messages" style="padding:18px 16px; gap:12px; min-height:0;">
+      <div class="chef-msg user">No more heavy cream on the pass — what do I do for the sauce?</div>
+      <div class="chef-msg assistant">Reduce crème fraîche with a touch of the pan stock — same body, sharper finish. Or mount cold butter into the reduction if you need it faster. Either works; don't reach for milk, it'll break.</div>
+    </div>
+    <div class="chef-chat-input-bar" style="border-top:1px solid var(--rule);">
+      <div class="chef-chat-input" style="display:flex; align-items:center; color:var(--ink-dim);">Ask about substitutions, technique, prep…</div>
+      <button class="chef-chat-send">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- 10. COST & USAGE -->
+<div class="doc-section" style="border-bottom:none;">
+  <div class="doc-section-num">10 · Cost &amp; usage</div>
+  <h2 class="doc-section-title">What this actually costs</h2>
+  <p class="doc-section-desc">Two separate ledgers: what Richard has spent building and using ChefOS so far, and what each AI feature costs per use going forward. The second is an <b style="color:var(--ink);">estimate</b> — the real, authoritative numbers live at <span style="font-family:'SF Mono',Menlo,monospace; color:var(--copper);">console.anthropic.com → Usage</span>.</p>
+
+  <div class="doc-mock doc-mock-wide" style="padding:26px 24px; max-width:560px; margin-bottom:28px;">
+    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+      <span style="font-size:12.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.07em;">Spent so far</span>
+      <span style="font-family:'SF Mono',Menlo,monospace; font-size:30px; color:var(--copper); font-weight:700;">~$45</span>
+    </div>
+    <div style="font-size:12.5px; color:var(--ink-faint); margin-top:6px; line-height:1.5;">Anthropic API credits + Claude Pro subscription combined, as reported by Richard on 2026-07-10 — not pulled from Anthropic's API (no read access to his billing account). Check console.anthropic.com → Usage for the exact figure.</div>
+  </div>
+
+  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:12px;"><b style="color:var(--ink);">Estimated cost per use</b> — based on Claude Sonnet's published per-token pricing (~$3 / million input tokens, ~$15 / million output tokens as of this writing; confirm current rates at anthropic.com/pricing) and typical token counts for what each feature actually sends.</p>
+
+  <div class="doc-mock doc-mock-wide" style="padding:0; max-width:640px;">
+    <div style="display:grid; grid-template-columns:1.4fr 0.7fr 2fr; gap:0;">
+      <div style="padding:10px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-dim); border-bottom:1px solid var(--rule);">Feature</div>
+      <div style="padding:10px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-dim); border-bottom:1px solid var(--rule); text-align:right;">Est. cost</div>
+      <div style="padding:10px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-dim); border-bottom:1px solid var(--rule);">What drives it</div>
+
+      <div style="padding:12px 16px; font-size:14px; border-bottom:1px solid var(--rule);">📷 Scan a photo</div>
+      <div style="padding:12px 16px; font-family:'SF Mono',Menlo,monospace; color:var(--sage); border-bottom:1px solid var(--rule); text-align:right;">~$0.01</div>
+      <div style="padding:12px 16px; font-size:12.5px; color:var(--ink-dim); border-bottom:1px solid var(--rule);">One photo (~1,500 tok) + structured recipe output (~500 tok)</div>
+
+      <div style="padding:12px 16px; font-size:14px; border-bottom:1px solid var(--rule);">✨ Generate method</div>
+      <div style="padding:12px 16px; font-family:'SF Mono',Menlo,monospace; color:var(--sage); border-bottom:1px solid var(--rule); text-align:right;">~$0.01</div>
+      <div style="padding:12px 16px; font-size:12.5px; color:var(--ink-dim); border-bottom:1px solid var(--rule);">Title + ingredient list in, a written method out (~500 tok)</div>
+
+      <div style="padding:12px 16px; font-size:14px;">🎩 Chef's Assistant message</div>
+      <div style="padding:12px 16px; font-family:'SF Mono',Menlo,monospace; color:var(--sage); text-align:right;">$0.003–0.01+</div>
+      <div style="padding:12px 16px; font-size:12.5px; color:var(--ink-dim);">Grows within a conversation — see note below</div>
+    </div>
+  </div>
+
+  <div class="doc-note">
+    <b>Chat cost compounds within a conversation.</b> Chef's Assistant currently resends the <i>full</i> message history with every new question (no trimming, no prompt caching) — so message 1 of a chat costs a fraction of a cent, but message 10 costs more, because Claude re-reads the whole conversation each time. For occasional questions this is negligible; for long back-and-forth sessions it adds up faster than the per-message cost above suggests. Worth revisiting (history trimming or caching) if this feature gets heavy daily use.
+  </div>
+</div>
+
+<footer class="doc-footer">ChefOS · Kitchen Notebook · generated from the live app source, 2026-07-10</footer>
+
+</body>
+</html>
