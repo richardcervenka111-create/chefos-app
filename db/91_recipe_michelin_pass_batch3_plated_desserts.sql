@@ -8,15 +8,16 @@
 -- decision to leave Asian-leaning recipes as-is rather than exclude/rewrite them -- so this pass
 -- simply never touches them, same exclusion logic as batch 2's Yuzu Dressing/Nuoc Cham calls.
 --
--- Real finding while pulling the first 20 rows (created_by is null, category = 'Plated Desserts',
--- chef_notes blank, ORDER BY title, LIMIT 20): only 4 DISTINCT dishes among those 20 rows --
--- "Baonut (Bao Doughnut)" x6, "Black Forest Mousse" x6, "Burnt Basque Cheesecake" x6, "Cheesecake,
--- Bergamot & Strawberries" x2, every copy byte-identical (same title, same sections JSON, only the
--- id differs). This is a real data-quality issue worth a dedicated look (likely a duplicate-import
--- bug from whenever this category was migrated) -- flagged to Richard separately, NOT fixed here.
--- Consequence for this migration: one UPDATE per distinct dish, applied to every id in that dish's
--- duplicate set via `where id in (...)`, rather than one line per row like batch 1/2 -- writing the
--- identical text 6 times over would be pure noise.
+-- The first pull (created_by is null, category = 'Plated Desserts', chef_notes blank, ORDER BY
+-- title, LIMIT 20) showed only 4 distinct dishes among those 20 rows, each appearing up to 6
+-- times with a different id. Verified this is CORRECT, not a data bug: there are 6 kitchens, each
+-- holding its own full 173-recipe ChefOS-shelf copy (seeded by db/87) -- 173 x 6 = 1038 total
+-- created_by-null rows across the table, confirmed per-kitchen (each kitchen: 173 rows, 173
+-- distinct dishes, zero internal duplication). Any query against `recipes` that doesn't scope by
+-- kitchen_id will show every dish once per kitchen -- expected multi-tenant shape, not a dedup
+-- problem. Consequence for this migration: one UPDATE per distinct dish, applied to every id in
+-- that dish's 6-kitchen id set via `where id in (...)`, so all six kitchens' copies get the notes
+-- in one statement rather than one line per row.
 --
 -- Excluded from this batch: "Baonut (Bao Doughnut)" -- the name itself references a bao bun shape
 -- (Chinese steamed bun) and the recipe includes yuzu syrup as a named component. Genuinely
