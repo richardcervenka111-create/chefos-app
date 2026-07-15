@@ -1,0 +1,1359 @@
+
+  :root{
+    /* Tells the browser/OS this page is always dark, regardless of the device's own light/
+       dark setting — without this, some mobile browsers render native form controls
+       (textareas especially) with their own light-mode chrome on top of our dark CSS, which
+       can produce literally invisible text (dark text color inherited, but a light native
+       background underneath). This was the cause of Working Time's day-note textarea being
+       unreadable while typing. */
+    color-scheme: dark;
+    --bg: #0A1A2F;
+    --paper: #122845;
+    --paper-raised: #0f2340;
+    --ink: #ffffff;
+    --ink-dim: #9C949E;
+    --ink-faint: rgba(156,148,158,0.6);
+    --rule: #223d57;
+    --copper: #34F7D7;
+    --copper-dim: rgba(52,247,215,0.4);
+    --sage: #F7C948;
+    --shadow: 0 8px 28px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0; height:100%; max-width:100vw; overflow-x:hidden;}
+  body{
+    background: var(--bg);
+    background-image: radial-gradient(ellipse 900px 500px at 50% -120px, rgba(52,247,215,0.06), transparent);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--copper); color: #0A1A2F; }
+  button, input, select, textarea{ font: inherit; }
+  button{ cursor:pointer; transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, transform 0.1s ease; }
+  a{ transition: color 0.15s ease; }
+  input, select, textarea{ transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible{
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--copper);
+    border-radius: 4px;
+  }
+  .display{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  }
+  .mono{
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  }
+
+  /* ---------- Login ---------- */
+  #loginView{
+    min-height: 100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding: 24px;
+  }
+  #loginView .box{
+    width:100%; max-width:380px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    padding: 40px 32px 32px 32px;
+    box-shadow: var(--shadow);
+    animation: loginRise 0.5s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes loginRise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  .login-mark{ font-size:34px; text-align:center; margin-bottom:14px; }
+  #loginView .kicker, #loginView h1{ text-align:center; }
+  #loginView h1.title{ margin-bottom:6px; }
+  .login-tagline{
+    text-align:center; color:var(--ink-dim); font-size:14px;
+    margin: 0 0 30px 0; line-height:1.5;
+  }
+  .form-status{ font-size:12px; color:var(--sage); min-height:16px; margin: 8px 0 4px 0; }
+  .form-status.error{ color:#FF7A68; }
+  .login-hint{ font-size:12px; color:var(--ink-faint); line-height:1.5; margin:6px 0 14px 0; }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position: sticky; top:0; z-index: 10;
+    background: var(--bg);
+    padding: 22px 18px 12px 18px;
+  }
+  .kicker{
+    color: var(--copper);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 4px 0;
+    font-weight: 600;
+  }
+  .sync-status{
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display:flex; align-items:center; gap:5px;
+  }
+  .sync-status::before{ content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .sync-status.saving, .sync-status.offline{ opacity: 1; }
+  .sync-status.saved{ opacity: 0; }
+  .sync-status.offline{ color: #FF7A68; }
+  h1.title{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: 30px;
+    margin: 0 0 16px 0;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  .search-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 11px 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .search-wrap:focus-within{ border-color: var(--copper-dim); box-shadow: 0 0 0 3px var(--copper-wash, rgba(52,247,215,0.12)); }
+  .search-wrap svg{ flex:none; opacity:0.55; }
+  .search-action-btn{
+    flex:none;
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  #search{
+    flex:1;
+    background:none; border:none; outline:none;
+    color: var(--ink);
+    font-size: 16px;
+    font-family: inherit;
+  }
+  #search::placeholder{ color: var(--ink-dim); }
+  .nav-row{ display:flex; gap:8px; margin-top:12px; }
+  .ingredients-nav-btn{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    flex:1;
+    background: var(--paper-raised); border: 1px solid var(--rule);
+    color: var(--ink-dim);
+    font-family: inherit; font-size: 11.5px; font-weight:500;
+    padding: 12px 6px 10px 6px; border-radius: 12px;
+    text-align:center;
+  }
+  .ingredients-nav-btn svg{ display:none; }
+  .ingredients-nav-btn:active{ background: var(--surface-raised, var(--paper-raised)); transform: scale(0.97); }
+  .ingredients-nav-btn:hover{ border-color: var(--copper-dim); color: var(--ink); }
+  .nav-icon{ font-size: 18px; line-height:1; }
+
+  /* ---------- Home dashboard ---------- */
+  .home-grid{
+    display:grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 10px 18px 40px 18px;
+  }
+  .home-tile{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    aspect-ratio: 1;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    color: var(--ink);
+    font-family: inherit; font-size: 12px; font-weight:600;
+    padding: 6px;
+  }
+  .home-tile:hover{ border-color: var(--copper-dim); background: var(--surface, var(--paper-raised)); transform: translateY(-2px); }
+  .home-tile:active{ transform: scale(0.97); }
+  .home-tile-icon{
+    font-size: 44px; line-height:1;
+    width:62px; height:62px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--paper); border:1px solid var(--rule); border-radius:10px;
+  }
+  @media (min-width: 560px){
+    .home-grid{ grid-template-columns: repeat(4, 1fr); max-width:640px; margin:0 auto; }
+  }
+
+  /* ---------- Schedule: week nav + grid ---------- */
+  .date-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .week-label{ font-family:"SF Mono",Menlo,monospace; font-size:13px; color:var(--ink-dim); text-align:center; flex:1; }
+  .schedule-grid-wrap{ overflow-x:auto; padding: 4px 0 8px 0; -webkit-overflow-scrolling:touch; }
+  table.schedule-grid{ border-collapse:collapse; width:100%; min-width:640px; }
+  table.schedule-grid th, table.schedule-grid td{ border-bottom:1px solid var(--rule); padding:0; }
+  table.schedule-grid thead th{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint);
+    font-weight:600; padding:8px 6px; text-align:center; background:var(--bg);
+    position:sticky; top:0; z-index:2;
+  }
+  table.schedule-grid thead th.name-col{ text-align:left; padding-left:18px; }
+  table.schedule-grid .name-col{
+    position:sticky; left:0; z-index:1;
+    background:var(--bg);
+    padding: 10px 12px 10px 18px;
+    font-size:13.5px; white-space:nowrap;
+    box-shadow: 1px 0 0 var(--rule);
+  }
+  table.schedule-grid .section-row td{
+    background: var(--paper-raised);
+    font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--sage); font-weight:600;
+    padding: 8px 12px 8px 18px;
+  }
+  table.schedule-grid .cell-btn{
+    width:100%; min-width:60px; height:44px;
+    background:none; border:none; border-left:1px solid var(--rule);
+    color: var(--ink); font-family:"SF Mono",Menlo,monospace; font-size:12px; font-weight:600;
+    cursor:pointer;
+  }
+  table.schedule-grid .cell-btn:hover{ background: var(--paper-raised); }
+  table.schedule-grid .cell-btn.absence{ color: var(--ink-faint); font-weight:400; }
+  table.schedule-grid .cell-btn.empty{ color: var(--rule); }
+  .staff-add-row{ display:flex; gap:8px; margin-top:10px; }
+  .staff-add-row input{ flex:1; }
+
+  /* ---------- Fridge temperature ---------- */
+  .fridge-card{
+    display:flex; align-items:center; gap:14px;
+    background: var(--paper-raised); border:1px solid var(--rule); border-radius:12px;
+    padding:14px 16px; margin-bottom:12px; cursor:pointer;
+    transition: border-color 0.15s ease;
+  }
+  .fridge-card:hover{ border-color: var(--copper-dim); }
+  .fridge-status-dot{ width:12px; height:12px; border-radius:50%; flex:none; }
+  .fridge-status-dot.ok{ background: var(--sage); }
+  .fridge-status-dot.warn{ background: #FF7A68; }
+  .fridge-status-dot.none{ background: var(--rule); }
+  .fridge-card .info{ flex:1; }
+  .fridge-card .name{ font-size:15.5px; font-weight:600; }
+  .fridge-card .meta{ font-size:12.5px; color:var(--ink-dim); margin-top:2px; }
+  .fridge-card .reading{ font-family:"SF Mono",Menlo,monospace; font-size:20px; color:var(--copper); font-weight:600; }
+  .fridge-log-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--rule); font-size:14px; }
+  .fridge-log-row .temp{ font-family:"SF Mono",Menlo,monospace; color:var(--copper); font-weight:600; }
+
+  /* ---------- Working Time (check-in/out) ---------- */
+  .wt-card{
+    background: var(--paper-raised); border:1px solid var(--rule); border-radius:12px;
+    padding:16px; margin-bottom:14px;
+  }
+  .wt-elapsed{ font-family:"SF Mono",Menlo,monospace; font-size:36px; font-weight:700; color: var(--copper); text-align:center; }
+  .wt-status-live .meta{ text-align:center; color:var(--ink-dim); font-size:13px; margin-top:4px; margin-bottom:14px; }
+  .wt-summary-grid{ display:flex; gap:10px; margin-top:8px; }
+  .wt-stat{ flex:1; text-align:center; background: var(--paper); border:1px solid var(--rule); border-radius:10px; padding:12px 6px; }
+  .wt-stat-num{ font-family:"SF Mono",Menlo,monospace; font-size:22px; font-weight:700; color: var(--copper); }
+  .wt-stat-label{ font-size:10.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.04em; margin-top:4px; }
+  .wt-settings-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--rule); }
+  .wt-settings-row:last-of-type{ border-bottom:none; }
+  .wt-vacation-days{ font-size:15px; font-weight:600; margin-top:2px; }
+  .wt-vacation-countdown{ font-size:12px; color:var(--copper); font-weight:600; margin-top:2px; }
+  .wt-sticky-top{ position:sticky; top:0; z-index:10; background:var(--bg); border-bottom:1px solid var(--rule); padding-top:0; }
+  .wt-chart-legend{ display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--ink-dim); margin:2px 0 12px 0; }
+  .wt-dot{ display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:4px; vertical-align:middle; }
+  .wt-dot-actual{ background:var(--copper); }
+  .wt-dot-forecast{ background:var(--sage); opacity:0.55; }
+  .wt-dot-absence{ background:var(--rule); }
+  .wt-dot-none{ background-image: repeating-linear-gradient(45deg, var(--ink-dim) 0, var(--ink-dim) 1px, transparent 1px, transparent 4px); }
+  .wt-chart-scroll{ display:flex; gap:4px; overflow-x:auto; padding-bottom:6px; }
+  .wt-bar-col{ flex:none; width:22px; display:flex; flex-direction:column; align-items:center; }
+  .wt-bar-col.wt-bar-today .wt-bar-label{ color: var(--copper); font-weight:700; }
+  .wt-bar-track{ width:100%; height:110px; background: var(--paper); border-radius:4px; display:flex; align-items:flex-end; overflow:hidden; border:1px solid var(--rule); }
+  .wt-bar{ width:100%; border-radius:3px 3px 0 0; min-height:2px; }
+  .wt-bar-actual{ background: var(--copper); }
+  .wt-bar-forecast{ background: var(--sage); opacity:0.6; }
+  .wt-bar-absence{ background: var(--rule); }
+  .wt-bar-none{ background-image: repeating-linear-gradient(45deg, var(--rule) 0, var(--rule) 2px, transparent 2px, transparent 5px); }
+  .wt-bar-label{ font-size:9.5px; color:var(--ink-dim); margin-top:3px; }
+  .wt-advisory-point{ display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-bottom:1px solid var(--rule); font-size:13.5px; line-height:1.4; }
+  .wt-advisory-point:last-child{ border-bottom:none; }
+  .wt-check-btn{
+    flex:none; width:22px; height:22px; margin-top:1px; border-radius:6px;
+    border:1.5px solid var(--rule); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:13px; font-weight:700; line-height:1;
+  }
+  .wt-check-btn.checked{ background: var(--sage); border-color: var(--sage); }
+  .wt-point-done{ text-decoration:line-through; color:var(--ink-dim); }
+
+  /* Compact, tappable summary card in the sticky top bar — opens the monthly pie-chart view */
+  #workingTimeSummaryCard{ padding:8px 10px; cursor:pointer; }
+  #workingTimeSummaryCard .section-label{ padding:0 0 3px 0; border-top:none; margin-top:0; font-size:9px; display:flex; align-items:center; justify-content:space-between; }
+  #workingTimeSummaryCard .wt-summary-grid{ gap:6px; margin-top:0; }
+  #workingTimeSummaryCard .wt-stat{ padding:5px 3px; border-radius:7px; }
+  #workingTimeSummaryCard .wt-stat-num{ font-size:14px; }
+  #workingTimeSummaryCard .wt-stat-label{ font-size:8px; margin-top:1px; }
+
+  /* Working Time — monthly pie-chart history view */
+  .wt-pie-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px 10px; padding:6px 0 20px 0; }
+  .wt-pie-cell{ display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; }
+  .wt-pie{ width:66px; height:66px; border-radius:50%; border:1px solid var(--rule); }
+  .wt-pie-empty{ background: repeating-linear-gradient(45deg, var(--paper) 0, var(--paper) 4px, var(--paper-raised) 4px, var(--paper-raised) 8px); }
+  .wt-pie-label{ font-size:12px; font-weight:700; }
+  .wt-pie-sub{ font-size:10px; color:var(--ink-dim); text-align:center; }
+  .wt-bar-weekday{ font-size:8.5px; color:var(--ink-faint, var(--ink-dim)); }
+  .fridge-log-row .temp.warn{ color:#FF7A68; }
+
+  /* ---------- Bottom action sheet (used by the ingredient info panel) ---------- */
+  .sheet-overlay{
+    position:fixed; inset:0;
+    background: rgba(10,9,7,0.6);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index: 50;
+  }
+  .sheet-overlay.open{ display:flex; }
+  .sheet{
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-bottom: none;
+    border-radius: 18px 18px 0 0;
+    padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
+    width: 100%;
+    max-width: 480px;
+    box-sizing: border-box;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .sheet-handle{
+    width: 36px; height: 4px; border-radius: 999px;
+    background: var(--rule);
+    margin: 8px auto 14px auto;
+  }
+  .sheet-cancel{
+    width:100%;
+    margin-top:14px;
+    background:none;
+    border:1px solid var(--rule);
+    color: var(--ink-dim);
+    padding:12px;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:14px;
+  }
+  .ingredient-info-title{ font-family: Georgia, "Iowan Old Style", serif; font-size:19px; margin:4px 0 4px 0; }
+  .ingredient-info-row{ margin: 12px 0; }
+  .ingredient-info-row .label{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--sage); margin-bottom:3px; }
+  .ingredient-info-row .value{ font-size:14px; line-height:1.5; }
+
+  /* ---------- Add-choice sheet options + API key settings ---------- */
+  .sheet-option{
+    display:flex; align-items:center; gap:14px;
+    width:100%;
+    background:none; border:none;
+    border-top: 1px solid var(--rule);
+    padding: 14px 4px;
+    color: var(--ink);
+    text-align:left;
+    font-family: inherit;
+  }
+  .sheet-option:first-of-type{ border-top:none; }
+  .sheet-option svg{ flex:none; color: var(--copper); }
+  .sheet-option-title{ font-size:15px; font-weight:600; }
+  .sheet-option-sub{ font-size:12px; color:var(--ink-dim); margin-top:2px; }
+  .sheet-title{ font-family: Georgia, "Iowan Old Style", serif; font-size:19px; margin:4px 0 10px 0; }
+  .sheet-text{ font-size:13px; color:var(--ink-dim); line-height:1.5; margin:0 0 16px 0; }
+  .sheet-link{ color:var(--copper); }
+  .sheet-row{ display:flex; gap:10px; margin-bottom: 8px; }
+  .sheet-row .save-btn, .sheet-row .danger-btn{ flex:1; margin-top:0; text-align:center; }
+  .sheet-status{ font-size:12px; color:var(--sage); min-height:16px; margin: 8px 0 4px 0; }
+
+  /* ---------- Photo scan progress overlay ---------- */
+  .scan-overlay{
+    position:fixed; inset:0;
+    background: rgba(23,21,18,0.94);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index: 60;
+  }
+  .scan-overlay.open{ display:flex; }
+  .scan-box{ text-align:center; padding: 20px; max-width:320px; }
+  .scan-spinner{
+    width:40px; height:40px;
+    border-radius:50%;
+    border: 3px solid var(--rule);
+    border-top-color: var(--copper);
+    margin: 0 auto 18px auto;
+    animation: scan-spin 0.8s linear infinite;
+  }
+  @keyframes scan-spin{ to{ transform: rotate(360deg); } }
+  .scan-status{ font-size:14px; color:var(--ink-dim); }
+  .scan-error{ font-size:13px; color:#FF7A68; margin-top:14px; }
+
+  /* ---------- Task rows (Mise en Place) ---------- */
+  .task-row{ padding:14px 18px; border-bottom:1px solid var(--rule); }
+  .task-row.status-finish .task-text{ text-decoration:line-through; color:var(--ink-dim); }
+  .task-row-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .task-note{ color: var(--copper); font-size:13px; margin-top:3px; }
+  .task-status-group{ display:flex; gap:6px; margin-top:9px; }
+  .task-col-header{
+    display:flex; justify-content:space-between;
+    padding: 10px 18px 6px 18px;
+    font-size: 11px; text-transform:uppercase; letter-spacing:0.1em;
+    color: var(--ink-dim);
+    border-bottom: 1px solid var(--rule);
+  }
+  .task-status-btn{
+    flex:none;
+    font-family: inherit; font-size: 11px; font-weight:700; letter-spacing:0.04em;
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--rule); background: var(--paper);
+    color: var(--ink-dim);
+    opacity: 0.85;
+  }
+  .task-status-btn.active{ opacity: 1; }
+  .icon-choice-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin:8px 0; }
+  .icon-choice-btn{
+    font-size:22px; padding:8px 0; border-radius:8px;
+    border:1px solid var(--rule); background: var(--paper);
+    cursor:pointer;
+  }
+  .icon-choice-btn.active{ border-color: var(--copper); background: rgba(52,247,215,0.16); }
+  .task-status-btn.status-todo{ color:#FF7A68; border-color:#7a3b34; }
+  .task-status-btn.status-todo.active{ color:#fff; border-color:#FF7A68; background: rgba(255,122,104,0.32); }
+  .task-status-btn.status-check{ color: var(--copper); border-color: var(--copper-dim); }
+  .task-status-btn.status-check.active{ background: rgba(52,247,215,0.15); }
+  .task-status-btn.status-finish{ color: var(--sage); border-color: var(--sage); }
+  .task-status-btn.status-finish.active{ background: rgba(247,201,72,0.15); }
+  .task-status-btn.status-dontdo{ color: var(--ink-dim); border-color: var(--rule); }
+  .task-status-btn.status-dontdo.active{ color: var(--ink); border-color: var(--ink-dim); background: rgba(236,229,216,0.14); }
+  .task-priority-badge{
+    flex:none; width:22px; height:22px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:600;
+    border: 1px solid var(--rule);
+  }
+  .priority-1, .priority-2{ color:#FF7A68; border-color:#7a3b34; }
+  .priority-3{ color: var(--copper); border-color: var(--copper-dim); }
+  .priority-4, .priority-5{ color: var(--sage); border-color: var(--sage); }
+
+  /* ---------- Prep sheet (dish-grouped, e.g. SKY) ---------- */
+  .prep-section-summary{
+    display:flex; gap:8px; flex-wrap:wrap;
+    padding: 10px 18px;
+    font-size: 13px; color: var(--ink);
+  }
+  .prep-section-summary b{ color: var(--ink); font-family:"SF Mono",Menlo,monospace; }
+  .prep-section-summary > span:not(.prep-filter-toggle){ padding:5px 10px; }
+  .prep-filter-toggle{
+    cursor:pointer; padding:5px 10px; border-radius:999px;
+    border:1px solid var(--rule); background: var(--paper-raised, var(--paper));
+  }
+  .prep-filter-toggle::after{ content:' ▾'; font-size:9px; opacity:0.6; }
+  .prep-filter-toggle:active{ transform: scale(0.97); }
+  .prep-filter-toggle:hover{ border-color: var(--copper-dim); }
+  .prep-filter-toggle.active{ border-color: var(--copper); background: rgba(52,247,215,0.16); color: var(--ink); }
+  .prep-filter-toggle.active::after{ content:' ▴'; }
+  .prep-flag{ margin-left:6px; font-size:14px; }
+  /* Deliberately loud — Richard's own words, "do očí bijúca výstraha" (an eye-catching
+     warning) — so a checked item that's also tracked under another dish/section doesn't get
+     missed. Gold, not red: this isn't a danger/delete signal, just "pay attention, shared
+     ingredient elsewhere." */
+  .prep-duplicate-badge{
+    font-family:inherit; font-size:11px; font-weight:700;
+    background: rgba(247,201,72,0.2); border:1.5px solid #F7C948; color:#F7C948;
+    border-radius:999px; padding:4px 10px; cursor:pointer;
+  }
+  .prep-duplicate-badge:active{ background: rgba(247,201,72,0.35); }
+  .prep-item-dish{ color: var(--ink); opacity:0.75; font-weight:400; font-size:12.5px; }
+  .prep-dish-card{ border-bottom: 1px solid var(--rule); padding: 4px 0 12px 0; }
+  .prep-hidden-row{ opacity: 0.55; }
+  .prep-dish-header{
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    padding: 14px 18px 10px 18px;
+    background: rgba(52,247,215,0.16);
+    border-left: 3px solid var(--copper);
+  }
+  .prep-dish-name{ font-family: Georgia, serif; font-size: 17px; color: var(--copper); }
+  .prep-dish-header-right{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .prep-dish-price{ font-family:"SF Mono",Menlo,monospace; font-size:13px; color: var(--copper); }
+  .prep-dish-total-time{ font-family:"SF Mono",Menlo,monospace; font-size:13px; color: var(--ink); }
+  .prep-item-table{ padding: 4px 18px 0 18px; }
+  /* Exactly 3 lines per item, all in the same monospace font as the on-hand/priority
+     fields (Richard's explicit request, with his own hand-drawn row sketch as reference):
+     line 1 = name + flag + on-hand + priority; line 2 = status + time + timer;
+     line 3 = note + order/hide/delete. */
+  .prep-item-row{
+    padding: 10px 6px;
+    border-top: 1px solid var(--rule);
+    background: rgba(247,201,72,0.12);
+    font-family:"SF Mono",Menlo,monospace;
+  }
+  .prep-line1{ display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-bottom:5px; }
+  .prep-item-name{ font-size: 14px; font-weight:700; color: var(--sage); overflow-wrap:anywhere; }
+  /* On-hand, priority, and the time-per-task badge always stay together on their own row right
+     below the name — never split apart, regardless of how long the name (+ dish suffix) gets.
+     nowrap + horizontal scroll as a safety valve rather than ever letting these three wrap
+     onto separate ragged lines like they used to. */
+  .prep-line1b{ display:flex; align-items:center; flex-wrap:nowrap; gap:10px; margin-bottom:7px; overflow-x:auto; }
+  .prep-field-inline{ display:flex; align-items:center; gap:5px; flex:none; }
+  .prep-field-label{
+    font-size:10px; text-transform:uppercase; letter-spacing:0.06em;
+    color: var(--ink); opacity:0.8; font-weight:600;
+  }
+  .prep-input{
+    min-width:0;
+    background: var(--paper-raised, var(--paper)); border: 1px solid var(--rule); border-radius:6px;
+    color: var(--ink); font-family:inherit; font-size:16px; font-weight:600;
+    padding: 5px 6px;
+  }
+  .prep-priority{ padding:5px 2px; }
+  .prep-time-remaining{
+    margin-left:auto; padding:5px 10px; border-radius:999px;
+    font-family:"SF Mono",Menlo,monospace; border:1px solid var(--copper-dim);
+    color: var(--copper); background: rgba(52,247,215,0.1);
+  }
+  .prep-section-name{ display:inline-flex; align-items:center; gap:5px; font-weight:700; color: var(--ink); cursor:pointer; }
+  /* Section name + Visibility + time-remaining live on their own row below the
+     to-do/check/finish/don't-do chips. If the name is long enough that Visibility and the
+     time pill don't both fit next to it, that pair wraps as a unit (never splitting from each
+     other) onto its own centered line — instead of each one landing on a separate ragged line. */
+  .prep-summary-row2{ flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; }
+  .prep-summary-meta{ display:flex; align-items:center; gap:8px; flex:none; }
+  .prep-summary-meta .prep-time-remaining{ margin-left:0; }
+  .prep-line2{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .prep-status-group{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .prep-line3{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:7px; }
+  .prep-line3 .prep-note{ flex-basis:100%; order:-1; }
+  .task-status-btn.status-danger{ color:#FF7A68; border-color:#7a3b34; }
+  .task-status-btn.status-danger:active{ background: rgba(255,122,104,0.2); }
+  .prep-note{ flex:1; min-width:0; font-family:inherit; font-weight:400; font-style:italic; }
+  .prep-item-clock{
+    font-family:inherit; font-size:12px; font-weight:600;
+    color: var(--copper); margin-left:4px;
+    background:none; border:none; padding:0; cursor:pointer;
+  }
+  .prep-item-clock:active{ opacity:0.7; }
+  /* Timer button reuses the exact same look as TO DO/CHECK/FINISH/DON'T DO — Richard's
+     explicit request, "rovnaký dizajn ako tlačítka to do check finish a dont do". */
+  .task-status-btn.status-timer{
+    display:flex; align-items:center; gap:5px; color: var(--sage); border-color: var(--sage-dim, var(--rule));
+    font-size:13px; padding:7px 12px;
+  }
+  .task-status-btn.status-timer.active{ color:#fff; border-color:#FF7A68; background: rgba(255,122,104,0.32); }
+  .prep-timer-live{ font-variant-numeric: tabular-nums; }
+  @media (max-width: 420px){
+    /* Font-size stays 16px even here — anything smaller makes iOS Safari auto-zoom the whole
+       page on focus, which is the exact "have to zoom back out to reach Home" bug reported. */
+    .prep-input{ padding:5px 4px; }
+  }
+
+  /* ---------- Chef's Assistant (chat) ---------- */
+  /* 100dvh (not 100vh) so the input bar stays above the on-screen keyboard on mobile —
+     100vh is measured before the keyboard opens and doesn't shrink with it, which was
+     leaving the input half-covered when the keyboard appeared. */
+  #chefAssistantView{ display:flex; flex-direction:column; height:100vh; height:100dvh; }
+  .chef-chat-messages{
+    flex:1; overflow-y:auto;
+    padding: 8px 18px 18px 18px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .chef-msg{
+    max-width: 82%;
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-size: 14.5px; line-height:1.5;
+    white-space: pre-wrap; overflow-wrap:anywhere;
+  }
+  .chef-msg.user{
+    align-self:flex-end;
+    background: var(--copper-dim); color:#34F7D7;
+    border-bottom-right-radius:4px;
+  }
+  .chef-msg.assistant{
+    align-self:flex-start;
+    background: var(--paper-raised, var(--paper)); border:1px solid var(--rule); color:var(--ink);
+    border-bottom-left-radius:4px;
+  }
+  .chef-msg.assistant.pending{ color:var(--ink-dim); font-style:italic; }
+  .chef-chat-input-bar{
+    display:flex; gap:10px; align-items:flex-end;
+    padding: 12px 18px calc(14px + env(safe-area-inset-bottom)) 18px;
+    border-top: 1px solid var(--rule);
+    background: var(--bg);
+  }
+  .chef-chat-input{
+    flex:1; resize:none; max-height:120px;
+    background: var(--paper-raised, var(--paper)); border:1px solid var(--rule); border-radius:12px;
+    color: var(--ink); font-family:inherit; font-size:15px;
+    padding: 10px 14px;
+  }
+  .chef-chat-send{
+    flex:none; padding:10px 18px; border-radius:12px; border:none;
+    background: var(--copper); color:#0A1A2F; font-weight:700; font-size:14px;
+  }
+  .chef-chat-send:disabled{ opacity:0.5; }
+  .chef-empty-state{ color:var(--ink-dim); font-size:14px; padding:18px; text-align:center; }
+
+  /* ---------- Quick-add checklist (Mise en Place / Order List) ---------- */
+  .qa-row{
+    display:flex; align-items:center; gap:12px;
+    padding: 12px 14px; margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: rgba(247,201,72,0.10);
+  }
+  .qa-row.selected{ background: rgba(217,58,58,var(--qa-alpha, 0.2)); border-color: rgba(217,58,58,0.4); }
+  .qa-checkbox{
+    flex:none; width:24px; height:24px; border-radius:6px;
+    border: 1.5px solid var(--rule); background: var(--paper);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qa-row.selected .qa-checkbox{ background:#FF7A68; border-color:#FF7A68; }
+  .qa-checkbox.checked{ background:#FF7A68; border-color:#FF7A68; color:#fff; font-weight:700; font-size:13px; }
+  .qa-info{ flex:1; min-width:0; }
+  .qa-info .name{ font-size:15px; font-weight:500; }
+  .qa-info .meta{ font-size:12.5px; color:var(--ink-dim); margin-top:2px; }
+  .qa-row.order-checked{ background: rgba(52,247,215,0.16); border-color: var(--copper-dim); }
+  .qa-row.order-checked .qa-checkbox{ background: var(--copper); border-color: var(--copper); }
+  .qa-qty-input{
+    flex:none; width:64px;
+    background: var(--paper); border: 1px solid var(--rule); border-radius:6px;
+    color: var(--ink); font-family:"SF Mono",Menlo,monospace; font-size:16px; padding:5px 6px;
+  }
+  .qa-priority{
+    flex:none; width:60px;
+    background: var(--paper); border: 1px solid var(--rule); border-radius:6px;
+    color: var(--ink); font-family:inherit; font-size:16px; padding:5px;
+  }
+  .cuisine-badge{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(52,247,215,0.12);
+    border: 1px solid var(--copper-dim);
+    color: var(--copper);
+    flex: none;
+    margin-left: 6px;
+  }
+  .ingredient-row .price{
+    font-family: "SF Mono", Menlo, monospace;
+    color: var(--copper);
+    font-size: 14px;
+    flex: none;
+  }
+
+  /* ---------- Category filter chips ---------- */
+  .chips{
+    display:flex; gap:8px;
+    overflow-x:auto;
+    padding: 12px 18px 4px 18px;
+    scrollbar-width:none;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+
+  /* ---------- Mise en Place sticky header ----------
+     Topbar + station chips + (when a prep sheet is open) the status summary all live inside
+     one sticky block, so there is exactly one solid edge where the header ends and the
+     scrolling list begins — no gaps or see-through seams between separately-stuck pieces. */
+  .sticky-header{
+    position: sticky; top:0; z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+  .sticky-header .topbar{ position:static; padding-bottom:8px; }
+  .sticky-header .chips{
+    position:static; padding: 4px 18px 12px 18px;
+    flex-wrap:wrap; overflow-x:visible;
+  }
+  .sticky-header .prep-section-summary{ border-bottom:none; padding-top:6px; }
+  /* Check List's header is ONLY Home + the to-do/check/finish/don't-do + time row, always
+     pinned, in every section, from the moment it renders — no scroll needed, no delay. The
+     full section grid (icons, overload badges, + New Section, Visibility) moved into the ☰
+     picker sheet instead of living inline, since it was too tall to stay glued to the top
+     without eating most of the screen. Richard asked for this three times in a row — it must
+     not regress. */
+  #tasksView .sticky-header{ position: sticky; top:0; z-index:10; }
+  #tasksView .topbar{ padding-bottom:2px; }
+
+  .back-to-top-btn{
+    position: fixed; left:20px; bottom:24px;
+    width:46px; height:46px; border-radius:50%;
+    background: var(--paper-raised, var(--paper)); color: var(--ink);
+    border:1px solid var(--rule);
+    display:none; align-items:center; justify-content:center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    z-index:20; cursor:pointer;
+  }
+  .back-to-top-btn.visible{ display:flex; }
+
+  /* ---------- Station tiles (Mise en Place) — same visual language as the Home grid ---------- */
+  .station-tile{
+    position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+    width: 78px; flex:none;
+    background: var(--paper-raised); border:1px solid var(--rule); border-radius:14px;
+    color: var(--ink); font-family:inherit;
+    padding: 10px 4px 8px 4px;
+  }
+  .station-tile.active{ border-color: var(--copper); background: rgba(52,247,215,0.14); }
+  .station-tile:active{ transform: scale(0.96); }
+  .station-tile-icon{ font-size:22px; line-height:1; }
+  .station-tile-label{ font-size:11px; font-weight:600; text-align:center; line-height:1.2; }
+  .station-tile-stat{ font-size:10px; color:var(--ink-dim); font-family:"SF Mono",Menlo,monospace; }
+  .station-tile-warning{
+    position:absolute; top:-7px; right:-6px; font-size:15px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  }
+  .all-station-strip{ padding: 10px 18px 4px 18px; border-bottom:1px solid var(--rule); margin-bottom:6px; }
+  .all-station-strip-row{
+    width:100%; display:flex; align-items:center; gap:10px;
+    background:none; border:none; border-top:1px solid var(--rule);
+    color: var(--ink); font-family:inherit; padding:10px 2px; text-align:left;
+  }
+  .all-station-strip-row:first-child{ border-top:none; }
+  .all-station-strip-name{ flex:1; font-size:14.5px; font-weight:600; }
+  .chip{
+    flex:none;
+    padding: 8px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    color: var(--ink-dim);
+    font-size: 13px;
+    font-weight: 500;
+    white-space:nowrap;
+    background: var(--paper);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+  .chip:active{ transform: scale(0.96); }
+  .chip.active{
+    background: var(--copper-dim);
+    border-color: var(--copper);
+    color: #34F7D7;
+  }
+
+  /* ---------- List ---------- */
+  #listView{ display:none; padding: 6px 0 40px 0; }
+  .section-label{
+    padding: 20px 18px 8px 18px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-dim);
+    border-top: 1px solid var(--rule);
+    margin-top: 4px;
+  }
+  .section-label:first-child{ border-top:none; }
+  /* Same visual language as a Check List item row (.prep-item-row): monospace, soft sage
+     background wash, top divider instead of a floating card — Richard's request to unify the
+     two screens' design, using Check List (already "the way I imagined") as the reference. */
+  .recipe-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--rule);
+    background: rgba(247,201,72,0.12);
+    font-family: "SF Mono", Menlo, monospace;
+    cursor:pointer;
+    transition: background-color 0.15s ease;
+  }
+  .recipe-row:hover{ background: rgba(247,201,72,0.2); }
+  .recipe-row:active{ background: rgba(247,201,72,0.2); }
+  .recipe-row .chevron{ transition: transform 0.15s ease; }
+  .recipe-row:hover .chevron{ transform: translateX(2px); color: var(--copper); }
+  .recipe-row .idx{
+    font-size: 12px;
+    color: var(--copper);
+    width: 22px;
+    flex:none;
+  }
+  .recipe-row .info, .info{ flex:1; min-width:0; }
+  .recipe-row .name{
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sage);
+  }
+  .recipe-row .meta{
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .recipe-row .chevron{ flex:none; color: var(--ink-dim); }
+  .thumb{
+    flex:none;
+    width:48px; height:48px;
+    border-radius:8px;
+    object-fit:cover;
+    border:1px solid var(--rule);
+  }
+  .hero{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+    border-radius:10px;
+    margin-bottom:16px;
+    border:1px solid var(--rule);
+  }
+  .empty-state{
+    padding: 70px 24px;
+    text-align:center;
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    line-height:1.6;
+    max-width: 34ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- Detail view ---------- */
+  #detailView{ display:none; }
+  .detail-bar{
+    position: sticky; top:0; z-index:10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .back-btn{
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none;
+    color: var(--copper);
+    font-size: 15px;
+    font-family: inherit;
+    padding: 6px 4px;
+    cursor:pointer;
+    border-radius: 6px;
+  }
+  .back-btn:hover{ color: #5FFAE3; }
+  .detail-content{ padding: 20px 18px 60px 18px; }
+  .detail-cat{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--copper);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  h2.recipe-title{
+    font-size: clamp(26px, 5vw, 32px);
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .recipe-meta{
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    margin-bottom: 24px;
+  }
+  .block{ margin-bottom: 28px; }
+  .block h3{
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    color: var(--sage);
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+  table.ing{
+    width:100%;
+    border-collapse: collapse;
+  }
+  table.ing tr{ border-bottom: 1px solid var(--rule); }
+  table.ing tr:last-child{ border-bottom:none; }
+  table.ing td{
+    padding: 9px 0;
+    font-size: 15px;
+    vertical-align: top;
+  }
+  table.ing td.qty{
+    text-align:right;
+    font-family: "SF Mono", Menlo, monospace;
+    color: var(--copper);
+    max-width: 40vw;
+    padding-left: 12px;
+    font-size: 14px;
+  }
+  .method-list{
+    margin:0; padding:0;
+    list-style:none;
+    counter-reset: step;
+  }
+  .method-list li{
+    counter-increment: step;
+    padding: 4px 0 14px 34px;
+    position:relative;
+    font-size: 15.5px;
+    line-height:1.5;
+  }
+  .method-list li::before{
+    content: counter(step);
+    position:absolute;
+    left:0; top:2px;
+    width:24px; height:24px;
+    border-radius:50%;
+    background: var(--paper-raised);
+    border: 1px solid var(--copper-dim);
+    color: var(--copper);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .plain-text{ font-size:15px; line-height:1.55; }
+  .bullet-list{ margin:0; padding-left: 18px; }
+  .bullet-list li{ font-size:15px; line-height:1.6; margin-bottom:4px; }
+
+  /* ---------- Detail bar extras ---------- */
+  .bar-spacer{ flex:1; }
+  .icon-btn{
+    background:none; border:none;
+    color: var(--ink-dim);
+    padding: 7px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    border-radius: 9px;
+  }
+  .icon-btn:hover{ background: var(--paper-raised); color: var(--ink); }
+  .icon-btn:active{ background: var(--paper-raised); transform: scale(0.92); }
+  .icon-btn.active{ color: var(--copper); }
+  .icon-btn.active svg{ fill: var(--copper); }
+  .fav-star{
+    flex:none;
+    background:none; border:none;
+    color: var(--ink-dim);
+    padding: 4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .fav-star.active{ color: var(--copper); }
+  .fav-star.active svg{ fill: var(--copper); }
+
+  /* ---------- Cost badge ---------- */
+  .cost-block{
+    display:flex; flex-wrap:wrap; gap:14px 18px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+  }
+  .cost-item{ flex: 1 1 38%; min-width:80px; }
+  .cost-item .label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.09em; color:var(--ink-dim); font-weight:500; }
+  .cost-item .value{ font-family:"SF Mono",Menlo,monospace; font-size:16px; font-weight:600; color:var(--copper); margin-top:3px; }
+  .cost-info-btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:16px; height:16px; margin-left:6px;
+    border-radius:50%;
+    border: 1px solid var(--ink-dim);
+    background:none; color:var(--ink-dim);
+    font-size:10px; font-family: Georgia, serif; font-style:italic;
+    vertical-align:middle; line-height:1;
+    padding:0;
+  }
+  .cost-info-btn:active{ background:var(--paper-raised); }
+  .cost-breakdown{
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: -8px 0 20px 0;
+  }
+  .cost-breakdown-row{
+    display:flex; justify-content:space-between; gap:10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+  }
+  .cost-breakdown-row:last-child{ border-bottom:none; }
+
+  /* ---------- Allergen badges ---------- */
+  .allergen-row{
+    display:flex; flex-wrap:wrap; gap:6px;
+    margin-bottom: 20px;
+  }
+  .allergen-badge{
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(52,247,215,0.12);
+    border: 1px solid var(--copper-dim);
+    color: var(--copper);
+  }
+
+  /* ---------- Scaling bar ---------- */
+  .scale-bar{
+    display:flex; align-items:center; gap:8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 10px 12px;
+    background: var(--paper-raised);
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+  }
+  .scale-label{ font-size:12px; color:var(--ink-dim); flex:none; margin-right:2px; }
+  .scale-chip{
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-dim);
+    cursor:pointer;
+  }
+  .scale-chip.active{ background: var(--copper-dim); border-color: var(--copper); color:#34F7D7; }
+  .scale-note{
+    width:100%;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ---------- Advanced scaling (by yield / by ingredient) ---------- */
+  .scale-advanced{
+    margin-bottom: 20px;
+    padding: 12px;
+    background: var(--paper-raised);
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+  }
+  .scale-advanced-title{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sage);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .scale-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .scale-row:last-of-type{ margin-bottom: 0; }
+  .scale-row-label{
+    font-size: 12.5px;
+    color: var(--ink);
+    flex: none;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .scale-input{
+    width: 64px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  .scale-select{
+    flex: 1;
+    min-width: 120px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+  .scale-arrow{ color: var(--ink-dim); font-size: 13px; flex: none; }
+  .scale-apply-btn{
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 6px;
+    flex: none;
+  }
+  .scale-apply-btn:active{ background: var(--copper-dim); }
+  .scale-result{
+    font-size: 12px;
+    color: var(--copper);
+    margin-top: 6px;
+    min-height: 16px;
+  }
+
+  /* ---------- Stat badges (yield / time / difficulty) ---------- */
+  .stat-row{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-pill{
+    display:flex;
+    align-items:center;
+    gap: 5px;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+  }
+  .stat-pill svg{ flex:none; color: var(--copper); }
+  .diff-easy{ color: var(--sage); }
+  .diff-medium{ color: var(--copper); }
+  .diff-hard{ color: #FF7A68; }
+  .list-diff-dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    margin-right:5px;
+    vertical-align:middle;
+  }
+  .dot-easy{ background: var(--sage); }
+  .dot-medium{ background: var(--copper); }
+  .dot-hard{ background: #FF7A68; }
+
+  /* ---------- Notes ---------- */
+  .notes-block{ margin-top: 30px; }
+  .notes-block h3{
+    font-size: 13px; text-transform:uppercase; letter-spacing:0.1em;
+    color: var(--sage); margin: 0 0 8px 0; font-weight:600;
+  }
+  #notesArea{
+    width:100%;
+    min-height: 80px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .notes-status{ font-size:11px; color:var(--ink-dim); margin-top:6px; height:14px; }
+
+  /* ---------- FAB (add recipe) ---------- */
+  .fab{
+    position: fixed;
+    right: 20px; bottom: 24px;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
+    z-index: 20;
+    transition: background-color 0.15s ease, transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s ease;
+  }
+  .fab:hover{ transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.15); }
+  .fab:active{ background: var(--copper-dim); transform: scale(0.94); }
+  .fab-search{ right: 90px; }
+
+  /* Global feedback/bug/question button — same button on every screen after login, not
+     duplicated into 22 different topbars. Left side so it never collides with the
+     right-side .fab/.fab-search "add" buttons that most screens already have. */
+  .global-feedback-btn{
+    position: fixed;
+    left: 16px; bottom: 22px;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--paper-raised, var(--paper));
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    display:none; align-items:center; justify-content:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    z-index: 35;
+    cursor: pointer;
+  }
+  .global-feedback-btn:hover{ border-color: var(--accent-dim, var(--copper)); }
+  #globalFeedbackMenu{
+    display:none; position:fixed; left:16px; bottom:74px; z-index:36;
+    background: var(--paper); border:1px solid var(--rule); border-radius:10px;
+    box-shadow: var(--shadow); min-width:170px; overflow:hidden;
+  }
+
+  /* ---------- Add/Edit form ---------- */
+  #formView{ display:none; }
+  .save-btn{
+    background: var(--copper);
+    color: #0A1A2F;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  .save-btn:hover{ background: #5FFAE3; }
+  .save-btn:active{ background: var(--copper-dim); transform: scale(0.98); }
+  .form-label{
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--sage);
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    display:block;
+  }
+  .form-field{
+    width:100%;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 16px;
+    padding: 11px 13px;
+    margin-bottom: 18px;
+    box-sizing: border-box;
+  }
+  .form-field:focus{ border-color: var(--copper-dim); outline:none; }
+  .form-field::placeholder{ color: var(--ink-faint); }
+  /* textareas carry more native OS chrome than plain inputs — belt-and-suspenders on top of
+     the color-scheme:dark fix above, forcing the typed-text color explicitly. */
+  textarea.form-field{ appearance:none; -webkit-appearance:none; -webkit-text-fill-color: var(--ink); }
+  .lang-switch{
+    background: var(--paper-raised); border: 1px solid var(--rule); border-radius:8px;
+    color: var(--ink-dim); font-family: inherit; font-size: 13px;
+    padding: 6px 10px;
+  }
+  #homeView .topbar .lang-switch{ margin-top:10px; }
+  select.form-field{
+    appearance:none; -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a89f8f' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+  }
+  .row-pair{
+    display:flex; gap:8px;
+    margin-bottom: 8px;
+  }
+  .row-pair input{ flex:1; }
+  .row-pair input.qty-input{ flex: none; width: 90px; }
+  .row-remove{
+    flex:none;
+    background:none; border:none;
+    color: var(--ink-dim);
+    width: 36px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .add-row-btn{
+    background:none;
+    border: 1px dashed var(--rule);
+    color: var(--copper);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .step-row{
+    display:flex; gap:8px; align-items:flex-start;
+    margin-bottom: 8px;
+  }
+  .step-row textarea{
+    flex:1;
+    min-height: 44px;
+    font-family: inherit;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 14px;
+    padding: 8px 10px;
+    resize: vertical;
+  }
+  .danger-btn{
+    background:none;
+    border: 1px solid #7a3b34;
+    color: #FF7A68;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-top: 30px;
+  }
+
+  /* ---------- Collapsible "More details" section in the recipe form ---------- */
+  .more-details{
+    margin-top: 8px;
+    border-top: 1px solid var(--rule);
+    padding-top: 4px;
+  }
+  .more-details summary{
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--copper);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .more-details summary::-webkit-details-marker{ display:none; }
+  .more-details summary::before{
+    content: '+';
+    font-family: monospace;
+    font-size: 16px;
+    transition: transform 0.15s;
+  }
+  .more-details[open] summary::before{ content: '−'; }
+  .more-details textarea.form-field{ resize: vertical; font-family: inherit; }
+
+  @media print{
+    body{ background:#fff; color:#000; }
+    .no-print, .topbar, .chips, #listView, .icon-btn, .back-btn, .scale-note{ display:none !important; }
+    #detailView{ display:block !important; }
+    .detail-bar{ display:none !important; }
+    .hero{ display:none; }
+    .detail-content{ padding: 0; }
+    .detail-cat{ color:#555; }
+    h2.recipe-title{ color:#000; }
+    .block h3{ color:#000; border-bottom:1px solid #ccc; padding-bottom:4px; }
+    table.ing td{ color:#000; border-bottom:1px solid #ddd; }
+    table.ing td.qty{ color:#000; }
+    .method-list li::before{ background:#fff; border-color:#000; color:#000; }
+    .allergen-row, .cost-block, .scale-bar, .scale-advanced, .notes-block{ display:none !important; }
+
+    /* Print Labels — takes over the whole printed page, overriding the recipe-print rules
+       above (visibility:hidden/visible is more robust here than display, since it handles
+       arbitrarily nested content without needing to enumerate every sibling). */
+    body.printing-labels *{ visibility:hidden; }
+    body.printing-labels .label-print-sheet, body.printing-labels .label-print-sheet *{ visibility:visible; }
+    body.printing-labels .label-print-sheet{
+      display:flex !important; flex-wrap:wrap; gap:0.15cm; align-content:flex-start;
+      position:absolute; top:0; left:0; width:100%; background:#fff; padding:16px;
+    }
+
+    /* Order List print — same visibility-swap trick as Print Labels. */
+    body.printing-orderlist *{ visibility:hidden; }
+    body.printing-orderlist .order-print-sheet, body.printing-orderlist .order-print-sheet *{ visibility:visible; }
+    body.printing-orderlist .order-print-sheet{
+      display:block !important; position:absolute; top:0; left:0; width:100%; background:#fff; padding:16px;
+    }
+  }
+  .label-print-sheet{ display:none; }
+  .label-block{
+    width:5cm; height:3cm; box-sizing:border-box;
+    border:1px dashed #999; padding:0.15cm 0.28cm;
+    page-break-inside:avoid; color:#000; font-family:-apple-system,Arial,sans-serif;
+    display:flex; flex-direction:column; justify-content:center; overflow:hidden;
+  }
+  .label-block .label-name{ font-size:12px; font-weight:700; line-height:1.15; overflow-wrap:anywhere; }
+  .label-block .label-useby{ font-size:10px; font-weight:700; margin-top:3px; }
+  .label-block .label-meta{ font-size:8px; color:#333; margin-top:2px; line-height:1.3; }
+  .order-print-sheet{ display:none; }
+  .order-print-sheet h2{ font-size:20px; margin:0 0 10px 0; }
+  .order-print-sheet h3{ font-size:15px; margin:16px 0 6px 0; border-bottom:1px solid #ccc; padding-bottom:4px; }
+  .order-print-sheet table{ width:100%; border-collapse:collapse; }
+  .order-print-sheet td{ padding:5px 0; border-bottom:1px solid #eee; font-size:13px; }
+  .order-print-sheet td.qty{ text-align:right; white-space:nowrap; padding-left:10px; }
