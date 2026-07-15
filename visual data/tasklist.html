@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Kontrolný zoznam</title>
+<style>
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4);
+    --danger:#FF7A68; --danger-dim:rgba(255,122,104,0.4);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{ max-width:900px; margin:0 auto; padding:0 20px 100px 20px; }
+  a{ color:inherit; }
+
+  /* ---------- Hero / sticky top ---------- */
+  header.hero{
+    position:sticky; top:0; z-index:50; background:var(--bg);
+    padding:20px 0 22px 0; border-bottom:1px solid var(--rule);
+  }
+  .topline{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .brandmark{ display:flex; align-items:center; gap:9px; }
+  .brandmark .word{ font-size:14px; font-weight:700; letter-spacing:0.02em; color:var(--accent); }
+  .lang-toggle{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s;
+  }
+  .lang-toggle:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  .kicker{ color:var(--accent); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+  h1.title{ font-size:26px; font-weight:700; margin:0 0 16px 0; line-height:1.15; }
+
+  .stat-row{ display:flex; align-items:center; gap:18px; }
+  .pie{ width:66px; height:66px; border-radius:50%; background:conic-gradient(var(--accent) 0deg,var(--paper-raised) 0deg); flex:none; position:relative; transition:background .4s; }
+  .pie::after{ content:''; position:absolute; inset:8px; border-radius:50%; background:var(--bg); }
+  .pieLabel{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .stat-cards{ display:flex; gap:10px; flex:1; flex-wrap:wrap; }
+  .stat-card{ background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:8px 14px; }
+  .stat-card .v{ font-family:"SF Mono",Menlo,monospace; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .stat-card .k{ font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-dim); }
+  .bar{ height:8px; background:var(--paper-raised); border-radius:99px; overflow:hidden; margin-top:14px; }
+  .fill{ height:100%; width:0; background:var(--accent); transition:width .4s; }
+
+  /* ---------- Section groups (collapsible) ---------- */
+  details.group{ margin-top:18px; background:var(--paper); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
+  details.group summary{
+    list-style:none; cursor:pointer; padding:16px 18px; font-size:15px; font-weight:700; color:var(--ink);
+    display:flex; align-items:center; gap:10px; user-select:none;
+  }
+  details.group summary::-webkit-details-marker{ display:none; }
+  details.group summary::after{ content:'▶'; margin-left:auto; font-size:11px; color:var(--ink-dim); transition:transform .15s; }
+  details.group[open] summary::after{ transform:rotate(90deg); }
+  details.group summary .count{ font-size:11px; font-weight:700; color:var(--ink-dim); background:var(--paper-raised); border:1px solid var(--rule); padding:2px 9px; border-radius:20px; }
+  .group-body{ padding:2px 14px 14px 14px; }
+
+  h3.sub{ color:var(--ink-dim); text-transform:uppercase; font-size:10.5px; letter-spacing:0.09em; font-weight:700; margin:16px 6px 6px 6px; }
+  h3.sub:first-child{ margin-top:6px; }
+
+  /* ---------- Task rows ---------- */
+  .task{ display:flex; gap:11px; align-items:flex-start; padding:9px 8px; border-radius:10px; transition:background .12s; }
+  .task:hover{ background:var(--paper-raised); }
+  .task input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none; width:20px; height:20px; border-radius:6px;
+    border:1.5px solid var(--rule); background:var(--paper-raised); flex:none; margin-top:1px;
+    cursor:pointer; position:relative; transition:border-color .12s, background .12s;
+  }
+  .task input[type="checkbox"]:checked{ background:var(--accent); border-color:var(--accent); }
+  .task input[type="checkbox"]:checked::after{
+    content:''; position:absolute; left:6px; top:2px; width:5px; height:10px;
+    border:solid var(--bg); border-width:0 2px 2px 0; transform:rotate(45deg);
+  }
+  .task label{ flex:1; font-size:13.5px; color:var(--ink); line-height:1.5; }
+  .task.you-row{ background:rgba(247,201,72,0.07); }
+  .task.you-row:hover{ background:rgba(247,201,72,0.12); }
+  .note{ font-size:11px; color:var(--ink-dim); margin-top:3px; display:block; line-height:1.5; }
+  .tag{ font-size:9.5px; font-weight:700; letter-spacing:0.05em; padding:3px 8px; border-radius:99px; flex:none; margin-top:1px; }
+  .tag.me{ background:rgba(52,247,215,0.14); color:var(--accent); border:1px solid var(--accent-dim); }
+  .tag.you{ background:rgba(247,201,72,0.14); color:var(--gold); border:1px solid var(--gold-dim); }
+
+  /* ---------- Timeline ---------- */
+  .timeline-heading{ font-size:15px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px; padding:16px 18px; }
+  .month-block{ border-top:1px solid var(--rule); }
+  .month-block:first-child{ border-top:none; }
+  .month-head{ padding:12px 18px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .month-head:hover{ background:var(--paper-raised); }
+  .month-name{ font-size:14px; font-weight:700; }
+  .month-meta{ font-size:11px; color:var(--ink-dim); display:flex; align-items:center; gap:6px; }
+  .month-body{ display:none; padding:0 18px 12px 18px; }
+  .month-block.open>.month-body{ display:block; }
+  .month-block.open>.month-head .chev{ transform:rotate(90deg); }
+  .chev{ display:inline-block; transition:transform .15s ease; color:var(--ink-dim); font-size:10px; }
+  .week-block{ border:1px solid var(--rule); border-radius:12px; margin-top:8px; background:var(--paper-raised); overflow:hidden; }
+  .week-head{ padding:10px 13px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .week-head:hover{ background:rgba(255,255,255,0.03); }
+  .week-name{ font-size:12px; font-weight:700; }
+  .week-meta{ font-size:10.5px; color:var(--ink-dim); display:flex; align-items:center; gap:6px; }
+  .week-body{ display:none; padding:0 13px 10px 13px; }
+  .week-block.open .week-body{ display:block; }
+  .week-block.open .chev{ transform:rotate(90deg); }
+  .day-row{ border-top:1px solid var(--rule); }
+  .day-row:first-child{ border-top:none; }
+  .day-head{ padding:9px 2px; cursor:pointer; display:flex; align-items:center; gap:8px; user-select:none; }
+  .day-head:hover .day-title{ color:var(--accent); }
+  .day-date{ font-size:10.5px; color:var(--ink-dim); min-width:78px; flex:none; font-variant-numeric:tabular-nums; }
+  .day-title{ font-size:12.5px; flex:1; color:var(--ink); }
+  .day-body{ display:none; padding:2px 2px 12px 2px; }
+  .day-row.open .day-body{ display:block; }
+  .day-row.open .chev{ transform:rotate(90deg); }
+  .accomplished-list{ list-style:none; margin:6px 0 0 86px; padding:0; }
+  .accomplished-list li{ font-size:11.5px; color:var(--ink-dim); line-height:1.65; padding:3px 0; position:relative; padding-left:16px; }
+  .accomplished-list li::before{ content:'✓'; position:absolute; left:0; color:var(--accent); }
+
+  footer.foot{ text-align:center; font-size:11px; color:var(--ink-faint); padding:36px 0 10px 0; }
+
+  /* ---------- Search + filters (2026-07-15 Visual Data Standards redesign) ---------- */
+  .controls{ display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  #taskSearch{
+    flex:1; min-width:150px; background:var(--paper); border:1px solid var(--rule); border-radius:20px;
+    color:var(--ink); font-family:inherit; font-size:12px; padding:6px 14px; outline:none;
+  }
+  #taskSearch::placeholder{ color:var(--ink-faint); }
+  #taskSearch:focus{ border-color:var(--accent-dim); }
+  .fbtn{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:10.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+    padding:5px 11px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s; white-space:nowrap;
+  }
+  .fbtn:hover{ border-color:var(--accent-dim); }
+  .fbtn.on{ border-color:var(--accent); color:var(--accent); background:rgba(52,247,215,0.08); }
+  .fbtn.on.f-you{ border-color:var(--gold); color:var(--gold); background:rgba(247,201,72,0.1); }
+  .task.filtered-out{ display:none; }
+  h3.sub.filtered-out{ display:none; }
+  details.group.filtered-out{ display:none; }
+  summary .gcount{ font-size:11px; font-weight:700; color:var(--ink-dim); background:var(--paper-raised); border:1px solid var(--rule); padding:2px 9px; border-radius:20px; font-family:"SF Mono",Menlo,monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="topline">
+    <div class="brandmark">
+      <svg width="20" height="20" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
+      <span class="word">ChefOS</span>
+    </div>
+    <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
+  </div>
+  <div class="kicker" data-sk="Kontrolný zoznam · Kuchynský denník" data-en="Task List · Kitchen Journal"></div>
+  <h1 class="title" data-sk="Čo je hotové, čo prichádza" data-en="What's shipped, what's next"></h1>
+  <div class="stat-row">
+    <div class="pie" id="pie"><div class="pieLabel" id="pieLabel">0%</div></div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="v" id="done">–</div><div class="k" data-sk="Hotovo" data-en="Done"></div></div>
+      <div class="stat-card"><div class="v" id="left">–</div><div class="k" data-sk="Zostáva" data-en="Remaining"></div></div>
+      <div class="stat-card"><div class="v" id="pct">–</div><div class="k" data-sk="Celkovo" data-en="Overall"></div></div>
+    </div>
+  </div>
+  <div class="bar"><div class="fill" id="fill"></div></div>
+  <div class="controls">
+    <input id="taskSearch" type="search" placeholder="Hľadať…" oninput="applyFilters()">
+    <button class="fbtn" id="fOpen" onclick="toggleFilter('open')" data-sk="⏳ Len otvorené" data-en="⏳ Open only"></button>
+    <button class="fbtn" id="fMe" onclick="toggleFilter('me')" data-sk="🤖 JA" data-en="🤖 ME"></button>
+    <button class="fbtn f-you" id="fYou" onclick="toggleFilter('you')" data-sk="👨‍🍳 TY" data-en="👨‍🍳 YOU"></button>
+  </div>
+</header>
+
+<details class="group" open id="timelineSection">
+  <summary><span data-sk="🗓️ Časová os" data-en="🗓️ Timeline"></span><span class="count" data-sk="čo bolo hotové, v ktorý deň" data-en="what shipped, on which day"></span></summary>
+  <div id="timelineRoot"></div>
+</details>
+
+<details class="group" open><summary><span data-sk="✅ Hotovo" data-en="✅ Shipped so far"></span></summary><div class="group-body">
+
+<h3 class="sub">Check List</h3>
+<div class='task'><input id='s1' type='checkbox' checked><label for='s1'>Dish-grouped prep sheets across all 8 stations (real menus + Richard-approved provisional ones)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s2' type='checkbox' checked><label for='s2'>On-hand stock count, min-required, 🚩 flag (priority-1 only)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s3' type='checkbox' checked><label for='s3'>TO DO / CHECK / FINISH / DON'T DO status + per-stage time fields</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s4' type='checkbox' checked><label for='s4'>Real crowd-sourced prep times — tap the clock, values average together</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s5' type='checkbox' checked><label for='s5'>Cross-station "All" view, busiest-section-first sorting, 🔥 overload badge</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s6' type='checkbox' checked><label for='s6'>Manual "+ New Section" / "+ Add dish" — no photo needed</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s7' type='checkbox' checked><label for='s7'>AI prep-sheet scan (photo or PDF)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s8' type='checkbox' checked><label for='s8'>Hide or delete an item, a dish, or a whole section</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s9' type='checkbox' checked><label for='s9'>🛒 Order button on every item</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s10' type='checkbox' checked><label for='s10'>Notes field, sticky header, swipe-back gesture</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s11' type='checkbox' checked><label for='s11'>Renamed to "Check List", all data translated to English</label><span class="tag me">JA</span></div>
+
+<h3 class="sub">Recipes</h3>
+<div class='task'><input id='s12' type='checkbox' checked><label for='s12'>Full 20-field recipe format — all 173 original recipes migrated</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s13' type='checkbox' checked><label for='s13'>AI photo-scan import + "Generate method with AI"</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s14' type='checkbox' checked><label for='s14'>Cost + nutrition engine with per-ingredient breakdown</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s15' type='checkbox' checked><label for='s15'>Fixed the duplicate-save bug</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s16' type='checkbox' checked><label for='s16'>🛒 Order button next to the "i" info button on every ingredient</label><span class="tag me">JA</span></div>
+
+<h3 class="sub">Ingredients</h3>
+<div class='task'><input id='s17' type='checkbox' checked><label for='s17'>1,263 ingredients priced (535 original + 730 expansion)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s18' type='checkbox' checked><label for='s18'>Season / storage-type / food-type / cuisine filters — combinable</label><span class="tag me">JA</span></div>
+
+<h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
+<div class='task'><input id='s19' type='checkbox' checked><label for='s19'>Supabase backend, passwordless email-code login</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s20' type='checkbox' checked><label for='s20'>Home dashboard, multi-language UI (EN/DE/FR/IT/SK)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s21' type='checkbox' checked><label for='s21'>Chef's Assistant chat (Michelin persona), mobile keyboard fix + greeting</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s22' type='checkbox' checked><label for='s22'>Multi-team via QR invite + closed-trial admin approval gate</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s23' type='checkbox' checked><label for='s23'>Order List, Schedule (real shift-code grid), Fridge Temperature</label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='s24' type='checkbox' checked><label for='s24'>Deployed to production (GitHub Pages)<span class="note">You: keep re-uploading index.html after each batch</span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='s25' type='checkbox' checked><label for='s25'>Investor presentation.html + planning.html dashboards</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s26' type='checkbox' checked><label for='s26'>Order List top bar: real Print, Select + bulk delete, group by section</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s27' type='checkbox' checked><label for='s27'>Print Labels: 🖨️ icon on every Check List item + shelf-life "use by" dates on 5×3cm labels, real title + section grouping</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s28' type='checkbox' checked><label for='s28'>Working Time: check-in/out timer, breaks, monthly hours/overtime, vacation countdown, contract photo-scan + AI legal-advisory notes</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s29' type='checkbox' checked><label for='s29'>Recipes &amp; Check List: rename + change icon on any section/category, not just delete</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s30' type='checkbox' checked><label for='s30'>Recipes: 7 diet filters (was 2), visible highlighting fixed, search always covers all recipes, "Ask Chef's Assistant" AI recipe generator</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s31' type='checkbox' checked><label for='s31'>Ingredient Audit: real per-item review (Add / Link as alias / Ignore), no more blind bulk-create</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s32' type='checkbox' checked><label for='s32'>Kitchen-wide currency switcher (EUR/CHF/USD) — defaulted to CHF</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s33' type='checkbox' checked><label for='s33'>Ingredients screen: topbar redesign, 104 real supplier-priced items added (Caviezel Giovanettoni AG)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s34' type='checkbox' checked><label for='s34'>Working Time note field fixed (text was invisible while typing), Home icons enlarged</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s35' type='checkbox' checked><label for='s35'>Minimalist ChefOS logo designed + applied to the My Team QR code</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s36' type='checkbox' checked><label for='s36'>Ingredients: live match-count while filtering, full category list (was 4-item shortcut), new Verified/Estimated/Missing pricing filter</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s37' type='checkbox' checked><label for='s37'>Ingredients: match-count pinned in the topbar itself, always visible without opening Search &amp; Filter</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s38' type='checkbox' checked><label for='s38'>ChefOS logo redesigned — hand-built ring mark (not a font letter) in sage/cream, italic serif wordmark</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s39' type='checkbox' checked><label for='s39'>Check List's New/Edit Section icon picker expanded from 30 to the full 72-icon set, matching Recipes</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s40' type='checkbox' checked><label for='s40'>🌐 Language Audit — finds and translates any Check List dish/item name not already in English, per-item review</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s41' type='checkbox' checked><label for='s41'>Git version control set up (local repo + first commit) — was completely missing before</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s42' type='checkbox' checked><label for='s42'>Anthropic API key moved server-side (Supabase Edge Function claude-proxy) — was readable in the browser</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s43' type='checkbox' checked><label for='s43'>Real-time cross-device sync wired up for Check List — the "updates visible to everyone in real time" promise was never actually built until now</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s44' type='checkbox' checked><label for='s44'>Basic error tracking + usage analytics (own Supabase tables, no third-party service)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s45' type='checkbox' checked><label for='s45'>Expiring/revocable team invites + admin can remove a team member (neither existed before)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s46' type='checkbox' checked><label for='s46'>Written manual regression checklist (docs/REGRESSION_CHECKLIST.md)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s47' type='checkbox' checked><label for='s47'>Check List audit log — who changed status/on-hand/priority/notes, shown as "Recent activity" in the item Info panel</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s48' type='checkbox' checked><label for='s48'>🔴→✅ db/55 run in Supabase — fixed the infinite-recursion RLS bug on profiles that broke basically the entire app; re-verified live via REST probe, every table responding normally again</label><span class="tag you">TY</span></div>
+<div class='task'><input id='s49' type='checkbox' checked><label for='s49'>loadAppData() parallelized (11 sequential Supabase queries → Promise.all) — was the likely cause of the app feeling slow to load</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s50' type='checkbox' checked><label for='s50'>Staging Supabase project ("chefos-staging") created and fully bootstrapped — same schema + data as production, verified live with no errors. New SQL migrations get tested here first from now on</label><span class="tag me you">JA + TY</span></div>
+<div class='task'><input id='s51' type='checkbox' checked><label for='s51'>Trial success criteria defined and agreed with Richard: 40%+ of teams active 3×/week by week 2, ≥5 of 25 people say yes to paying, &lt;10 critical errors during the trial</label><span class="tag me you">JA + TY</span></div>
+<div class='task'><input id='s52' type='checkbox' checked><label for='s52'>App visual identity unified with docs (navy/teal) + Privacy &amp; Terms page + feedback button + yield/waste in food cost + price-range &amp; multi-select filters + "Show me" button + 🎯 Chef Challenge tile</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s53' type='checkbox' checked><label for='s53'>Monetization plan formalized: app/monetization.html (11 models, house style, action plan) + docs/NEBENERWERB_REQUEST.md + docs/FOUNDING_OFFER.md drafted</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s54' type='checkbox'><label for='s54'>🔴 REVENUE BLOCKERS — send Nebenerwerb consent request (10 min, draft ready) + register Einzelfirma/AHV (1-2 h). The only two things between ChefOS and its first paid invoice.</label><span class="tag you">TY</span></div>
+
+</div></details>
+
+<details class="group" open><summary><span data-sk="🔥 Priorita 1 · Práve teraz" data-en="🔥 Priority 1 · In progress now"></span></summary><div class="group-body">
+<h3 class="sub">Check List</h3>
+<div class='task'><input id='t1' type='checkbox'><label for='t1'>Merge duplicate prep tasks across dishes in one section (×N badge, one tick updates all)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t4' type='checkbox'><label for='t4'>Sticky header collapses to a compact icon+name+status bar on scroll</label><span class="tag me">JA</span></div>
+
+<h3 class="sub">Recipes</h3>
+<div class='task'><input id='t13' type='checkbox'><label for='t13'>AI ingredient info ("i" → flavor/origin/season + Wikipedia link)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t15' type='checkbox'><label for='t15'>Recipe category reorder (cold → Asia/sushi → soups → sauces → meat → desserts → oils) + sort by newest</label><span class="tag me">JA</span></div>
+
+<h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
+<div class='task'><input id='t10' type='checkbox'><label for='t10'>Print Labels hub — queue + native print dialog (uses your phone/iPad's own print sheet)</label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='tsql' type='checkbox'><label for='tsql'>Run pending SQL files in Supabase (34, 35, 36)</label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='temail' type='checkbox'><label for='temail'>Fix email login for non-Richard addresses — verify a Resend domain, or switch to Supabase's built-in mailer</label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='tsketch' type='checkbox'><label for='tsketch'>Send the Check List row-layout sketch (max-3-lines font reference)</label><span class="tag you">TY</span></div>
+</div></details>
+
+<details class="group"><summary><span data-sk="🚀 Priorita 2 · Profesionálne" data-en="🚀 Priority 2 · Professional"></span></summary><div class="group-body">
+<h3 class="sub">Recipes</h3>
+<div class='task'><input id='t14' type='checkbox'><label for='t14'>Recipe folders/layers — custom-named groups, show/hide from Home</label><span class="tag me">JA</span></div>
+
+<h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
+<div class='task you-row'><input id='t9' type='checkbox'><label for='t9'>Bluetooth/WiFi label printing (real printer driver, not just the native dialog)<span class="note">Researched 2026-07-13: no small printer has a true zero-install web print API — recommendation is Brother QL-820NWB (~CHF 130) via the existing print-dialog flow, no code changes needed. Full report: docs/LABEL_PRINTER_RESEARCH.md</span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='tnooch' type='checkbox'><label for='tnooch'>Approach Nooch Asian Kitchen (FWG group) as first post-pilot expansion target — 3 locations already in canton Bern<span class="note">Named goal, 2026-07-13 — no contact made yet</span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='tlogo' type='checkbox' checked><label for='tlogo'>ChefOS logo for the QR-code center design<span class="note">Auto-designed a minimalist placeholder mark, already live on the My Team QR — swap it for your own if you want something different</span></label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='ttag' type='checkbox'><label for='ttag'>Decide "team worker" vs "friend" invite tags — what they mean, how they change access</label><span class="tag you">TY</span></div>
+<div class='task'><input id='t17' type='checkbox'><label for='t17'>Team chat + notifications icon</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t19' type='checkbox'><label for='t19'>Fridge Temp via per-fridge QR scan (HACCP)<span class="note">Researched 2026-07-13: iOS Safari can't read Bluetooth/NFC sensors directly, so this needs a WiFi/cloud-API sensor — SensorPush is the recommended budget pick (~CHF 150/fridge, free API)</span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t12' type='checkbox'><label for='t12'>Order List visual rebuild to match Check List's icon-tile style</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t11' type='checkbox'><label for='t11'>Master/admin device-level permissions (distinct from user roles)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t23' type='checkbox'><label for='t23'>Bars &amp; cocktails — recipes + check list</label><span class="tag me">JA</span></div>
+</div></details>
+
+<details class="group"><summary><span data-sk="🧠 Priorita 3 · Budúcnosť / Odložené" data-en="🧠 Priority 3 · Future / Parked"></span></summary><div class="group-body">
+<h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
+<div class='task you-row'><input id='t24' type='checkbox'><label for='t24'>Waste tracking<span class="note">Design not settled — needs a real conversation first</span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='t25' type='checkbox'><label for='t25'>Monthly Chef's Assistant report (5 good / 5 bad + suggestions)</label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t26' type='checkbox'><label for='t26'>Productivity-based staff bonuses</label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='t27' type='checkbox'><label for='t27'>Referral rewards for new venue contracts</label><span class="tag you">TY</span></div>
+<div class='task'><input id='t28' type='checkbox'><label for='t28'>Pass-station camera + AI plate-quality check</label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t22' type='checkbox'><label for='t22'>Payment system<span class="note">Needs a processor decision first</span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='t20' type='checkbox'><label for='t20'>Check-in / check-out</label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t21' type='checkbox'><label for='t21'>GPS + breaks + overtime + contract legal review<span class="note">Real labor-law/privacy implications — needs legal review before any code. Update 14.7.: a scoped, low-risk version (one-time location snapshot at check-in/out only, not continuous tracking) shipped instead — see Working Time.</span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='t29' type='checkbox'><label for='t29'>Community/social edition<span class="note">Your own flag: launching without a security check could sink us</span></label><span class="tag you">TY</span></div>
+</div></details>
+
+<footer class="foot" data-sk="ChefOS — interný kontrolný zoznam · aktualizuje sa priebežne · Slovenčina je predvolená, prepni na EN hore vpravo" data-en="ChefOS — internal task list · updated continuously · English shown, switch to SK top-right"></footer>
+</div>
+
+<script>
+/* ---------- Language toggle — SK je predvolený jazyk celej appky/dokumentov (Richard,
+   14.7.). Toto prekladá štruktúrne popisky (nadpisy, sekcie, štítky JA/TY, texty generované
+   JS-om nižšie) — nie stovky jednotlivých položiek úloh a časovej osi nižšie, ktoré ostávajú
+   v pôvodnom jazyku (väčšinou anglicky) v oboch režimoch. Preklad každej historickej položky
+   je samostatná väčšia úloha, zámerne neurobená narýchlo v jednej dávke. ---------- */
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLang(){
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+  });
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+  const search = document.getElementById('taskSearch');
+  if(search) search.placeholder = _lang === 'sk' ? 'Hľadať…' : 'Search…';
+  document.documentElement.lang = _lang;
+  updateStats();
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLang();
+  renderTimeline();
+}
+function L(sk, en){ return _lang === 'sk' ? sk : en; }
+
+const b=[...document.querySelectorAll('input[type=checkbox]')];
+function updateStats(){
+  let d=0;
+  b.forEach(x=>{ if(x.checked) d++; });
+  let p = b.length ? Math.round(d/b.length*100) : 0;
+  document.getElementById('done').textContent = d;
+  document.getElementById('left').textContent = b.length - d;
+  document.getElementById('pct').textContent = p + '%';
+  document.getElementById('fill').style.width = p + '%';
+  document.getElementById('pie').style.background = 'conic-gradient(var(--accent) ' + (p*3.6) + 'deg, var(--paper-raised) 0deg)';
+  document.getElementById('pieLabel').textContent = p + '%';
+}
+function upd(){
+  b.forEach(x=>{ localStorage.setItem(x.id, x.checked); });
+  updateStats();
+}
+b.forEach(x=>{
+  const saved = localStorage.getItem(x.id);
+  x.checked = saved === null ? x.checked : (saved === 'true');
+  x.onchange = upd;
+});
+
+/* ---------- Per-group done/total counts — injected into each summary, computed from the
+   group's own checkboxes so they can't drift. ---------- */
+function renderGroupCounts(){
+  document.querySelectorAll('details.group').forEach(g=>{
+    const checks = g.querySelectorAll('input[type=checkbox]');
+    if(!checks.length) return;
+    const done = [...checks].filter(c=>c.checked).length;
+    let badge = g.querySelector('summary .gcount');
+    if(!badge){
+      badge = document.createElement('span');
+      badge.className = 'gcount';
+      g.querySelector('summary').appendChild(badge);
+    }
+    badge.textContent = done + '/' + checks.length;
+  });
+}
+const _origUpdateStats = updateStats;
+updateStats = function(){ _origUpdateStats(); renderGroupCounts(); };
+
+/* ---------- Search + filters — open-only / mine (JA) / yours (TY) + free text; section
+   subheadings and whole groups hide when everything under them is filtered out. ---------- */
+const _filters = { open:false, me:false, you:false };
+function toggleFilter(key){
+  _filters[key] = !_filters[key];
+  document.getElementById('fOpen').classList.toggle('on', _filters.open);
+  document.getElementById('fMe').classList.toggle('on', _filters.me);
+  document.getElementById('fYou').classList.toggle('on', _filters.you);
+  applyFilters();
+}
+function applyFilters(){
+  const q = document.getElementById('taskSearch').value.trim().toLowerCase();
+  document.querySelectorAll('.task').forEach(task=>{
+    const check = task.querySelector('input[type=checkbox]');
+    const tag = task.querySelector('.tag');
+    const tagText = tag ? tag.textContent : '';
+    let visible = true;
+    if(_filters.open && check && check.checked) visible = false;
+    if(_filters.me && tagText.indexOf('JA') === -1 && tagText.indexOf('ME') === -1) visible = false;
+    if(_filters.you && tagText.indexOf('TY') === -1 && tagText.indexOf('YOU') === -1) visible = false;
+    if(visible && q && task.textContent.toLowerCase().indexOf(q) === -1) visible = false;
+    task.classList.toggle('filtered-out', !visible);
+  });
+  // Hide subheadings with no visible tasks before the next subheading
+  document.querySelectorAll('.group-body').forEach(body=>{
+    const children = [...body.children];
+    children.forEach((el,i)=>{
+      if(!el.matches('h3.sub')) return;
+      let any = false;
+      for(let j=i+1; j<children.length; j++){
+        if(children[j].matches('h3.sub')) break;
+        if(children[j].matches('.task') && !children[j].classList.contains('filtered-out')){ any = true; break; }
+      }
+      el.classList.toggle('filtered-out', !any);
+    });
+  });
+  // Hide entire groups with nothing visible (never the timeline group)
+  document.querySelectorAll('details.group').forEach(g=>{
+    if(g.id === 'timelineSection') return;
+    const any = g.querySelector('.task:not(.filtered-out)');
+    g.classList.toggle('filtered-out', !any);
+  });
+}
+
+/* ---------- Timeline: everything shipped, grouped by month > week > day, click to expand ---------- */
+const DAYS=[
+  { date:'2026-07-08', headline:'Phase 0 — Foundation & Validation approved', accomplished:[
+    'Defined ChefOS v1 scope: Chef Pro / Restaurant kitchens, not home cooks',
+    'Mobile/tablet-first installable web app, no native build',
+    'Pilot kitchen confirmed (Hotel Schweizerhof Bern)',
+    'MVP_DEFINITION.md and ARCHITECTURE.md approved by Richard'
+  ]},
+  { date:'2026-07-09', headline:'Recipe engine live, Ingredients + Check List v1, Schedule rebuilt, deployed', accomplished:[
+    'Supabase backend stood up; all 173 recipes migrated; scaling calculator fixed',
+    'Ingredients & Pricing: 535 items seeded, cost + nutrition engines',
+    'Full 20-field recipe form; visual design pass',
+    'Mise en Place v1, Order List, Home dashboard, Fridge Temperature',
+    'Schedule rebuilt to match the real Dienstplan PDF (28 shift codes, 27 staff)',
+    'SKY prep sheet built from Richard\'s real photographed paper sheet',
+    'Photo-scan AI recipe import shipped',
+    'Deployed to production on GitHub Pages'
+  ]},
+  { date:'2026-07-10', headline:'AI features, Kitchen Flow, all 8 stations, multi-language, ingredients to 1,263', accomplished:[
+    'Generate Method with AI + Chef\'s Assistant chatbot (Haiku, cost-capped)',
+    'Kitchen Flow v1: station icon tiles, 🔥 overload badge',
+    'Check List prep sheets extended to all 8 stations',
+    'AI prep-sheet scan (photo + PDF); renamed "Mise en Place" → "Check List"',
+    'Translated all prep-sheet data to English; multi-language UI v1 (EN/DE/FR/IT/SK)',
+    'Fixed "All" cross-station view and stuck station-tile badges; swipe-back gesture',
+    'Ingredients expanded to 1,263 (season/storage/food-type filters)',
+    'Created presentation.html and planning.html dashboards',
+    'Check List: manual "+ New Section"/"+ Add dish", no longer scan-only',
+    'Fixed cross-device station persistence bug',
+    'Real crowd-sourced prep times — tap the clock, values average together',
+    'TO DO/DON\'T DO status colors swapped; Extra got its own icon',
+    'Chef\'s Assistant mobile-keyboard fix + greeting bubble',
+    'Two real people testing live at two separate venues',
+    'Scoped the public-trial plan: 2026-08-01, 25 users, multi-team via QR'
+  ]},
+  { date:'2026-07-11', headline:'Multi-team QR + access gate, Recipe/Check List fixes, unified visual identity', accomplished:[
+    'presentation.html refocused on Switzerland / canton Bern with sourced market numbers',
+    'Multi-team via QR invite (create or join a kitchen) built end-to-end',
+    'Closed-trial access gate: every email manually approved before use, new Admin tile',
+    'Vendored a verified QR-code generator, fully client-side',
+    'Login screen: "check Spam/Trash" hint added',
+    'Triaged 4 planning documents into building-now vs. explicitly-parked backlog',
+    'Fixed the recipe double-save bug (double-tap race condition)',
+    '🚩 flag restricted to priority-1 items only',
+    'Check List: delete or hide an item, a dish, or a whole section',
+    '🛒 Order button on every Check List item and recipe ingredient row',
+    'Fixed a latent Order List bug where notes were silently dropped on save',
+    'Built app/board.html → renamed to app/tasklist.html, with this timeline',
+    'Unified ChefOS visual identity (navy/teal) across presentation.html, planning.html, tasklist.html'
+  ]},
+  { date:'2026-07-12', headline:'Order List + Print Labels toolbars, Working Time built, 104 real supplier prices, Recipes/Ingredients rework, two critical bugs found and fixed', accomplished:[
+    'Order List top bar: real Print, Send-to-supplier placeholder, Select + bulk delete, group by section/device',
+    'Check List: 🖨️ Print icon on every item row; Print Labels hub redesigned with a toolbar and per-product shelf-life tracking for auto-computed "use by" dates on 5×3cm labels',
+    'Built Working Time from scratch: real check-in/check-out timer, break logging, monthly hours + overtime summary, next-vacation countdown, contracted-hours field, AI contract-photo-scan with legal-advisory notes (explicitly informational, not legal advice)',
+    'Found and fixed two severe script-breaking bugs same-day (a top-level variable referencing another one declared later in the file — the app briefly went fully or partially unresponsive both times) — both fully root-caused and documented',
+    'Recipes: fixed "always show Favorites" defaulting to an empty screen when there are zero favorites',
+    'Ingredient Audit tool v1: scans every recipe + Check List item for names missing from Ingredients, flags likely duplicates',
+    'Recipes: 🕐 Newest-first sort next to Favorites; search rebuilt as a standalone icon with section + diet + allergen-free filters; category icon set roughly doubled',
+    '104 real, supplier-sourced ingredient prices imported from Caviezel Giovanettoni AG\'s 2026 Swiss wholesale price list (CHF converted to EUR, article numbers kept for traceability) — upgrades ~54 existing estimated prices to real ones',
+    'Check List &amp; Recipes: every section/category can now be renamed and have its icon changed, not just deleted',
+    'Recipes: diet-filter highlighting fixed (was barely visible) + expanded from 2 to 7 diets (added Pescatarian, Keto, Paleo, Mediterranean, High-Protein)',
+    'Recipes: search now always covers every recipe by default, not just whichever section tile happened to be open',
+    '"Ask Chef\'s Assistant" — new AI recipe-idea generator in recipe search: asks warm/cold + sweet/savory, suggests 5 real dish ideas, writes the full recipe for whichever one is picked',
+    'Ingredient Audit rebuilt into a real per-item approval flow (editable pre-cleaned name, Add / Link-as-alias / Ignore) — replaces the old blind "create all" bulk button',
+    'Kitchen-wide currency switcher (EUR/CHF/USD) shipped, admin-only, defaulted to CHF for the Swiss pilot kitchen',
+    'Ingredients screen: topbar redesigned — search + all 4 filter chip rows + Ingredient Audit collapsed behind one icon instead of permanently eating half the screen',
+    'Ingredients search/filter button improved: visible text label, fixed a mislabeled "Category" chip row (it was actually Cuisine), added a "Clear all" button'
+  ]},
+  { date:'2026-07-13', headline:'Working Time note-visibility fix, bigger Home icons, Print Labels polish, ChefOS logo, printer + fridge-sensor research, first named sales target', accomplished:[
+    'Fixed Working Time\'s day-note field being invisible while typing (a dark-mode/mobile-browser rendering gap, not just that one field — applied a page-wide fix)',
+    'Home screen tile icons enlarged again, still 3 per row',
+    'Print Labels: added the missing topbar title, wired up a real "By section" grouping toggle (was a placeholder)',
+    'Designed a minimalist ChefOS logo (circular monogram mark) and applied it live — small brand header on My Team, centered overlay on the invite QR code itself (QR error-correction bumped to "H" so it still scans reliably with the logo on top)',
+    'Researched wireless fridge-temperature sensors for the "scan QR → live temp" idea — found iOS Safari can\'t read Bluetooth/NFC sensors from a website at all, so a WiFi/cloud-API sensor is required; recommended SensorPush as the budget pick with a real free API',
+    'Researched a physical label printer for Print Labels + how to structure a supplier contract — recommended Brother QL-820NWB (~CHF 130, buy outright, no contract) via the existing print-dialog flow; full report in docs/LABEL_PRINTER_RESEARCH.md',
+    'Named Nooch Asian Kitchen (FWG restaurant group, 10+ Swiss locations incl. 3 in canton Bern) as the first target customer to approach once the pilot validates the product',
+    'Ingredients search sheet: live "N ingredients match" count while adjusting filters, the Food-type shortcut (4 categories) replaced with the full real category list (Alcohol, Bakery, ... 19 total, derived from the data so it never goes stale), and a new "Pricing" filter (Verified / Estimated / Missing) to see at a glance which prices are real supplier-sourced numbers vs. still-estimated placeholders',
+    'Ingredients: that match-count also pinned directly in the topbar itself, so it\'s visible without opening Search &amp; Filter at all',
+    'ChefOS logo redesigned (v1 read as flat/generic) — a hand-built ring mark drawn as one precise arc instead of a font letter, sage/cream instead of copper, plus an italic serif "ChefOS" wordmark next to it',
+    'Check List\'s New Section / Edit Section icon picker expanded from 30 icons to the same 72-icon set Recipes already offers',
+    'New: 🌐 Language Audit — scans every Check List dish and item name, flags anything not already in English (photo scans and manual entry sometimes bring in German/French/Italian, since this kitchen is in Bern), suggests a translation, per-item approve/skip',
+    'Two v2-backlog expert-review findings acted on: pilot kitchen changes from Hotel Schweizerhof to Burrito Bandito &amp; Lido (one group, two venues) — retires the IP-ownership risk flagged against the old employer, since ChefOS stops depending on their data entirely; RC Studio shelved to protect ChefOS capacity against the new full-time job. presentation.html updated to match. First draft of a written pilot agreement saved to docs/PILOT_AGREEMENT.md.',
+    'Six critical/security items from the backlog v2 review, resolved: Git version control (finally), Anthropic API key moved server-side (Edge Function proxy, all 9 call sites), real-time cross-device sync actually wired up for Check List (confirmed it never existed before), basic error tracking + usage analytics, expiring/revocable team invites + remove-a-member, and a written manual regression checklist. Everything genuinely needing Richard\'s own accounts/hardware/judgment (Resend domain, Supabase backups/staging, cost caps, device testing, legal review, business decisions) stays logged as open in backlog.html rather than silently skipped.',
+    'Ingredients filter sheet: search box + live match-count now pinned to the top while the filter chip rows scroll underneath, instead of scrolling away',
+    'backlog.html made interactive: the 38 task rows are real checkboxes with localStorage persistence, plus a sticky top bar showing a live percent-complete pie chart + progress bar',
+    'Check List audit log shipped — every status/on-hand/priority/note change is now recorded (who, what, when) and shown as "Recent activity" in the item\'s Info panel, closing the "whose fault it is" gap the Check List used to leave open',
+    '🔴→✅ Found and fixed a critical live bug: db/53 added two RLS policies on `profiles` that query `profiles` again inside themselves, causing infinite recursion in Postgres — confirmed live via a direct REST probe against the production database, which showed it had silently broken almost every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests...). Very likely why the login/approval screen looked broken on Richard\'s phone. Fix shipped as db/55 (a SECURITY DEFINER helper function, sidesteps the self-reference) — Richard ran it and a second REST probe confirmed every table responds normally again.',
+    'Read Richard\'s Hotel Schweizerhof employment contract at his request — no IP-assignment, non-compete, confidentiality-beyond-GDPR or side-business clause found anywhere in it. Not legal certainty (flagged clearly as such, recommended a real lawyer confirm before anything investor-facing), but a materially reassuring read given Swiss law (OR 332) only assigns an employer inventions made in fulfillment of contractual duties, and Richard\'s job is Chef de Partie, not software development.',
+    'loadAppData() parallelized — was awaiting 11 independent Supabase queries one at a time on every view open; switched to Promise.all, should noticeably cut load time',
+    'Trial success criteria defined and agreed with Richard: 40%+ of invited teams active in Check List 3+ days/week by week 2, at least half of started teams still active in week 2, at least 5 of 25 people say yes to "would you pay X CHF/month", fewer than 10 critical errors logged during the trial, at least 3 unprompted positive + 3 critical pieces of feedback collected',
+    'Staging Supabase project ("chefos-staging") created and fully bootstrapped end-to-end: all 56 SQL migrations run in one shot via a small Python script (psycopg2 over the Session Pooler — the Direct connection needs IPv6, which wasn\'t reachable, so this took a few tries to get the right connection method), verified live against a REST probe with zero errors. 173 recipes, 1,315 ingredients, 64 dishes and 273 Check List items all present and matching production. From now on, new SQL migrations get tested here first, then production — exactly the discipline gap that caused the RLS outage above.',
+    'GitHub Pages deploy automated (Actions workflow, repo connected, force-push authorized by Richard) — every commit live within a minute, manual drag-and-drop uploads retired. Project-scoped Claude Code permissions added so routine work runs without per-step approval prompts.',
+    'App visual identity unified with the documents (navy/teal) at Richard\'s explicit request — the old warm copper/charcoal app look is retired, one ChefOS visual everywhere. QR code stays black/white for scannability.',
+    'Shipped in one overnight+morning batch: Privacy & Terms page (legal.html, covers Working Time/nDSG, linked from login), feedback button (mailto with context), yield/waste factor in food cost (db/57 — URGENT: still needs to run on prod), Ingredients price-range filter replacing the broken Verified/Estimated chips, multi-select filter chips, "Show me" search button, and the 🎯 Chef Challenge tile (Richard\'s "menu only from ingredients under 1 CHF" idea — real priced ingredients, not AI guesses).',
+    'Monetization plan formalized: Richard\'s 10-model expert workshop converted to app/monetization.html in house style; Claude added model 11 (paid kitchen-digitalization workshops — the only model that doesn\'t depend on the finished product) and a concrete action plan. Unanimous panel conclusion: onboarding ~CHF 990 + founding pre-sale CHF 490/yr is the whole 12-month plan. Both unblocking documents drafted ready-to-send: NEBENERWERB_REQUEST.md (employer consent, blocker #1) and FOUNDING_OFFER.md (offer terms, refund policy, fair-use limits).',
+    'Ingredient database expanded to exactly 2,000 rows (db/59, 646 new AI-estimated items — meat cuts, Swiss IGP/AOP cheeses and sausages, fish, produce varieties, pantry staples, modernist textures), each with price/nutrition/storage/seasons/origin/substitutes and honestly labeled as estimated (unlike db/46+58\'s real supplier prices). Verified on staging: exactly 2,000 rows, 100% priced.',
+    '🔴→✅ Found and fixed a silent bug: the app only ever showed the first 1,000 ingredients (Supabase\'s default REST page-size cap) — explains the "1000 in the app vs 1263 in the presentation" discrepancy Richard noticed. Fixed with a paginating fetch helper; all rows now load regardless of table size.',
+    '🔴→✅ Found and fixed: Check List\'s delete confirmed but silently did nothing in some cases — Supabase/RLS can match 0 rows on an update with no error at all. deletePrepItem/Dish/deleteStation now detect a 0-row update, surface it, log it, and reload instead of pretending it worked. Confirmed fixed live by Richard.',
+    '🔴→✅ Found and fixed the real cause behind every AI feature failing ("Failed to send a request to the Edge Function"): the server-side claude-proxy function (shipped earlier this session) had never actually been deployed to the production Supabase project — deploying it is a manual CLI step nobody had run yet. Walked Richard through installing Supabase CLI and deploying it live; confirmed reachable (HTTP 200) and confirmed working end-to-end by Richard on his phone. Also raised the prep-sheet scan\'s max_tokens (4096→8192) to fix truncation on a full real prep sheet — same bug class already hit once on Schedule upload.',
+    'Added a 🗣️ Team Meetings placeholder tile to Home at Richard\'s request (scope to be decided later — candidates noted in backlog.html: auto-agenda from Check List/Schedule, a shared daily note, or a meeting log).',
+    'New idea logged (not built yet): Recipes photo scan should ask "one recipe, or a whole menu?" before scanning — a whole-menu scan would recognize each dish\'s name and ingredients and generate a full recipe (with method, not just an ingredient list) for each one, inferring typical missing ingredients/steps a menu wouldn\'t spell out. Prompted by Richard scanning a whole menu into Recipes by mistake (meant Check List) and only noticing after the fact.'
+  ]},
+  { date:'2026-07-14', headline:'Feature freeze čestne priznaný, denný ingredient agent, Working Time poloha + forgot-to-check-in, contract note tón, Chef Challenge skrytý, tasklist redesign', accomplished:[
+    'Working Time: "Forgot to check in?" (zrkadlí existujúce "Forgot to check out?") + jednorazová snímka polohy presne pri check-in/check-out (nie priebežné sledovanie — Richard si vybral túto variantu z právnych aj technických dôvodov)',
+    'AI poznámka o zmluve: teraz 4-6 bodov s ikonou tónu (⚠️ risk / ✅ good / ℹ️ neutral) namiesto zoznamu len problémov',
+    'Nájdená a opravená (návrh, čaká na staging test) skutočná privacy diera: RLS politika z 13.7. púšťala celý riadok profiles komukoľvek v kuchyni, vrátane cudzích poznámok o zmluve',
+    'Denný AI agent na ingrediencie nastavený: CHF 30/mesiac strop, beží denne 06:30, report v docs/ingredient_agent_log.md',
+    'Zvýraznené 🚨 upozornenie na zmeškaný Critical Review deadline',
+    'Nastavené pripomienky: nedeľný snapshot (20:00) + pondelková kontrola deadline (14:30)',
+    'Feature freeze týždeň: čestne priznané, že sa v ňom aj tak stavia (12+ vecí za dva večery) — Richard to obhájil ako vedomé rozhodnutie (reálne testovanie generuje reálne užitočné nápady), nie ako zlyhanie disciplíny',
+    'Chef Challenge dlaždica skrytá z Home (nie zmazaná) na Richardovu žiadosť',
+    'tasklist.html prerobený — nová vizuálna vrstva (rovnaké navy/teal tokeny ako status.html/planning.html), SK/EN prepínač na štruktúrne popisky'
+  ]}
+];
+function isoWeekLabel(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const day=(d.getDay()+6)%7;
+  const monday=new Date(d); monday.setDate(d.getDate()-day);
+  const sunday=new Date(monday); sunday.setDate(monday.getDate()+6);
+  const locale = _lang==='sk' ? 'sk-SK' : 'en-GB';
+  const fmt=x=>x.toLocaleDateString(locale,{day:'numeric',month:'short'});
+  return { key:monday.toISOString().slice(0,10), label:(_lang==='sk'?'Týždeň od ':'Week of ')+fmt(monday)+' – '+fmt(sunday)+', '+sunday.getFullYear() };
+}
+function monthLabel(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const locale = _lang==='sk' ? 'sk-SK' : 'en-GB';
+  return { key:dateStr.slice(0,7), label:d.toLocaleDateString(locale,{month:'long',year:'numeric'}) };
+}
+function weekdayShort(dateStr){
+  const locale = _lang==='sk' ? 'sk-SK' : 'en-GB';
+  return new Date(dateStr+'T00:00:00').toLocaleDateString(locale,{weekday:'short'});
+}
+function renderTimeline(){
+  const wasOpen = new Set([...document.querySelectorAll('.open')].map(el=>el.dataset.id));
+  const daysDesc=DAYS.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const months=[];
+  daysDesc.forEach(day=>{
+    const m=monthLabel(day.date);
+    let me=months.find(x=>x.key===m.key);
+    if(!me){ me={key:m.key,label:m.label,weeks:[]}; months.push(me); }
+    const w=isoWeekLabel(day.date);
+    let we=me.weeks.find(x=>x.key===w.key);
+    if(!we){ we={key:w.key,label:w.label,days:[]}; me.weeks.push(we); }
+    we.days.push(day);
+  });
+  document.getElementById('timelineRoot').innerHTML=months.map((m,mi)=>{
+    const totalDays=m.weeks.reduce((n,w)=>n+w.days.length,0);
+    const dayWord = totalDays===1 ? L('deň','day') : L('dní','days');
+    const weeksHtml=m.weeks.map(w=>{
+      const wDayWord = w.days.length===1 ? L('deň','day') : L('dní','days');
+      const daysHtml=w.days.map((day,di)=>{
+        const acc=day.accomplished.map(a=>`<li>${a}</li>`).join('');
+        return `<div class="day-row" data-id="d-${m.key}-${w.key}-${di}">
+          <div class="day-head" onclick="toggleBlock('d-${m.key}-${w.key}-${di}')">
+            <span class="day-date">${weekdayShort(day.date)} ${day.date}</span>
+            <span class="day-title">${day.headline}</span>
+            <span class="chev">▶</span>
+          </div>
+          <div class="day-body"><ul class="accomplished-list">${acc}</ul></div>
+        </div>`;
+      }).join('');
+      return `<div class="week-block" data-id="w-${m.key}-${w.key}">
+        <div class="week-head" onclick="toggleBlock('w-${m.key}-${w.key}')">
+          <span class="week-name">${w.label}</span>
+          <span class="week-meta">${w.days.length} ${wDayWord} <span class="chev">▶</span></span>
+        </div>
+        <div class="week-body">${daysHtml}</div>
+      </div>`;
+    }).join('');
+    return `<div class="month-block" data-id="m-${m.key}">
+      <div class="month-head" onclick="toggleBlock('m-${m.key}')">
+        <span class="month-name">${m.label}</span>
+        <span class="month-meta">${totalDays} ${dayWord} logged <span class="chev">▶</span></span>
+      </div>
+      <div class="month-body">${weeksHtml}</div>
+    </div>`;
+  }).join('');
+  const anyPrevOpen = wasOpen.size > 0;
+  document.querySelectorAll('[data-id]').forEach(el=>{
+    if(wasOpen.has(el.dataset.id)) el.classList.add('open');
+  });
+  if(!anyPrevOpen && months[0]){
+    document.querySelector(`[data-id="m-${months[0].key}"]`).classList.add('open');
+    const lw=months[0].weeks[0];
+    if(lw) toggleBlock(`w-${months[0].key}-${lw.key}`, true);
+    if(lw && lw.days[0]) toggleBlock(`d-${months[0].key}-${lw.key}-0`, true);
+  }
+}
+function toggleBlock(id, forceOpen){
+  const el=document.querySelector(`[data-id="${id}"]`);
+  if(!el) return;
+  if(forceOpen){ el.classList.add('open'); return; }
+  el.classList.toggle('open');
+}
+applyLang();
+renderTimeline();
+</script>
+</body>
+</html>
