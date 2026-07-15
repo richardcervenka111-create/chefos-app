@@ -1779,8 +1779,14 @@
 
     <div style="margin-top:22px; padding-top:16px; border-top:1px solid var(--line, rgba(255,255,255,0.1));">
       <label class="form-label">Account &amp; Security</label>
-      <input class="form-field" id="mps_new_password" type="password" placeholder="New password (min 8 characters)" autocomplete="new-password" style="margin-top:8px;">
-      <button class="save-btn" style="width:100%; margin-top:8px;" onclick="setAccountPassword()">Set password</button>
+      <div id="passwordAlreadySetBlock" style="display:none; margin-top:8px;">
+        <div class="meta">✅ Password is set.</div>
+        <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="openChangePasswordField()">Change Password</button>
+      </div>
+      <div id="passwordFieldBlock" style="margin-top:8px;">
+        <input class="form-field" id="mps_new_password" type="password" placeholder="New password (min 8 characters)" autocomplete="new-password">
+        <button class="save-btn" style="width:100%; margin-top:8px;" id="setPasswordBtn" onclick="setAccountPassword()">Set password</button>
+      </div>
       <div class="form-status" id="accountPasswordStatus"></div>
       <div id="faceIdSettingsBlock" style="margin-top:14px;"></div>
       <div class="form-status" id="faceIdSettingsStatus"></div>
@@ -5972,8 +5978,13 @@ async function setAccountPassword(){
   const { error: flagErr } = await sb.from('profiles').update({ password_set: true }).eq('id', currentUser.id);
   if(flagErr) logClientError('setAccountPassword password_set flag failed: ' + flagErr.message);
   document.getElementById('mps_new_password').value = '';
-  statusEl.textContent = 'Password set — you can now sign in with your email + this password too.';
+  statusEl.textContent = 'Password saved — you can sign in with your email + this password too.';
   statusEl.className = 'form-status success';
+  // Collapse back to the "already set" state (bod, 16.7.) — no reason to keep an empty
+  // password field sitting open right after a successful save.
+  document.getElementById('passwordAlreadySetBlock').style.display = 'block';
+  document.getElementById('passwordFieldBlock').style.display = 'none';
+  document.getElementById('setPasswordBtn').textContent = 'Save new password';
 }
 
 function renderLoginFaceIdBlock(){
@@ -6333,19 +6344,31 @@ async function setAccountTypeFromSettings(type){
   if(listEl && listEl.style.display !== 'none'){ renderRecipeSummaryBar(); renderList(); }
 }
 function openMyProfileSettings(){
-  sb.from('profiles').select('full_name, age, gender, role, phone, bio').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
+  sb.from('profiles').select('full_name, age, gender, role, phone, bio, password_set').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
     document.getElementById('mps_full_name').value = (data && data.full_name) || '';
     document.getElementById('mps_age').value = (data && data.age) || '';
     document.getElementById('mps_gender').value = (data && data.gender) || '';
     document.getElementById('mps_role').value = (data && data.role) || '';
     document.getElementById('mps_phone').value = (data && data.phone) || '';
     document.getElementById('mps_bio').value = (data && data.bio) || '';
+    // Already has a password (bod, 16.7.) — show "Password is set" + a Change Password link
+    // instead of re-asking to set one up, as if for the first time, on every visit.
+    const alreadySet = !!(data && data.password_set);
+    document.getElementById('passwordAlreadySetBlock').style.display = alreadySet ? 'block' : 'none';
+    document.getElementById('passwordFieldBlock').style.display = alreadySet ? 'none' : 'block';
+    document.getElementById('setPasswordBtn').textContent = alreadySet ? 'Save new password' : 'Set password';
   });
   document.getElementById('myProfileSettingsStatus').textContent = '';
   document.getElementById('accountPasswordStatus').textContent = '';
   document.getElementById('mps_new_password').value = '';
   renderFaceIdSettingsBlock();
   document.getElementById('myProfileSettingsOverlay').classList.add('open');
+}
+function openChangePasswordField(){
+  document.getElementById('passwordAlreadySetBlock').style.display = 'none';
+  document.getElementById('passwordFieldBlock').style.display = 'block';
+  document.getElementById('mps_new_password').value = '';
+  document.getElementById('mps_new_password').focus();
 }
 function closeMyProfileSettings(){
   document.getElementById('myProfileSettingsOverlay').classList.remove('open');
