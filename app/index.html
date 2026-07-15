@@ -2043,6 +2043,18 @@
   </div>
 </div>
 
+<!-- Internal Docs (bod, 16.7.) — Richard-only (exact email, see ADMIN_TILE_DEFS). Plain links,
+     each opens in a new tab; the underlying deployed path is unlisted anywhere else. -->
+<div id="internalDocsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeInternalDocs()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📊 Internal Docs</div>
+    <p class="sheet-text">Same documents as on your computer — backlog, status, monetization, and the rest of /visual data/.</p>
+    <div id="internalDocsList"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeInternalDocs()">Close</button>
+  </div>
+</div>
+
 <div id="workingTimeView" style="display:none;">
   <div class="wt-sticky-top">
     <div class="detail-bar no-print" style="position:static; border-bottom:none;">
@@ -8304,6 +8316,12 @@ const ADMIN_TILE_DEFS = [
   { key:'adminDirectory', icon:'📋', staticLabel:'Admin Directory', onclick:'showAdminDirectory()', adminOnly:()=>currentIsAdmin },
   { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
   { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
+  /* Internal Docs (bod, 16.7.) — Richard specifically, by exact email, not just is_admin: since
+     today's own Head Admin feature means is_admin is no longer guaranteed to be only him going
+     forward. Links out to visual data/ (backlog, status, monetization...), deployed to an
+     unlisted GitHub Pages subpath (see .github/workflows/deploy-pages.yml) purely so it's
+     fetchable at all — this tile is the only place that path is ever written down. */
+  { key:'internalDocs', icon:'📊', staticLabel:'Internal Docs', onclick:'openInternalDocs()', adminOnly:()=> !!(currentUser && currentUser.email && currentUser.email.toLowerCase()==='richard.cervenka@icloud.com') },
 ];
 function showAdmin(){
   logEvent('view_opened', {view:'admin_hub'});
@@ -8322,6 +8340,34 @@ function renderAdminGrid(){
     </button>
   `).join('');
 }
+/* Deployed path lives ONLY here (.github/workflows/deploy-pages.yml copies visual data/ to
+   this exact subpath) — deliberately not written down anywhere else, and this whole tile is
+   gated to Richard's exact email regardless of who else ever becomes an admin. */
+const INTERNAL_DOCS = [
+  { name:'Backlog', file:'backlog.html' },
+  { name:'Status', file:'status.html' },
+  { name:'Planning', file:'planning.html' },
+  { name:'Tasklist', file:'tasklist.html' },
+  { name:'Features', file:'features.html' },
+  { name:'Automation', file:'automation.html' },
+  { name:'Monetization', file:'monetization.html' },
+  { name:'Investor Deck', file:'presentation.html' },
+  { name:'Visual Guide', file:'VISUAL_GUIDE.html' },
+  { name:'Manifesto', file:'ChefOS_Manifesto.html' },
+  { name:'Critical Review — 15.7.', file:'CRITICAL_REVIEW_2026-07-15.html' },
+  { name:'Critical Review — 13.7.', file:'CRITICAL_REVIEW_2026-07-13.html' },
+  { name:'Status snapshot — 9.7.', file:'ChefOS_Status_2026-07-09.html' },
+];
+function openInternalDocs(){
+  const base = location.origin + '/x7n2k9/';
+  document.getElementById('internalDocsList').innerHTML = INTERNAL_DOCS.map(d=>`
+    <a href="${base}${d.file}" target="_blank" rel="noopener" class="sheet-option" style="display:block; text-decoration:none;">
+      <div class="sheet-option-title">${d.name}</div>
+    </a>
+  `).join('');
+  document.getElementById('internalDocsOverlay').classList.add('open');
+}
+function closeInternalDocs(){ document.getElementById('internalDocsOverlay').classList.remove('open'); }
 
 /* ---------- Add Admin: search an existing profile, then pick Kitchen Admin or Head Admin ----------
    Results/candidate are kept in memory and referenced by id from onclick handlers (never inlined

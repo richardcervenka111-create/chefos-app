@@ -37,8 +37,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # app/ stays at the site root exactly as before (app.chefos.ch/index.html etc.,
+      # unchanged). visual data/ (backlog, status, monetization...) additionally gets copied
+      # into an unlisted, unlinked subpath (Richard, 16.7. — needed a way to open these on his
+      # phone, since a locally-shared file opens in a no-JS previewer and none of the
+      # filters/search/percentage work). This is obscurity, not real access control: nothing
+      # requires a login, anyone who learns/guesses the path can view it — chosen deliberately
+      # over adding real auth for a same-day fix, revisit if that stops being good enough.
+      - name: Build combined Pages artifact
+        run: |
+          mkdir -p _site
+          cp -r app/. _site/
+          mkdir -p "_site/x7n2k9"
+          cp -r "visual data/." "_site/x7n2k9/"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: app
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
