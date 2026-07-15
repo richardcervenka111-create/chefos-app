@@ -1772,12 +1772,89 @@
 
 <div id="teamInviteView" style="display:none;">
   <div class="detail-bar no-print">
-    <button class="back-btn" onclick="showHome()">
+    <button class="back-btn" onclick="showConnections()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-      Home
+      Connections
     </button>
   </div>
   <div class="detail-content" id="teamInviteContent"></div>
+</div>
+
+<!-- Connections hub (bod 6) — Home-styled tile grid. -->
+<div id="connectionsView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Connections</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">🔗 Connections</h1>
+  </div>
+  <div class="home-grid" id="connectionsGrid"></div>
+</div>
+
+<!-- Share QR Code — control questions (bod 6: "iba kontrolne otázky"). -->
+<div id="shareQrOverlay" class="sheet-overlay" onclick="if(event.target===this) closeShareQrChoice()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📤 Share QR Code</div>
+    <p class="sheet-text">What's this for?</p>
+    <button class="sheet-option" onclick="closeShareQrChoice(); showMyFriendQr();">
+      <div><div class="sheet-option-title">1. Add friend</div><div class="sheet-option-sub">Show your personal QR — another chef scans it to connect</div></div>
+    </button>
+    <button class="sheet-option" onclick="closeShareQrChoice(); openPausedFeature('📖 Share My Recipes', 'Not built yet — needs a real answer first for which recipes get shared and whether it\'s a read-only view or a copy. Tell Claude the shape you want and it\'s a quick build on top of what Add Friend already does.');">
+      <div><div class="sheet-option-title">2. Share my recipes</div><div class="sheet-option-sub">Coming soon</div></div>
+    </button>
+    <button class="sheet-option" id="shareQrInviteChefBtn" onclick="closeShareQrChoice(); showTeamInvite();">
+      <div><div class="sheet-option-title">3. Invite new chef</div><div class="sheet-option-sub">Add someone to your kitchen's team</div></div>
+    </button>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeShareQrChoice()">Cancel</button>
+  </div>
+</div>
+
+<!-- My personal QR (Add Friend). -->
+<div id="myFriendQrOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMyFriendQr()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">👋 Add Friend</div>
+    <p class="sheet-text">Have another chef scan this with ChefOS's Scan QR — you're connected the moment they do, no extra approval step.</p>
+    <div id="friendQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px;"></div>
+    <button class="sheet-cancel" style="width:100%; margin-top:14px;" onclick="closeMyFriendQr()">Close</button>
+  </div>
+</div>
+
+<!-- Scan QR — camera + jsQR, handles both kitchen-invite and Add-Friend QR codes. -->
+<div id="scanQrView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="stopQrScan(); showConnections();">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Connections
+    </button>
+  </div>
+  <div class="detail-content" style="text-align:center;">
+    <h2 class="recipe-title display">📷 Scan QR</h2>
+    <p class="recipe-meta">Point your camera at a ChefOS invite or friend QR code.</p>
+    <div style="position:relative; max-width:420px; margin:16px auto 0 auto; border-radius:16px; overflow:hidden; background:#000;">
+      <video id="qrScanVideo" playsinline autoplay muted style="width:100%; display:block;"></video>
+      <canvas id="qrScanCanvas" style="display:none;"></canvas>
+    </div>
+    <p class="sheet-text" id="qrScanStatus" style="margin-top:14px;">Starting camera…</p>
+  </div>
+</div>
+
+<!-- Confirm a scanned friend QR before writing the connection. -->
+<div id="confirmFriendOverlay" class="sheet-overlay" onclick="if(event.target===this) closeConfirmFriend()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">👋 Connect?</div>
+    <p class="sheet-text" id="confirmFriendText"></p>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="acceptScannedFriend()">Connect</button>
+      <button class="sheet-cancel" onclick="closeConfirmFriend()">Cancel</button>
+    </div>
+    <div class="form-status" id="confirmFriendStatus"></div>
+  </div>
 </div>
 
 <div id="adminRequestsView" style="display:none;">
@@ -2971,6 +3048,12 @@
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- jsQR (Scan QR, Connections hub, bod 6) — decodes camera frames entirely client-side, MIT
+     license, https://github.com/cozmo/jsQR. Loaded from CDN rather than vendored inline like
+     the QR generator below: at ~130KB minified it would badly bloat this file, and unlike
+     invite-link generation there's no privacy reason to avoid the CDN — it only decodes pixels
+     already visible to the camera, nothing about a scan is ever sent anywhere. -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <!-- Vendored QR code generator (team-invite QR), MIT license, Kazuhiko Arase — https://github.com/kazuhikoarase/qrcode-generator. Client-side only, no third-party service sees invite links. -->
 <script>
 //---------------------------------------------------------------------
@@ -6175,6 +6258,147 @@ async function joinKitchenViaLink(kitchenId){
   await startApp();
 }
 
+/* ============================================================
+   Connections (bod 6, 15.7. late night) — renamed + rebuilt from My Team. Same Home-styled
+   tile grid as HACCP/Settings. Three tiles: Scan QR, Share QR Code (opens the 3 control
+   questions Richard asked for), My Team (unchanged content underneath, just relocated here).
+   ============================================================ */
+const CONNECTIONS_TILE_DEFS = [
+  { key:'scanQr', icon:'📷', staticLabel:'Scan QR', onclick:'startQrScan()' },
+  { key:'shareQr', icon:'📤', staticLabel:'Share QR Code', onclick:'openShareQrChoice()' },
+  { key:'myTeam', icon:'👥', staticLabel:'My Team', onclick:'showTeamInvite()' },
+];
+function showConnections(){
+  logEvent('view_opened', {view:'connections'});
+  hideAllViews();
+  document.getElementById('connectionsView').style.display = 'block';
+  const wrap = document.getElementById('connectionsGrid');
+  wrap.innerHTML = CONNECTIONS_TILE_DEFS.map(tile => `
+    <button class="home-tile" onclick="${tile.onclick}">
+      <span class="home-tile-icon">${tile.icon}</span>
+      <span class="home-tile-label">${tile.staticLabel}</span>
+    </button>
+  `).join('');
+  window.scrollTo(0,0);
+}
+
+function openShareQrChoice(){
+  // "Invite new chef" reuses the kitchen-invite flow, which is admin-only since the bod-5
+  // lockdown (db/81) — hide the option entirely for non-admins rather than show a button that
+  // would just fail, same pattern as the Currency/Admin tiles elsewhere.
+  document.getElementById('shareQrInviteChefBtn').style.display = currentIsAdmin ? '' : 'none';
+  document.getElementById('shareQrOverlay').classList.add('open');
+}
+function closeShareQrChoice(){ document.getElementById('shareQrOverlay').classList.remove('open'); }
+
+/* Add Friend (bod 6) — my own personal QR. Encodes a plain URL with ?friend=<my user id> so
+   Scan QR (or, in a pinch, the phone's own native camera app) can act on it directly. Scanning
+   it in person IS the consent — see chef_connections' own comment (db/84) for why there's no
+   separate accept/reject step. */
+function showMyFriendQr(){
+  const url = location.origin + location.pathname + '?friend=' + currentUser.id;
+  const holder = document.getElementById('friendQrHolder');
+  const qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  holder.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
+  document.getElementById('myFriendQrOverlay').classList.add('open');
+}
+function closeMyFriendQr(){ document.getElementById('myFriendQrOverlay').classList.remove('open'); }
+
+/* ---------- Scan QR — camera + jsQR ---------- */
+let _qrScanStream = null;
+let _qrScanRAF = null;
+async function startQrScan(){
+  hideAllViews();
+  document.getElementById('scanQrView').style.display = 'block';
+  const statusEl = document.getElementById('qrScanStatus');
+  statusEl.textContent = 'Starting camera…';
+  window.scrollTo(0,0);
+  if(typeof jsQR === 'undefined'){
+    statusEl.textContent = 'QR scanning failed to load — check your connection and try again.';
+    return;
+  }
+  try{
+    _qrScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch(err){
+    statusEl.textContent = 'Could not access the camera: ' + (err.message || err) + '. Check your browser\'s camera permission for this site.';
+    return;
+  }
+  const video = document.getElementById('qrScanVideo');
+  video.srcObject = _qrScanStream;
+  await video.play().catch(()=>{});
+  statusEl.textContent = 'Point your camera at a QR code…';
+  const canvas = document.getElementById('qrScanCanvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  function tick(){
+    if(!_qrScanStream) return; // stopped
+    if(video.readyState === video.HAVE_ENOUGH_DATA){
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+      if(code && code.data){
+        handleScannedQrText(code.data);
+        return; // stop the loop, handleScannedQrText decides what happens next
+      }
+    }
+    _qrScanRAF = requestAnimationFrame(tick);
+  }
+  _qrScanRAF = requestAnimationFrame(tick);
+}
+function stopQrScan(){
+  if(_qrScanRAF){ cancelAnimationFrame(_qrScanRAF); _qrScanRAF = null; }
+  if(_qrScanStream){ _qrScanStream.getTracks().forEach(t=>t.stop()); _qrScanStream = null; }
+}
+function handleScannedQrText(text){
+  stopQrScan();
+  let url;
+  try{ url = new URL(text); } catch(e){
+    document.getElementById('qrScanStatus').textContent = "That QR code isn't a ChefOS link.";
+    return;
+  }
+  const params = url.searchParams;
+  if(params.get('friend')){
+    showConfirmFriend(params.get('friend'));
+    return;
+  }
+  if(params.get('invite') || params.get('join')){
+    location.href = text; // hands off to the normal invite flow (renderTeamGate reads the same params)
+    return;
+  }
+  document.getElementById('qrScanStatus').textContent = "That QR code isn't a ChefOS link.";
+}
+
+let _scannedFriendId = null;
+function showConfirmFriend(friendUserId){
+  if(friendUserId === currentUser.id){
+    document.getElementById('qrScanStatus').textContent = "That's your own QR code.";
+    return;
+  }
+  _scannedFriendId = friendUserId;
+  document.getElementById('confirmFriendText').textContent = 'Scanned a ChefOS chef\'s code — connect with them?';
+  document.getElementById('confirmFriendStatus').textContent = '';
+  document.getElementById('confirmFriendOverlay').classList.add('open');
+}
+function closeConfirmFriend(){
+  document.getElementById('confirmFriendOverlay').classList.remove('open');
+  showConnections();
+}
+async function acceptScannedFriend(){
+  const statusEl = document.getElementById('confirmFriendStatus');
+  statusEl.textContent = 'Connecting…';
+  const { error } = await sb.from('chef_connections').insert({ user_a: currentUser.id, user_b: _scannedFriendId });
+  if(error && error.code !== '23505'){ // 23505 = unique violation = already connected, treat as success
+    statusEl.textContent = 'Could not connect: ' + error.message;
+    return;
+  }
+  document.getElementById('confirmFriendOverlay').classList.remove('open');
+  alert('Connected!');
+  showConnections();
+}
+
 /* ---------- My Team: invite link + QR ---------- */
 let _currentInviteUrl = null;
 async function showTeamInvite(){
@@ -6186,6 +6410,25 @@ async function showTeamInvite(){
   window.scrollTo(0,0);
 
   const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', currentKitchenId).maybeSingle();
+
+  // Invite-only lockdown (bod 5, db/81): only an admin can create/revoke invites. Non-admins
+  // get the team list only — no point showing controls that RLS would just reject.
+  if(!currentIsAdmin){
+    el.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+        ${chefOSLogoMarkSvg(40)}
+        <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">ChefOS</span>
+      </div>
+      <label class="form-label">Your Kitchen</label>
+      <h2 class="recipe-title" style="margin:0 0 16px 0;">${kitchen ? kitchen.name : 'Unnamed kitchen'}</h2>
+      <p class="lede">Only your kitchen's admin can create or send invites.</p>
+      <label class="form-label" style="margin-top:22px;">Team members</label>
+      <div id="teamMembersList"><p class="lede">Loading…</p></div>
+    `;
+    renderTeamMembersList();
+    return;
+  }
+
   let inviteId;
   try{ inviteId = await getOrCreateActiveInvite(); }
   catch(err){
@@ -7179,7 +7422,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -7203,11 +7446,10 @@ const HOME_TILE_DEFS = [
      just un-commenting this one line.
   { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' }, */
   { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()' },
-  /* My Team — tile stays visible (Richard's call, 2026-07-15), same paused-banner treatment as
-     Fridge Temp above: pointless to invite someone in while email login can't yet deliver a
-     code to more than one address. showTeamInvite() and all its code are untouched underneath —
-     swap the onclick back once that's fixed. */
-  { key:'myTeam', icon:'🔗', staticLabel:'My Team', onclick:'showTeamInvite()' },
+  /* Connections (bod 6, 15.7. late night) — renamed + rebuilt from My Team into a Home-styled
+     hub of its own: Scan QR, Share QR Code, My Team. showTeamInvite() and all its code are
+     untouched underneath, just reached from here now instead of directly from Home. */
+  { key:'connections', icon:'🔗', staticLabel:'Connections', onclick:'showConnections()' },
   { key:'printLabels', icon:'🏷️', staticLabel:'Print Labels', onclick:'showPrintLabels()', badgeId:'printLabelsBadge' },
   { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdminRequests()', adminOnly:true, badgeId:'adminPendingBadge' },
   /* Currency — moved from a big Home tile to a small topbar icon (2026-07-15, Richard's

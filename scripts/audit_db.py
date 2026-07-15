@@ -44,6 +44,8 @@ NO_TENANT_OK = {
     'recipe_notes',                # per-user (user_id PK half), RLS own-rows
     'access_requests',             # platform access gate — exists BEFORE the user has any kitchen
     'profile_private',             # per-user sensitive columns (db/69 draft), keyed by user id
+    'email_contacts',              # ChefOS-operator outreach list, not per-kitchen data
+    'chef_connections',            # person-to-person, not kitchen-to-kitchen (db/84)
 }
 
 # Tables allowed to skip RLS entirely (none today — keep empty on purpose).
