@@ -2217,13 +2217,44 @@
   <div class="detail-content" id="ingredientFormContent"></div>
 </div>
 
+<!-- Check List project picker (bod, 16.7.) — Home-styled grid of "restaurant/project" tiles,
+     reached BEFORE the actual Check List. Picking one opens the exact same stations/prep-sheet
+     system Check List already had; a "+" tile lets anyone start a new, empty one. -->
+<div id="checkListProjectsView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Check List</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">📋 Check List</h1>
+  </div>
+  <div class="home-grid" id="checkListProjectsGrid"></div>
+</div>
+
+<!-- Add a new restaurant/project. -->
+<div id="addProjectOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAddProject()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">➕ Add Project</div>
+    <p class="sheet-text">Name it after the restaurant or project it's for — you'll get the same Check List system, starting empty.</p>
+    <input class="form-field" id="addProjectName" type="text" placeholder="e.g. Burrito Bandito">
+    <div class="form-status" id="addProjectStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="saveAddProject()">Create</button>
+      <button class="sheet-cancel" onclick="closeAddProject()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="tasksView" style="display:none;">
   <div class="sticky-header">
     <div class="topbar">
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <button class="back-btn" onclick="showHome()" style="padding:0;">
+        <button class="back-btn" onclick="showCheckListProjects()" style="padding:0;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-          Home
+          Projects
         </button>
         <button class="icon-btn" onclick="openStationPicker()" title="Switch section">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
@@ -6365,15 +6396,16 @@ function handleRealtimePrepItemChange(payload){
 }
 function handleRealtimePrepDishChange(payload){
   if(payload.eventType === 'DELETE'){
-    _prepDishes = _prepDishes.filter(d=>d.id !== payload.old.id);
+    _allPrepDishes = _allPrepDishes.filter(d=>d.id !== payload.old.id);
   } else {
-    const idx = _prepDishes.findIndex(d=>d.id === payload.new.id);
-    if(idx > -1) _prepDishes[idx] = payload.new;
-    else _prepDishes.push(payload.new);
+    const idx = _allPrepDishes.findIndex(d=>d.id === payload.new.id);
+    if(idx > -1) _allPrepDishes[idx] = payload.new;
+    else _allPrepDishes.push(payload.new);
     // A brand-new dish on a brand-new station (created on another device) needs its station
     // registered locally too — same thing loadAppData() already does on a fresh page load.
     if(payload.new.station && !PREP_SHEET_STATIONS.includes(payload.new.station)) PREP_SHEET_STATIONS.push(payload.new.station);
   }
+  refreshProjectScopedData();
   refreshCurrentView();
 }
 
@@ -7220,16 +7252,19 @@ async function loadAppData(){
   buildIngredientLookup();
   buildRecipeTitleLookup();
 
-  _tasks = taskRows || [];
+  _allTasks = taskRows || [];
 
-  _prepDishes = prepDishRows || [];
+  _allPrepDishes = prepDishRows || [];
   // Any station name found on a real dish counts as a real prep-sheet station, even if it
   // was created on a different device/session (e.g. via manual add or AI scan there) — this
   // is what makes a newly-created station show up for everyone else after their next load.
-  new Set(_prepDishes.map(d=>d.station).filter(Boolean)).forEach(st=>{
+  // Registered across ALL projects, not just the current one — it's a harmless, kitchen-wide
+  // style registry (which stations get the dish-grouped layout), not project data itself.
+  new Set(_allPrepDishes.map(d=>d.station).filter(Boolean)).forEach(st=>{
     if(!PREP_SHEET_STATIONS.includes(st)) PREP_SHEET_STATIONS.push(st);
   });
   _prepItems = prepItemRows || [];
+  refreshProjectScopedData();
 
   _customStationIcons = {};
   (iconRows || []).forEach(r=>{ _customStationIcons[r.station] = r.icon; });
@@ -7850,7 +7885,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -7860,7 +7895,7 @@ const HOME_TILE_DEFS = [
   { key:'workingTime', icon:'⏱️', staticLabel:'Working Time', onclick:'showWorkingTime()' },
   { key:'recipes', icon:'📖', labelKey:'recipes', staticLabel:'Recipes', onclick:'showList()' },
   { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredients()' },
-  { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showTasks()' },
+  { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showCheckListProjects()' },
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
   /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
      rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
@@ -10263,13 +10298,83 @@ function closeIngredientInfo(){
    ready for a shared team board later without a schema change, but the app only shows
    "my" list today.
    ============================================================ */
+/* Projects (bod, 16.7.) — Check List now opens into a Home-styled picker of "restaurant/
+   project" tiles first; _tasks/_prepDishes are the CURRENT project's slice, always derived
+   from the full-kitchen _allTasks/_allPrepDishes via refreshProjectScopedData() so every
+   existing .filter(d=>d.station===...) call site throughout this file keeps working unchanged
+   — they already only ever see one project's rows. prep_items deliberately has NO project_id
+   of its own: it's only ever reached via dish_id, and dish_id already resolves through the
+   already-filtered _prepDishes, so gating happens for free everywhere except the one place
+   that looks items up by name across dishes (syncPrepItemAcrossKitchen) — that one gates
+   explicitly against the current project's dish ids instead. */
+let currentProjectId = null;
+let currentProjects = [];
+let _allTasks = [];
+let _allPrepDishes = [];
+function refreshProjectScopedData(){
+  _tasks = _allTasks.filter(t=>t.project_id === currentProjectId);
+  _prepDishes = _allPrepDishes.filter(d=>d.project_id === currentProjectId);
+}
+
 let _tasks = [];
 let taskActiveStation = 'All';
 let taskEditingId = null;
 let _prepDishes = [];
 let _prepItems = [];
 
+async function showCheckListProjects(){
+  logEvent('view_opened', {view:'check_list_projects'});
+  hideAllViews();
+  document.getElementById('checkListProjectsView').style.display = 'block';
+  const el = document.getElementById('checkListProjectsGrid');
+  el.innerHTML = '<p class="lede">Loading…</p>';
+  window.scrollTo(0,0);
+  const { data, error } = await sb.from('projects').select('*').eq('kitchen_id', currentKitchenId).order('created_at');
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  currentProjects = data || [];
+  renderCheckListProjectsGrid();
+}
+function renderCheckListProjectsGrid(){
+  const el = document.getElementById('checkListProjectsGrid');
+  if(!el) return;
+  el.innerHTML = currentProjects.map(p=>`
+    <button class="home-tile" onclick="openProject('${p.id}')">
+      <span class="home-tile-icon">${p.icon || '📋'}</span>
+      <span class="home-tile-label">${(p.name||'Untitled').replace(/</g,'&lt;')}</span>
+    </button>
+  `).join('') + `
+    <button class="home-tile" onclick="openAddProject()">
+      <span class="home-tile-icon">➕</span>
+      <span class="home-tile-label">Add Project</span>
+    </button>
+  `;
+}
+async function openProject(projectId){
+  currentProjectId = projectId;
+  taskActiveStation = 'All';
+  await showTasks();
+}
+function openAddProject(){
+  document.getElementById('addProjectName').value = '';
+  document.getElementById('addProjectStatus').textContent = '';
+  document.getElementById('addProjectOverlay').classList.add('open');
+}
+function closeAddProject(){ document.getElementById('addProjectOverlay').classList.remove('open'); }
+async function saveAddProject(){
+  const statusEl = document.getElementById('addProjectStatus');
+  const name = document.getElementById('addProjectName').value.trim();
+  if(!name){ statusEl.textContent = 'Give it a name first.'; return; }
+  statusEl.textContent = 'Saving…';
+  const { data, error } = await sb.from('projects').insert({ kitchen_id: currentKitchenId, name, created_by: currentUser.id }).select().single();
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  closeAddProject();
+  currentProjects.push(data);
+  renderCheckListProjectsGrid();
+  await openProject(data.id);
+}
+
 async function showTasks(){
+  if(!currentProjectId){ await showCheckListProjects(); return; }
   logEvent('view_opened', {view:'check_list'});
   hideAllViews();
   document.getElementById('tasksView').style.display = 'block';
@@ -10303,13 +10408,30 @@ function handleBackToTopScroll(){
 }
 window.addEventListener('scroll', handleBackToTopScroll, { passive: true });
 
-const DEFAULT_STATIONS = ['Hot Line','Entremetier','Garde Manger','Desserts','BQT','Lobby','Extra'];
+/* Trimmed to the generic set every restaurant recognizes (bod, 16.7.) — SKY/Garde Manger/Lobby
+   were specific to the hotel Richard prototyped ChefOS features against, not a universal
+   default; they still exist as real data inside his own "Development" project (db/94 backfill),
+   just no longer offered as empty starter tabs to every new project. */
+const DEFAULT_STATIONS = ['Hot Line','Entremetier','BQT','Desserts','Extra'];
 /* Stations listed here get the dish-grouped prep sheet (Item / On Hand / Priority / Time to
    prep) instead of the normal flat task checklist — built to match Richard's real paper prep
    sheets, one station at a time as he brings in the actual sheet for each. */
 const PREP_SHEET_STATIONS = ['SKY', 'Hot Line', 'Garde Manger', 'Desserts', 'Lobby', 'Entremetier', 'BQT', 'Extra'];
+/* PREP_SHEET_STATIONS is deliberately NOT unioned in here (bod, 16.7.) — it's a global style
+   registry (which NAMES get the dish-grouped layout), not a per-project data list; including it
+   would put SKY/Garde Manger/Lobby back as visible empty tabs for every project. Real
+   dish-grouped stations for THIS project already surface via _prepDishes, which is already
+   project-filtered. */
 function getStations(){
-  return ["All", ...Array.from(new Set([...DEFAULT_STATIONS, ...PREP_SHEET_STATIONS, ..._tasks.map(t=>t.station).filter(Boolean)]))];
+  return ["All", ...Array.from(new Set([...DEFAULT_STATIONS, ..._tasks.map(t=>t.station).filter(Boolean), ..._prepDishes.map(d=>d.station).filter(Boolean)]))];
+}
+/* Prep-sheet-style stations actually relevant to the CURRENT project: the trimmed generic
+   defaults (always offered, even before any dish exists yet) plus any dish-grouped station
+   this project actually has real dishes under. Deliberately never the raw PREP_SHEET_STATIONS
+   list directly — that's a global style registry spanning every project/kitchen this session
+   has ever loaded data for, not this project's real content. */
+function projectPrepSheetStations(){
+  return Array.from(new Set([...DEFAULT_STATIONS, ..._prepDishes.map(d=>d.station).filter(Boolean)])).filter(st=>PREP_SHEET_STATIONS.includes(st));
 }
 
 async function renderActiveStationView(){
@@ -10345,7 +10467,7 @@ async function renderActiveStationView(){
 function getActivePrepItemsAllStations(){
   loadHiddenStationTiles();
   const items = [];
-  PREP_SHEET_STATIONS.filter(st=>!isStationTileHidden(st)).forEach(st=>{
+  projectPrepSheetStations().filter(st=>!isStationTileHidden(st)).forEach(st=>{
     const dishesForStation = _prepDishes.filter(d=> d.station === st && !d.hidden && !d.deleted);
     const dishById = {};
     dishesForStation.forEach(d=> dishById[d.id] = d);
@@ -10368,7 +10490,7 @@ function renderAllStationsView(){
   loadHiddenStationTiles();
   const stripEl = document.createElement('div');
   stripEl.className = 'all-station-strip';
-  sortStationsByRemainingTime(PREP_SHEET_STATIONS.filter(st=>!isStationTileHidden(st))).forEach(st=>{
+  sortStationsByRemainingTime(projectPrepSheetStations().filter(st=>!isStationTileHidden(st))).forEach(st=>{
     const remaining = getStationRemainingMinutes(st) || 0;
     const row = document.createElement('button');
     row.className = 'all-station-strip-row';
@@ -10416,6 +10538,7 @@ async function ensureStationTasksExist(station){
   if(missing.length === 0) return;
   const rows = missing.map(r=>({
     kitchen_id: currentKitchenId,
+    project_id: currentProjectId,
     created_by: currentUser.id,
     station,
     task: r.title,
@@ -10425,7 +10548,7 @@ async function ensureStationTasksExist(station){
     status: 'todo'
   }));
   const { data, error } = await sb.from('tasks').insert(rows).select();
-  if(!error && data) _tasks = _tasks.concat(data);
+  if(!error && data){ _allTasks = _allTasks.concat(data); refreshProjectScopedData(); }
 }
 
 const STATION_ICONS = {
@@ -10572,7 +10695,7 @@ async function saveEditStation(){
   }
   setSyncStatus('saving');
   if(newName !== oldName){
-    const { error } = await sb.from('prep_dishes').update({ station: newName }).eq('station', oldName);
+    const { error } = await sb.from('prep_dishes').update({ station: newName }).eq('station', oldName).eq('project_id', currentProjectId);
     if(error){ statusEl.textContent = 'Could not rename: ' + error.message; setSyncStatus('offline'); return; }
     await sb.from('station_icons').delete().eq('station', oldName);
   }
@@ -10755,7 +10878,7 @@ function getSectionCounts(station){
   if(station === 'All'){
     loadHiddenStationTiles();
     const counts = { todo:0, check:0, finish:0, dontdo:0, total:0 };
-    PREP_SHEET_STATIONS.filter(st=>!isStationTileHidden(st)).forEach(st=>{
+    projectPrepSheetStations().filter(st=>!isStationTileHidden(st)).forEach(st=>{
       const c = getSectionCounts(st);
       counts.todo += c.todo; counts.check += c.check; counts.finish += c.finish; counts.dontdo += c.dontdo; counts.total += c.total;
     });
@@ -10782,7 +10905,7 @@ const STATION_OVERLOAD_MINUTES = 210; // 3.5 hours
 function getStationRemainingMinutes(station){
   if(station === 'All'){
     loadHiddenStationTiles();
-    return PREP_SHEET_STATIONS.filter(st=>!isStationTileHidden(st)).reduce((sum,st)=> sum + (getStationRemainingMinutes(st) || 0), 0);
+    return projectPrepSheetStations().filter(st=>!isStationTileHidden(st)).reduce((sum,st)=> sum + (getStationRemainingMinutes(st) || 0), 0);
   }
   if(!PREP_SHEET_STATIONS.includes(station)) return null;
   const dishIds = new Set(_prepDishes.filter(d=>d.station===station && !d.hidden && !d.deleted).map(d=>d.id));
@@ -11246,7 +11369,7 @@ async function toggleDishVisibilityWhole(){
 async function hideStation(station){
   if(!confirm(`Hide the entire "${station}" section? You can bring it back with "Show hidden" inside it.`)) return;
   setSyncStatus('saving');
-  const { error } = await sb.from('prep_dishes').update({ hidden: true }).eq('station', station);
+  const { error } = await sb.from('prep_dishes').update({ hidden: true }).eq('station', station).eq('project_id', currentProjectId);
   if(error){ alert('Could not hide: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
   await loadAppData();
@@ -11330,7 +11453,7 @@ async function restorePrepDish(id){
 async function deleteStation(station){
   if(!confirm(`Delete the entire "${station}" section — every dish and item in it? You can restore it afterwards from "N deleted".`)) return;
   setSyncStatus('saving');
-  const { data, error } = await sb.from('prep_dishes').update({ deleted: true }).eq('station', station).select();
+  const { data, error } = await sb.from('prep_dishes').update({ deleted: true }).eq('station', station).eq('project_id', currentProjectId).select();
   if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
   if(!data || !data.length){
     logClientError('deleteStation: update matched 0 rows for station ' + station);
@@ -11555,8 +11678,12 @@ const PREP_ITEM_SYNCED_FIELDS = ['status', 'on_hand', 'priority', 'notes'];
 async function syncPrepItemAcrossKitchen(sourceItem, field, value){
   if(!PREP_ITEM_SYNCED_FIELDS.includes(field) || !sourceItem.name) return;
   const normName = sourceItem.name.trim().toLowerCase();
+  // prep_items has no project_id of its own — gated here via dish_id membership in the
+  // CURRENT project's _prepDishes (already project-filtered), so this only syncs within one
+  // project despite the function's kitchen-wide-sounding name (pre-dates projects existing).
+  const currentProjectDishIds = new Set(_prepDishes.map(d=>d.id));
   const matches = _prepItems.filter(i=>
-    i.id !== sourceItem.id && !i.deleted && i.name && i.name.trim().toLowerCase() === normName
+    i.id !== sourceItem.id && !i.deleted && i.name && i.name.trim().toLowerCase() === normName && currentProjectDishIds.has(i.dish_id)
   );
   if(matches.length === 0) return;
   matches.forEach(i=>{ i[field] = value; });
@@ -12141,7 +12268,7 @@ async function saveTaskForm(){
   if(taskEditingId){
     ({ error } = await sb.from('tasks').update(payload).eq('id', taskEditingId));
   } else {
-    ({ error } = await sb.from('tasks').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id }));
+    ({ error } = await sb.from('tasks').insert({ ...payload, kitchen_id: currentKitchenId, project_id: currentProjectId, created_by: currentUser.id }));
   }
   if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
@@ -14974,7 +15101,7 @@ async function savePrepSheetScanResults(){
 
   for(const dish of dishesToSave){
     const { data: dishRow, error: dishError } = await sb.from('prep_dishes').insert({
-      kitchen_id: currentKitchenId, station, name: dish.name, price: dish.price ?? null, sort_order: nextSort++
+      kitchen_id: currentKitchenId, project_id: currentProjectId, station, name: dish.name, price: dish.price ?? null, sort_order: nextSort++
     }).select().single();
     if(dishError){ statusEl.textContent = 'Could not save: ' + dishError.message; return; }
     const itemRows = (dish.items || []).map((name, i)=>({
@@ -15084,7 +15211,7 @@ async function savePrepDishForm(){
   const nextSort = existingForStation.length ? Math.max(...existingForStation.map(d=>d.sort_order)) + 1 : 0;
 
   const { data: dishRow, error: dishError } = await sb.from('prep_dishes').insert({
-    kitchen_id: currentKitchenId, station, name, price: (price != null && !isNaN(price)) ? price : null, sort_order: nextSort
+    kitchen_id: currentKitchenId, project_id: currentProjectId, station, name, price: (price != null && !isNaN(price)) ? price : null, sort_order: nextSort
   }).select().single();
   if(dishError){ statusEl.textContent = 'Could not save: ' + dishError.message; return; }
 
@@ -15257,6 +15384,7 @@ async function saveQuickList(){
 
   const rows = lines.map(task=>({
     kitchen_id: currentKitchenId,
+    project_id: currentProjectId,
     created_by: currentUser.id,
     station,
     task,
