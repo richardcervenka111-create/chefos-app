@@ -1860,12 +1860,80 @@
 
 <div id="adminRequestsView" style="display:none;">
   <div class="detail-bar no-print">
-    <button class="back-btn" onclick="showHome()">
+    <button class="back-btn" onclick="showAdmin()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-      Home
+      Admin
     </button>
   </div>
   <div class="detail-content" id="adminRequestsContent"></div>
+</div>
+
+<!-- Admin hub (bod 1, 16.7.) — Home-styled tile grid, same pattern as HACCP/Settings/Connections. -->
+<div id="adminView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Admin</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">🛡️ Admin</h1>
+  </div>
+  <div class="home-grid" id="adminGrid"></div>
+</div>
+
+<!-- Add Admin — the two presets. -->
+<div id="addAdminOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAddAdmin()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">➕ Add Admin</div>
+    <p class="sheet-text">Search someone already in ChefOS by email or name, then choose their level.</p>
+    <input class="form-field" id="addAdminSearch" type="text" placeholder="Email or name…" oninput="searchAddAdminCandidates()">
+    <div id="addAdminResults" style="margin-top:8px;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAddAdmin()">Cancel</button>
+  </div>
+</div>
+
+<!-- Choose Kitchen Admin vs Head Admin for whoever was picked/searched. -->
+<div id="addAdminLevelOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAddAdminLevel()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">➕ Add Admin — <span id="addAdminLevelName"></span></div>
+    <button class="sheet-option" onclick="grantKitchenAdminPreset()">
+      <div><div class="sheet-option-title">1. Kitchen Admin</div><div class="sheet-option-sub">Manage their own kitchen's team &amp; invites, Language Audit. Stays an ordinary profile — no Admin badge, no super-admin reach.</div></div>
+    </button>
+    <button class="sheet-option" onclick="grantHeadAdminPreset()">
+      <div><div class="sheet-option-title">2. Head Admin</div><div class="sheet-option-sub">Full super-admin — everything Richard has, including granting admin to others. Use sparingly.</div></div>
+    </button>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeAddAdminLevel()">Cancel</button>
+  </div>
+</div>
+
+<!-- Admin Directory — search everyone, edit permissions per person. -->
+<div id="adminDirectoryView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="showAdmin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Admin
+    </button>
+  </div>
+  <div class="detail-content">
+    <h2 class="recipe-title display">📋 Admin Directory</h2>
+    <p class="recipe-meta">Every ChefOS profile. Tap Edit to change one person's admin permissions.</p>
+    <input class="form-field" id="adminDirectorySearch" type="text" placeholder="Search by email or name…" style="margin-top:12px;" oninput="renderAdminDirectory()">
+    <div id="adminDirectoryList" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- Edit one person's admin_perms + is_admin. -->
+<div id="editAdminPermsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeEditAdminPerms()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Edit — <span id="editAdminPermsName"></span></div>
+    <div id="editAdminPermsList"></div>
+    <div class="form-status" id="editAdminPermsStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeEditAdminPerms()">Close</button>
+  </div>
 </div>
 
 <div id="workingTimeView" style="display:none;">
@@ -5487,6 +5555,13 @@ async function setKitchenCurrency(code){
   if(ingEl && ingEl.style.display !== 'none' && typeof renderIngredientList === 'function') renderIngredientList();
 }
 let currentIsAdmin = false;
+/* Granular admin permissions (bod 1, 16.7. — db/85). is_admin (the super-admin, Richard only)
+   always passes every check; admin_perms is a per-person, kitchen-scoped, delegable jsonb bag
+   of specific capabilities granted via the Admin hub's "Kitchen Admin" flow. A kitchen admin
+   is deliberately NOT is_admin and gets no "Admin" badge anywhere — see ADMIN_PERM_DEFS below
+   for the exact keys and what each one unlocks. */
+let currentAdminPerms = {};
+function hasAdminPerm(key){ return currentIsAdmin || !!currentAdminPerms[key]; }
 let currentUserName = '';
 
 /* ============================================================
@@ -5873,15 +5948,16 @@ async function startApp(){
   if(!user) return;
   currentUser = user;
 
-  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, full_name').eq('id', currentUser.id).single();
+  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name').eq('id', currentUser.id).single();
   if(!profile){
     // The profile row is created by a database trigger right as the account is created —
     // on a brand new signup the client can ask before that trigger has finished. One retry.
     await new Promise(res=>setTimeout(res, 800));
-    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, full_name').eq('id', currentUser.id).single());
+    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name').eq('id', currentUser.id).single());
   }
   currentKitchenId = profile ? profile.kitchen_id : null;
   currentIsAdmin = !!(profile && profile.is_admin);
+  currentAdminPerms = (profile && profile.admin_perms) || {};
   currentUserName = (profile && profile.full_name) || currentUser.email || 'Unknown';
 
   document.getElementById('loginView').style.display = 'none';
@@ -7425,7 +7501,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -7454,7 +7530,10 @@ const HOME_TILE_DEFS = [
      untouched underneath, just reached from here now instead of directly from Home. */
   { key:'connections', icon:'🔗', staticLabel:'Connections', onclick:'showConnections()' },
   { key:'printLabels', icon:'🏷️', staticLabel:'Print Labels', onclick:'showPrintLabels()', badgeId:'printLabelsBadge' },
-  { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdminRequests()', adminOnly:true, badgeId:'adminPendingBadge' },
+  /* Admin (bod 1, 16.7.) — rebuilt into a Home-styled hub. Visible to the super-admin AND to
+     anyone granted a platform-level admin_perm (approve_access / view_email_contacts) — the
+     hub itself filters which of its 4 tiles each visitor actually sees. */
+  { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdmin()', adminOnly:()=> currentIsAdmin || hasAdminPerm('approve_access') || hasAdminPerm('view_email_contacts'), badgeId:'adminPendingBadge' },
   /* Currency — moved from a big Home tile to a small topbar icon (2026-07-15, Richard's
      request) — see #currencyIconBtn in the homeView topbar, shown/hidden alongside this same
      currentIsAdmin check inside renderHomeGrid(). Not a Home tile anymore on purpose. */
@@ -7479,7 +7558,10 @@ function renderHomeGrid(){
   wrap.innerHTML = getHomeTileOrder().map(key=>{
     const tile = byKey[key];
     if(!tile) return '';
-    if(tile.adminOnly && !currentIsAdmin) return '';
+    if(tile.adminOnly){
+      const allowed = typeof tile.adminOnly === 'function' ? tile.adminOnly() : currentIsAdmin;
+      if(!allowed) return '';
+    }
     const badge = tile.badgeId ? `<span class="station-tile-stat" id="${tile.badgeId}"></span>` : '';
     return `
       <button class="home-tile" onclick="${tile.onclick}">
@@ -7490,7 +7572,7 @@ function renderHomeGrid(){
     `;
   }).join('');
   refreshPrintLabelsBadge();
-  if(currentIsAdmin) refreshAdminPendingBadge();
+  if(hasAdminPerm('approve_access')) refreshAdminPendingBadge();
   const currencyBtn = document.getElementById('currencyIconBtn');
   if(currencyBtn) currencyBtn.style.display = currentIsAdmin ? 'flex' : 'none';
 }
@@ -7541,7 +7623,6 @@ const SETTINGS_TILE_DEFS = [
   { key:'scanSettings', icon:'🔑', staticLabel:'AI & Scan Settings', onclick:'openScanSettings()' },
   { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
-  { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:true },
   { key:'reorderHome', icon:'↕️', staticLabel:'Reorder Home Icons', onclick:'openHomeReorder()' },
   { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
   { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
@@ -7613,6 +7694,213 @@ function copyAllEmailContacts(){
   });
 }
 
+/* ============================================================
+   Admin hub (bod 1, 16.7.) — Home-styled tile grid backed by db/85 (admin_perms jsonb +
+   profiles.email) and db/86 (RLS). Two admin levels: Kitchen Admin (admin_perms only — stays
+   an ordinary profile, no "Admin" badge anywhere, see hasAdminPerm() near the top of the file)
+   and Head Admin (is_admin — full super-admin reach, server-guarded by guard_is_admin_changes()
+   so only the current super-admin can ever grant it, same as granting it here relies on).
+   ============================================================ */
+const ADMIN_PERM_DEFS = [
+  { key:'manage_invites', label:'Manage Invites', desc:"Create & revoke their kitchen's invite links/QR" },
+  { key:'manage_team', label:'Manage Team', desc:'Remove team members from their kitchen' },
+  { key:'language_audit', label:'Language Audit', desc:'Run Check List name rewrites for their kitchen' },
+  { key:'view_email_contacts', label:'Email Contacts', desc:'View the Email Contacts directory' },
+  { key:'approve_access', label:'Approve Access', desc:'Approve/deny new ChefOS access requests — platform-wide, grant with care' },
+];
+const ADMIN_TILE_DEFS = [
+  { key:'addAdmin', icon:'➕', staticLabel:'Add Admin', onclick:'openAddAdmin()', adminOnly:()=>currentIsAdmin },
+  { key:'adminDirectory', icon:'📋', staticLabel:'Admin Directory', onclick:'showAdminDirectory()', adminOnly:()=>currentIsAdmin },
+  { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
+  { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
+];
+function showAdmin(){
+  logEvent('view_opened', {view:'admin_hub'});
+  hideAllViews();
+  document.getElementById('adminView').style.display = 'block';
+  renderAdminGrid();
+  window.scrollTo(0,0);
+}
+function renderAdminGrid(){
+  const wrap = document.getElementById('adminGrid');
+  if(!wrap) return;
+  wrap.innerHTML = ADMIN_TILE_DEFS.filter(t=>!t.adminOnly || t.adminOnly()).map(tile=>`
+    <button class="home-tile" onclick="${tile.onclick}">
+      <span class="home-tile-icon">${tile.icon}</span>
+      <span class="home-tile-label">${tile.staticLabel}</span>
+    </button>
+  `).join('');
+}
+
+/* ---------- Add Admin: search an existing profile, then pick Kitchen Admin or Head Admin ----------
+   Results/candidate are kept in memory and referenced by id from onclick handlers (never inlined
+   as JSON into HTML attributes — same id-lookup pattern used everywhere else in this file, e.g.
+   openAddPrepItem('${dish.id}')), so a stray quote in someone's name can't break the markup. */
+let _addAdminResults = [];
+let _addAdminCandidate = null;
+function openAddAdmin(){
+  document.getElementById('addAdminSearch').value = '';
+  document.getElementById('addAdminResults').innerHTML = '';
+  _addAdminResults = [];
+  document.getElementById('addAdminOverlay').classList.add('open');
+}
+function closeAddAdmin(){ document.getElementById('addAdminOverlay').classList.remove('open'); }
+let _addAdminSearchToken = 0;
+async function searchAddAdminCandidates(){
+  const q = document.getElementById('addAdminSearch').value.trim();
+  const el = document.getElementById('addAdminResults');
+  if(q.length < 2){ el.innerHTML = ''; _addAdminResults = []; return; }
+  const myToken = ++_addAdminSearchToken;
+  el.innerHTML = '<p class="lede">Searching…</p>';
+  const { data, error } = await sb.from('profiles')
+    .select('id, email, full_name, is_admin, admin_perms')
+    .or(`email.ilike.%${q}%,full_name.ilike.%${q}%`)
+    .limit(15);
+  if(myToken !== _addAdminSearchToken) return;
+  if(error){ el.innerHTML = `<p class="lede">Could not search: ${error.message}</p>`; return; }
+  _addAdminResults = data || [];
+  if(!_addAdminResults.length){ el.innerHTML = '<div class="empty-state">No one found.</div>'; return; }
+  el.innerHTML = _addAdminResults.map(p=>{
+    const tag = p.is_admin ? ' · already Head Admin' : (Object.values(p.admin_perms||{}).some(Boolean) ? ' · already Kitchen Admin' : '');
+    return `
+    <button class="sheet-option" onclick="openAddAdminLevel('${p.id}')">
+      <div><div class="sheet-option-title">${(p.full_name||p.email||'Unknown').replace(/</g,'&lt;')}${tag}</div><div class="sheet-option-sub">${(p.email||'').replace(/</g,'&lt;')}</div></div>
+    </button>
+  `;}).join('');
+}
+function openAddAdminLevel(candidateId){
+  _addAdminCandidate = _addAdminResults.find(p=>p.id===candidateId) || null;
+  if(!_addAdminCandidate) return;
+  document.getElementById('addAdminLevelName').textContent = _addAdminCandidate.full_name || _addAdminCandidate.email || 'Unknown';
+  closeAddAdmin();
+  document.getElementById('addAdminLevelOverlay').classList.add('open');
+}
+function closeAddAdminLevel(){
+  document.getElementById('addAdminLevelOverlay').classList.remove('open');
+  _addAdminCandidate = null;
+}
+async function grantKitchenAdminPreset(){
+  if(!_addAdminCandidate) return;
+  const perms = { manage_invites:true, manage_team:true, language_audit:true };
+  const { error } = await sb.from('profiles').update({ admin_perms: perms }).eq('id', _addAdminCandidate.id);
+  if(error){ alert('Could not save: ' + error.message); return; }
+  const name = _addAdminCandidate.full_name || _addAdminCandidate.email;
+  closeAddAdminLevel();
+  alert(`${name} is now a Kitchen Admin.`);
+}
+async function grantHeadAdminPreset(){
+  if(!_addAdminCandidate) return;
+  const name = _addAdminCandidate.full_name || _addAdminCandidate.email;
+  if(!confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
+  const { error } = await sb.from('profiles').update({ is_admin: true }).eq('id', _addAdminCandidate.id);
+  if(error){ alert('Could not save: ' + error.message); return; }
+  closeAddAdminLevel();
+  alert(`${name} is now a Head Admin.`);
+}
+
+/* ---------- Admin Directory: search everyone, edit permissions per person ---------- */
+let _adminDirectoryRows = [];
+async function showAdminDirectory(){
+  logEvent('view_opened', {view:'admin_directory'});
+  hideAllViews();
+  document.getElementById('adminDirectoryView').style.display = 'block';
+  document.getElementById('adminDirectorySearch').value = '';
+  document.getElementById('adminDirectoryList').innerHTML = '<p class="lede">Loading…</p>';
+  window.scrollTo(0,0);
+  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms').order('email');
+  if(error){ document.getElementById('adminDirectoryList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  _adminDirectoryRows = data || [];
+  renderAdminDirectory();
+}
+function renderAdminDirectory(){
+  const el = document.getElementById('adminDirectoryList');
+  if(!el) return;
+  const q = (document.getElementById('adminDirectorySearch').value || '').trim().toLowerCase();
+  const rows = q ? _adminDirectoryRows.filter(p=>(p.email||'').toLowerCase().includes(q) || (p.full_name||'').toLowerCase().includes(q)) : _adminDirectoryRows;
+  if(!rows.length){ el.innerHTML = '<div class="empty-state">No one matches.</div>'; return; }
+  el.innerHTML = rows.map(p=>{
+    const activePerms = ADMIN_PERM_DEFS.filter(d=>!!(p.admin_perms||{})[d.key]).map(d=>d.label);
+    const tag = p.is_admin ? 'Head Admin' : (activePerms.length ? `Kitchen Admin (${activePerms.join(', ')})` : '—');
+    return `
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(p.full_name||p.email||'Unknown').replace(/</g,'&lt;')}</div>
+          <div class="meta">${(p.email||'').replace(/</g,'&lt;')} · ${tag}</div>
+        </div>
+        <button class="task-status-btn" onclick="openEditAdminPerms('${p.id}')">Edit</button>
+      </div>
+    </div>
+  `;}).join('');
+}
+
+/* ---------- Edit one person's admin_perms + is_admin (on/off per Richard's wording — each
+   toggle saves itself immediately, no separate Save button). ---------- */
+let _editAdminPermsTarget = null;
+function openEditAdminPerms(userId){
+  _editAdminPermsTarget = _adminDirectoryRows.find(p=>p.id===userId) || null;
+  if(!_editAdminPermsTarget) return;
+  document.getElementById('editAdminPermsName').textContent = _editAdminPermsTarget.full_name || _editAdminPermsTarget.email || 'Unknown';
+  document.getElementById('editAdminPermsStatus').textContent = '';
+  renderEditAdminPermsList();
+  document.getElementById('editAdminPermsOverlay').classList.add('open');
+}
+function closeEditAdminPerms(){
+  document.getElementById('editAdminPermsOverlay').classList.remove('open');
+  _editAdminPermsTarget = null;
+}
+function renderEditAdminPermsList(){
+  const el = document.getElementById('editAdminPermsList');
+  const p = _editAdminPermsTarget;
+  if(!p || !el){ if(el) el.innerHTML = ''; return; }
+  const permsHtml = ADMIN_PERM_DEFS.map(d=>{
+    const on = !!(p.admin_perms||{})[d.key];
+    return `
+    <div class="chip${on?' active':''}" style="width:100%; text-align:left; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleAdminPerm('${d.key}')">
+      <span><strong>${d.label}</strong><br><span style="font-weight:400; font-size:12px;">${d.desc}</span></span>
+      <span>${on?'ON':'OFF'}</span>
+    </div>
+  `;}).join('');
+  const headAdminOn = !!p.is_admin;
+  el.innerHTML = permsHtml + `
+    <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">Super-admin</div>
+    <div class="chip${headAdminOn?' active':''}" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleHeadAdmin()">
+      <span><strong>Head Admin</strong><br><span style="font-weight:400; font-size:12px;">Full super-admin — everything Richard has. Use sparingly.</span></span>
+      <span>${headAdminOn?'ON':'OFF'}</span>
+    </div>
+  `;
+}
+async function toggleAdminPerm(key){
+  const p = _editAdminPermsTarget;
+  if(!p) return;
+  const statusEl = document.getElementById('editAdminPermsStatus');
+  const nextPerms = { ...(p.admin_perms||{}) };
+  nextPerms[key] = !nextPerms[key];
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('profiles').update({ admin_perms: nextPerms }).eq('id', p.id);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  p.admin_perms = nextPerms;
+  statusEl.textContent = 'Saved.';
+  renderEditAdminPermsList();
+  renderAdminDirectory();
+}
+async function toggleHeadAdmin(){
+  const p = _editAdminPermsTarget;
+  if(!p) return;
+  const next = !p.is_admin;
+  const name = p.full_name || p.email;
+  if(next && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
+  if(!next && !confirm(`Remove Head Admin from ${name}?`)) return;
+  const statusEl = document.getElementById('editAdminPermsStatus');
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('profiles').update({ is_admin: next }).eq('id', p.id);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  p.is_admin = next;
+  statusEl.textContent = 'Saved.';
+  renderEditAdminPermsList();
+  renderAdminDirectory();
+}
+
 /* Sign out (bod 2, 15.7.) — there was no way to actually leave a shared kitchen device before
    this; sessionStorage already ends the session on browser close, but someone handing a tablet
    to the next shift needs to do it NOW, not just eventually. Clears the Supabase session, resets
@@ -7620,7 +7908,7 @@ function copyAllEmailContacts(){
 async function confirmSignOut(){
   if(!confirm('Sign out of ChefOS on this device?')) return;
   await sb.auth.signOut();
-  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentUserName = '';
+  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentUserName = '';
   if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   hideAllViews();
   document.getElementById('loginStep1').style.display = 'block';
