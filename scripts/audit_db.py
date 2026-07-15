@@ -55,6 +55,7 @@ NO_TENANT_OK = {
     'profile_private',             # per-user sensitive columns (db/69 draft), keyed by user id
     'email_contacts',              # ChefOS-operator outreach list, not per-kitchen data
     'chef_connections',            # person-to-person, not kitchen-to-kitchen (db/84)
+    'app_config',                  # single-row global app setting (coming-soon wall), not tenant data at all (db/96)
 }
 
 # Tables allowed to skip RLS entirely (none today — keep empty on purpose).

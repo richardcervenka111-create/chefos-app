@@ -1423,6 +1423,20 @@
   </div>
 </div>
 
+<!-- "Coming soon" wall (bod 5, 16.7.) — shown ONLY to someone with zero invitation context:
+     no invite/join/friend link or QR in the URL, AND no existing session on this device.
+     Anyone with a real link/QR, or who has ever signed in here before, never sees this — the
+     normal login form and the existing access-request approval gate underneath are completely
+     unchanged for them. Deliberately scoped narrower than a full app kill-switch. -->
+<div id="comingSoonView" style="display:none;">
+  <div class="box">
+    <div class="login-mark">👨‍🍳</div>
+    <p class="kicker">Kitchen Notebook</p>
+    <h1 class="title display">ChefOS</h1>
+    <p class="lede" style="margin-top:14px;">We're launching soon — get in touch with whoever's already using ChefOS at your kitchen for an invite, or check back shortly.</p>
+  </div>
+</div>
+
 <div id="homeView" style="display:none;">
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -1442,10 +1456,6 @@
         </button>
         <button class="icon-btn" onclick="openCurrencySettings()" title="Currency" id="currencyIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10h11l-3-3"/><path d="M17 14H6l3 3"/></svg>
-        </button>
-        <!-- Custom Ingredients (bod 2, 16.7.) — admin-only, same visibility rule as Currency. -->
-        <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
         </button>
         <span class="sync-status saved" id="homeSyncStatus"></span>
       </div>
@@ -1481,13 +1491,28 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Settings</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openSettingsReorder()" title="Reorder icons">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">⚙️ Settings</h1>
   </div>
   <div class="home-grid" id="settingsGrid"></div>
+</div>
+
+<!-- Reorder Settings icons (bod, 16.7.) — same up/down mechanism as Home's reorder, device-local. -->
+<div id="settingsReorderOverlay" class="sheet-overlay" onclick="if(event.target===this) closeSettingsReorder()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Reorder Settings Icons</div>
+    <div id="settingsReorderList"></div>
+    <button class="sheet-cancel" onclick="closeSettingsReorder()">Done</button>
+  </div>
 </div>
 
 <div id="languagePickerOverlay" class="sheet-overlay" onclick="if(event.target===this) closeLanguagePicker()">
@@ -1932,6 +1957,9 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
       Admin
     </button>
+    <button class="icon-btn" onclick="renderAdminRequests()" title="Refresh" style="margin-left:auto;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    </button>
   </div>
   <div class="detail-content" id="adminRequestsContent"></div>
 </div>
@@ -2157,6 +2185,11 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span style="font-size:13px; font-weight:600;">Search &amp; Filter</span>
           <span id="ingredientFiltersActiveDot" style="display:none; width:8px; height:8px; border-radius:50%; background:var(--copper); flex:none;"></span>
+        </button>
+        <!-- Custom Ingredients (bod 2, 16.7. — moved here from Home per Richard's request:
+             belongs with Ingredients, not on the main menu). Admin-only. -->
+        <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
         </button>
         <span class="sync-status saved" id="ingSyncStatus"></span>
       </div>
@@ -7163,7 +7196,25 @@ async function reviewAccessRequest(id, status){
   await detectFaceIdAvailability();
   renderLoginFaceIdBlock();
   const { data: { session } } = await sb.auth.getSession();
-  if(session) await startApp();
+  if(session){ await startApp(); return; }
+  // Coming soon wall (bod 5, 16.7. — db/96) — only for someone with zero invitation context
+  // AND no prior session on this device. A real invite/QR link or an already-known browser
+  // always skips straight past this to the normal login form + existing access-request gate.
+  // Controlled by app_config.coming_soon_enabled — flip it off directly in SQL to turn this
+  // off app-wide with no redeploy, e.g. once the public trial actually opens.
+  const params = new URLSearchParams(location.search);
+  const hasInviteContext = params.get('invite') || params.get('join') || params.get('friend');
+  if(!hasInviteContext){
+    // Fails OPEN on purpose, same rule as every other gate in this file (hasAcceptedConfidentiality
+    // etc.) — if db/96 hasn't run yet, or the query errors for any reason, the wall must NEVER
+    // show; that would lock out the entire pilot kitchen, not just randoms. Only an explicit,
+    // successfully-fetched `true` ever shows it.
+    const { data: config, error: configError } = await sb.from('app_config').select('coming_soon_enabled').eq('id', 1).maybeSingle();
+    if(!configError && config && config.coming_soon_enabled){
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('comingSoonView').style.display = 'block';
+    }
+  }
 })();
 
 /* ============================================================
@@ -8012,8 +8063,6 @@ function renderHomeGrid(){
   if(hasAdminPerm('approve_access')) refreshAdminPendingBadge();
   const currencyBtn = document.getElementById('currencyIconBtn');
   if(currencyBtn) currencyBtn.style.display = currentIsAdmin ? 'flex' : 'none';
-  const customIngredientsBtn = document.getElementById('customIngredientsIconBtn');
-  if(customIngredientsBtn) customIngredientsBtn.style.display = currentIsAdmin ? 'flex' : 'none';
 }
 
 /* ============================================================
@@ -8062,7 +8111,7 @@ const SETTINGS_TILE_DEFS = [
   { key:'scanSettings', icon:'🔑', staticLabel:'AI & Scan Settings', onclick:'openScanSettings()' },
   { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
-  { key:'accountType', icon:'📖', staticLabel:'Account Type', onclick:'openAccountTypeSettings()' },
+  { key:'accountType', icon:'📖', staticLabel:'Account Type', onclick:'openAccountTypeSettings()', dynamicLabel:()=> 'Account Type: ' + (currentAccountType==='company' ? 'Company' : currentAccountType==='personal' ? 'Personal' : 'Not set') },
   { key:'reorderHome', icon:'↕️', staticLabel:'Reorder Home Icons', onclick:'openHomeReorder()' },
   { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
   { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
@@ -8070,18 +8119,76 @@ const SETTINGS_TILE_DEFS = [
   { key:'legal', icon:'🔒', staticLabel:'Privacy & Terms', onclick:"window.open('legal.html','_blank')" },
   { key:'signOut', icon:'🚪', staticLabel:'Sign Out', onclick:'confirmSignOut()' },
 ];
+function getSettingsTileOrder(){
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem('chefos_settings_tile_order') || 'null'); }catch(e){ saved = null; }
+  const allKeys = SETTINGS_TILE_DEFS.map(x=>x.key);
+  if(!saved || !Array.isArray(saved)) return allKeys;
+  const filtered = saved.filter(k=>allKeys.includes(k));
+  allKeys.forEach(k=>{ if(!filtered.includes(k)) filtered.push(k); });
+  return filtered;
+}
+function saveSettingsTileOrder(order){
+  localStorage.setItem('chefos_settings_tile_order', JSON.stringify(order));
+}
+function renderSettingsGrid(){
+  const wrap = document.getElementById('settingsGrid');
+  if(!wrap) return;
+  const byKey = {}; SETTINGS_TILE_DEFS.forEach(x=>{ byKey[x.key] = x; });
+  wrap.innerHTML = getSettingsTileOrder().map(key=>byKey[key]).filter(tile=>tile && (!tile.adminOnly || currentIsAdmin)).map(tile => `
+    <button class="home-tile" onclick="${tile.onclick.replace(/"/g,'&quot;')}">
+      <span class="home-tile-icon">${tile.icon}</span>
+      <span class="home-tile-label">${tile.dynamicLabel ? tile.dynamicLabel() : tile.staticLabel}</span>
+    </button>
+  `).join('');
+}
 function showSettings(){
   logEvent('view_opened', {view:'settings'});
   hideAllViews();
   document.getElementById('settingsView').style.display = 'block';
-  const wrap = document.getElementById('settingsGrid');
-  wrap.innerHTML = SETTINGS_TILE_DEFS.filter(t=>!t.adminOnly || currentIsAdmin).map(tile => `
-    <button class="home-tile" onclick="${tile.onclick.replace(/"/g,'&quot;')}">
-      <span class="home-tile-icon">${tile.icon}</span>
-      <span class="home-tile-label">${tile.staticLabel}</span>
-    </button>
-  `).join('');
+  renderSettingsGrid();
   window.scrollTo(0,0);
+}
+let _settingsReorderList = [];
+function openSettingsReorder(){
+  _settingsReorderList = getSettingsTileOrder().filter(key=>{
+    const tile = SETTINGS_TILE_DEFS.find(x=>x.key===key);
+    return tile && (!tile.adminOnly || currentIsAdmin);
+  });
+  renderSettingsReorderList();
+  document.getElementById('settingsReorderOverlay').classList.add('open');
+}
+function closeSettingsReorder(){
+  document.getElementById('settingsReorderOverlay').classList.remove('open');
+}
+function renderSettingsReorderList(){
+  const el = document.getElementById('settingsReorderList');
+  const byKey = {}; SETTINGS_TILE_DEFS.forEach(x=>{ byKey[x.key] = x; });
+  el.innerHTML = _settingsReorderList.map((key,i)=>{
+    const tile = byKey[key];
+    return `
+      <div class="wt-settings-row">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:22px;">${tile.icon}</span>
+          <span>${tile.staticLabel}</span>
+        </div>
+        <div style="display:flex; gap:4px;">
+          <button class="task-status-btn" ${i===0?'disabled':''} onclick="moveSettingsTile(${i},-1)">▲</button>
+          <button class="task-status-btn" ${i===_settingsReorderList.length-1?'disabled':''} onclick="moveSettingsTile(${i},1)">▼</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function moveSettingsTile(index, delta){
+  const newIndex = index + delta;
+  if(newIndex < 0 || newIndex >= _settingsReorderList.length) return;
+  const tmp = _settingsReorderList[index];
+  _settingsReorderList[index] = _settingsReorderList[newIndex];
+  _settingsReorderList[newIndex] = tmp;
+  saveSettingsTileOrder(_settingsReorderList);
+  renderSettingsReorderList();
+  renderSettingsGrid();
 }
 const LANGUAGE_OPTIONS = [
   { code:'en', label:'English' }, { code:'de', label:'Deutsch' }, { code:'fr', label:'Français' },
@@ -9884,6 +9991,8 @@ function showIngredients(){
   renderIngredientPriceRangeLabel();
   renderIngredientList();
   refreshIngredientFiltersActiveDot();
+  const customIngredientsBtn = document.getElementById('customIngredientsIconBtn');
+  if(customIngredientsBtn) customIngredientsBtn.style.display = currentIsAdmin ? 'flex' : 'none';
   window.scrollTo(0,0);
 }
 function openIngredientFilters(){
