@@ -219,6 +219,27 @@
 
   footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:44px 0 20px 0; }
   footer.foot a{ color:var(--ink-faint); text-decoration:underline; }
+
+  /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
+     carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
+  .chefos-stamp{
+    position:fixed; bottom:14px; right:14px; z-index:90;
+    background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
+    font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
+    padding:6px 12px; border-radius:999px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
+  }
+  .chefos-lang-fab{
+    position:fixed; bottom:14px; left:14px; z-index:90;
+    background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    padding:7px 14px; border-radius:999px; cursor:pointer;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    transition:border-color .15s, color .15s;
+  }
+  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -226,75 +247,75 @@
 
   <header class="hero">
     <div class="hero-inner">
-      <div class="kicker">ChefOS — Swiss Market Overview</div>
+      <div class="kicker" data-sk="ChefOS — Prehľad švajčiarskeho trhu" data-en="ChefOS — Swiss Market Overview">ChefOS — Prehľad švajčiarskeho trhu</div>
       <h1 class="title">Chef<b>OS</b></h1>
-      <p class="lede">An operating system for professional kitchens, built for the Swiss hospitality market. Go-to-market is deliberately narrow: prove it in canton Bern first, then expand — not a global launch plan. Built solo, in production, validated against a real pilot kitchen (Burrito Bandito &amp; Lido).</p>
-      <div class="status-pill" id="statusPill">Live in production · Canton Bern pilot</div>
+      <p class="lede" data-sk="Operačný systém pre profesionálne kuchyne, postavený pre švajčiarsky trh pohostinstva. Go-to-market je zámerne úzky: najprv dokázať v kantóne Bern, potom expandovať — nie plán globálneho launchu. Postavené sólo, v produkcii, overované na skutočnej pilotnej kuchyni (Burrito Bandito &amp; Lido)." data-en="An operating system for professional kitchens, built for the Swiss hospitality market. Go-to-market is deliberately narrow: prove it in canton Bern first, then expand — not a global launch plan. Built solo, in production, validated against a real pilot kitchen (Burrito Bandito &amp; Lido)."></p>
+      <div class="status-pill" id="statusPill" data-sk="Naživo v produkcii · pilot v kantóne Bern" data-en="Live in production · Canton Bern pilot">Naživo v produkcii · pilot v kantóne Bern</div>
       <div class="headline-stats" id="headlineStats"></div>
     </div>
   </header>
 
   <nav class="pagenav" id="pageNav">
-    <a href="#product" class="active">Product</a>
-    <a href="#market">Market</a>
-    <a href="#why">Why ChefOS</a>
-    <a href="#roadmap">Roadmap</a>
-    <a href="#financials">Financials</a>
+    <a href="#product" class="active" data-sk="Produkt" data-en="Product">Produkt</a>
+    <a href="#market" data-sk="Trh" data-en="Market">Trh</a>
+    <a href="#why" data-sk="Prečo ChefOS" data-en="Why ChefOS">Prečo ChefOS</a>
+    <a href="#roadmap" data-sk="Roadmapa" data-en="Roadmap">Roadmapa</a>
+    <a href="#financials" data-sk="Financie" data-en="Financials">Financie</a>
   </nav>
 
   <section id="product">
-    <div class="eyebrow">Product</div>
-    <h2 class="section-title">Where we are today</h2>
-    <p class="section-desc">Real counts from the live system, not projections — grouped by what they prove.</p>
+    <div class="eyebrow" data-sk="Produkt" data-en="Product">Produkt</div>
+    <h2 class="section-title" data-sk="Kde sme dnes" data-en="Where we are today">Kde sme dnes</h2>
+    <p class="section-desc" data-sk="Skutočné počty zo živého systému, nie projekcie — zoskupené podľa toho, čo dokazujú." data-en="Real counts from the live system, not projections — grouped by what they prove."></p>
     <div id="kpiGroups"></div>
   </section>
 
   <section id="market">
-    <div class="eyebrow">Market</div>
-    <h2 class="section-title">Switzerland, starting in canton Bern</h2>
-    <p class="section-desc">Deliberately narrow beachhead: prove the model in one canton, on a real pilot kitchen, before expanding — not a "launch everywhere" plan.</p>
+    <div class="eyebrow" data-sk="Trh" data-en="Market">Trh</div>
+    <h2 class="section-title" data-sk="Švajčiarsko, začíname v kantóne Bern" data-en="Switzerland, starting in canton Bern">Švajčiarsko, začíname v kantóne Bern</h2>
+    <p class="section-desc" data-sk="Zámerne úzky predmostie: dokázať model v jednom kantóne, na skutočnej pilotnej kuchyni, až potom expandovať — nie plán &quot;spustiť všade naraz&quot;." data-en="Deliberately narrow beachhead: prove the model in one canton, on a real pilot kitchen, before expanding — not a &quot;launch everywhere&quot; plan."></p>
     <div class="market-row" id="marketGrid"></div>
-    <div class="disclaimer"><b>Canton Bern figure is an estimate</b>, not an official GastroSuisse cantonal count — apportioned from the national ~32,000 figure by canton Bern's ~12% share of Swiss population. Source: GastroSuisse Branchenspiegel 2025.</div>
+    <div class="disclaimer" data-sk='<b>Číslo pre kantón Bern je odhad</b>, nie oficiálny kantonálny údaj GastroSuisse — odvodené z celoštátnych ~32 000 podnikov podľa ~12% podielu kantónu Bern na populácii. Zdroj: GastroSuisse Branchenspiegel 2025.' data-en='<b>Canton Bern figure is an estimate</b>, not an official GastroSuisse cantonal count — apportioned from the national ~32,000 figure by canton Bern&#39;s ~12% share of Swiss population. Source: GastroSuisse Branchenspiegel 2025.'></div>
     <div class="target-callout">
-      <span class="badge">Named target</span>
-      <p><b>Nooch Asian Kitchen</b> (FWG Gastronomie group) — a real 10+-location Swiss chain with three restaurants already in canton Bern (Aarbergergasse, Viktoriaplatz, Westside), a direct fit for the canton-first strategy above. Identified 2026-07-13 as the first account to approach once the pilot validates the product — no contact made yet, not a signed or in-progress deal.</p>
+      <span class="badge" data-sk="Menovaný cieľ" data-en="Named target">Menovaný cieľ</span>
+      <p data-sk='<b>Nooch Asian Kitchen</b> (skupina FWG Gastronomie) — reálny švajčiarsky reťazec s 10+ pobočkami, z toho tri už v kantóne Bern (Aarbergergasse, Viktoriaplatz, Westside) — priamo sedí na stratégiu kantón-najprv. Identifikovaný 13.7.2026 ako prvý účet na oslovenie, keď pilot potvrdí produkt — zatiaľ žiadny kontakt, nie je to podpísaný ani rozbehnutý obchod.' data-en='<b>Nooch Asian Kitchen</b> (FWG Gastronomie group) — a real 10+-location Swiss chain with three restaurants already in canton Bern (Aarbergergasse, Viktoriaplatz, Westside), a direct fit for the canton-first strategy above. Identified 2026-07-13 as the first account to approach once the pilot validates the product — no contact made yet, not a signed or in-progress deal.'></p>
     </div>
   </section>
 
   <section id="why">
-    <div class="eyebrow">Why ChefOS</div>
-    <h2 class="section-title">One workflow, three pillars</h2>
-    <p class="section-desc">The real kitchen operating loop — execute prep, know what's on hand, reorder from suppliers. Two pillars are live and in daily use; the third is the near-term build target.</p>
+    <div class="eyebrow" data-sk="Prečo ChefOS" data-en="Why ChefOS">Prečo ChefOS</div>
+    <h2 class="section-title" data-sk="Jeden pracovný tok, tri piliere" data-en="One workflow, three pillars">Jeden pracovný tok, tri piliere</h2>
+    <p class="section-desc" data-sk="Skutočný prevádzkový cyklus kuchyne — sprav prep, vedz čo máš na sklade, doobjednaj u dodávateľov. Dva piliere sú naživo a v dennom používaní; tretí je najbližší build cieľ." data-en="The real kitchen operating loop — execute prep, know what's on hand, reorder from suppliers. Two pillars are live and in daily use; the third is the near-term build target."></p>
     <div class="process" id="processTrack"></div>
   </section>
 
   <section id="roadmap">
-    <div class="eyebrow">Roadmap</div>
-    <h2 class="section-title">Inception to 2030</h2>
-    <p class="section-desc">Solid teal bars are shipped and dated. Hatched bars are forward vision, not committed dates — illustrative quarters only. Scroll horizontally to see the full timeline.</p>
+    <div class="eyebrow" data-sk="Roadmapa" data-en="Roadmap">Roadmapa</div>
+    <h2 class="section-title" data-sk="Od začiatku do 2030" data-en="Inception to 2030">Od začiatku do 2030</h2>
+    <p class="section-desc" data-sk="Plné tyrkysové pruhy sú dodané a datované. Šrafované pruhy sú výhľad, nie záväzné dátumy — len ilustračné kvartály. Posúvaj vodorovne pre celú časovú os." data-en="Solid teal bars are shipped and dated. Hatched bars are forward vision, not committed dates — illustrative quarters only. Scroll horizontally to see the full timeline."></p>
     <div class="chart-card">
       <div class="chart-legend">
-        <span><i class="legend-dot" style="background:var(--accent);"></i>Shipped</span>
-        <span><i class="legend-dot" style="background:repeating-linear-gradient(45deg, rgba(156,148,158,0.7) 0 3px, rgba(156,148,158,0.3) 3px 6px);"></i>Vision (illustrative timing)</span>
-        <span><i class="legend-line"></i>Today</span>
+        <span><i class="legend-dot" style="background:var(--accent);"></i><span data-sk="Dodané" data-en="Shipped">Dodané</span></span>
+        <span><i class="legend-dot" style="background:repeating-linear-gradient(45deg, rgba(156,148,158,0.7) 0 3px, rgba(156,148,158,0.3) 3px 6px);"></i><span data-sk="Vízia (ilustračné termíny)" data-en="Vision (illustrative timing)">Vízia (ilustračné termíny)</span></span>
+        <span><i class="legend-line"></i><span data-sk="Dnes" data-en="Today">Dnes</span></span>
       </div>
       <div class="gantt-scroll"><div class="gantt" id="ganttChart"></div></div>
     </div>
   </section>
 
   <section id="financials">
-    <div class="eyebrow">Financials</div>
-    <h2 class="section-title">Monetization</h2>
-    <p class="section-desc">Subscription tiers map directly to the product's own user tiers (Home Cook / Chef Pro / Restaurant), priced in CHF for the Swiss market. Go-to-market starts in canton Bern — the pilot kitchen's own canton — before expanding to neighbouring cantons and eventually German-speaking Switzerland. A future B2B layer — Swiss suppliers transacting through the platform — is vision-stage, not built.</p>
+    <div class="eyebrow" data-sk="Financie" data-en="Financials">Financie</div>
+    <h2 class="section-title" data-sk="Monetizácia" data-en="Monetization">Monetizácia</h2>
+    <p class="section-desc" data-sk="Predplatné úrovne priamo kopírujú užívateľské tiery produktu (Home Cook / Chef Pro / Restaurant), v CHF pre švajčiarsky trh. Go-to-market začína v kantóne Bern — domovskom kantóne pilotnej kuchyne — potom susedné kantóny a časom nemecky hovoriace Švajčiarsko. Budúca B2B vrstva — švajčiarski dodávatelia obchodujúci cez platformu — je vo fáze vízie, nie postavená." data-en="Subscription tiers map directly to the product's own user tiers (Home Cook / Chef Pro / Restaurant), priced in CHF for the Swiss market. Go-to-market starts in canton Bern — the pilot kitchen's own canton — before expanding to neighbouring cantons and eventually German-speaking Switzerland. A future B2B layer — Swiss suppliers transacting through the platform — is vision-stage, not built."></p>
 
     <div class="money-callouts">
       <div class="money-callout">
-        <div class="tag">Path to first revenue</div>
+        <div class="tag" data-sk="Cesta k prvému príjmu" data-en="Path to first revenue">Cesta k prvému príjmu</div>
         <p><b>Monetization plan formalized 2026-07-13</b> (full expert-panel analysis of 13 models: <i><a href="monetization.html">monetization.html</a></i>): a <b>founding-member pre-sale</b> (first 10 kitchens at CHF 490/year, offered during the August trial) combined with a <b>paid onboarding service</b> (~CHF 990 — the founder, a working chef, personally digitizes the kitchen's recipes and prep sheets). The two blockers to first revenue are legal, not product: written employer consent for side-business income (letter drafted, ready to send), and sole-proprietorship registration — neither yet complete.</p>
       </div>
       <div class="money-callout">
-        <div class="tag">Build cost to date</div>
-        <p><b>~CHF 141</b> — API credits + Claude subscriptions since project start, plus the chefos.ch domain. A working multi-feature product for one pilot kitchen group, built by a solo chef-founder with an AI agent, no other engineering spend. Self-reported, not audited.</p>
+        <div class="tag" data-sk="Náklady na build doteraz" data-en="Build cost to date">Náklady na build doteraz</div>
+        <p data-sk='<b>~CHF 141</b> — API kredity + Claude predplatné od začiatku projektu, plus doména chefos.ch. Funkčný multi-feature produkt pre jednu pilotnú kuchynskú skupinu, postavený sólo šéfkuchárom-founderom s AI agentom, žiadne iné inžinierske výdavky. Self-reported, neauditované.' data-en='<b>~CHF 141</b> — API credits + Claude subscriptions since project start, plus the chefos.ch domain. A working multi-feature product for one pilot kitchen group, built by a solo chef-founder with an AI agent, no other engineering spend. Self-reported, not audited.'></p>
       </div>
     </div>
 
@@ -315,7 +336,7 @@
         <ul class="tier-list"><li>Everything in Chef Pro</li><li>Multi-user roles, Schedule, live cross-station view</li><li>Chef's Assistant</li></ul>
       </div>
     </div>
-    <div class="disclaimer"><b>Pricing shown is illustrative</b>, not finalized or investor-approved. No paying customers exist yet — the product is validated against one pilot kitchen, not yet monetized.</div>
+    <div class="disclaimer" data-sk='<b>Zobrazené ceny sú ilustračné</b>, nie finálne ani schválené investormi. Zatiaľ neexistujú žiadni platiaci zákazníci — produkt je overovaný na jednej pilotnej kuchyni, zatiaľ nemonetizovaný.' data-en='<b>Pricing shown is illustrative</b>, not finalized or investor-approved. No paying customers exist yet — the product is validated against one pilot kitchen, not yet monetized.'></div>
 
     <div class="chart-card" style="margin-top:24px;">
       <div class="chart-legend"><span><i class="legend-dot" style="background:var(--gold);"></i>Illustrative ARR (CHF), 2026–2030 — canton Bern first</span></div>
@@ -323,13 +344,13 @@
         <div id="revenueChartWrap"></div>
         <div class="revenue-callout">
           <div class="big" id="revenueBigNum"></div>
-          <div class="cap">Illustrative 2030 ARR if canton Bern proves out and expansion into German-speaking Switzerland follows — not a forecast or commitment. Zero live paying customers today.</div>
+          <div class="cap" data-sk="Ilustračné ARR 2030, ak sa kantón Bern potvrdí a bude nasledovať expanzia do nemecky hovoriaceho Švajčiarska — nie prognóza ani záväzok. Dnes nula platiacich zákazníkov." data-en="Illustrative 2030 ARR if canton Bern proves out and expansion into German-speaking Switzerland follows — not a forecast or commitment. Zero live paying customers today."></div>
         </div>
       </div>
       <div class="assumptions-table-wrap">
         <table class="assumptions-table" id="assumptionsTable"></table>
       </div>
-      <div class="disclaimer"><b>Illustrative projection only — not actual or committed revenue.</b> Bottom-up, not a top-line growth curve: paying-kitchen counts above are a hypothetical adoption assumption (starting with canton Bern's ~3,500 establishments, ~12% estimate of the Swiss total) × a blended CHF 89/month/kitchen (60% Chef Pro CHF 49, 40% Restaurant CHF 149).</div>
+      <div class="disclaimer" data-sk='<b>Len ilustračná projekcia — nie skutočný ani prisľúbený príjem.</b> Zdola-nahor, nie rastová krivka: počty platiacich kuchýň vyššie sú hypotetický predpoklad adopcie (od ~3 500 podnikov kantónu Bern, ~12% odhad švajčiarskeho celku) × blended CHF 89/mesiac/kuchyňa (60 % Chef Pro CHF 49, 40 % Restaurant CHF 149).' data-en="<b>Illustrative projection only — not actual or committed revenue.</b> Bottom-up, not a top-line growth curve: paying-kitchen counts above are a hypothetical adoption assumption (starting with canton Bern's ~3,500 establishments, ~12% estimate of the Swiss total) × a blended CHF 89/month/kitchen (60% Chef Pro CHF 49, 40% Restaurant CHF 149)."></div>
     </div>
   </section>
 
@@ -617,6 +638,33 @@ renderGantt();
 renderRevenueChart();
 renderAssumptionsTable();
 initPageNav();
+</script>
+
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 03:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 03:45">🔄 Stav ChefOS k 15. 7. 2026, 03:45</div>
+<button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
+
+<script>
+/* Shared SK/EN toggle for /visual data/ docs without their own — same chefos_doc_lang key as
+   the rest, so one switch follows you across every document. Translates [data-sk]/[data-en]
+   pairs (chrome + stamp); untagged content stays in its original language. */
+(function(){
+  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  function apply(){
+    document.querySelectorAll('[data-sk]').forEach(el=>{
+      const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+      if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+    });
+    const b = document.getElementById('chefosLangFab');
+    if(b) b.textContent = lang === 'sk' ? 'EN' : 'SK';
+    document.documentElement.lang = lang;
+  }
+  window.chefosToggleLang = function(){
+    lang = lang === 'sk' ? 'en' : 'sk';
+    localStorage.setItem('chefos_doc_lang', lang);
+    apply();
+  };
+  apply();
+})();
 </script>
 </body>
 </html>

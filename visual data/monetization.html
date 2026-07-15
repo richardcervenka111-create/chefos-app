@@ -109,6 +109,27 @@
   .mx-name{ flex:1; font-size:12.5px; font-weight:600; color:var(--ink); line-height:1.3; }
   .mx-side{ display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex:none; }
   .mx-stars{ font-size:10px; color:var(--accent); letter-spacing:1.5px; }
+
+  /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
+     carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
+  .chefos-stamp{
+    position:fixed; bottom:14px; right:14px; z-index:90;
+    background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
+    font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
+    padding:6px 12px; border-radius:999px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
+  }
+  .chefos-lang-fab{
+    position:fixed; bottom:14px; left:14px; z-index:90;
+    background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    padding:7px 14px; border-radius:999px; cursor:pointer;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    transition:border-color .15s, color .15s;
+  }
+  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -119,8 +140,8 @@
       <svg width="22" height="22" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
       <span class="word">ChefOS</span>
     </div>
-    <div class="kicker">Monetizačný workshop · v2 s akčným plánom</div>
-    <h1>13 modelov, ako z ChefOS spraviť <em>príjem</em></h1>
+    <div class="kicker" data-sk="Monetizačný workshop · v2 s akčným plánom" data-en="Monetization workshop · v2 with action plan">Monetizačný workshop · v2 s akčným plánom</div>
+    <h1 data-sk="13 modelov, ako z ChefOS spraviť <em>príjem</em>" data-en="13 models for turning ChefOS into <em>revenue</em>">13 modelov, ako z ChefOS spraviť <em>príjem</em></h1>
     <p class="dek">Výsledok panelovej diskusie piatich pohľadov nad všetkými projektovými dokumentmi (roadmap, MVP, pilot agreement, legal.html, pracovné zmluvy). Každý model má hodnotenie vhodnosti pre tvoju konkrétnu situáciu — sólo founder, pred-GmbH, zamestnaný na plný úväzok, 1 pilotná kuchyňa, trh: profesionálne kuchyne 5–25 ľudí vo Švajčiarsku. Model 11-12 a akčný plán doplnil Claude 13.7.; model 13 je Richardov vlastný nápad, 15.7.</p>
     <div class="panel">
       <span>CTO — technická realizovateľnosť</span>
@@ -129,9 +150,9 @@
       <span>SaaS CEO ×2 — GTM &amp; pricing</span>
     </div>
     <div class="legend">
-      <div class="l"><span class="dot d-green"></span>Spustiteľné teraz / po triale</div>
-      <div class="l"><span class="dot d-amber"></span>Neskôr — potrebuje škálu alebo predpoklady</div>
-      <div class="l"><span class="dot d-red"></span>Neodporúčané / vysoké riziko</div>
+      <div class="l"><span class="dot d-green"></span><span data-sk="Spustiteľné teraz / po triale" data-en="Launchable now / after the trial">Spustiteľné teraz / po triale</span></div>
+      <div class="l"><span class="dot d-amber"></span><span data-sk="Neskôr — potrebuje škálu alebo predpoklady" data-en="Later — needs scale or prerequisites">Neskôr — potrebuje škálu alebo predpoklady</span></div>
+      <div class="l"><span class="dot d-red"></span><span data-sk="Neodporúčané / vysoké riziko" data-en="Not recommended / high risk">Neodporúčané / vysoké riziko</span></div>
     </div>
   </div>
 </header>
@@ -140,7 +161,7 @@
 
   <!-- Overview matrix — built by JS from the 13 model cards below, so it can never disagree
      with them. One glance answers "which models, how good, when" before any scrolling. -->
-  <div class="sec" style="margin-top:34px;"><h2>Prehľad na jeden pohľad</h2><div class="rule"></div></div>
+  <div class="sec" style="margin-top:34px;"><h2 data-sk="Prehľad na jeden pohľad" data-en="At-a-glance overview">Prehľad na jeden pohľad</h2><div class="rule"></div></div>
   <div class="matrix" id="modelMatrix"></div>
 
 
@@ -370,7 +391,7 @@
   </div>
 
   <!-- GLOBAL LEGAL -->
-  <div class="sec"><h2>Prierezové právne prekážky — platia pre všetky modely</h2><div class="rule"></div></div>
+  <div class="sec"><h2 data-sk="Prierezové právne prekážky — platia pre všetky modely" data-en="Cross-cutting legal blockers — apply to every model">Prierezové právne prekážky — platia pre všetky modely</h2><div class="rule"></div></div>
 
   <div class="gflag">
     <h3>1. Nebenerwerb — písomný súhlas zamestnávateľa PRED prvou platbou</h3>
@@ -394,7 +415,7 @@
   </div>
 
   <!-- RANKING -->
-  <div class="sec"><h2>Odporúčané poradie spúšťania</h2><div class="rule"></div></div>
+  <div class="sec"><h2 data-sk="Odporúčané poradie spúšťania" data-en="Recommended launch order">Odporúčané poradie spúšťania</h2><div class="rule"></div></div>
   <div class="rank">
     <div class="r-row"><span class="r-pos">1.</span><span class="r-name">Founding-member pre-sale (02)</span><span class="r-when">august–september 2026, po súhlase zamestnávateľa</span></div>
     <div class="r-row"><span class="r-pos">2.</span><span class="r-name">Onboarding služba (04) + workshopy (11) ako premium variant</span><span class="r-when">súbežne — klin do každej novej kuchyne</span></div>
@@ -411,7 +432,7 @@
   </div>
 
   <!-- ACTION PLAN (Claude's addition) -->
-  <div class="sec"><h2>Akčný plán — čo sa deje hneď (doplnené 13.7.)</h2><div class="rule"></div></div>
+  <div class="sec"><h2 data-sk="Akčný plán — čo sa deje hneď (doplnené 13.7.)" data-en="Action plan — what happens right now (added 13.7.)">Akčný plán — čo sa deje hneď (doplnené 13.7.)</h2><div class="rule"></div></div>
   <div class="action">
     <div class="a-row"><span class="a-who a-done">Pripravené</span><div class="a-body"><div class="a-title">Návrh žiadosti o Nebenerwerb súhlas</div><div class="a-desc">docs/NEBENERWERB_REQUEST.md — dvojjazyčný návrh (DE + SK vysvetlenie), stačí doplniť meno zamestnávateľa, vytlačiť/poslať. Toto je blokátor č. 1 pre akýkoľvek príjem.</div></div></div>
     <div class="a-row"><span class="a-who a-done">Pripravené</span><div class="a-body"><div class="a-title">Návrh founding-member ponuky</div><div class="a-desc">docs/FOUNDING_OFFER.md — kompletná ponuka (čo dostane founding kuchyňa, cena CHF 490/rok + onboarding CHF 990, čo "doživotná cena" presne pokrýva a nepokrýva, podmienky vrátenia peňazí) — draft na tvoju úpravu cien a právnu kontrolu.</div></div></div>
@@ -444,6 +465,33 @@
     `;
   }).join('');
   document.getElementById('modelMatrix').innerHTML = rows;
+})();
+</script>
+
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 03:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 03:45">🔄 Stav ChefOS k 15. 7. 2026, 03:45</div>
+<button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
+
+<script>
+/* Shared SK/EN toggle for /visual data/ docs without their own — same chefos_doc_lang key as
+   the rest, so one switch follows you across every document. Translates [data-sk]/[data-en]
+   pairs (chrome + stamp); untagged content stays in its original language. */
+(function(){
+  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  function apply(){
+    document.querySelectorAll('[data-sk]').forEach(el=>{
+      const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+      if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+    });
+    const b = document.getElementById('chefosLangFab');
+    if(b) b.textContent = lang === 'sk' ? 'EN' : 'SK';
+    document.documentElement.lang = lang;
+  }
+  window.chefosToggleLang = function(){
+    lang = lang === 'sk' ? 'en' : 'sk';
+    localStorage.setItem('chefos_doc_lang', lang);
+    apply();
+  };
+  apply();
 })();
 </script>
 </body>

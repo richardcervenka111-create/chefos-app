@@ -190,6 +190,27 @@
 
   .archival-banner{ position:sticky; top:0; z-index:80; background:rgba(247,201,72,0.12); border-bottom:1px solid rgba(247,201,72,0.4); color:#F7C948; font-size:12px; font-weight:600; text-align:center; padding:9px 16px; }
   .archival-banner a{ color:#34F7D7; }
+
+  /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
+     carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
+  .chefos-stamp{
+    position:fixed; bottom:14px; right:14px; z-index:90;
+    background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
+    font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
+    padding:6px 12px; border-radius:999px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
+  }
+  .chefos-lang-fab{
+    position:fixed; bottom:14px; left:14px; z-index:90;
+    background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    padding:7px 14px; border-radius:999px; cursor:pointer;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    transition:border-color .15s, color .15s;
+  }
+  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -419,5 +440,32 @@
   </footer>
 
 </div>
+
+<div class="chefos-stamp" data-sk="📜 Historický snapshot k 9. 7. 2026 · naposledy aktualizované 15. 7. 2026, 03:45" data-en="📜 Historical snapshot as of Jul 9, 2026 · last updated Jul 15, 2026, 03:45">📜 Historický snapshot k 9. 7. 2026 · naposledy aktualizované 15. 7. 2026, 03:45</div>
+<button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
+
+<script>
+/* Shared SK/EN toggle for /visual data/ docs without their own — same chefos_doc_lang key as
+   the rest, so one switch follows you across every document. Translates [data-sk]/[data-en]
+   pairs (chrome + stamp); untagged content stays in its original language. */
+(function(){
+  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  function apply(){
+    document.querySelectorAll('[data-sk]').forEach(el=>{
+      const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+      if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+    });
+    const b = document.getElementById('chefosLangFab');
+    if(b) b.textContent = lang === 'sk' ? 'EN' : 'SK';
+    document.documentElement.lang = lang;
+  }
+  window.chefosToggleLang = function(){
+    lang = lang === 'sk' ? 'en' : 'sk';
+    localStorage.setItem('chefos_doc_lang', lang);
+    apply();
+  };
+  apply();
+})();
+</script>
 </body>
 </html>
