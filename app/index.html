@@ -1027,6 +1027,7 @@
     cursor:pointer;
   }
   .scale-chip.active{ background: var(--copper); border-color: var(--copper); color:#0A1A2F; font-weight:800; }
+  .scale-chip.custom{ background: var(--copper); border-color: var(--copper); color:#0A1A2F; font-weight:800; cursor:default; }
   .scale-note{
     width:100%;
     font-size: 11px;
@@ -1909,7 +1910,6 @@
       <span><i class="wt-dot" style="background:#FF7A68;"></i>Overtime</span>
     </div>
     <div class="wt-pie-grid" id="wtChartsGrid"></div>
-    <button class="task-status-btn" style="margin-bottom:20px;" onclick="generateSampleWorkingHours()">🎲 Add sample data for this year (test only)</button>
   </div>
 </div>
 
@@ -2122,7 +2122,7 @@
     <div class="sheet-title">Check List — Sections</div>
     <div class="chips" id="taskChips" style="overflow-x:visible; flex-wrap:wrap;"></div>
     <button class="task-status-btn" style="width:100%; margin-top:12px;" onclick="openManageSections()">🗑️ Manage / Delete Sections</button>
-    <button class="task-status-btn" style="width:100%; margin-top:8px;" onclick="runLanguageAudit()">🌐 Language Audit</button>
+    <button class="task-status-btn" id="languageAuditTriggerBtn" style="width:100%; margin-top:8px; display:none;" onclick="runLanguageAudit()">🌐 Language Audit</button>
     <button class="sheet-cancel" onclick="closeStationPicker()">Close</button>
   </div>
 </div>
@@ -5363,14 +5363,17 @@ var qrcode = function() {
    ============================================================ */
 const SUPABASE_URL = 'https://azkhyorqnwvaugaomjvh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
-/* Richard (15.7.): "nikto počas používania aplikácie nebude vyhodený, ale akonáhle prepne tab
-   alebo zavrie appku sa musí znova prihlásiť" — clarified this means closing the tab/browser
-   specifically, not switching away briefly (a photo-scan camera trip or a notification
-   shouldn't force a fresh email code). sessionStorage instead of the default localStorage does
-   exactly that: it survives normal tab switching and backgrounding, but is wiped the moment the
-   tab/browser is actually closed — a real re-login is then required next time, which matters on
-   a shared kitchen phone/tablet where the previous person's session shouldn't just sit there. */
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.sessionStorage } });
+/* Switched back to localStorage (bod 3, 16.7. — was sessionStorage from 15.7., see git history
+   for that reasoning). Richard: tapping the emailed login link with ChefOS installed as a
+   Home Screen icon logs him in inside Safari (iOS never routes a Mail-app link into an
+   installed PWA — that's an Apple platform restriction, not something fixable from web code),
+   but the standalone icon then still showed the login screen — because sessionStorage is
+   scoped per browsing-context, Safari and the installed icon don't share it even though
+   they're the same origin. localStorage IS shared between them, so logging in via the emailed
+   link now also logs in the Home Screen app. Trade-off: a session no longer auto-ends when the
+   tab/browser closes — the Sign Out button (Settings, added 15.7.) is now the real mechanism
+   for shared-kitchen-device hygiene instead of relying on that happening automatically. */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.localStorage } });
 
 /* Basic client-side error tracking (2026-07-13) — up to now, a JS error on a real user's real
    device was invisible until they thought to mention it. Logs to error_logs (db/51_error_logs.sql)
@@ -8547,9 +8550,22 @@ function toggleNutritionBreakdown(){
 function rerenderIngredients(idx, mult){
   currentScale = mult;
   const r = allRecipes()[idx];
-  document.querySelectorAll('.scale-chip').forEach(c=>{
-    c.classList.toggle('active', parseFloat(c.dataset.mult) === mult);
+  // Bugfix (bod 4, 16.7.): a custom yield/ingredient scale (e.g. ×1.7) matches none of the
+  // preset chips, so every chip lost its active state with nothing replacing it — the bar
+  // looked like no scale was selected at all. Preset chips still light up on an exact match;
+  // otherwise a small "Custom ×N" chip appears in their place so the bar is never ambiguous.
+  const presetMatch = document.querySelectorAll('.scale-chip[data-mult]');
+  let matched = false;
+  presetMatch.forEach(c=>{
+    const isMatch = parseFloat(c.dataset.mult) === mult;
+    c.classList.toggle('active', isMatch);
+    if(isMatch) matched = true;
   });
+  const customEl = document.getElementById('scaleCustomChip');
+  if(customEl){
+    if(matched){ customEl.style.display = 'none'; }
+    else { customEl.style.display = ''; customEl.textContent = '×' + (Math.round(mult*100)/100); }
+  }
   const container = document.getElementById('ingredientSections');
   if(!container) return;
   container.innerHTML = r.sections
@@ -8715,6 +8731,7 @@ function showDetail(idx){
       <button class="scale-chip" data-mult="2" onclick="rerenderIngredients(${idx},2)">2×</button>
       <button class="scale-chip" data-mult="3" onclick="rerenderIngredients(${idx},3)">3×</button>
       <button class="scale-chip" data-mult="4" onclick="rerenderIngredients(${idx},4)">4×</button>
+      <span class="scale-chip custom" id="scaleCustomChip" style="display:none;"></span>
       <span class="scale-note">Scales the ingredient list only — amounts mentioned inside the method text below won't auto-update.</span>
     </div>`;
 
@@ -9615,6 +9632,9 @@ async function showTasks(){
 
 function openStationPicker(){
   renderTaskChips();
+  // Language Audit restricted to admins (bod 1, 16.7.) — it rewrites Check List item/dish
+  // names for the whole kitchen, not something every team member should be able to trigger.
+  document.getElementById('languageAuditTriggerBtn').style.display = currentIsAdmin ? '' : 'none';
   document.getElementById('stationPickerOverlay').classList.add('open');
 }
 function closeStationPicker(){
@@ -10386,7 +10406,18 @@ function renderPrepSheet(){
 
   if(dishes.length === 0){
     renderPrepSummaryBar(taskActiveStation);
-    container.innerHTML = `<div class="empty-state">No prep sheet for ${taskActiveStation} yet.</div>`;
+    // Built-in mini-tutorial (bod 2, 16.7.) instead of a bare "nothing here" line — every new
+    // kitchen starts with an empty Check List by design (nothing is ever copied in from
+    // another kitchen), so the first thing anyone sees here should explain what to do about
+    // that, not just state the fact.
+    container.innerHTML = `
+      <div class="empty-state" style="text-align:left; background:var(--paper-raised); border:1px solid var(--rule); border-radius:14px; padding:18px 16px;">
+        <div style="font-size:15px; font-weight:700; color:var(--ink); margin-bottom:6px;">👋 ${taskActiveStation} is empty — that's normal for a new kitchen</div>
+        <p style="margin:0 0 12px 0; color:var(--ink-dim); font-size:13.5px; line-height:1.6;">Check List never copies another kitchen's dishes or prep in — you build your own. Two ways to start:</p>
+        <button class="save-btn" style="width:100%;" onclick="openPrepAddChoice()">📷 Scan a prep sheet or menu</button>
+        <button class="task-status-btn" style="width:100%; margin-top:8px;" onclick="openPrepAddChoice()">✍️ Add a dish manually</button>
+        <button class="task-status-btn" style="width:100%; margin-top:8px;" onclick="openTutorial()">❓ Show me the full tutorial</button>
+      </div>`;
     if(hiddenDishCount) container.innerHTML += `<button class="add-row-btn" onclick="togglePrepShowHidden()">Show ${hiddenDishCount} hidden dish${hiddenDishCount===1?'':'es'}</button>`;
     if(deletedCount || showDeletedPrep) container.innerHTML += renderDeletedTrashHtml(deletedDishes, deletedItemsInLiveDishes, dishById);
     return;
@@ -10674,6 +10705,7 @@ async function deleteStation(station){
    the kitchen-wide sync already used for item status/notes elsewhere in Check List. ---------- */
 let _languageAuditResults = [];
 async function runLanguageAudit(){
+  if(!currentIsAdmin){ alert('Only your kitchen\'s admin can run the Language Audit.'); return; }
   if(!_anthropicKey){
     alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
     return;
@@ -12397,36 +12429,6 @@ function closeMonthDayBars(){
   document.getElementById('monthDayDetailOverlay').classList.remove('open');
 }
 
-/* Preview helper — Richard wanted to see what "Hours by Month" looks like with real overtime
-   vs. no-data months without waiting on real check-ins to pile up, and running a raw SQL
-   script in Supabase turned out to be more friction than it was worth. This writes straight
-   into his own account through the same authenticated Supabase client the rest of the app
-   uses (RLS already restricts it to rows he owns), so it's one tap instead of a separate SQL
-   step. Deliberately test-only, labeled as such in the UI. */
-async function generateSampleWorkingHours(){
-  if(!confirm(`Add random sample hours (Jan–Jun ${_wtChartsYear}) to preview the chart? These are fake rows written to your own account — you can ask to have them removed later.`)) return;
-  const rows = [];
-  for(let month=0; month<6; month++){
-    const daysInMonth = new Date(_wtChartsYear, month+1, 0).getDate();
-    for(let d=1; d<=daysInMonth; d++){
-      if(Math.random() >= 0.7) continue;
-      const startHour = 10 + Math.random()*2;
-      const hoursWorked = 6 + Math.random()*5;
-      const checkIn = new Date(_wtChartsYear, month, d, Math.floor(startHour), Math.floor((startHour%1)*60));
-      const checkOut = new Date(checkIn.getTime() + hoursWorked*3600000);
-      const breakMinutes = [0,15,30][Math.floor(Math.random()*3)];
-      rows.push({
-        kitchen_id: currentKitchenId, user_id: currentUser.id,
-        check_in: checkIn.toISOString(), check_out: checkOut.toISOString(), break_minutes: breakMinutes
-      });
-    }
-  }
-  if(rows.length === 0) return;
-  const { error } = await sb.from('time_entries').insert(rows);
-  if(error){ alert('Could not add sample data: ' + error.message); return; }
-  await loadAndRenderWorkingTimeCharts();
-  alert(`Added ${rows.length} sample days across Jan–Jun ${_wtChartsYear}.`);
-}
 
 function renderWorkingTimeSettings(){
   const el = document.getElementById('workingTimeSettingsCard');
@@ -12467,7 +12469,7 @@ function renderWorkingTimeSettings(){
       </div>
       <button class="task-status-btn" onclick="toggleShiftReminder()">${shiftReminderEnabled() ? 'Turn off' : 'Turn on'}</button>
     </div>
-    <button class="save-btn" style="width:100%; margin-top:12px;" onclick="triggerContractScan()">📄 Upload contract</button>
+    <button class="save-btn" style="width:100%; margin-top:12px;" onclick="triggerContractScan()">${(p.contract_advisory_points && p.contract_advisory_points.length) || p.contracted_hours_per_week != null ? '🔄 Change contract (re-scan)' : '📄 Upload contract'}</button>
     <button class="save-btn" style="width:100%; margin-top:8px;" onclick="triggerScheduleUpload()">📅 Upload schedule</button>
     <button class="task-status-btn" style="width:100%; margin-top:12px;" onclick="openWorkingTimeDataSheet()">💾 Save / Upload / Delete My Data</button>
     ${renderContractAdvisoryHtml(p)}
@@ -12819,6 +12821,12 @@ function triggerContractScan(){
     alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
     return;
   }
+  // Bod 5, 16.7.: re-scanning already worked (saveContractReview overwrites, never appends) —
+  // the gap was that nothing told you a contract was already on file, or that scanning a new
+  // one replaces it. Confirm explicitly whenever there's something to lose.
+  const p = _workingTimeProfile || {};
+  const hasExisting = (p.contract_advisory_points && p.contract_advisory_points.length) || p.contracted_hours_per_week != null;
+  if(hasExisting && !confirm('This replaces your current contract notes with a fresh scan. Continue?')) return;
   document.getElementById('contractScanInput').value = '';
   document.getElementById('contractScanInput').click();
 }
