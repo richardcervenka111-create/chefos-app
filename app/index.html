@@ -5920,7 +5920,15 @@ async function sendLoginCode(){
   if(!email){ statusEl.textContent = 'Enter your email first.'; statusEl.className='form-status error'; return; }
   statusEl.className = 'form-status';
   statusEl.textContent = 'Sending code…';
-  const { error } = await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
+  // emailRedirectTo (bod, 16.7. — real bug, reported live on Android): without this, the
+  // emailed "Sign in" link's magic-link redirect falls back to Supabase's fixed default Site
+  // URL instead of the page the person was actually on — silently dropping ?invite=/?join=/
+  // ?friend= from a scanned QR. Whoever tapped the code manually was never affected (no
+  // redirect involved at all); whoever tapped the magic link landed "approved" with no kitchen
+  // to join and no way back in. sendInviteByEmail() already got this right for admin-sent
+  // invites; the regular self-serve "enter your email" path (used by anyone scanning their own
+  // QR) never did. location.href carries the full current URL, query string included.
+  const { error } = await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true, emailRedirectTo: location.href } });
   if(error){
     console.error('signInWithOtp error', error);
     statusEl.textContent = 'Could not send code: ' + friendlyAuthErrorMessage(error);
