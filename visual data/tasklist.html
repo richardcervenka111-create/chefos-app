@@ -243,6 +243,17 @@
 <div class='task'><input id='s53' type='checkbox' checked><label for='s53'>Monetization plan formalized: app/monetization.html (11 models, house style, action plan) + docs/NEBENERWERB_REQUEST.md + docs/FOUNDING_OFFER.md drafted</label><span class="tag me">JA</span></div>
 <div class='task'><input id='s54' type='checkbox'><label for='s54'>🔴 REVENUE BLOCKERS — send Nebenerwerb consent request (10 min, draft ready) + register Einzelfirma/AHV (1-2 h). The only two things between ChefOS and its first paid invoice.</label><span class="tag you">TY</span></div>
 
+<h3 class="sub">15. 7. 2026</h3>
+<div class='task'><input id='s55' type='checkbox' checked><label for='s55'>Own domain live end-to-end: chefos.ch verified in Resend, custom SMTP re-enabled, app on app.chefos.ch — Richard tested the full login flow live. Trial email blocker removed</label><span class="tag me you">JA + TY</span></div>
+<div class='task'><input id='s56' type='checkbox' checked><label for='s56'>🔴→✅ Critical signup bug fixed (db/73): handle_new_user() failed for EVERY new signup (unpinned search_path) — found via Richard's gmail test + Postgres logs, fixed on production</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s57' type='checkbox' checked><label for='s57'>🧼 HACCP module waves 1+2: hub page in Home's tile design; Fridge Temp revived + moved in; Goods Receiving, Core Cooking Temp, Cooling Log, Cleaning + Hygiene checklists, Fryer Oil, Pest Control, Label Expiry (printed labels now logged with use-by dates, db/77+78)</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s58' type='checkbox' checked><label for='s58'>🔓 Password + Face ID login — second way in besides the emailed code; WebAuthn per-device unlock, no biometric data ever leaves the device</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s59' type='checkbox' checked><label for='s59'>Menu scan from a website URL ("A menu website") — Claude fetches the page itself via server-side web_fetch, no edge-function changes</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s60' type='checkbox' checked><label for='s60'>Background AI scanning — all 5 scan flows minimizable with a live-progress pill; 3-way recipe filter Moje/ChefOS/Firemné</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s61' type='checkbox' checked><label for='s61'>Order List data-loss fix (db/76, staging first): per-person rows — one person's Save can no longer wipe a whole station's orders; admin sees who ordered what</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s62' type='checkbox' checked><label for='s62'>New kitchens inherit the ingredient DB (db/74) + profile gate fully optional with "Skip for now" (db/75) — both staging first</label><span class="tag me">JA</span></div>
+<div class='task'><input id='s63' type='checkbox' checked><label for='s63'>🎨 Visual Data Standards: all 13 internal documents redesigned + moved to /visual data/ with redirect stubs; all 4 scheduled automations re-pointed</label><span class="tag me">JA</span></div>
+
 </div></details>
 
 <details class="group" open><summary><span data-sk="🔥 Priorita 1 · Práve teraz" data-en="🔥 Priority 1 · In progress now"></span></summary><div class="group-body">
@@ -256,8 +267,8 @@
 
 <h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
 <div class='task'><input id='t10' type='checkbox'><label for='t10'>Print Labels hub — queue + native print dialog (uses your phone/iPad's own print sheet)</label><span class="tag me">JA</span></div>
-<div class='task you-row'><input id='tsql' type='checkbox'><label for='tsql'>Run pending SQL files in Supabase (34, 35, 36)</label><span class="tag you">TY</span></div>
-<div class='task you-row'><input id='temail' type='checkbox'><label for='temail'>Fix email login for non-Richard addresses — verify a Resend domain, or switch to Supabase's built-in mailer</label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='tsql' type='checkbox'><label for='tsql'>Run pending SQL files in Supabase<span class="note">Updated 15.7.: current queue is db/73+77+78 (safe straight to production) and db/74+75+76 (staging first)</span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='temail' type='checkbox' checked><label for='temail'>Fix email login for non-Richard addresses — verify a Resend domain, or switch to Supabase's built-in mailer<span class="note">✅ Resolved 15.7.: chefos.ch verified, custom SMTP live, tested end-to-end by Richard (see s55)</span></label><span class="tag you">TY</span></div>
 <div class='task you-row'><input id='tsketch' type='checkbox'><label for='tsketch'>Send the Check List row-layout sketch (max-3-lines font reference)</label><span class="tag you">TY</span></div>
 </div></details>
 
@@ -515,6 +526,18 @@ const DAYS=[
     'Feature freeze týždeň: čestne priznané, že sa v ňom aj tak stavia (12+ vecí za dva večery) — Richard to obhájil ako vedomé rozhodnutie (reálne testovanie generuje reálne užitočné nápady), nie ako zlyhanie disciplíny',
     'Chef Challenge dlaždica skrytá z Home (nie zmazaná) na Richardovu žiadosť',
     'tasklist.html prerobený — nová vizuálna vrstva (rovnaké navy/teal tokeny ako status.html/planning.html), SK/EN prepínač na štruktúrne popisky'
+  ]},
+  { date:'2026-07-15', headline:'Doména naživo, kritický signup bug, HACCP vlny 1+2, heslo + Face ID, sken z URL, skenovanie na pozadí, Visual Data Standards', accomplished:[
+    'chefos.ch overená v Resend, custom SMTP zapnutý, appka na app.chefos.ch — Richard otestoval celý prihlasovací tok naživo; hlavný blokátor trialu odstránený',
+    '🔴→✅ Kritický signup bug (db/73): každá nová registrácia padala na chýbajúcom search_path v handle_new_user() — nájdené cez Postgres logy, opravené na produkcii',
+    '🧼 HACCP vlna 1: hub v dizajne Home — príjem tovaru, jadrová teplota, protokol chladenia, cleaning + hygiena checklisty, Fridge Temp presunutý a oživený (db/77)',
+    '🧼 HACCP vlna 2: fritézový olej + škodcovia zapnuté (enginy z vlny 1), Expirácia štítkov — tlač sa loguje s use-by dátumom, nová obrazovka podľa naliehavosti (db/78)',
+    '🔓 Heslo + Face ID prihlásenie (WebAuthn per-device unlock, žiadne biometrické dáta mimo zariadenia)',
+    'Sken menu z URL webstránky (server-side web_fetch, bez zmeny edge funkcie) + skenovanie na pozadí s progresom pre všetkých 5 AI skenov',
+    '3-cestný filter receptov Moje/ChefOS/Firemné; Order List oprava tichej straty dát (db/76, staging first)',
+    'Nové kuchyne dedia ingrediencie (db/74), profil plne voliteľný so "Skip for now" (db/75) — obe staging first',
+    '🎨 Visual Data Standards: všetkých 13 dokumentov prerobených a presunutých do /visual data/, automatizácie preukazované na nové cesty',
+    'Mentálne zdravie/kamera: mechanizmus odmietnutý (EU AI Act, Art. 328 OR, nDSG), legitímna alternatíva zapísaná a odložená na Richardovu žiadosť'
   ]}
 ];
 function isoWeekLabel(dateStr){

@@ -163,27 +163,27 @@ const GENERATED = '2026-07-15';
 
 const TOP3 = {
   day: {
-    range: 'Thu 2026-07-10',
+    range: 'Wed 2026-07-16',
     items: [
-      { text: 'Check List: manual "+ New Section" / "+ Add dish" + averaged real prep times', status: 'done' },
-      { text: 'Fix TO DO/DON\'T DO colors, Extra icon, Chef\'s Assistant mobile keyboard + greeting', status: 'done' },
-      { text: 'Scope + record the public-trial plan (Aug 1, 25 users, QR teams) in presentation/planning', status: 'progress' },
+      { text: 'Run db/73 + db/77 + db/78 on production; db/74 + db/75 + db/76 on staging first', status: 'planned' },
+      { text: 'Test live: HACCP module (waves 1+2), password + Face ID login, menu-from-URL scan, background scanning', status: 'planned' },
+      { text: 'Decide the 2 borderline Asian recipes (Yuzu Cauliflower, caramelized onion) so the Michelin pass can continue', status: 'planned' },
     ]
   },
   week: {
-    range: 'Week of 2026-07-06 – 2026-07-12',
+    range: 'Week of 2026-07-13 – 2026-07-19',
     items: [
-      { text: 'Check List (8-station prep sheets) + Kitchen Flow v1 live in production', status: 'done' },
-      { text: 'Ingredients to ~1,263 + multi-language UI v1 (SQL run, confirmed working)', status: 'done' },
-      { text: 'Public-trial prep sprint: email login for any address, multi-team QR invites, scope narrowed to Check List/Assistant/Ingredients/Recipes', status: 'progress' },
+      { text: 'Own domain live end-to-end (app.chefos.ch + custom SMTP) — trial email blocker removed, tested live by Richard', status: 'done' },
+      { text: 'HACCP module waves 1+2, password + Face ID, URL menu scan, background scanning, Order List data-loss fix', status: 'done' },
+      { text: 'Send Nebenerwerb request + register Einzelfirma/AHV (both revenue blockers, both Richard-only)', status: 'planned' },
     ]
   },
   month: {
     range: 'July 2026',
     items: [
       { text: 'Public trial launch — 25 users, multiple restaurants, own team per kitchen (target 2026-08-01)', status: 'progress' },
-      { text: 'Fix email login for non-Richard addresses (Resend domain verification) — blocking the trial', status: 'planned' },
-      { text: 'Polish the 4 trial-scope features (Check List, Chef\'s Assistant, Ingredients, Recipes) to feel finished', status: 'progress' },
+      { text: 'One honest manual test pass through the live app before letting strangers in', status: 'planned' },
+      { text: 'Visual Data Standards rollout: all 13 internal documents redesigned + moved to /visual data/', status: 'done' },
     ]
   }
 };
@@ -353,6 +353,25 @@ const DAYS = [
       'Continued the Michelin-chef recipe pass (documented in the prior entry\'s own tracking, see backlog.html for exact batch counts)',
     ],
     planned: 'Check Resend for "Verified" on chefos.ch, then re-enable custom SMTP in Supabase pointed at the new domain -- this removes the email rate limit for good. Test the My Team email invite live. Continue the Michelin-chef recipe pass and build the AI Playground recipes toggle. Once email works reliably, do the one honest manual test pass through the live app before the public trial.'
+  },
+  {
+    date: '2026-07-15',
+    headline: 'Domain live end-to-end, critical signup bug fixed, HACCP waves 1+2, password + Face ID, URL menu scan, background scanning, Visual Data Standards rollout',
+    accomplished: [
+      'chefos.ch verified in Resend, custom SMTP re-enabled, app moved to app.chefos.ch -- Richard tested the whole login flow live (HTTPS, email link, automatic sign-in). The public trial\'s hard email blocker is gone',
+      'Critical signup bug found via Richard\'s own gmail test + Postgres logs: handle_new_user() had no pinned search_path, so EVERY new signup failed ("relation profiles does not exist") -- fixed on production (db/73). The client had been mislabeling this as a rate limit; friendlyAuthErrorMessage() fixed too',
+      'Order List: two real bugs found while implementing Richard\'s sharing spec -- same-ingredient orders overwrote each other, and one person\'s Save silently deleted a whole station\'s orders for the entire kitchen. db/76 gives each person their own row; admin sees a per-person breakdown (staging first)',
+      '3-way recipe filter (Moje / ChefOS / Firemné) replacing the 2-way AI Playground toggle; default stays "Firemné" so the 173 migrated recipes remain reachable',
+      'Background AI scanning: all 5 scan flows can be minimized while running -- a persistent pill shows live progress and flips to "ready, tap to view"',
+      'Menu scan from a website URL: new "A menu website" entry using Claude\'s server-side web_fetch tool -- zero edge-function changes needed',
+      'Password + Face ID login: standard Supabase password plus a WebAuthn platform-authenticator per-device unlock; no biometric data ever leaves the device',
+      'HACCP module wave 1: hub page identical to Home (same tiles), Fridge Temp moved in and revived, Goods Receiving / Core Cooking Temp / Cooling Log / Cleaning + Personal Hygiene checklists live (db/77)',
+      'HACCP wave 2: Fryer Oil + Pest Control switched on (wave-1 engines had them pre-provisioned), Label Expiry built -- printed labels now logged with use-by dates (db/78), new screen groups by urgency',
+      'New kitchens now inherit the ingredient database (db/74) and the profile gate became fully optional with "Skip for now" (db/75) -- both staging first',
+      'Visual Data Standards: all 13 internal documents redesigned to the new standard and moved to /visual data/ with redirect stubs; all 4 scheduled automations re-pointed to the new paths',
+      'Mental-health/burnout idea parked at Richard\'s request after declining the covert camera mechanism (EU AI Act / Art. 328 OR / nDSG) -- legitimate alternative documented in backlog t109',
+    ],
+    planned: 'Run db/73+77+78 on production and db/74+75+76 on staging. Test HACCP, Face ID, URL scan and background scanning live. Decide the Asian-recipe scope question so the Michelin pass can continue. HACCP wave 3 (Staff Training + Report) when Richard confirms.'
   },
 ];
 

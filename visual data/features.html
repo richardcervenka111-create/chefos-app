@@ -109,9 +109,9 @@
     <p class="lede" data-sk="Jedna karta na každú dlaždicu z Home: čo presne robí, čo naozaj funguje dobre, kde sú medzery, a poznámky/nápady z našich rozhovorov, ktoré sa jej týkajú. Aktualizuje sa denne — časť „Nedostatky" čerpá zo statického denného code-auditu (viac v poznámke nižšie)." data-en="One card per Home tile: exactly what it does, what genuinely works well, where the gaps are, and notes/ideas from our conversations that relate to it. Updated daily — the &quot;Shortcomings&quot; section is fed by a daily static code audit (more in the note below)."></p>
     <div class="meta-row">
       <div class="meta-card"><div class="meta-label" data-sk="Dlaždíc na Home" data-en="Tiles on Home"></div><div class="meta-value">11</div></div>
-      <div class="meta-card"><div class="meta-label" data-sk="Naživo funkčné" data-en="Live & working"></div><div class="meta-value">9</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Naživo funkčné" data-en="Live & working"></div><div class="meta-value">10</div></div>
       <div class="meta-card"><div class="meta-label" data-sk="Len placeholder" data-en="Placeholder only"></div><div class="meta-value">1</div></div>
-      <div class="meta-card"><div class="meta-label" data-sk="Pozastavené / skryté" data-en="Paused / hidden"></div><div class="meta-value">2</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Skryté (Chef Challenge)" data-en="Hidden (Chef Challenge)"></div><div class="meta-value">1</div></div>
     </div>
     <div class="controls">
       <input id="tileSearch" type="search" placeholder="Hľadať vo funkciách…" oninput="filterTiles()">
@@ -294,7 +294,41 @@
   </details>
 
   <details class="tile">
-    <summary><span class="tile-icon">🌡️</span><span class="tile-name">Fridge Temp</span><span class="tile-badge hidden" data-sk="Pozastavená (dlaždica viditeľná)" data-en="Paused (tile still visible)"></span></summary>
+    <summary><span class="tile-icon">🧼</span><span class="tile-name">HACCP</span><span class="tile-badge live" data-sk="Naživo — vlny 1+2" data-en="Live — waves 1+2"></span></summary>
+    <div class="tile-body">
+      <div class="tile-col full">
+        <h4 data-sk="Čo robí" data-en="What it does"></h4>
+        <ul class="feat">
+          <li data-sk="Nová stránka v dizajne Home (rovnaké dlaždice): centrum potravinovej bezpečnosti a samokontroly (Selbstkontrollkonzept)" data-en="A new page in Home's own tile design: the food-safety / self-monitoring hub (Selbstkontrollkonzept)"></li>
+          <li data-sk="Vlna 1: Príjem tovaru, Jadrová teplota pri varení, Protokol chladenia, Cleaning checklist, Osobná hygiena + Fridge Temp presunutý sem a oživený" data-en="Wave 1: Goods Receiving, Core Cooking Temperature, Cooling Log, Cleaning checklist, Personal Hygiene + Fridge Temp moved in and revived"></li>
+          <li data-sk="Vlna 2: Fritézový olej, Škodcovia, Expirácia štítkov — tlač štítkov sa loguje s use-by dátumom (db/78) a obrazovka ukazuje čo je po dátume / dnes-zajtra / v poriadku" data-en="Wave 2: Fryer Oil, Pest Control, Label Expiry — printed labels are logged with use-by dates (db/78) and the screen groups by past-date / today-tomorrow / fine"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4>
+        <ul class="feat good">
+          <li data-sk="Dva znovupoužiteľné enginy (meranie + opakujúci sa checklist) pokrývajú 6 dlaždíc — vlna 2 potrebovala takmer nulový nový kód" data-en="Two reusable engines (measurement + recurring checklist) cover 6 tiles — wave 2 needed almost zero new code"></li>
+          <li data-sk="Zlyhanie logu štítkov nikdy nezablokuje samotnú tlač" data-en="A label-log failure never blocks the actual print"></li>
+        </ul>
+      </div>
+      <div class="tile-col">
+        <h4 data-sk="⚠️ Nedostatky" data-en="⚠️ Shortcomings"></h4>
+        <ul class="feat bad">
+          <li data-sk="Nikdy netestované naživo v prehliadači — celý modul vznikol 15.7., čaká na manuálny prechod" data-en="Never tested live in a browser — the whole module was built on Jul 15, waiting for the manual pass"></li>
+          <li data-sk="db/77 + db/78 ešte nemusia byť spustené na produkcii — bez nich obrazovky hlásia chybu pri načítaní" data-en="db/77 + db/78 may not be run on production yet — without them the screens error on load"></li>
+        </ul>
+      </div>
+      <div class="tile-col full">
+        <h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4>
+        <ul class="feat notes">
+          <li data-sk="Vlna 3 čaká: Školenia personálu + admin Report (dlaždice viditeľné s &quot;pripravujeme&quot; bannerom)" data-en='Wave 3 pending: Staff Training + admin Report (tiles visible with a "coming soon" banner)'></li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="tile">
+    <summary><span class="tile-icon">🌡️</span><span class="tile-name">Fridge Temp</span><span class="tile-badge live" data-sk="Naživo — v HACCP module" data-en="Live — inside the HACCP hub"></span></summary>
     <div class="tile-body">
       <div class="tile-col full"><h4 data-sk="Čo robí" data-en="What it does"></h4><ul class="feat"><li data-sk="Manuálne zapisovanie teplôt chladničiek (HACCP)" data-en="Manual fridge-temperature logging (HACCP)"></li></ul></div>
       <div class="tile-col"><h4 data-sk="👍 Funguje dobre" data-en="👍 Working well"></h4><ul class="feat good"><li data-sk="Základná manuálna verzia je funkčná" data-en="Basic manual version is functional"></li></ul></div>
@@ -307,7 +341,7 @@
       </div>
       <div class="tile-col full"><h4 data-sk="💭 Poznámky a nápady" data-en="💭 Notes and ideas"></h4><ul class="feat notes">
         <li data-sk="SensorPush odporúčaný (~CHF 150/chladnička), fyzicky nekúpený" data-en="SensorPush recommended (~CHF 150/fridge), not yet purchased"></li>
-        <li data-sk="Od 15.7.: dlaždica ostáva na Home, ale po ťuknutí ukáže len banner &quot;pracujeme na tom&quot; — kým nevyriešime, ako sa teplota dostane do appky reálne (senzor)" data-en='From Jul 15: the tile stays on Home, but tapping it just shows a "working on it" banner — until how temperature data actually gets into the app is solved (a real sensor)'></li>
+        <li data-sk="Zmena 15.7. večer: dlaždica sa presunula z Home do nového HACCP modulu a manuálne zapisovanie je znova zapnuté naživo (Richardovo rozhodnutie pri stavbe HACCP) — starší &quot;pracujeme na tom&quot; banner je zrušený" data-en='Changed the evening of Jul 15: the tile moved from Home into the new HACCP hub and manual logging is switched back on live (Richard\'s call while building HACCP) — the earlier "working on it" banner is gone'></li>
       </ul></div>
     </div>
   </details>
