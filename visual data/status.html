@@ -299,7 +299,7 @@
         <div class="col-head"><span class="dot"></span><span data-sk="Čaká" data-en="Waiting"></span><span class="count"></span></div>
         <div class="col-body">
           <div class="ticket" style="border-color:var(--gold);"><b style="color:var(--gold);">💰 Prvý príjem — 2 blokátory, oba na Richardovi</b><span>1) Poslať Nebenerwerb žiadosť zamestnávateľovi (10 min, draft hotový), 2) Einzelfirma/AHV registrácia (1-2 h). Potom: founding-member ponuka do appky (Claude, draft hotový)</span></div>
-          <div class="ticket"><b>7 migrácií čaká na spustenie</b><span>Staging najprv: db/74 (ingrediencie pre nové kuchyne), db/75 (nepovinný profil), db/76 (Order List), db/79 (error_logs cap), db/80 (admin lockdown — zavrie aj eskalačnú dieru!). Rovno na produkciu bezpečné: db/77 (HACCP), db/78 (log štítkov)</span></div>
+          <div class="ticket"><b>11 migrácií čaká na spustenie</b><span>Staging najprv: db/74, db/75, db/76, db/79, db/80 (admin lockdown — zavrie eskalačnú dieru!), db/81 (invite-only lockdown — zavrie druhú dieru!). Rovno na produkciu bezpečné: db/77, db/78, db/82 (email databáza), db/83 (povinné heslo), db/84 (connections)</span></div>
           <div class="ticket"><b>🧼 HACCP vlna 3</b><span>Školenia personálu + admin report — posledné dve dlaždice s "pripravujeme" bannerom. Vlna 2 (fritézový olej, škodcovia, expirácia štítkov) nasadená 15.7.</span></div>
           <div class="ticket"><b>Fakturácia / predplatné</b><span>Plán existuje (monetization.html) — na štart ručné faktúry, platobná brána až pri 20+ kuchyniach</span></div>
           <div class="ticket"><b>GmbH</b><span>Vedome odložené až po prvom reálnom príjme</span></div>
@@ -313,6 +313,7 @@
         <div class="col-head"><span class="dot"></span><span data-sk="Hotovo" data-en="Done"></span><span class="count"></span></div>
         <div class="col-body">
           <div class="ticket"><b>🔐 Health check + admin lockdown + Settings hub (15.7. v noci)</b><span>Trvalé guardy: audítory v git hookoch + CI + brána na deploy; nájdená a zavretá (db/80, staging first) eskalačná diera — ktokoľvek si mohol sám nastaviť is_admin. Nové: ⚙️ Settings hub na Home, 📲 návod na pridanie na plochu, viditeľnosť aktívnych filtrov ako štandard (plný teal), poličky receptov Moje/ChefOS/Firemné podľa autora</span></div>
+          <div class="ticket"><b>🔐 Osembodová dávka: logout, invite-only, povinné heslo, Connections, email databáza (15.7. neskoro v noci)</b><span>Sign Out tlačidlo, self-serve "vytvor si kuchyňu" zamknuté len na Richarda (db/81 zavrel aj reálnu dieru — ktokoľvek v kuchyni mohol vytvárať invite QR, nielen admin), heslo povinné pre všetkých (db/83, nová brána po mlčanlivosti), Connections (bývalé My Team) — Scan QR + Share QR (Add Friend reálne funguje cez chef_connections, Share My Recipes poctivo "coming soon"), email_contacts databáza (db/82, admin-only prehľad v Settings)</span></div>
           <div class="ticket"><b>🧼 HACCP vlna 2</b><span>Fritézový olej + Škodcovia zapnuté (enginy z vlny 1 ich mali pripravené), Expirácia štítkov postavená — tlač štítkov sa loguje s use-by dátumom (db/78), nová obrazovka ukazuje čo je po dátume / dnes-zajtra / v poriadku</span></div>
           <div class="ticket"><b>🌐 Vlastná doména + email login pre všetkých</b><span>15.7.: chefos.ch overená v Resend, custom SMTP zapnutý, appka beží na app.chefos.ch — Richard otestoval celý tok naživo (HTTPS, email link, automatické prihlásenie). Hlavný blokátor trialu odstránený</span></div>
           <div class="ticket"><b>🔴 → ✅ Kritický signup bug opravený (db/73)</b><span>handle_new_user() padal pre KAŽDÚ novú registráciu (search_path v SECURITY DEFINER) — každý invite aj trial signup by zlyhal. Objavené cez Richardov gmail test + Postgres logy, opravené priamo na produkcii</span></div>
@@ -688,6 +689,6 @@ renderPulse();
 </script>
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 04:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 04:45">🔄 Stav ChefOS k 15. 7. 2026, 04:45</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 05:35" data-en="🔄 ChefOS state as of Jul 15, 2026, 05:35">🔄 Stav ChefOS k 15. 7. 2026, 05:35</div>
 </body>
 </html>
