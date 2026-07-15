@@ -1430,6 +1430,98 @@
   <div class="home-grid" id="homeGrid"></div>
 </div>
 
+<!-- HACCP hub — same page design as Home on purpose (Richard, 15.7.): same topbar, same
+     .home-grid/.home-tile so the tiles are identical size/style to the main menu, just a
+     sub-menu instead of the root. Wave 1 (goods receiving, core cooking temp, cooling log,
+     cleaning + hygiene checklists, Fridge Temp moved in from Home) is functional now; the rest
+     use the same openPausedFeature() placeholder pattern already used elsewhere until their
+     own wave. -->
+<div id="haccpView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Food Safety &amp; Compliance</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">🧼 HACCP</h1>
+  </div>
+  <div class="home-grid" id="haccpGrid"></div>
+</div>
+
+<!-- Generic reading log used by Goods Receiving / Core Cooking Temp / Cooling Log — same
+     shape (a label, an optional numeric reading, an OK/Problem judgement, a note), so one
+     screen serves all three via HACCP_MEASUREMENT_CONFIG instead of three near-identical ones.
+     Fryer Oil (wave 2) will reuse this same screen too. -->
+<div id="haccpMeasurementView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="showHACCP()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      HACCP
+    </button>
+  </div>
+  <div class="detail-content">
+    <h2 class="recipe-title display" id="haccpMeasurementTitle"></h2>
+    <p class="recipe-meta" id="haccpMeasurementHint"></p>
+
+    <label class="form-label" style="margin-top:18px;">New entry</label>
+    <input class="form-field" id="hm_label" type="text" placeholder="">
+    <input class="form-field" id="hm_value" type="number" step="0.1" placeholder="" style="margin-top:10px;">
+    <div class="prep-line3" style="margin-top:10px;">
+      <button class="task-status-btn active" id="hm_status_ok" onclick="setHaccpMeasurementStatusChoice('ok')">✅ OK</button>
+      <button class="task-status-btn" id="hm_status_issue" onclick="setHaccpMeasurementStatusChoice('issue')">⚠️ Problem</button>
+    </div>
+    <textarea class="form-field" id="hm_note" rows="2" placeholder="Note (optional)" style="margin-top:10px;"></textarea>
+    <button class="save-btn" style="width:100%; margin-top:12px;" onclick="saveHaccpMeasurement()">Save entry</button>
+    <div class="form-status" id="haccpMeasurementStatus"></div>
+
+    <div class="block" style="margin-top:28px;">
+      <h3>Recent entries</h3>
+      <div id="haccpMeasurementList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic recurring-task checklist used by Cleaning and Personal Hygiene (and Pest Control
+     in wave 2) — same shape (a task, a station, a frequency, ticked OK/Problem), one screen
+     for all of them via HACCP_CHECKLIST_CONFIG. -->
+<div id="haccpChecklistView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="showHACCP()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      HACCP
+    </button>
+    <div class="bar-spacer"></div>
+    <button class="icon-btn" onclick="openHaccpChecklistManage()" title="Manage tasks">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </button>
+  </div>
+  <div class="detail-content">
+    <h2 class="recipe-title display" id="haccpChecklistTitle"></h2>
+    <p class="recipe-meta" id="haccpChecklistHint"></p>
+    <div id="haccpChecklistList" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<div id="haccpChecklistManageOverlay" class="sheet-overlay" onclick="if(event.target===this) closeHaccpChecklistManage()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Manage Tasks</div>
+    <input class="form-field" id="hci_task" type="text" placeholder="Task, e.g. Wipe down prep counters">
+    <input class="form-field" id="hci_station" type="text" placeholder="Station (optional)" style="margin-top:8px;">
+    <select class="form-field" id="hci_frequency" style="margin-top:8px;">
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="addHaccpChecklistItem()">Add task</button>
+    <div class="form-status" id="haccpChecklistManageStatus"></div>
+    <label class="form-label" style="margin-top:16px;">Existing tasks</label>
+    <div id="haccpChecklistManageList"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeHaccpChecklistManage()">Close</button>
+  </div>
+</div>
+
 <!-- Shown instead of Home when a brand-new signup has no kitchen yet: either waiting for
      Richard's manual access approval, or (once approved) creating their own kitchen/team or
      joining one via an invite link. Existing users always have a kitchen_id already, so they
@@ -2027,9 +2119,9 @@
 
 <div id="fridgesView" style="display:none;">
   <div class="detail-bar no-print">
-    <button class="back-btn" onclick="showHome()">
+    <button class="back-btn" onclick="showHACCP()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-      Home
+      HACCP
     </button>
     <div class="bar-spacer"></div>
     <span class="sync-status saved" id="fridgesSyncStatus"></span>
@@ -6901,7 +6993,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -6913,12 +7005,9 @@ const HOME_TILE_DEFS = [
   { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredients()' },
   { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showTasks()' },
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
-  /* Fridge Temp — tile stays visible (Richard's call, 2026-07-15), but opens the same kind of
-     "paused" banner as Team Meetings instead of the real screen, since manual-only logging
-     isn't worth shipping until there's a real answer for how temperature data gets into the
-     app. showFridges() and all its code are untouched underneath — swap the onclick back once
-     that's solved. */
-  { key:'fridgeTemp', icon:'🌡️', staticLabel:'Fridge Temp', onclick:"openPausedFeature('🌡️ Fridge Temp', 'We\\'re working on it — paused until we have a real way to get temperature data into the app (a sensor, not manual typing). Not available yet.')" },
+  /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
+     rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
+  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()' },
   { key:'chefAssistant', icon:'🎩', labelKey:'chefAssistant', staticLabel:"Chef's Assistant", onclick:'showChefAssistant()' },
   /* Chef Challenge — hidden from Home at Richard's request (2026-07-14), not deleted. The
      feature, its overlay, and all its code below are untouched; bringing it back later is
@@ -6970,6 +7059,43 @@ function renderHomeGrid(){
   if(currentIsAdmin) refreshAdminPendingBadge();
   const currencyBtn = document.getElementById('currencyIconBtn');
   if(currencyBtn) currencyBtn.style.display = currentIsAdmin ? 'flex' : 'none';
+}
+
+/* ============================================================
+   HACCP hub (bod 3, 15.7.) — same tile grid as Home (see haccpView HTML), reusing the exact
+   .home-grid/.home-tile CSS so it's genuinely the same design, not a lookalike. Wave 1 tiles
+   below point at real screens; wave 2/3 tiles use the same openPausedFeature() placeholder
+   already used for other not-yet-built features, so the full shape is visible today even
+   though not everything works yet.
+   ============================================================ */
+const HACCP_TILE_DEFS = [
+  { key:'fridgeTemp', icon:'🌡️', staticLabel:'Fridge Temp', onclick:'showFridges()' },
+  { key:'goodsReceiving', icon:'📥', staticLabel:'Goods Receiving', onclick:"showHaccpMeasurement('goods_receiving')" },
+  { key:'coreCookingTemp', icon:'🍗', staticLabel:'Core Cooking Temp', onclick:"showHaccpMeasurement('core_cooking')" },
+  { key:'coolingLog', icon:'❄️', staticLabel:'Cooling Log', onclick:"showHaccpMeasurement('cooling')" },
+  { key:'cleaningChecklist', icon:'🧽', staticLabel:'Cleaning', onclick:"showHaccpChecklist('cleaning')" },
+  { key:'hygieneChecklist', icon:'🧑‍⚕️', staticLabel:'Personal Hygiene', onclick:"showHaccpChecklist('hygiene')" },
+  { key:'fryerOil', icon:'🍳', staticLabel:'Fryer Oil', onclick:"openPausedFeature('🍳 Fryer Oil Quality', 'Coming in the next HACCP wave — logging oil quality readings per fryer.')" },
+  { key:'pestControl', icon:'🐀', staticLabel:'Pest Control', onclick:"openPausedFeature('🐀 Pest Control', 'Coming in the next HACCP wave — a recurring checklist for trap checks and pest-control visits.')" },
+  { key:'labelExpiry', icon:'🏷️', staticLabel:'Label Expiry', onclick:"openPausedFeature('🏷️ Label Expiry', 'Coming in the next HACCP wave — tracking which printed labels are near or past their use-by date.')" },
+  { key:'staffTraining', icon:'🎓', staticLabel:'Staff Training', onclick:"openPausedFeature('🎓 Staff Training', 'Coming soon — a record of who has completed hygiene/food-safety training and when.')" },
+  { key:'haccpReport', icon:'📊', staticLabel:'Report', onclick:"openPausedFeature('📊 HACCP Report', 'Coming soon — one summary screen across everything here, for inspections.')" }
+];
+function showHACCP(){
+  hideAllViews();
+  document.getElementById('haccpView').style.display = 'block';
+  renderHaccpGrid();
+  window.scrollTo(0,0);
+}
+function renderHaccpGrid(){
+  const wrap = document.getElementById('haccpGrid');
+  if(!wrap) return;
+  wrap.innerHTML = HACCP_TILE_DEFS.map(tile => `
+    <button class="home-tile" onclick="${tile.onclick}">
+      <span class="home-tile-icon">${tile.icon}</span>
+      <span class="home-tile-label">${tile.staticLabel}</span>
+    </button>
+  `).join('');
 }
 
 let _homeReorderList = [];
@@ -14217,6 +14343,224 @@ async function deleteFridge(){
   fridgeEditingId = null;
   await loadFridges();
   showFridges();
+}
+
+/* ============================================================
+   HACCP — reading log (Goods Receiving / Core Cooking Temp / Cooling Log, wave 1; Fryer Oil
+   reuses this same screen in wave 2). One config-driven screen instead of three/four
+   near-identical ones, backed by the single haccp_measurement_log table (db/77).
+   ============================================================ */
+const HACCP_MEASUREMENT_CONFIG = {
+  goods_receiving: { title:'Goods Receiving', icon:'📥', unit:'°C', labelPlaceholder:'Product / supplier, e.g. "Chicken – Metro"', hint:'Log the delivery temperature and a quick visual check (packaging, smell, use-by dates) for each delivery.' },
+  core_cooking: { title:'Core Cooking Temperature', icon:'🍗', unit:'°C', labelPlaceholder:'Dish, e.g. "Roast chicken"', hint:'Log the core temperature reached when cooking — you judge OK/Problem for the dish and technique.' },
+  cooling: { title:'Cooling Log', icon:'❄️', unit:'°C', labelPlaceholder:'Dish, e.g. "Bolognese sauce"', hint:'Log the temperature when you check cooked food that\'s cooling down — should reach ≤10°C within 2 hours of cooking.' },
+  fryer_oil: { title:'Fryer Oil Quality', icon:'🍳', unit:'', labelPlaceholder:'Fryer / station, e.g. "Fryer 1"', hint:'Log an oil quality check — colour, smell, foaming, or a TPM reading if you have a test strip.' }
+};
+let _haccpMeasurementType = null;
+let _haccpMeasurementStatus = 'ok';
+let _haccpMeasurementEntries = [];
+
+async function showHaccpMeasurement(type){
+  _haccpMeasurementType = type;
+  const cfg = HACCP_MEASUREMENT_CONFIG[type];
+  logEvent('view_opened', {view:'haccp_' + type});
+  hideAllViews();
+  document.getElementById('haccpMeasurementView').style.display = 'block';
+  document.getElementById('haccpMeasurementTitle').textContent = cfg.icon + ' ' + cfg.title;
+  document.getElementById('haccpMeasurementHint').textContent = cfg.hint;
+  document.getElementById('hm_label').value = '';
+  document.getElementById('hm_label').placeholder = cfg.labelPlaceholder;
+  document.getElementById('hm_value').value = '';
+  document.getElementById('hm_value').placeholder = cfg.unit ? `Reading (${cfg.unit}, optional)` : 'Reading (optional)';
+  document.getElementById('hm_note').value = '';
+  document.getElementById('haccpMeasurementStatus').textContent = '';
+  setHaccpMeasurementStatusChoice('ok');
+  await loadHaccpMeasurementLog();
+  window.scrollTo(0,0);
+}
+function setHaccpMeasurementStatusChoice(status){
+  _haccpMeasurementStatus = status;
+  document.getElementById('hm_status_ok').classList.toggle('active', status==='ok');
+  document.getElementById('hm_status_issue').classList.toggle('active', status==='issue');
+}
+async function saveHaccpMeasurement(){
+  const label = document.getElementById('hm_label').value.trim();
+  const valueRaw = document.getElementById('hm_value').value;
+  const note = document.getElementById('hm_note').value.trim();
+  const statusEl = document.getElementById('haccpMeasurementStatus');
+  if(!label){ statusEl.textContent = 'Enter what this reading is for first.'; statusEl.className = 'form-status error'; return; }
+  statusEl.className = 'form-status';
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('haccp_measurement_log').insert({
+    kitchen_id: currentKitchenId,
+    type: _haccpMeasurementType,
+    label,
+    value_numeric: valueRaw !== '' ? parseFloat(valueRaw) : null,
+    value_unit: HACCP_MEASUREMENT_CONFIG[_haccpMeasurementType].unit || null,
+    status: _haccpMeasurementStatus,
+    note: note || null,
+    logged_by: currentUser.id
+  });
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; statusEl.className = 'form-status error'; return; }
+  statusEl.textContent = '';
+  document.getElementById('hm_label').value = '';
+  document.getElementById('hm_value').value = '';
+  document.getElementById('hm_note').value = '';
+  setHaccpMeasurementStatusChoice('ok');
+  await loadHaccpMeasurementLog();
+}
+async function loadHaccpMeasurementLog(){
+  const { data } = await sb.from('haccp_measurement_log').select('*')
+    .eq('kitchen_id', currentKitchenId).eq('type', _haccpMeasurementType)
+    .order('logged_at', { ascending:false }).limit(30);
+  _haccpMeasurementEntries = data || [];
+  renderHaccpMeasurementLog();
+}
+function renderHaccpMeasurementLog(){
+  const el = document.getElementById('haccpMeasurementList');
+  if(!_haccpMeasurementEntries.length){ el.innerHTML = '<div class="empty-state">No entries yet.</div>'; return; }
+  el.innerHTML = _haccpMeasurementEntries.map(e => `
+    <div class="fridge-log-row">
+      <span>${e.status==='issue' ? '⚠️' : '✅'} ${(e.label||'').replace(/</g,'&lt;')}${e.value_numeric!=null ? ' — ' + e.value_numeric + (e.value_unit||'') : ''}${e.note ? ' · ' + e.note.replace(/</g,'&lt;') : ''}</span>
+      <span class="temp${e.status==='issue' ? ' warn' : ''}">${new Date(e.logged_at).toLocaleString()}</span>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   HACCP — recurring checklist (Cleaning / Personal Hygiene, wave 1; Pest Control reuses this
+   same screen in wave 2). Backed by haccp_checklist_items + haccp_checklist_log (db/77).
+   ============================================================ */
+const HACCP_CHECKLIST_CONFIG = {
+  cleaning: { title:'Cleaning Checklist', icon:'🧽', hint:'Recurring cleaning tasks by station — tick each one off as it\'s done.' },
+  hygiene: { title:'Personal Hygiene', icon:'🧑‍⚕️', hint:'Recurring hygiene checks — handwashing stations stocked, uniforms clean, nobody working while sick, etc.' },
+  pest_control: { title:'Pest Control', icon:'🐀', hint:'Recurring trap checks and pest-control visits.' }
+};
+let _haccpChecklistCategory = null;
+let _haccpChecklistItems = [];
+let _haccpChecklistLatestLog = {};
+
+async function showHaccpChecklist(category){
+  _haccpChecklistCategory = category;
+  const cfg = HACCP_CHECKLIST_CONFIG[category];
+  logEvent('view_opened', {view:'haccp_checklist_' + category});
+  hideAllViews();
+  document.getElementById('haccpChecklistView').style.display = 'block';
+  document.getElementById('haccpChecklistTitle').textContent = cfg.icon + ' ' + cfg.title;
+  document.getElementById('haccpChecklistHint').textContent = cfg.hint;
+  await loadHaccpChecklist();
+  window.scrollTo(0,0);
+}
+async function loadHaccpChecklist(){
+  const { data: items } = await sb.from('haccp_checklist_items').select('*')
+    .eq('kitchen_id', currentKitchenId).eq('category', _haccpChecklistCategory).eq('active', true)
+    .order('station', { ascending:true }).order('task', { ascending:true });
+  _haccpChecklistItems = items || [];
+  const ids = _haccpChecklistItems.map(i=>i.id);
+  _haccpChecklistLatestLog = {};
+  if(ids.length){
+    const { data: logs } = await sb.from('haccp_checklist_log').select('*')
+      .eq('kitchen_id', currentKitchenId).in('item_id', ids).order('completed_at', { ascending:false });
+    (logs||[]).forEach(l=>{ if(!_haccpChecklistLatestLog[l.item_id]) _haccpChecklistLatestLog[l.item_id] = l; });
+  }
+  renderHaccpChecklist();
+}
+function haccpChecklistItemDue(item){
+  const log = _haccpChecklistLatestLog[item.id];
+  if(!log) return true;
+  const done = new Date(log.completed_at);
+  const now = new Date();
+  if(item.frequency === 'daily') return done.toDateString() !== now.toDateString();
+  if(item.frequency === 'weekly'){
+    const dayOfWeek = (now.getDay() + 6) % 7;
+    const monday = new Date(now); monday.setHours(0,0,0,0); monday.setDate(now.getDate() - dayOfWeek);
+    return done < monday;
+  }
+  if(item.frequency === 'monthly') return done.getMonth() !== now.getMonth() || done.getFullYear() !== now.getFullYear();
+  return true;
+}
+function renderHaccpChecklist(){
+  const el = document.getElementById('haccpChecklistList');
+  if(!_haccpChecklistItems.length){
+    el.innerHTML = '<div class="empty-state">No tasks yet — tap the pencil above to add the first one.</div>';
+    return;
+  }
+  el.innerHTML = _haccpChecklistItems.map(item => {
+    const log = _haccpChecklistLatestLog[item.id];
+    const due = haccpChecklistItemDue(item);
+    const statusLine = log
+      ? `${log.status==='issue' ? '⚠️ Problem noted' : '✅ Done'} ${new Date(log.completed_at).toLocaleString()}${log.note ? ' · ' + log.note.replace(/</g,'&lt;') : ''}`
+      : 'Not done yet';
+    return `
+      <div class="task-row">
+        <div class="task-row-top">
+          <div class="info" style="flex:1;">
+            <div class="name task-text">${item.task.replace(/</g,'&lt;')}${item.station ? ' <span class="meta">· ' + item.station.replace(/</g,'&lt;') + '</span>' : ''}</div>
+            <div class="meta">${item.frequency}${due ? ' · due' : ''} — ${statusLine}</div>
+          </div>
+        </div>
+        <div class="task-status-group">
+          <button class="save-btn" onclick="logHaccpChecklistItem('${item.id}','ok')">✅ OK</button>
+          <button class="danger-btn" onclick="logHaccpChecklistItem('${item.id}','issue')">⚠️ Problem</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+async function logHaccpChecklistItem(itemId, status){
+  let note = null;
+  if(status === 'issue'){
+    note = prompt("What's the problem? (optional)") || null;
+  }
+  const { error } = await sb.from('haccp_checklist_log').insert({
+    kitchen_id: currentKitchenId, item_id: itemId, status, note, completed_by: currentUser.id
+  });
+  if(error){ alert('Could not save: ' + error.message); return; }
+  await loadHaccpChecklist();
+}
+
+function openHaccpChecklistManage(){
+  document.getElementById('hci_task').value = '';
+  document.getElementById('hci_station').value = '';
+  document.getElementById('hci_frequency').value = 'daily';
+  document.getElementById('haccpChecklistManageStatus').textContent = '';
+  renderHaccpChecklistManageList();
+  document.getElementById('haccpChecklistManageOverlay').classList.add('open');
+}
+function closeHaccpChecklistManage(){
+  document.getElementById('haccpChecklistManageOverlay').classList.remove('open');
+}
+function renderHaccpChecklistManageList(){
+  const el = document.getElementById('haccpChecklistManageList');
+  el.innerHTML = _haccpChecklistItems.length ? _haccpChecklistItems.map(item => `
+    <div class="wt-settings-row">
+      <span>${item.task.replace(/</g,'&lt;')}${item.station ? ' · ' + item.station.replace(/</g,'&lt;') : ''} <span class="meta">(${item.frequency})</span></span>
+      <button class="task-status-btn" onclick="deactivateHaccpChecklistItem('${item.id}')">Remove</button>
+    </div>
+  `).join('') : '<div class="meta">No tasks yet.</div>';
+}
+async function addHaccpChecklistItem(){
+  const task = document.getElementById('hci_task').value.trim();
+  const station = document.getElementById('hci_station').value.trim() || null;
+  const frequency = document.getElementById('hci_frequency').value;
+  const statusEl = document.getElementById('haccpChecklistManageStatus');
+  if(!task){ statusEl.textContent = 'Enter a task first.'; return; }
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('haccp_checklist_items').insert({
+    kitchen_id: currentKitchenId, category: _haccpChecklistCategory, station, task, frequency, created_by: currentUser.id
+  });
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  document.getElementById('hci_task').value = '';
+  document.getElementById('hci_station').value = '';
+  statusEl.textContent = '';
+  await loadHaccpChecklist();
+  renderHaccpChecklistManageList();
+}
+async function deactivateHaccpChecklistItem(id){
+  if(!confirm('Remove this task from the checklist?')) return;
+  await sb.from('haccp_checklist_items').update({ active:false }).eq('id', id);
+  await loadHaccpChecklist();
+  renderHaccpChecklistManageList();
 }
 </script>
 </body>
