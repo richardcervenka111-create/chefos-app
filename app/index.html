@@ -1887,6 +1887,14 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">👤 My Profile</div>
+    <!-- Read-only account facts (bod 2+3, 16.7.): the signed-in email, and team status — a
+         Company account shows its team's name; a Personal account never shows a kitchen name
+         (that's how "Join Mr. Woof woof" leaked), just whether they're in a team at all. -->
+    <label class="form-label">Signed in as</label>
+    <input class="form-field" id="mps_email" type="text" readonly style="opacity:.7;">
+    <label class="form-label" style="margin-top:10px;">Team</label>
+    <input class="form-field" id="mps_team" type="text" readonly style="opacity:.7;">
+    <label class="form-label" style="margin-top:16px;">About you</label>
     <input class="form-field" id="mps_full_name" type="text" placeholder="Full name">
     <input class="form-field" id="mps_age" type="number" min="14" max="100" placeholder="Age" style="margin-top:10px;">
     <select class="form-field" id="mps_gender" style="margin-top:10px;">
@@ -7342,6 +7350,20 @@ async function loadKitchenReports(){
 }
 
 function openMyProfileSettings(){
+  // Read-only account facts (bod 2+3, 16.7.). Email straight off the auth session. Team:
+  // Company accounts show their kitchen's name; Personal accounts NEVER see a kitchen name
+  // (their auto-created solo kitchen is an implementation detail, not a "team" — showing its
+  // name is exactly how "Mr. Woof woof" leaked to an invitee), only whether they're in a team.
+  document.getElementById('mps_email').value = (currentUser && currentUser.email) || '';
+  const teamEl = document.getElementById('mps_team');
+  if(currentAccountType === 'company' && currentKitchenId){
+    teamEl.value = 'Loading…';
+    sb.from('kitchens').select('name').eq('id', currentKitchenId).maybeSingle().then(({ data: k })=>{
+      teamEl.value = (k && k.name) || 'Your team';
+    });
+  } else {
+    teamEl.value = 'Not in any team yet';
+  }
   sb.from('profiles').select('full_name, age, gender, role, phone, bio, password_set').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
     document.getElementById('mps_full_name').value = (data && data.full_name) || '';
     document.getElementById('mps_age').value = (data && data.age) || '';
