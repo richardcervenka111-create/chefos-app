@@ -1523,9 +1523,10 @@
 
 <div id="homeView" style="display:none;">
   <div class="topbar">
-    <div style="display:flex; align-items:center; justify-content:space-between;">
-      <p class="kicker" data-i18n="kicker">Kitchen Notebook</p>
-      <div style="display:flex; align-items:center; gap:4px;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
+      <p class="kicker" data-i18n="kicker" style="flex:none; max-width:96px;">Kitchen Notebook</p>
+      <!-- Wraps onto a second line instead of cramming (Richard, 16.7. večer). -->
+      <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; justify-content:flex-end; row-gap:2px;">
         <button class="icon-btn" onclick="openHomeReorder()" title="Reorder icons">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         </button>
@@ -9366,7 +9367,9 @@ const HOME_TILE_DEFS = [
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
   /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
      rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
-  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()' },
+  /* Company accounts + Head Admin only for now (Richard, 16.7. večer) — may return to
+     personal accounts later. */
+  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()', adminOnly:()=> currentIsAdmin || currentAccountType !== 'personal' },
   /* Settings hub (Richard, 15.7., bod 5) — one place for every setting; topbar icons stay
      for muscle memory until Richard says to slim them. */
   { key:'settings', icon:'⚙️', staticLabel:'Settings', onclick:'showSettings()' },
@@ -9376,7 +9379,7 @@ const HOME_TILE_DEFS = [
      just un-commenting this one line.
   { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' }, */
   /* Company accounts only (bod 3, 16.7. večer) — meetings are a team thing by definition. */
-  { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()', adminOnly:()=> currentAccountType !== 'personal' },
+  { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()', adminOnly:()=> currentIsAdmin || currentAccountType !== 'personal' },
   /* Connections (bod 6, 15.7. late night) — renamed + rebuilt from My Team into a Home-styled
      hub of its own: Scan QR, Share QR Code, My Team. showTeamInvite() and all its code are
      untouched underneath, just reached from here now instead of directly from Home. */
