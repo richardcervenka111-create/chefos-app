@@ -8658,8 +8658,12 @@ async function toggleMemberAssistant(memberId, on){
 }
 async function removeTeamMember(userId, name){
   if(!confirm(`Remove ${name} from this kitchen? They'll need to create or join a kitchen again to get back in.`)) return;
-  const { error } = await sb.from('profiles').update({ kitchen_id: null }).eq('id', userId);
-  if(error){ alert('Could not remove: ' + error.message + ' — has db/121 been run?'); return; }
+  // SECURITY DEFINER RPC (db/124), not a direct profiles update — Postgres required the
+  // UPDATED row to stay visible to the caller via SELECT policies, and a just-removed member
+  // (kitchen_id NULL) is invisible to their ex-admin by design, so the direct update could
+  // never succeed no matter how the UPDATE policy was written (see db/124's header).
+  const { error } = await sb.rpc('remove_team_member', { p_member: userId });
+  if(error){ alert('Could not remove: ' + error.message + ' — has db/124 been run?'); return; }
   renderTeamMembersList(_teamMembersContainerId);
 }
 
