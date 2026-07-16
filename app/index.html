@@ -2376,6 +2376,10 @@
   <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="krTitle">📊 Kitchen Reports</div>
+    <!-- Illustration-data switch (Richard, 17.7.) — HARD-GATED to exactly chefos@protonmail.com
+         (his own kitchen-admin test account), per explicit instruction: nobody else ever sees
+         this, not even other admins. Display-only, same no-DB-writes design as Working Time's. -->
+    <button class="task-status-btn" id="krDemoToggle" style="display:none; margin-bottom:8px;" onclick="toggleKrDemo()">🎭 Demo: OFF</button>
     <div class="chips" id="krPeriodChips" style="margin-bottom:10px; display:none;">
       <button class="task-status-btn active" id="krPeriodWeek" onclick="setKitchenReportsPeriod('week')">This Week</button>
       <button class="task-status-btn" id="krPeriodMonth" onclick="setKitchenReportsPeriod('month')">This Month</button>
@@ -7566,9 +7570,37 @@ function openKitchenReports(){
   document.getElementById('kitchenReportsOverlay').classList.add('open');
   kitchenReportsPeriod = 'week';
   ['Week','Month','Quarter'].forEach(p=>document.getElementById('krPeriod'+p).classList.toggle('active', p==='Week'));
+  const demoBtn = document.getElementById('krDemoToggle');
+  demoBtn.style.display = krDemoAllowed() ? '' : 'none';
+  demoBtn.textContent = _krDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  demoBtn.classList.toggle('active', _krDemoMode);
   krRenderRoot();
 }
 function closeKitchenReports(){ document.getElementById('kitchenReportsOverlay').classList.remove('open'); }
+
+/* Kitchen Reports illustration mode — chefos@protonmail.com ONLY (Richard's own kitchen-admin
+   test account, his explicit call: nobody else, ever). Hand-crafted varied numbers, purely for
+   display; nothing touches the database, and turning it off returns to live data instantly. */
+let _krDemoMode = false;
+function krDemoAllowed(){
+  return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === 'chefos@protonmail.com');
+}
+function toggleKrDemo(){
+  if(!krDemoAllowed()) return;
+  _krDemoMode = !_krDemoMode;
+  const btn = document.getElementById('krDemoToggle');
+  btn.textContent = _krDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  btn.classList.toggle('active', _krDemoMode);
+  if(_krSection === 'team') krRenderTeam();
+  else if(_krSection === 'recipes'){ _krShelf = null; krRenderRecipes(); }
+  else if(_krSection === 'ingredients') krRenderIngredients();
+  else if(_krSection === 'checklist') krRenderCheckList();
+  else krRenderRoot();
+}
+function krDemoActive(){ return _krDemoMode && krDemoAllowed(); }
+/* Period scaling for the demo team numbers — week is the base, month/quarter multiply, so the
+   period chips stay alive in demo mode instead of showing frozen numbers. */
+function krDemoPeriodFactor(){ return kitchenReportsPeriod === 'week' ? 1 : kitchenReportsPeriod === 'month' ? 4.3 : 13; }
 
 function krPeriodBounds(){
   const now = new Date();
@@ -7699,6 +7731,33 @@ async function krRenderRoot(){
 async function krRenderTeam(){
   _krSection = 'team';
   document.getElementById('krPeriodChips').style.display = 'flex';
+  if(krDemoActive()){
+    const f = krDemoPeriodFactor();
+    const demo = [
+      { name:'Marco Berger',  h:38.5, a:214 },
+      { name:'Ayla Demir',    h:34.2, a:158 },
+      { name:'Jonas Frei',    h:29.5, a:121 },
+      { name:'Petra Kováč',   h:21.8, a:64 },
+      { name:'Luca Moretti',  h:12.5, a:39 },
+    ];
+    const total = demo.reduce((s,p)=>s+p.h,0) * f;
+    const totalActions = Math.round(demo.reduce((s,p)=>s+p.a,0) * f);
+    const { elapsedFrac } = krPeriodBounds();
+    const projected = total / elapsedFrac;
+    const prevTotal = total * 0.87;
+    krSectionShell('👥 Team Members', `
+      ${krPills([`👥 6 members`, `⚡ 5 active this ${kitchenReportsPeriod}`, `⏱️ ${(total).toFixed(1)} h logged`, `🔁 ${totalActions} actions`])}
+      ${krLabel('Hours share')}
+      ${krDonut(demo.map(p=>({ label:p.name, value: Math.round(p.h * f * 10)/10 })))}
+      ${krLabel('Hours by person')}
+      ${krBars(demo.map(p=>({ label:p.name, value: p.h * f, display:(p.h * f).toFixed(1) })), ' h')}
+      ${krLabel('Activity — Check List edits + app usage')}
+      ${krBars(demo.map(p=>({ label:p.name, value: Math.round(p.a * f) })))}
+      <div class="sheet-text" style="opacity:.65; margin-top:8px;">🎭 Illustration data — invented people and numbers, for demo purposes only.</div>
+      ${krPredictBlock('krPredictTeam', `At the current pace the team will log <b>~${projected.toFixed(0)} h</b> by the end of this ${kitchenReportsPeriod} (${total.toFixed(1)} h so far, ${Math.round(elapsedFrac*100)}% of the period elapsed). That's <b>+${Math.round((projected - prevTotal)/prevTotal*100)}%</b> vs the previous ${kitchenReportsPeriod} (${prevTotal.toFixed(1)} h).`)}
+    `);
+    return;
+  }
   krSectionShell('👥 Team Members', '<p class="lede">Loading…</p>');
   const { start, end, elapsedFrac } = krPeriodBounds();
   const prevStart = new Date(start.getTime() - (end.getTime() - start.getTime()));
@@ -7767,11 +7826,34 @@ async function krRenderTeam(){
 }
 
 /* ---------- 📖 Recipes — shelves first (ChefOS, then Company), drill-down kept ---------- */
+let _krDemoRecipesCache = null;
+function krDemoCompanyRecipes(){
+  if(_krDemoRecipesCache) return _krDemoRecipesCache;
+  // 48 invented company recipes with a deliberately mixed completeness profile:
+  // ~65% timed, ~88% with method, ~40% costed, ~75% with a station, 6 added in the last 4 weeks.
+  const cats = ['Mains','Mains','Mains','Sauces & Dressings','Sauces & Dressings','Desserts','Starters','Soups','Sides','Bakery & Bread'];
+  const out = [];
+  for(let i = 0; i < 48; i++){
+    out.push({
+      title: 'Demo recipe #' + (i + 1),
+      category: cats[i % cats.length],
+      time: { active: (i % 48) < 31 ? '25 min' : '', passive: '' },
+      productionTime: '',
+      sections: ((i + 7) % 48) < 42 ? [{ type:'steps', items:['step'] }] : [],
+      cost: ((i * 11) % 48) < 19 ? { total: 8 + (i % 14) } : null,
+      station: ((i + 3) % 48) < 36 ? ['Hot Line','Garde Manger','SKY','Desserts'][i % 4] : '',
+      createdBy: 'demo', isPersonal: false,
+      createdAt: new Date(Date.now() - (i < 6 ? (i + 2) : (40 + i)) * 86400000).toISOString()
+    });
+  }
+  _krDemoRecipesCache = out;
+  return out;
+}
 function krRenderRecipes(){
   _krSection = 'recipes';
   document.getElementById('krPeriodChips').style.display = 'none';
   const chefos = allRecipes().filter(r=>!r.createdBy);
-  const company = allRecipes().filter(r=>r.createdBy && !r.isPersonal);
+  const company = krDemoActive() ? krDemoCompanyRecipes() : allRecipes().filter(r=>r.createdBy && !r.isPersonal);
   if(_krShelf === null){
     krSectionShell('📖 Recipes', `
       <div class="task-row" style="cursor:pointer;" onclick="_krShelf='chefos'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
@@ -7823,9 +7905,9 @@ function krRenderRecipes(){
     ${krDonut(donutSegs)}
     ${krPredictBlock('krPredictRecipes', predictHtml)}
     ${krLabel('Browse')}
-    <div id="krRecipesBrowse"></div>
+    ${krDemoActive() && _krShelf === 'company' ? '<div class="empty-state">🎭 Browse is hidden in demo mode — these recipes are invented.</div>' : '<div id="krRecipesBrowse"></div>'}
   `);
-  renderKrRecipesBrowse(recipes);
+  if(!(krDemoActive() && _krShelf === 'company')) renderKrRecipesBrowse(recipes);
 }
 function renderKrRecipesBrowse(recipes){
   const wrap = document.getElementById('krRecipesBrowse');
@@ -7868,10 +7950,33 @@ function renderKrRecipesBrowse(recipes){
 }
 
 /* ---------- 🧂 Ingredients ---------- */
+let _krDemoIngCache = null;
+function krDemoIngredientRows(){
+  if(_krDemoIngCache) return _krDemoIngCache;
+  // 1,240 invented catalog rows: 62% priced, 87% categorised, 71% with storage, 55% with
+  // seasons, 34 added in the last 4 weeks — varied enough that every chart has something to say.
+  const catPlan = [['Vegetables',264],['Meat & Fish',198],['Dairy',176],['Spices',149],['Dry goods',141],['Fruit',118],['Baking',108],['Beverages',86]];
+  const out = [];
+  let i = 0;
+  catPlan.forEach(([cat, n])=>{
+    for(let k = 0; k < n; k++, i++){
+      out.push({
+        is_personal: false,
+        category: (i % 100) < 87 ? cat : null,
+        price: (i % 100) < 62 ? (1 + (i % 40) * 0.75) : null,
+        storage_type: (i % 100) < 71 ? ['Fridge','Freezer','Dry','Room'][i % 4] : null,
+        seasons: (i % 100) < 55 ? [['Spring'],['Summer'],['Autumn','Winter'],['All year']][i % 4] : [],
+        created_at: new Date(Date.now() - (i < 34 ? (i % 27 + 1) : (60 + i % 300)) * 86400000).toISOString()
+      });
+    }
+  });
+  _krDemoIngCache = out;
+  return out;
+}
 function krRenderIngredients(){
   _krSection = 'ingredients';
   document.getElementById('krPeriodChips').style.display = 'none';
-  const rows = _ingredients.filter(i=>!i.is_personal);
+  const rows = krDemoActive() ? krDemoIngredientRows() : _ingredients.filter(i=>!i.is_personal);
   const total = rows.length;
   const withPrice = rows.filter(i=>i.price != null && Number(i.price) > 0).length;
   const withCat = rows.filter(i=>i.category).length;
@@ -7913,6 +8018,40 @@ function krRenderIngredients(){
 async function krRenderCheckList(){
   _krSection = 'checklist';
   document.getElementById('krPeriodChips').style.display = 'none';
+  if(krDemoActive()){
+    const projRows = [
+      { name:'Burrito Bandito', dishes:14, items:96, done:71, opted:60 },
+      { name:'Lido Terrasse', dishes:11, items:74, done:45, opted:51 },
+      { name:'Catering — Sommerfest', dishes:6, items:38, done:12, opted:25 },
+    ];
+    krSectionShell('✅ Check List', `
+      ${krPills([`📁 3 projects`, `🍽️ 31 dishes`, `📌 156 opted-in items`, `⏳ ~585 min left`])}
+      ${krLabel('Items by status')}
+      ${krDonut([
+        { label:'TO DO', value: 46 },
+        { label:'CHECK', value: 18 },
+        { label:'FINISH', value: 92 },
+        { label:"DON'T DO (skipped)", value: 52 },
+      ])}
+      ${krLabel('Remaining minutes by station')}
+      ${krBars([
+        { label:'Hot Line', value: 210, display:'210 min' },
+        { label:'SKY', value: 145, display:'145 min' },
+        { label:'Garde Manger', value: 95, display:'95 min' },
+        { label:'Desserts', value: 60, display:'60 min' },
+        { label:'Entremetier', value: 45, display:'45 min' },
+        { label:'BQT', value: 30, display:'30 min' },
+      ])}
+      ${krLabel('Projects')}
+      ${projRows.map(p=>`<div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+        <div class="name task-text">📁 ${p.name}</div>
+        <div class="meta">${p.dishes} dishes · ${p.items} items · ${krPct(p.done, p.opted)}% finished (of ${p.opted} opted-in)</div>
+      </div></div></div>`).join('')}
+      <div class="sheet-text" style="opacity:.65; margin-top:8px;">🎭 Illustration data — invented projects and numbers, for demo purposes only.</div>
+      ${krPredictBlock('krPredictCheckList', `The team finishes <b>~11.4</b> items/day (7-day average). At that pace the current <b>64</b> open items clear in <b>~6</b> day(s). Estimated remaining work: <b>~585 min</b> (from each item's own stage times).`)}
+    `);
+    return;
+  }
   krSectionShell('✅ Check List', '<p class="lede">Loading…</p>');
   const [{ data: projects }, { data: finishLog }] = await Promise.all([
     sb.from('projects').select('id, name').eq('kitchen_id', currentKitchenId).order('created_at'),
