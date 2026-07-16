@@ -11019,15 +11019,36 @@ function applyIngredientScale(idx){
 /* Add to Check List (bod 7, 16.7.) — creates a prep_dish (+ its ingredient rows as prep_items)
    in whichever project is currently open, named/stationed straight off the recipe. Reuses the
    exact same insert shape as the manual "Add Dish" form (savePrepDishForm) above. */
-function addRecipeToCheckList(){
+/* Add to Check List (bod 7, 16.7.; reworked 16.7. večer per Richard): ALWAYS project first —
+   with exactly one project it's auto-picked and the sheet goes straight to stations; with more,
+   the same sheet lists projects, then stations. No dependence on which project happens to be
+   "currently open" in Check List anymore. */
+async function addRecipeToCheckList(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
-  if(!currentProjectId){
-    alert('Open Check List and pick a project first — then come back here to add this recipe.');
+  const { data: projects, error } = await sb.from('projects').select('id, name, icon').order('created_at');
+  if(error){ alert('Could not load your projects: ' + error.message); return; }
+  if(!projects || !projects.length){
+    alert('No Check List project yet — open Check List and create one first, then come back here.');
     return;
   }
-  // Station choice (bod 7, 16.7.) — Richard: never silently dump into "Extra"; offer the
-  // project's stations (recipe's own station pre-highlighted when it matches one).
+  if(projects.length === 1){
+    pickRecipeProject(projects[0].id);
+    return;
+  }
+  document.getElementById('recipeStationPickTitle').textContent = `Add "${r.title}" to which project?`;
+  document.getElementById('recipeStationPickList').innerHTML = projects.map(p=>`
+    <button class="chip" style="width:100%; text-align:left; margin-bottom:8px;" onclick="pickRecipeProject('${p.id}')">${(p.icon||'📁')} ${(p.name||'Project').replace(/</g,'&lt;')}</button>
+  `).join('');
+  document.getElementById('recipeStationPickOverlay').classList.add('open');
+}
+async function pickRecipeProject(projectId){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  // Selecting here also becomes the active Check List project — same effect as opening it from
+  // the Check List picker, so the freshly-added dish is right there when they go look.
+  currentProjectId = projectId;
+  refreshProjectScopedData();
   const stations = projectPrepSheetStations();
   const suggested = stations.includes(r.station) ? r.station : null;
   document.getElementById('recipeStationPickTitle').textContent = `Add "${r.title}" to which station?`;
