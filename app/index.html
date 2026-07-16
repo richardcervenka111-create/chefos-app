@@ -1212,12 +1212,11 @@
     box-shadow:0 4px 14px rgba(0,0,0,0.4);
   }
   .floating-nav .fn-buttons button:active{ transform:scale(0.92); }
+  /* BODY is this app's scroll container, so sticky `top` offsets already resolve from below
+     the body's own padding — padding-top alone shifts content AND re-anchors every sticky bar
+     under the band. Explicit top:58px overrides here would double the shift (the "gap + cut
+     tiles" bug Richard screenshotted) — deliberately none. */
   body.has-floating-nav{ padding-top:58px; }
-  body.has-floating-nav .topbar{ top:58px; }
-  body.has-floating-nav .sticky-header{ top:58px; }
-  body.has-floating-nav .detail-bar{ top:58px; }
-  body.has-floating-nav .wt-sticky-top{ top:58px; }
-  body.has-floating-nav #tasksView .sticky-header{ top:58px; }
 
   /* Global feedback/bug/question button — same button on every screen after login, not
      duplicated into 22 different topbars. Left side so it never collides with the
