@@ -1937,6 +1937,8 @@
     <input class="form-field" id="mps_email" type="text" readonly style="opacity:.7;">
     <label class="form-label" style="margin-top:10px;">Team</label>
     <input class="form-field" id="mps_team" type="text" readonly style="opacity:.7;">
+    <label class="form-label" style="margin-top:10px;">Role</label>
+    <input class="form-field" id="mps_role_display" type="text" readonly style="opacity:.7;">
     <label class="form-label" style="margin-top:16px;">About you</label>
     <input class="form-field" id="mps_full_name" type="text" placeholder="Full name">
     <input class="form-field" id="mps_age" type="number" min="14" max="100" placeholder="Age" style="margin-top:10px;">
@@ -2403,6 +2405,32 @@
     <button class="save-btn" style="width:100%;" onclick="confirmTeamJoin()">Join</button>
     <div class="form-status" id="confirmTeamJoinStatus"></div>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeConfirmTeamJoin()">Cancel</button>
+  </div>
+</div>
+
+<!-- Company mode locked (16.7. večer — db/116): shown when someone without real team
+     membership tries to switch to Company. Same message as Connections → My Team. -->
+<div id="companyLockedOverlay" class="sheet-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🏢 Company account</div>
+    <p class="sheet-text">You're not part of any team yet. Join one by scanning your kitchen admin's QR code, or ask them for a join code — the Company view unlocks automatically once you're in.</p>
+    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="this.closest('.sheet-overlay').classList.remove('open'); openPausedFeature('👥 Team of Friends', 'Create a team with your chef friends — cook, plan, and share together. We\'re building this right now; it\'ll open here soon.')">👥 Create a team of friends</button>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="this.closest('.sheet-overlay').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<!-- In-app team-invite scan confirm (16.7. večer): scanning an admin's team QR inside the app
+     asks explicitly, in the brand identity — never a silent kitchen move. -->
+<div id="confirmKitchenInviteOverlay" class="sheet-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="sheet" style="text-align:center;">
+    <div class="sheet-handle"></div>
+    <div style="font-size:42px; line-height:1; margin:6px 0 10px 0;">🏢</div>
+    <div class="sheet-title" id="confirmKitchenInviteTitle"></div>
+    <p class="sheet-text">You'll share Recipes, Check List, and Ingredients with everyone on their team.</p>
+    <button class="save-btn" style="width:100%;" onclick="acceptKitchenInvite()">Yes, join the team</button>
+    <div class="form-status" id="confirmKitchenInviteStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="this.closest('.sheet-overlay').classList.remove('open')">No, cancel</button>
   </div>
 </div>
 
@@ -6293,6 +6321,7 @@ function hasAdminPerm(key){ return currentIsAdmin || !!currentAdminPerms[key]; }
 let currentAccountType = null;
 let currentSkipAccountTypeConfirm = false;
 let currentTeamJoinSeen = false;
+let currentInTeam = false;
 let currentAiCreditChf = 0;
 let currentAiTestingMode = false;
 let currentPerformanceConsent = false;
@@ -6718,12 +6747,12 @@ async function startApp(){
   if(!user) return;
   currentUser = user;
 
-  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent').eq('id', currentUser.id).single();
+  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent, in_team').eq('id', currentUser.id).single();
   if(!profile){
     // The profile row is created by a database trigger right as the account is created —
     // on a brand new signup the client can ask before that trigger has finished. One retry.
     await new Promise(res=>setTimeout(res, 800));
-    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent').eq('id', currentUser.id).single());
+    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent, in_team').eq('id', currentUser.id).single());
   }
   currentKitchenId = profile ? profile.kitchen_id : null;
   currentIsAdmin = !!(profile && profile.is_admin);
@@ -6732,6 +6761,7 @@ async function startApp(){
   currentUserName = (profile && profile.full_name) || currentUser.email || 'Unknown';
   currentSkipAccountTypeConfirm = !!(profile && profile.skip_account_type_confirm);
   currentTeamJoinSeen = !!(profile && profile.team_join_seen);
+  currentInTeam = !!(profile && profile.in_team);
   currentAiCreditChf = Number((profile && profile.ai_credit_chf) || 0);
   // AI testing-mode kill switch (bod, 16.7. — db/103). Fails OPEN on error like every other
   // gate here — but "open" for THIS particular flag means the normal credit gate stays active,
@@ -7092,8 +7122,19 @@ function closeAccountTypeSettings(){ document.getElementById('accountTypeSetting
    a persistent "don't ask again" here, so this no longer switches directly — it opens a confirm
    overlay first (skipped entirely once the person has opted out of it before). */
 let _pendingAccountTypeSwitch = null;
+function isRealTeamMember(){
+  return currentIsAdmin || !!currentAdminPerms.company_admin || currentInTeam;
+}
 function setAccountTypeFromSettings(type){
   if(type === currentAccountType){ closeAccountTypeSettings(); return; }
+  // Company mode is only for real team members (Richard, 16.7. večer — db/116): joined via an
+  // invite link/email or a team code, or holding a kitchen-admin role. Everyone else gets the
+  // same honest message as Connections → My Team.
+  if(type === 'company' && !isRealTeamMember()){
+    closeAccountTypeSettings();
+    document.getElementById('companyLockedOverlay').classList.add('open');
+    return;
+  }
   _pendingAccountTypeSwitch = type;
   if(currentSkipAccountTypeConfirm){ applyAccountTypeSwitch(type); return; }
   document.getElementById('accountTypeSwitchConfirmText').textContent =
@@ -7547,6 +7588,13 @@ function openMyProfileSettings(){
   } else {
     teamEl.value = 'Not in any team yet';
   }
+  // Role (16.7. večer): derived from the real permission flags — an admin changes a member's
+  // role from their own Admin section (Make Assistant in My Team, or Admin Directory).
+  document.getElementById('mps_role_display').value =
+    currentIsAdmin ? 'Head Admin'
+    : currentAdminPerms.company_admin ? 'Admin'
+    : currentAdminPerms.assistant ? 'Admin Assistant'
+    : 'Member';
   sb.from('profiles').select('full_name, age, gender, role, phone, bio, password_set').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
     document.getElementById('mps_full_name').value = (data && data.full_name) || '';
     document.getElementById('mps_age').value = (data && data.age) || '';
@@ -7793,6 +7841,22 @@ async function createOwnKitchen(){
   await startApp();
 }
 
+let _pendingKitchenInvite = null;
+async function acceptKitchenInvite(){
+  const p = _pendingKitchenInvite;
+  if(!p) return;
+  const statusEl = document.getElementById('confirmKitchenInviteStatus');
+  statusEl.textContent = 'Joining…';
+  const { error } = await sb.from('profiles').update({ kitchen_id: p.kitchenId, in_team: true, team_join_seen: true }).eq('id', currentUser.id);
+  if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
+  if(p.inviteId){
+    const { error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: p.inviteId });
+    if(claimErr) console.error('claim_company_admin failed', claimErr);
+  }
+  _pendingKitchenInvite = null;
+  document.getElementById('confirmKitchenInviteOverlay').classList.remove('open');
+  location.reload();
+}
 async function joinKitchenViaLink(kitchenId){
   const statusEl = document.getElementById('teamGateStatus');
   statusEl.textContent = 'Joining…';
@@ -7802,7 +7866,7 @@ async function joinKitchenViaLink(kitchenId){
   const urlParams = new URLSearchParams(location.search);
   const friendId = urlParams.get('friend');
   const inviteId = urlParams.get('invite');
-  const { error } = await sb.from('profiles').update({ kitchen_id: kitchenId }).eq('id', currentUser.id);
+  const { error } = await sb.from('profiles').update({ kitchen_id: kitchenId, in_team: true }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
   if(friendId && friendId !== currentUser.id){
     sb.from('chef_connections').insert({ user_a: currentUser.id, user_b: friendId }).then(({ error: connErr })=>{
@@ -8188,8 +8252,33 @@ function handleScannedQrText(text){
     showConfirmFriend(params.get('friend'));
     return;
   }
+  // Team invite scanned INSIDE the app (16.7. večer): ask explicitly — "join team XY?" —
+  // instead of the old silent refusal/reload. The not-signed-in camera-app path is unchanged
+  // (renderTeamGate still handles it on page load).
   if(params.get('invite') || params.get('join')){
-    location.href = text; // hands off to the normal invite flow (renderTeamGate reads the same params)
+    const inviteId = params.get('invite');
+    const legacyKitchen = params.get('join');
+    document.getElementById('qrScanStatus').textContent = 'Checking invite…';
+    (async ()=>{
+      let kitchenId = legacyKitchen;
+      if(inviteId){
+        const { data: inviteRow } = await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at').eq('id', inviteId).maybeSingle();
+        if(!inviteRow || inviteRow.revoked || new Date(inviteRow.expires_at) < new Date()){
+          document.getElementById('qrScanStatus').textContent = 'That invite is no longer valid — ask for a fresh one.';
+          return;
+        }
+        kitchenId = inviteRow.kitchen_id;
+      }
+      if(kitchenId === currentKitchenId){
+        document.getElementById('qrScanStatus').textContent = "You're already in this team.";
+        return;
+      }
+      const { data: k } = await sb.from('kitchens').select('name').eq('id', kitchenId).maybeSingle();
+      _pendingKitchenInvite = { kitchenId, inviteId };
+      document.getElementById('confirmKitchenInviteTitle').textContent = `Do you want to become a member of team "${(k && k.name) || 'this kitchen'}"?`;
+      document.getElementById('confirmKitchenInviteStatus').textContent = '';
+      document.getElementById('confirmKitchenInviteOverlay').classList.add('open');
+    })();
     return;
   }
   // Team join code (bod 1, 16.7. — db/97), from Create Team's QR. Looked up (not joined yet) so
@@ -8262,9 +8351,9 @@ async function showTeamInvite(){
 
   const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', currentKitchenId).maybeSingle();
 
-  // Invite-only lockdown (bod 5, db/81): only an admin can create/revoke invites. Non-admins
-  // get the team list only — no point showing controls that RLS would just reject.
-  if(!currentIsAdmin){
+  // Invite-only lockdown (bod 5, db/81; widened 16.7. večer): the kitchen's admins — Head
+  // Admin or its Company Admin — create/revoke invites. Everyone else gets the list only.
+  if(!currentIsAdmin && !currentAdminPerms.company_admin){
     el.innerHTML = `
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
         ${chefOSLogoMarkSvg(40)}
@@ -9923,7 +10012,7 @@ async function toggleHeadAdmin(){
 async function confirmSignOut(){
   if(!confirm('Sign out of ChefOS on this device?')) return;
   await sb.auth.signOut();
-  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
+  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentInTeam = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
   if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   hideAllViews();
   document.getElementById('loginStep1').style.display = 'block';
@@ -9943,7 +10032,7 @@ async function confirmSignOut(){
    you're simply asked again next time you try to log in. */
 async function declineConsent(){
   await sb.auth.signOut();
-  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
+  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentInTeam = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
   if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   document.getElementById('privacyGateView').style.display = 'none';
   document.getElementById('confidentialityGateView').style.display = 'none';
