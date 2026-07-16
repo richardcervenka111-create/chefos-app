@@ -63,7 +63,13 @@
 
   /* Legend — the whole point of the page, so it sits right under the title, not buried. */
   .legend{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
-  .legend-item{ display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:8px 13px; font-size:12.5px; color:var(--ink-dim); }
+  /* Filters (Richard, 16.7.) — the legend chips double as toggles: tap to show/hide that
+     status everywhere below. Full-color when active, dimmed when off — same active-chip
+     visibility standard as the app itself (never opacity-only… except "off" here IS the
+     signal, paired with a border change so it's not opacity alone). */
+  .legend-item{ display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:8px 13px; font-size:12.5px; color:var(--ink-dim); cursor:pointer; user-select:none; transition:opacity .15s, border-color .15s; }
+  .legend-item.active{ border-color:var(--accent-dim); }
+  .legend-item:not(.active){ opacity:.38; border-style:dashed; }
   .legend-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
   .legend-item b{ color:var(--ink); font-weight:700; }
 
@@ -124,9 +130,9 @@
     <h1 class="title">Čo <em>ChefOS</em> vie dnes</h1>
     <p class="lede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. Toggle hore prepína pohľad presne ako v appke — pár vecí je iba pre Personal alebo iba pre Company účty, tie sa podľa toho stlmia.</p>
     <div class="legend">
-      <div class="legend-item"><span class="legend-dot" style="background:var(--ok);"></span>Funkčné, otestované naživo — <b id="legendOkCount"></b></div>
-      <div class="legend-item"><span class="legend-dot" style="background:var(--test);"></span>Postavené, čaká na test naživo — <b id="legendTestCount"></b></div>
-      <div class="legend-item"><span class="legend-dot" style="background:var(--plan);"></span>Naplánované, ešte nepostavené — <b id="legendPlanCount"></b></div>
+      <div class="legend-item active" id="legendOk" onclick="toggleStatusFilter('ok')"><span class="legend-dot" style="background:var(--ok);"></span>Funkčné, otestované naživo — <b id="legendOkCount"></b></div>
+      <div class="legend-item active" id="legendTest" onclick="toggleStatusFilter('test')"><span class="legend-dot" style="background:var(--test);"></span>Postavené, čaká na test naživo — <b id="legendTestCount"></b></div>
+      <div class="legend-item active" id="legendPlan" onclick="toggleStatusFilter('plan')"><span class="legend-dot" style="background:var(--plan);"></span>Naplánované, ešte nepostavené — <b id="legendPlanCount"></b></div>
     </div>
     <div class="pulse-strip">
       <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl">Funkčné</div></div>
@@ -245,13 +251,33 @@ const MODULES = [
   ]},
 ];
 
+/* Status filters (Richard, 16.7.) — which statuses are currently shown. Counts in the legend
+   and pulse strip always reflect the FULL list, so toggling a filter never makes the totals
+   lie; only the cards below get filtered. */
+const activeStatuses = new Set(['ok','test','plan']);
+function toggleStatusFilter(status){
+  if(activeStatuses.has(status)){
+    if(activeStatuses.size === 1) return; // never allow an empty page
+    activeStatuses.delete(status);
+  } else {
+    activeStatuses.add(status);
+  }
+  document.getElementById('legendOk').classList.toggle('active', activeStatuses.has('ok'));
+  document.getElementById('legendTest').classList.toggle('active', activeStatuses.has('test'));
+  document.getElementById('legendPlan').classList.toggle('active', activeStatuses.has('plan'));
+  renderModules();
+}
 function renderModules(){
   const wrap = document.getElementById('modulesWrap');
   const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
   let ok=0, test=0, plan=0;
   wrap.innerHTML = MODULES.map(mod=>{
-    const cards = mod.items.map(it=>{
+    const visibleItems = mod.items.filter(it=>{
       if(it.status==='ok') ok++; else if(it.status==='test') test++; else plan++;
+      return activeStatuses.has(it.status);
+    });
+    if(!visibleItems.length) return '';
+    const cards = visibleItems.map(it=>{
       const dimmed = it.acct && it.acct !== acct;
       return `
         <div class="feature-card status-${it.status}${dimmed?' dim':''}">
@@ -265,7 +291,7 @@ function renderModules(){
         <div class="module-head">
           <div class="module-icon">${mod.icon}</div>
           <div class="module-title">${mod.title}</div>
-          <div class="module-count">${mod.items.length} funkcií</div>
+          <div class="module-count">${visibleItems.length}${visibleItems.length !== mod.items.length ? ' / ' + mod.items.length : ''} funkcií</div>
         </div>
         <div class="feature-grid">${cards}</div>
       </div>

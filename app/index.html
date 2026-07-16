@@ -1187,6 +1187,21 @@
   .fab:active{ background: var(--copper-dim); transform: scale(0.94); }
   .fab-search{ right: 90px; }
 
+  /* Floating Back + Home nav (bod 3, 16.7.) — always top-right on every screen except Home.
+     Sits above sticky topbars but below sheet overlays, so an open sheet still covers it. */
+  .floating-nav{
+    position:fixed; top:10px; right:10px; z-index:900;
+    display:none; align-items:center; gap:4px;
+    background:var(--paper-raised, #0f2340); border:1px solid var(--rule, #223d57);
+    border-radius:22px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.35);
+  }
+  .floating-nav button{
+    background:none; border:none; color:var(--ink-dim); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:50%; font-size:16px;
+  }
+  .floating-nav button:active{ background:var(--paper-hi, #16304f); transform:scale(0.92); }
+
   /* Global feedback/bug/question button — same button on every screen after login, not
      duplicated into 22 different topbars. Left side so it never collides with the
      right-side .fab/.fab-search "add" buttons that most screens already have. */
@@ -1723,6 +1738,17 @@
      would make the only way out disappear). Purely a client-side UI simulation — RLS is
      server-enforced regardless, so this can't accidentally grant or hide real data access,
      only what buttons/tiles render. -->
+<!-- Floating Back + Home (bod 3, 16.7.) — outside ALL_VIEW_IDS on purpose, same reasoning as
+     the preview banner below: visibility is managed by updateFloatingNav(), not hideAllViews. -->
+<div class="floating-nav" id="floatingNav">
+  <button onclick="goBackView()" title="Back">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button onclick="showHome()" title="Home">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+  </button>
+</div>
+
 <div id="previewAsUserBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:var(--copper); color:#1a1a1a; padding:10px 16px; text-align:center; font-size:13px; font-weight:600; align-items:center; justify-content:center; gap:10px;">
   👁️ Previewing as a normal user
   <button onclick="exitPreviewAsUser()" style="background:#1a1a1a; color:#fff; border:none; padding:5px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Exit Preview</button>
@@ -2130,19 +2156,13 @@
 </div>
 
 <!-- Send Feedback (bod 4, 16.7. — db/98) — anyone, from Settings. Free text, no reply workflow. -->
-<div id="sendFeedbackOverlay" class="sheet-overlay" onclick="if(event.target===this) closeSendFeedback()">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">💬 Send Feedback</div>
-    <p class="sheet-text">Bugs, ideas, anything — goes straight to Richard.</p>
-    <textarea class="form-field" id="feedbackMessage" rows="5" placeholder="What's on your mind?"></textarea>
-    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="submitFeedback()">Send</button>
-    <div class="form-status" id="feedbackStatus"></div>
-    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeSendFeedback()">Cancel</button>
-  </div>
-</div>
+<!-- Send Feedback (bod 4, 16.7.) had its own overlay here briefly — REMOVED 16.7. evening: it
+     duplicated the ids feedbackMessage/feedbackStatus already used by the older global
+     feedback button (💬, db/61), which made BOTH systems read each other's hidden elements and
+     silently broke sending. One system now: everything goes through openFeedback() into
+     feedback_reports; the Settings tile and the Admin inbox point there too. -->
 
-<!-- Admin: read all feedback (bod 4, 16.7.) — Head Admin only, matches feedback's own RLS. -->
+<!-- Admin: read all feedback (bod 4, 16.7. — feedback_reports, db/61 + read policy db/108). -->
 <div id="adminFeedbackOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAdminFeedback()">
   <div class="sheet" style="max-height:80vh;">
     <div class="sheet-handle"></div>
@@ -2163,6 +2183,30 @@
     <button class="task-status-btn" style="width:100%; margin-bottom:8px;" id="itemContextHideBtn" onclick="itemContextToggleHide()">🙈 Hide</button>
     <button class="danger-btn" style="width:100%;" onclick="itemContextDelete()">🗑️ Delete</button>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeItemContextMenu()">Cancel</button>
+  </div>
+</div>
+
+<!-- Add Company (bod 5, 16.7. — db/109) — Head Admin only. One company, one single-use invite,
+     one main admin. The invite email is a real login link carrying ?invite=<id>; accepting it
+     joins the new kitchen AND grants company_admin (claim_company_admin, revoking the invite
+     in the same statement so nobody else can reuse the link). -->
+<div id="addCompanyOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAddCompany()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🏢 Add Company</div>
+    <div id="addCompanyFormBlock">
+      <p class="sheet-text">Creates the restaurant's kitchen and sends ONE single-use invite — whoever accepts becomes that company's main admin (they get Create Team, invites, and team management for their own kitchen).</p>
+      <input class="form-field" id="addCompanyName" type="text" placeholder="Company / restaurant name">
+      <input class="form-field" id="addCompanyEmail" type="email" placeholder="main admin's email" style="margin-top:10px;">
+      <button class="save-btn" style="width:100%; margin-top:10px;" onclick="submitAddCompany()">Create &amp; Send Invite</button>
+    </div>
+    <div id="addCompanyResultBlock" style="display:none;">
+      <p class="sheet-text" id="addCompanyResultText"></p>
+      <input class="form-field" id="addCompanyLinkField" type="text" readonly>
+      <button class="save-btn" style="width:100%; margin-top:8px;" onclick="copyAddCompanyLink()">Copy Link</button>
+    </div>
+    <div class="form-status" id="addCompanyStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAddCompany()">Close</button>
   </div>
 </div>
 
@@ -7028,41 +7072,84 @@ async function sendCreateTeamInviteByEmail(){
   emailField.value = '';
 }
 
-/* ---------- Send Feedback (bod 4, 16.7. — db/98) ---------- */
-function openSendFeedback(){
-  document.getElementById('feedbackMessage').value = '';
-  document.getElementById('feedbackStatus').textContent = '';
-  document.getElementById('sendFeedbackOverlay').classList.add('open');
-}
-function closeSendFeedback(){ document.getElementById('sendFeedbackOverlay').classList.remove('open'); }
-async function submitFeedback(){
-  const message = document.getElementById('feedbackMessage').value.trim();
-  const statusEl = document.getElementById('feedbackStatus');
-  if(!message){ statusEl.textContent = 'Write something first.'; return; }
-  statusEl.textContent = 'Sending…';
-  const { error } = await sb.from('feedback').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, message });
-  if(error){ statusEl.textContent = 'Could not send: ' + error.message; return; }
-  statusEl.textContent = 'Sent — thank you!';
-  document.getElementById('feedbackMessage').value = '';
-}
+/* ---------- Admin Feedback inbox (bod 4, 16.7.) — reads feedback_reports (db/61), the ONE
+   feedback table everything writes to since the duplicate-overlay bug was fixed 16.7. evening.
+   feedback_reports.user_id points at auth.users (not profiles), so PostgREST can't embed the
+   name — fetched as a second query and joined here instead. Read access: db/108. ---------- */
 async function openAdminFeedback(){
   document.getElementById('adminFeedbackList').innerHTML = '<p class="lede">Loading…</p>';
   document.getElementById('adminFeedbackOverlay').classList.add('open');
-  const { data, error } = await sb.from('feedback').select('id, message, created_at, created_by, profiles:created_by(full_name, email)').order('created_at', { ascending:false });
-  if(error){ document.getElementById('adminFeedbackList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  const { data, error } = await sb.from('feedback_reports').select('id, type, message, created_at, user_id').order('created_at', { ascending:false }).limit(100);
+  if(error){ document.getElementById('adminFeedbackList').innerHTML = `<p class="lede">Could not load: ${error.message} — has db/108 been run?</p>`; return; }
   if(!data || !data.length){ document.getElementById('adminFeedbackList').innerHTML = '<div class="empty-state">No feedback yet.</div>'; return; }
+  const userIds = Array.from(new Set(data.map(f=>f.user_id).filter(Boolean)));
+  let nameById = {};
+  if(userIds.length){
+    const { data: people } = await sb.from('profiles').select('id, full_name, email').in('id', userIds);
+    (people||[]).forEach(p=>{ nameById[p.id] = p.full_name || p.email || 'Unknown'; });
+  }
+  const typeIcon = { feedback:'💬', bug:'🐛', question:'❓' };
   document.getElementById('adminFeedbackList').innerHTML = data.map(f=>`
     <div class="task-row">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
-          <div class="name task-text">${(f.message||'').replace(/</g,'&lt;')}</div>
-          <div class="meta">${(f.profiles && (f.profiles.full_name || f.profiles.email)) || 'Unknown'} · ${new Date(f.created_at).toLocaleString()}</div>
+          <div class="name task-text">${typeIcon[f.type]||'💬'} ${(f.message||'').replace(/</g,'&lt;')}</div>
+          <div class="meta">${(nameById[f.user_id]||'Unknown').replace(/</g,'&lt;')} · ${new Date(f.created_at).toLocaleString()}</div>
         </div>
       </div>
     </div>
   `).join('');
 }
 function closeAdminFeedback(){ document.getElementById('adminFeedbackOverlay').classList.remove('open'); }
+
+/* ---------- Add Company (bod 5, 16.7. — db/109) — Head Admin only ---------- */
+function openAddCompany(){
+  document.getElementById('addCompanyName').value = '';
+  document.getElementById('addCompanyEmail').value = '';
+  document.getElementById('addCompanyFormBlock').style.display = 'block';
+  document.getElementById('addCompanyResultBlock').style.display = 'none';
+  document.getElementById('addCompanyStatus').textContent = '';
+  document.getElementById('addCompanyOverlay').classList.add('open');
+}
+function closeAddCompany(){ document.getElementById('addCompanyOverlay').classList.remove('open'); }
+async function submitAddCompany(){
+  const name = document.getElementById('addCompanyName').value.trim();
+  const email = document.getElementById('addCompanyEmail').value.trim();
+  const statusEl = document.getElementById('addCompanyStatus');
+  if(!name){ statusEl.textContent = 'Name the company first.'; return; }
+  if(!email){ statusEl.textContent = "Enter the main admin's email."; return; }
+  statusEl.textContent = 'Creating…';
+  const { data, error } = await sb.rpc('create_company', { p_name: name });
+  const row = Array.isArray(data) ? data[0] : data;
+  if(error || !row){ statusEl.textContent = 'Could not create: ' + (error ? error.message : 'unknown error') + ' — has db/109 been run?'; return; }
+  const inviteUrl = location.origin + location.pathname + '?invite=' + row.invite_id;
+  statusEl.textContent = 'Sending invite email…';
+  const { error: mailErr } = await sb.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true, emailRedirectTo: inviteUrl }
+  });
+  document.getElementById('addCompanyFormBlock').style.display = 'none';
+  document.getElementById('addCompanyResultBlock').style.display = 'block';
+  document.getElementById('addCompanyLinkField').value = inviteUrl;
+  if(mailErr){
+    statusEl.textContent = 'Company created, but the email failed (' + friendlyAuthErrorMessage(mailErr) + ') — send them the link below yourself.';
+  } else {
+    statusEl.textContent = '';
+    document.getElementById('addCompanyResultText').textContent = `"${name}" created and the invite is on its way to ${email}. One click in that email and they're this company's main admin. Link below as a backup — single-use, so don't share it with anyone else.`;
+    // Same best-effort contact logging as every other invite path.
+    sb.from('email_contacts').upsert(
+      { email: email.toLowerCase(), source: 'invite_sent', kitchen_id: row.kitchen_id, status: 'new' },
+      { onConflict: 'email,source' }
+    ).then(({ error: ecErr })=>{ if(ecErr) console.error('email_contacts upsert failed', ecErr); });
+  }
+}
+function copyAddCompanyLink(){
+  const field = document.getElementById('addCompanyLinkField');
+  field.select();
+  navigator.clipboard.writeText(field.value).then(()=>{
+    document.getElementById('addCompanyStatus').textContent = 'Copied.';
+  }).catch(()=>{ document.execCommand('copy'); });
+}
 
 /* ---------- AI Testing Mode (bod, 16.7. — db/103) ---------- */
 function openAiTestingMode(){
@@ -7421,13 +7508,23 @@ async function joinKitchenViaLink(kitchenId){
   // Personal "Add Friend" QR doubles as an invite (bod, 16.7.) — its URL carries both ?invite=
   // and ?friend=, read before history.replaceState below wipes the query string. Best-effort:
   // a failed connection must never block someone from actually joining the kitchen.
-  const friendId = new URLSearchParams(location.search).get('friend');
+  const urlParams = new URLSearchParams(location.search);
+  const friendId = urlParams.get('friend');
+  const inviteId = urlParams.get('invite');
   const { error } = await sb.from('profiles').update({ kitchen_id: kitchenId }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
   if(friendId && friendId !== currentUser.id){
     sb.from('chef_connections').insert({ user_a: currentUser.id, user_b: friendId }).then(({ error: connErr })=>{
       if(connErr && connErr.code !== '23505') console.error('chef_connections insert failed', connErr);
     });
+  }
+  // Add Company invite (bod 5, 16.7. — db/109): if this invite was minted by Add Company, this
+  // call makes the joiner the kitchen's main admin and burns the invite (single-use), all
+  // verified server-side. For any ordinary invite it just returns false — awaited (not
+  // fire-and-forget) so startApp() below reads the profile AFTER the perms exist.
+  if(inviteId){
+    const { error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteId });
+    if(claimErr) console.error('claim_company_admin failed', claimErr);
   }
   history.replaceState(null, '', location.pathname);
   await startApp();
@@ -7959,18 +8056,33 @@ async function revokeAndRegenerateInvite(){
 async function renderTeamMembersList(){
   const el = document.getElementById('teamMembersList');
   if(!el) return;
-  const { data: members, error } = await sb.from('profiles').select('id, full_name, is_admin').eq('kitchen_id', currentKitchenId).order('full_name');
+  const { data: members, error } = await sb.from('profiles').select('id, full_name, is_admin, admin_perms').eq('kitchen_id', currentKitchenId).order('full_name');
   if(error){ el.innerHTML = `<p class="lede">Could not load team members.</p>`; return; }
-  el.innerHTML = (members || []).map(m=>`
+  // Assistant toggle (bod 5, 16.7. — db/109): the kitchen's Company Admin (or Head Admin) can
+  // mark any member of their own kitchen as an assistant. Server re-checks authorization in
+  // set_member_assistant() regardless of what renders here.
+  const canManageAssistants = currentIsAdmin || !!currentAdminPerms.company_admin;
+  el.innerHTML = (members || []).map(m=>{
+    const perms = m.admin_perms || {};
+    const roleTags = [m.is_admin ? 'Admin' : null, perms.company_admin ? 'Company Admin' : null, perms.assistant ? 'Assistant' : null].filter(Boolean).join(' · ');
+    return `
     <div class="task-row">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
-          <div class="name task-text">${(m.full_name || 'Unnamed').replace(/</g,'&lt;')}${m.is_admin ? ' · Admin' : ''}${m.id===currentUser.id ? ' (you)' : ''}</div>
+          <div class="name task-text">${(m.full_name || 'Unnamed').replace(/</g,'&lt;')}${roleTags ? ' · ' + roleTags : ''}${m.id===currentUser.id ? ' (you)' : ''}</div>
         </div>
       </div>
-      ${currentIsAdmin && m.id !== currentUser.id ? `<div class="task-status-group"><button class="danger-btn" onclick="removeTeamMember('${m.id}', '${(m.full_name||'this person').replace(/'/g,"\\'")}')">✕ Remove</button></div>` : ''}
+      ${m.id !== currentUser.id ? `<div class="task-status-group">
+        ${canManageAssistants ? `<button class="task-status-btn${perms.assistant?' active':''}" onclick="toggleMemberAssistant('${m.id}', ${!perms.assistant})">${perms.assistant ? '⭐ Assistant' : '☆ Make Assistant'}</button>` : ''}
+        ${(currentIsAdmin || currentAdminPerms.company_admin) ? `<button class="danger-btn" onclick="removeTeamMember('${m.id}', '${(m.full_name||'this person').replace(/'/g,"\\'")}')">✕ Remove</button>` : ''}
+      </div>` : ''}
     </div>
-  `).join('') || `<p class="lede">No members found.</p>`;
+  `;}).join('') || `<p class="lede">No members found.</p>`;
+}
+async function toggleMemberAssistant(memberId, on){
+  const { error } = await sb.rpc('set_member_assistant', { p_member: memberId, p_on: on });
+  if(error){ alert('Could not update: ' + error.message + ' — has db/109 been run?'); return; }
+  renderTeamMembersList();
 }
 async function removeTeamMember(userId, name){
   if(!confirm(`Remove ${name} from this kitchen? They'll need to create or join a kitchen again to get back in.`)) return;
@@ -8895,7 +9007,7 @@ const HOME_TILE_DEFS = [
   /* Admin (bod 1, 16.7.) — rebuilt into a Home-styled hub. Visible to the super-admin AND to
      anyone granted a platform-level admin_perm (approve_access / view_email_contacts) — the
      hub itself filters which of its 4 tiles each visitor actually sees. */
-  { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdmin()', adminOnly:()=> currentIsAdmin || hasAdminPerm('approve_access') || hasAdminPerm('view_email_contacts'), badgeId:'adminPendingBadge' },
+  { key:'admin', icon:'🛡️', staticLabel:'Admin', onclick:'showAdmin()', adminOnly:()=> currentIsAdmin || hasAdminPerm('approve_access') || hasAdminPerm('view_email_contacts') || !!currentAdminPerms.company_admin || !!currentAdminPerms.create_teams || hasAdminPerm('view_kitchen_reports'), badgeId:'adminPendingBadge' },
   /* Currency — moved from a big Home tile to a small topbar icon (2026-07-15, Richard's
      request) — see #currencyIconBtn in the homeView topbar, shown/hidden alongside this same
      currentIsAdmin check inside renderHomeGrid(). Not a Home tile anymore on purpose. */
@@ -8991,7 +9103,7 @@ const SETTINGS_TILE_DEFS = [
   { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
   { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
   { key:'tutorial', icon:'❓', staticLabel:'Tutorial', onclick:'openTutorial()' },
-  { key:'sendFeedback', icon:'💬', staticLabel:'Send Feedback', onclick:'openSendFeedback()' },
+  { key:'sendFeedback', icon:'💬', staticLabel:'Send Feedback', onclick:"openFeedback('feedback')" },
   { key:'performanceConsent', icon:'📊', staticLabel:'Share My Hours with Admin', onclick:'openPerformanceConsent()', dynamicLabel:()=> 'Share My Hours with Admin: ' + (currentPerformanceConsent ? 'ON' : 'OFF') },
   { key:'legal', icon:'🔒', staticLabel:'Privacy & Terms', onclick:"window.open('legal.html','_blank')" },
   { key:'signOut', icon:'🚪', staticLabel:'Sign Out', onclick:'confirmSignOut()' },
@@ -9133,16 +9245,24 @@ const ADMIN_PERM_DEFS = [
   { key:'approve_access', label:'Approve Access', desc:'Approve/deny new ChefOS access requests — platform-wide, grant with care' },
   { key:'create_teams', label:'Create Teams', desc:'Create new restaurant/kitchen teams and generate their join codes — grant with care' },
   { key:'view_kitchen_reports', label:'View Kitchen Reports', desc:"See their kitchen's recipe/Check List activity + hours for employees who've consented" },
+  { key:'company_admin', label:'Company Admin', desc:"Main admin of their restaurant/kitchen — normally granted automatically by accepting an Add Company invite, not by hand" },
+  { key:'assistant', label:'Assistant', desc:"Designated by their kitchen's Company Admin — helper role within their own kitchen" },
 ];
 const ADMIN_TILE_DEFS = [
   { key:'addAdmin', icon:'➕', staticLabel:'Add Admin', onclick:'openAddAdmin()', adminOnly:()=>currentIsAdmin },
   { key:'adminDirectory', icon:'📋', staticLabel:'Admin Directory', onclick:'showAdminDirectory()', adminOnly:()=>currentIsAdmin },
   { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
   { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
-  /* Create Team (bod 1, 16.7. — db/97) — a brand-new admin tier: someone who can mint new
-     restaurant/kitchen teams and their join codes (scan QR / enter code), separate from every
-     other admin_perms key. Nobody has it yet — Richard grants it himself via Admin Directory. */
-  { key:'createTeam', icon:'🏗️', staticLabel:'Create Team', onclick:'openCreateTeam()', adminOnly:()=>hasAdminPerm('create_teams') },
+  /* Create Team (bod 1+5, 16.7. — db/97/db/109) — kitchen MAIN admins only (company_admin,
+     granted by accepting an Add Company invite), deliberately NOT Richard/Head Admin anymore
+     per his explicit 16.7. instruction: he onboards companies via Add Company below, their
+     own admin mints the team join codes. Direct perm check, not hasAdminPerm() — that helper
+     returns true for Head Admin, which is exactly what's being excluded here. */
+  { key:'createTeam', icon:'🏗️', staticLabel:'Create Team', onclick:'openCreateTeam()', adminOnly:()=> !!(currentAdminPerms.company_admin || currentAdminPerms.create_teams) },
+  /* Add Company (bod 5, 16.7. — db/109) — Richard's side of onboarding a new restaurant:
+     names the company, sends ONE single-use invite email; whoever accepts becomes that
+     kitchen's Company Admin automatically. */
+  { key:'addCompany', icon:'🏢', staticLabel:'Add Company', onclick:'openAddCompany()', adminOnly:()=>currentIsAdmin },
   { key:'feedback', icon:'💬', staticLabel:'Feedback', onclick:'openAdminFeedback()', adminOnly:()=>currentIsAdmin },
   /* AI Testing Mode (bod, 16.7. — db/103) — platform-wide kill switch, Head Admin only. While
      ON, every device gets unlimited AI regardless of account type/credit (same as everyone
@@ -9502,11 +9622,80 @@ function showHome(){
   renderHomeGrid();
   window.scrollTo(0,0);
 }
+/* ---------- Floating Back + Home nav (bod 3, 16.7.) — Richard: back-one-page + Home must be
+   ALWAYS visible, top-right, on every screen except Home itself. There's no browser history to
+   lean on (screens are shown/hidden divs), so hideAllViews() — the one function every
+   navigation already passes through — records which view was open, and Back re-opens the most
+   recent one it knows how to re-open. Form views are deliberately NOT in the reopener map
+   (re-entering a half-abandoned form via Back would be worse than skipping it). ---------- */
+const _viewStack = [];
+const VIEW_REOPENERS = {
+  homeView: ()=>showHome(),
+  listView: ()=>showList(),
+  detailView: ()=> (typeof window.currentDetailIdx === 'number' && window.currentDetailIdx > -1 ? showDetail(window.currentDetailIdx) : showList()),
+  ingredientsHomeView: ()=>showIngredientsHome(),
+  ingredientsView: ()=>showIngredients(),
+  checkListProjectsView: ()=>showCheckListProjects(),
+  tasksView: ()=>showTasks(),
+  orderListView: ()=>showOrderList(),
+  quickListView: ()=>showQuickList(),
+  scheduleView: ()=>showSchedule(),
+  fridgesView: ()=>showFridges(),
+  chefAssistantView: ()=>showChefAssistant(),
+  printLabelsView: ()=>showPrintLabels(),
+  workingTimeView: ()=>showWorkingTime(),
+  workingTimeChartsView: ()=>showWorkingTimeCharts(),
+  haccpView: ()=>showHACCP(),
+  labelExpiryView: ()=>showLabelExpiry(),
+  settingsView: ()=>showSettings(),
+  connectionsView: ()=>showConnections(),
+  adminView: ()=>showAdmin(),
+  adminDirectoryView: ()=>showAdminDirectory(),
+  adminRequestsView: ()=>showAdminRequests(),
+  friendsRecipesView: ()=>showChefFriends(),
+  teamInviteView: ()=>showTeamInvite(),
+};
 function hideAllViews(){
+  const visible = ALL_VIEW_IDS.find(id=>{
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  });
+  if(visible && _viewStack[_viewStack.length-1] !== visible) _viewStack.push(visible);
+  if(_viewStack.length > 30) _viewStack.shift();
   ALL_VIEW_IDS.forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.style.display = 'none';
   });
+  // The caller shows its own view right after this returns — check what ended up visible
+  // once this tick finishes, and show/hide the floating nav accordingly.
+  setTimeout(updateFloatingNav, 0);
+}
+function updateFloatingNav(){
+  const nav = document.getElementById('floatingNav');
+  if(!nav) return;
+  const homeEl = document.getElementById('homeView');
+  const anyMainViewOpen = ALL_VIEW_IDS.some(id=>{
+    if(id === 'homeView') return false;
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  });
+  const homeOpen = homeEl && homeEl.style.display !== 'none';
+  nav.style.display = (currentUser && anyMainViewOpen && !homeOpen) ? 'flex' : 'none';
+}
+function goBackView(){
+  while(_viewStack.length){
+    const id = _viewStack.pop();
+    const reopen = VIEW_REOPENERS[id];
+    if(reopen){
+      // Re-opening calls hideAllViews itself, which would push the CURRENT view back onto the
+      // stack — pop it right back off so Back keeps walking backwards instead of ping-ponging.
+      const stackLenBefore = _viewStack.length;
+      reopen();
+      if(_viewStack.length > stackLenBefore) _viewStack.splice(stackLenBefore);
+      return;
+    }
+  }
+  showHome();
 }
 
 /* ---------- Swipe-back gesture (mobile) ----------
@@ -9959,10 +10148,6 @@ let _chefAssistantTemp = null;
 let _chefAssistantFlavor = null;
 let _chefAssistantIdeas = [];
 function openChefsAssistant(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   _chefAssistantTemp = null;
   _chefAssistantFlavor = null;
   _chefAssistantIdeas = [];
@@ -10090,10 +10275,6 @@ function closePausedFeature(){
 let _chefChallengeThreshold = null;
 let _chefChallengeIngredients = [];
 function openChefChallenge(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   _chefChallengeThreshold = null;
   _chefChallengeIngredients = [];
   renderChefChallengeSetup();
@@ -12878,10 +13059,6 @@ async function deleteStation(station){
 let _languageAuditResults = [];
 async function runLanguageAudit(){
   if(!currentIsAdmin){ alert('Only your kitchen\'s admin can run the Language Audit.'); return; }
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   closeStationPicker();
   const el = document.getElementById('languageAuditBody');
   el.innerHTML = `<p class="sheet-text">Scanning dish and item names…</p>`;
@@ -15061,10 +15238,6 @@ function readFileForScan(file, onRead){
    flagging anything unclear, missing, or unusual — explicitly informational, not legal advice,
    since this app is not a law firm and shouldn't claim to be one. ---------- */
 function triggerContractScan(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   // Bod 5, 16.7.: re-scanning already worked (saveContractReview overwrites, never appends) —
   // the gap was that nothing told you a contract was already on file, or that scanning a new
   // one replaces it. Confirm explicitly whenever there's something to lose.
@@ -15226,10 +15399,6 @@ async function deleteCustomIngredient(id){
   renderCustomIngredientsList();
 }
 function triggerCustomIngredientScan(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   document.getElementById('customIngredientScanInput').value = '';
   document.getElementById('customIngredientScanInput').click();
 }
@@ -15373,10 +15542,6 @@ async function saveCustomIngredientReview(){
    triggered the scan. Reuses callClaudeCustomIngredientVision as-is — the extraction itself
    isn't specific to the custom_ingredients table, only where the result gets saved differs. */
 function triggerIngredientScan(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   document.getElementById('ingredientScanInput').value = '';
   document.getElementById('ingredientScanInput').click();
 }
@@ -15582,10 +15747,6 @@ async function checkShiftReminder(){
    transcribe ~20-30 day-entries, comfortably inside any reasonable token budget. */
 let _scheduleUploadTargetName = '';
 function triggerScheduleUpload(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   document.getElementById('scheduleNameInput').value = currentUserName || '';
   document.getElementById('scheduleNameConfirmOverlay').classList.add('open');
 }
@@ -15814,8 +15975,9 @@ async function submitFeedbackReport(){
     kitchen_id: currentKitchenId, user_id: currentUser.id, type: _feedbackType, message, context
   });
   if(error){ statusEl.textContent = 'Could not send: ' + error.message; return; }
-  statusEl.textContent = 'Sent — thank you!';
-  setTimeout(closeFeedbackOverlay, 1200);
+  // Richard (16.7.): every feedback gets a real thank-you, always.
+  statusEl.textContent = '🙏 Thank you! Every message goes straight to Richard — it genuinely helps make ChefOS better.';
+  setTimeout(closeFeedbackOverlay, 2600);
 }
 /* Richard: the first version read as one dense paragraph per slide — too much to read at a
    glance mid-shift. Each slide is now 3-4 short one-line bullets, each with its own icon, so
@@ -15957,11 +16119,6 @@ function scanTranslateInstruction(){
 }
 
 function triggerPhotoScan(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings.');
-    openApiKeySettings();
-    return;
-  }
   document.getElementById('photoInput').value = '';
   document.getElementById('photoInput').click();
 }
@@ -16128,11 +16285,6 @@ async function runPhotoScan(base64, mediaType, fileName){
 }
 
 function openScanTypeChoice(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings.');
-    openApiKeySettings();
-    return;
-  }
   document.getElementById('scanTypeChoiceOverlay').classList.add('open');
 }
 function closeScanTypeChoice(){
@@ -16434,10 +16586,6 @@ function openMenuScanRecipeForm(i){
    pattern as the photo scan, reusing the same stored API key. Replaces whatever is currently
    in the step rows; the chef edits/adjusts from there like anywhere else in the form. */
 async function generateMethodWithAI(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   const title = document.getElementById('f_title').value.trim();
   const ingredients = formIngredientRows.filter(row=>row[0] && row[0].trim());
   if(!title || ingredients.length === 0){
@@ -16495,10 +16643,6 @@ async function generateMethodWithAI(){
 let _pendingPrepScanDishes = [];
 
 function triggerPrepSheetScan(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   document.getElementById('prepScanInput').value = '';
   document.getElementById('prepScanInput').click();
 }
@@ -16907,10 +17051,6 @@ document.getElementById('chefChatInput').addEventListener('focus', ()=>{
 });
 
 async function sendChefMessage(){
-  if(!_anthropicKey){
-    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
-    return;
-  }
   const input = document.getElementById('chefChatInput');
   const text = input.value.trim();
   if(!text) return;

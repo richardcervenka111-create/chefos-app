@@ -99,15 +99,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: settings } = await adminClient
-      .from('user_settings')
-      .select('anthropic_api_key')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    const apiKey = settings?.anthropic_api_key;
+    // Central key model (Richard, 16.7.): ALL AI calls run on ChefOS's own Anthropic key —
+    // the ANTHROPIC_API_KEY project secret (set once via `supabase secrets set`). Nobody has
+    // to bring their own key anymore; who's ALLOWED to use AI is governed entirely by the
+    // credit/testing-mode gate above (Personal accounts pay → credit with the agreed margins).
+    // A user's own stored key (the old BYOK model) still works as a fallback if the secret
+    // isn't set, so nothing breaks between deploying this and setting the secret.
+    const centralKey = Deno.env.get('ANTHROPIC_API_KEY') || '';
+    let apiKey = centralKey;
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: { message: 'No Anthropic API key on file for this account. Add one under Photo-scan settings first.' } }), {
+      const { data: settings } = await adminClient
+        .from('user_settings')
+        .select('anthropic_api_key')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      apiKey = settings?.anthropic_api_key || '';
+    }
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: { message: 'AI is not configured yet — ask your admin (no API key available for this account).' } }), {
         status: 400, headers: { ...CORS_HEADERS, 'content-type': 'application/json' }
       });
     }
