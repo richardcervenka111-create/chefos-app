@@ -2183,7 +2183,7 @@
   </div>
   <div class="detail-content">
     <h1 class="title display" style="margin-bottom:4px;">Team Members</h1>
-    <p class="lede" style="margin-bottom:16px;">Everyone in your kitchen. Make Assistant hands out the helper role; Remove takes them out of the kitchen — they'll need a new invite to get back in.</p>
+    <p class="lede" style="margin-bottom:16px;">Everyone in your kitchen. Make Assistant hands out the helper role; Remove takes them out of this kitchen — they keep their own personal ChefOS, and rejoining needs a new invite.</p>
     <div id="adminTeamMembersList"><p class="lede">Loading…</p></div>
   </div>
 </div>
@@ -8657,13 +8657,14 @@ async function toggleMemberAssistant(memberId, on){
   renderTeamMembersList(_teamMembersContainerId);
 }
 async function removeTeamMember(userId, name){
-  if(!confirm(`Remove ${name} from this kitchen? They'll need to create or join a kitchen again to get back in.`)) return;
-  // SECURITY DEFINER RPC (db/124), not a direct profiles update — Postgres required the
-  // UPDATED row to stay visible to the caller via SELECT policies, and a just-removed member
-  // (kitchen_id NULL) is invisible to their ex-admin by design, so the direct update could
-  // never succeed no matter how the UPDATE policy was written (see db/124's header).
+  if(!confirm(`Remove ${name} from this kitchen? They'll keep their own personal ChefOS — they just lose access to this kitchen's data.`)) return;
+  // SECURITY DEFINER RPC (db/124, softened db/125), not a direct profiles update — Postgres
+  // required the UPDATED row to stay visible to the caller via SELECT policies, and a removed
+  // member is invisible to their ex-admin by design, so the direct update could never succeed
+  // no matter how the UPDATE policy was written (see db/124's header). db/125: removal moves
+  // them into their own fresh personal kitchen instead of locking them out of ChefOS entirely.
   const { error } = await sb.rpc('remove_team_member', { p_member: userId });
-  if(error){ alert('Could not remove: ' + error.message + ' — has db/124 been run?'); return; }
+  if(error){ alert('Could not remove: ' + error.message + ' — has db/125 been run?'); return; }
   renderTeamMembersList(_teamMembersContainerId);
 }
 
