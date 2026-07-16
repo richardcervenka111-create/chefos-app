@@ -164,16 +164,22 @@ const MODULES = [
     { name:'Tlač — firemná identita (branded)', status:'test' },
     { name:'Komentáre na receptoch', status:'test' },
     { name:'Activity feed (🔔 kto okomentoval)', status:'test' },
-    { name:'Pridať recept do Check Listu (1 klik)', status:'test' },
+    { name:'Pridať recept do Check Listu (projekt → stanica)', status:'test' },
     { name:'Obľúbené, poznámky, alergény, škálovanie', status:'ok' },
+    { name:'Poličky pre recepty (Moje/ChefOS, ChefOS/Firemné)', status:'test' },
+    { name:'Tlač v2 — dvojstĺpcový layout, meta pás, Chef\'s Notes', status:'test' },
   ]},
   { icon:'🧂', title:'Ingrediencie', items:[
     { name:'Zdieľaný cenník (2005+ položiek)', status:'ok' },
     { name:'My Ingredients (súkromné, per účet)', status:'test', acct:'personal' },
     { name:'Pridávanie do zdieľanej police — len admin', status:'test' },
     { name:'Sken dokumentu/fotky → AI extrakcia', status:'test' },
+    { name:'Sken .xlsx (Excel) bez knižnice', status:'test' },
+    { name:'AI Details — dopĺňanie chýbajúcich polí', status:'test' },
     { name:'Custom Ingredients (admin upload)', status:'ok' },
     { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test' },
+    { name:'Vlastné pomenované zoznamy + zdieľanie s priateľmi', status:'test' },
+    { name:'Bulk delete (podľa dátumu / všetko)', status:'test' },
     { name:'Sezónnosť, kategórie, Ingredient Audit', status:'ok' },
   ]},
   { icon:'✅', title:'Check List', items:[
@@ -197,6 +203,7 @@ const MODULES = [
     { name:'Expirácia štítkov', status:'ok' },
     { name:'Školenia personálu (vlna 3)', status:'plan' },
     { name:'Admin report naprieč HACCP', status:'plan' },
+    { name:'Skryté z osobných účtov (admin + firemné vidia naďalej)', status:'test' },
   ]},
   { icon:'🛒', title:'Order List', items:[
     { name:'Objednávky per-osoba', status:'ok' },
@@ -208,6 +215,7 @@ const MODULES = [
     { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal' },
     { name:'AI Testing Mode (dočasne neobmedzené)', status:'test' },
     { name:'Gate presadený aj v edge funkcii (nielen appke)', status:'test' },
+    { name:'Centrálny Anthropic API kľúč (user spend oddelene sledovaný)', status:'test' },
   ]},
   { icon:'🔗', title:'Connections', items:[
     { name:'Add Friend QR', status:'ok' },
@@ -221,6 +229,9 @@ const MODULES = [
     { name:'Create Team (nová admin rola)', status:'test', acct:'company' },
     { name:'Join kód — sken QR / ručne / email', status:'test', acct:'company' },
     { name:'Stará "hocikto môže vytvoriť kuchyňu" diera', status:'ok' },
+    { name:'Reálne členstvo (in_team) — brána na Company prepnutie', status:'test' },
+    { name:'QR pozvánka do tímu s potvrdzovacou obrazovkou', status:'test', acct:'company' },
+    { name:'ROLE v My Profile (Head Admin/Admin/Assistant/Member)', status:'test' },
   ]},
   { icon:'🛡️', title:'Admin', items:[
     { name:'Add Admin (Head / Kitchen Admin)', status:'ok' },
@@ -229,7 +240,7 @@ const MODULES = [
     { name:'Email Contacts (+ trigger, nie best-effort)', status:'test' },
     { name:'Internal Docs (len Richard)', status:'ok' },
     { name:'Feedback inbox', status:'test' },
-    { name:'Kitchen Reports (per-zamestnanec so súhlasom)', status:'test', acct:'company' },
+    { name:'Kitchen Reports (adresár + drill-down do receptov)', status:'test', acct:'company' },
     { name:'Preview as Normal User', status:'ok' },
   ]},
   { icon:'⚙️', title:'Nastavenia', items:[
@@ -240,6 +251,7 @@ const MODULES = [
     { name:'Zdieľať hodiny s adminom (súhlas)', status:'test' },
     { name:'Send Feedback', status:'test' },
     { name:'Tutorial, návod na pridanie na plochu', status:'ok' },
+    { name:'Vždy viditeľný hlavičkový pás (Späť/Domov)', status:'test' },
   ]},
   { icon:'🔐', title:'Bezpečnosť a súkromie', items:[
     { name:'Confidentiality brána', status:'ok' },
@@ -248,6 +260,8 @@ const MODULES = [
     { name:'/security dokumenty pre právnika', status:'test' },
     { name:'Platobná brána, faktúry', status:'plan' },
     { name:'GmbH registrácia', status:'plan' },
+    { name:'Značkové Supabase auth emaily (magic link, confirm)', status:'test' },
+    { name:'Trvalá oprava admin-invite reclaim bugu (db/118)', status:'test' },
   ]},
 ];
 
