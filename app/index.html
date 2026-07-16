@@ -2514,6 +2514,11 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
         Home
       </button>
+      <div class="bar-spacer"></div>
+      <!-- Illustration-data switch (Richard, 17.7.) — Head Admin only. Pure DISPLAY mode:
+           generated demo entries replace what the screens SHOW, nothing is ever written to
+           time_entries (the 16.7. "Add sample data" incident is exactly why). -->
+      <button class="task-status-btn" id="wtDemoToggle" style="display:none;" onclick="toggleWtDemo()">🎭 Demo: OFF</button>
     </div>
     <div id="workingTimeSummaryCard" class="wt-card" style="margin:0 18px 12px 18px;"></div>
   </div>
@@ -15622,16 +15627,99 @@ let _workingTimeTicker = null;
 let _scheduleForecast = [];
 let _workingTimeDayNotes = {};
 
+/* ============================================================
+   Working Time demo/illustration mode (Richard, 17.7.) — Head Admin only. When ON, every
+   Working Time screen renders GENERATED data (varied shifts, split days, overtime, GPS pins)
+   instead of the real time_entries — purely in memory, per session, never written anywhere.
+   Deterministic per calendar day (seeded by the date string), so the numbers don't reshuffle
+   on every open. Built for screenshots/demos: the 16.7. health-log incident (fake rows written
+   into the real table) is exactly the mistake this design avoids.
+   ============================================================ */
+let _wtDemoMode = false;
+let _wtDemoCache = null;
+function _wtDemoRand(seedStr){
+  let h = 2166136261;
+  for(let i = 0; i < seedStr.length; i++){ h ^= seedStr.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return function(){
+    h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+function wtDemoAll(){
+  if(_wtDemoCache) return _wtDemoCache;
+  const entries = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = new Date(today.getFullYear(), 0, 1);
+  const mk = (day, inH, inM, outH, outM, breakMin, rnd)=>{
+    const ci = new Date(day); ci.setHours(inH, inM, 0, 0);
+    const co = new Date(day); co.setHours(outH, outM, 0, 0);
+    const gps = rnd() < 0.6;
+    entries.push({
+      id: 'demo-' + ci.toISOString(),
+      user_id: currentUser ? currentUser.id : null,
+      check_in: ci.toISOString(), check_out: co.toISOString(), break_minutes: breakMin,
+      check_in_lat: gps ? 46.948 + (rnd()-0.5)*0.008 : null,
+      check_in_lng: gps ? 7.4474 + (rnd()-0.5)*0.008 : null,
+      check_out_lat: gps ? 46.948 + (rnd()-0.5)*0.008 : null,
+      check_out_lng: gps ? 7.4474 + (rnd()-0.5)*0.008 : null
+    });
+  };
+  for(let d = new Date(start); d < today; d.setDate(d.getDate() + 1)){ // up to yesterday — a "shift" later today would look like time travel
+    const dayStr = d.toISOString().slice(0,10);
+    const rnd = _wtDemoRand('chefos-demo-' + dayStr);
+    const dow = d.getDay();
+    if(dow === 0 && rnd() < 0.8) continue;          // most Sundays off
+    if(rnd() < 0.14) continue;                       // ~1 extra free day a week
+    const j = ()=>Math.floor(rnd() * 40);            // start/end jitter in minutes
+    const pattern = rnd();
+    const day = new Date(d);
+    if(pattern < 0.32)      mk(day, 8, j(), 16, 30 + Math.floor(rnd()*45), 30, rnd);        // morning
+    else if(pattern < 0.60) mk(day, 13, 30 + j(), 22, 45, 45, rnd);                          // evening
+    else if(pattern < 0.78){ mk(day, 9, j(), 13, 30, 0, rnd); mk(day, 17, j(), 22, 0, 30, rnd); } // split shift
+    else if(pattern < 0.90) mk(day, 9, 30, 20, 45 + Math.floor(rnd()*30), 60, rnd);          // long/overtime
+    else                    mk(day, 10, j(), 14, 30, 0, rnd);                                // short admin day
+  }
+  _wtDemoCache = entries;
+  return entries;
+}
+function wtDemoBetween(startIso, endIso){
+  return wtDemoAll().filter(e=>e.check_in >= startIso && e.check_in < endIso);
+}
+function toggleWtDemo(){
+  _wtDemoMode = !_wtDemoMode;
+  const btn = document.getElementById('wtDemoToggle');
+  btn.textContent = _wtDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  btn.classList.toggle('active', _wtDemoMode);
+  showWorkingTime();
+}
+
 async function showWorkingTime(){
   logEvent('view_opened', {view:'working_time'});
   hideAllViews();
   document.getElementById('workingTimeView').style.display = 'block';
+  const demoBtn = document.getElementById('wtDemoToggle');
+  demoBtn.style.display = currentIsAdmin ? '' : 'none';
+  demoBtn.textContent = _wtDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  demoBtn.classList.toggle('active', _wtDemoMode);
   await loadWorkingTimeData();
   renderWorkingTime();
   window.scrollTo(0,0);
 }
 
 async function loadWorkingTimeData(){
+  if(_wtDemoMode){
+    // Illustration mode: generated entries + a plausible profile, straight into the same state
+    // vars every renderer reads. Contract notes/forecast/day notes stay empty on purpose —
+    // hours are the story here, and empty sections render fine.
+    const now = new Date();
+    const mStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    _activeTimeEntry = null;
+    _monthTimeEntries = wtDemoBetween(mStart, new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString());
+    _workingTimeProfile = { contracted_hours_per_week: 42, next_vacation_date: new Date(Date.now() + 21 * 86400000).toISOString().slice(0,10), contract_notes: null, contract_advisory_points: null };
+    _scheduleForecast = [];
+    _workingTimeDayNotes = {};
+    return;
+  }
   const { data: openEntry } = await sb.from('time_entries').select('*')
     .eq('user_id', currentUser.id).is('check_out', null)
     .order('check_in', { ascending:false }).limit(1).maybeSingle();
@@ -16003,6 +16091,11 @@ async function loadAndRenderWorkingTimeCharts(){
   document.getElementById('wtChartsYearLabel').textContent = String(_wtChartsYear);
   const yearStart = new Date(_wtChartsYear, 0, 1).toISOString();
   const yearEnd = new Date(_wtChartsYear + 1, 0, 1).toISOString();
+  if(_wtDemoMode){
+    _wtChartsYearEntries = wtDemoBetween(yearStart, yearEnd); // demo covers the current year
+    renderWorkingTimeChartsGrid();
+    return;
+  }
   const { data } = await sb.from('time_entries').select('*')
     .eq('user_id', currentUser.id).gte('check_in', yearStart).lt('check_in', yearEnd).order('check_in');
   _wtChartsYearEntries = data || [];
@@ -16360,8 +16453,13 @@ async function openDayDetail(dayStr){
 
   const dayStart = dateObj.toISOString();
   const dayEnd = new Date(dateObj.getTime() + 86400000).toISOString();
-  const { data: entries } = await sb.from('time_entries').select('*')
-    .eq('user_id', currentUser.id).gte('check_in', dayStart).lt('check_in', dayEnd).order('check_in');
+  let entries;
+  if(_wtDemoMode){
+    entries = wtDemoBetween(dayStart, dayEnd);
+  } else {
+    ({ data: entries } = await sb.from('time_entries').select('*')
+      .eq('user_id', currentUser.id).gte('check_in', dayStart).lt('check_in', dayEnd).order('check_in'));
+  }
   const totalHours = (entries || []).reduce((s,e)=> s + workingTimeHoursForEntry(e), 0);
   document.getElementById('dayDetailEntries').innerHTML = (entries && entries.length) ? (
     entries.map(e=>{
