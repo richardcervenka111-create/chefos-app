@@ -3584,10 +3584,15 @@
 </div>
 
 <div id="monthDayDetailOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMonthDayBars()">
-  <div class="sheet">
+  <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="monthDayDetailTitle"></div>
-    <div class="wt-chart-scroll" id="monthDayDetailChart"></div>
+    <div style="overflow-y:auto; min-height:0;">
+      <div class="wt-chart-scroll" id="monthDayDetailChart"></div>
+      <!-- Orders + printed labels for the same month (Richard, 17.7.) — same chart language as
+           Kitchen Reports (krBars/krDonut are reused directly). -->
+      <div id="monthDayDetailExtras"></div>
+    </div>
     <button class="sheet-cancel" onclick="closeMonthDayBars()">Close</button>
   </div>
 </div>
@@ -16282,7 +16287,7 @@ function renderWorkingTimeChartsGrid(){
 /* Drill-down from a monthly pie: tap it to see the actual day-by-day bars behind that number,
    same visual language as the main Working Time bar chart (reusing .wt-bar-* classes), sourced
    from the same _wtChartsYearEntries already loaded for the pie grid — no extra query needed. */
-function openMonthDayBars(monthIndex){
+async function openMonthDayBars(monthIndex){
   const year = _wtChartsYear;
   const daysInMonth = new Date(year, monthIndex+1, 0).getDate();
   const dayHours = {};
@@ -16313,7 +16318,70 @@ function openMonthDayBars(monthIndex){
   }
   document.getElementById('monthDayDetailTitle').textContent = `${MONTH_NAMES_SHORT[monthIndex]} ${year} — day by day`;
   document.getElementById('monthDayDetailChart').innerHTML = bars;
+  document.getElementById('monthDayDetailExtras').innerHTML = '<p class="lede">Loading orders & labels…</p>';
   document.getElementById('monthDayDetailOverlay').classList.add('open');
+  await renderMonthOrdersLabels(monthIndex, dayHours);
+}
+/* Orders + printed labels for the month, in the same visual language as Kitchen Reports
+   (krBars/krDonut reused directly). print_label_log is a real append-only history, so those
+   counts are exact; order_list_items is the LIVE list (rows disappear once cleared), so orders
+   are "items still on the list from that day" — said honestly in the footnote, same convention
+   as the day detail. In Working Time demo mode both are generated per day, deterministically. */
+async function renderMonthOrdersLabels(monthIndex, dayHours){
+  const year = _wtChartsYear;
+  const monthStart = new Date(year, monthIndex, 1);
+  const monthEnd = new Date(year, monthIndex + 1, 1);
+  const dayLabel = ds => { const d = new Date(ds + 'T00:00:00'); return `${d.getDate()}.${monthIndex+1}. ${WEEKDAY_INITIALS_SK[d.getDay()]}`; };
+  const ordersByDay = {}, labelsByDay = {}, ordersByStation = {}, labelsByStation = {};
+  if(_wtDemoMode){
+    const stations = ['Hot Line','SKY','Garde Manger','Desserts'];
+    Object.keys(dayHours).forEach(ds=>{
+      const rnd = _wtDemoRand('wt-ol-' + ds);
+      const o = rnd() < 0.35 ? 0 : Math.floor(rnd() * 9) + 1;
+      const l = rnd() < 0.25 ? 0 : Math.floor(rnd() * 15) + 1;
+      if(o){ ordersByDay[ds] = o; ordersByStation[stations[Math.floor(rnd()*4)]] = (ordersByStation[stations[Math.floor(rnd()*4)]] || 0) + o; }
+      if(l){ labelsByDay[ds] = l; labelsByStation[stations[Math.floor(rnd()*4)]] = (labelsByStation[stations[Math.floor(rnd()*4)]] || 0) + l; }
+    });
+  } else {
+    const [{ data: labelRows }, { data: orderRows }] = await Promise.all([
+      sb.from('print_label_log').select('qty, station, printed_at')
+        .eq('kitchen_id', currentKitchenId).eq('printed_by', currentUser.id)
+        .gte('printed_at', monthStart.toISOString()).lt('printed_at', monthEnd.toISOString()).limit(3000),
+      sb.from('order_list_items').select('station, updated_at')
+        .eq('kitchen_id', currentKitchenId).eq('created_by', currentUser.id)
+        .gte('updated_at', monthStart.toISOString()).lt('updated_at', monthEnd.toISOString()).limit(3000)
+    ]);
+    (labelRows || []).forEach(r=>{
+      const ds = new Date(r.printed_at).toLocaleDateString('en-CA');
+      const q = Number(r.qty) || 1;
+      labelsByDay[ds] = (labelsByDay[ds] || 0) + q;
+      labelsByStation[r.station || '—'] = (labelsByStation[r.station || '—'] || 0) + q;
+    });
+    (orderRows || []).forEach(r=>{
+      const ds = new Date(r.updated_at).toLocaleDateString('en-CA');
+      ordersByDay[ds] = (ordersByDay[ds] || 0) + 1;
+      ordersByStation[r.station || '—'] = (ordersByStation[r.station || '—'] || 0) + 1;
+    });
+  }
+  const totalHours = Object.values(dayHours).reduce((s,h)=>s+h, 0);
+  const totalOrders = Object.values(ordersByDay).reduce((s,n)=>s+n, 0);
+  const totalLabels = Object.values(labelsByDay).reduce((s,n)=>s+n, 0);
+  const toRows = byDay => Object.keys(byDay).sort().map(ds=>({ label: dayLabel(ds), value: byDay[ds] }));
+  const toSegs = bySt => Object.entries(bySt).sort((a,b)=>b[1]-a[1]).map(([st,n])=>({ label: st, value: n }));
+  document.getElementById('monthDayDetailExtras').innerHTML = `
+    ${krPills([`🕒 ${formatHoursSK(totalHours)} h worked`, `🛒 ${totalOrders} items ordered`, `🏷️ ${totalLabels} labels printed`])}
+    ${krLabel('Ordered items by day')}
+    ${totalOrders ? krBars(toRows(ordersByDay)) : '<div class="empty-state">No ordered items this month.</div>'}
+    ${krLabel('Printed labels by day')}
+    ${totalLabels ? krBars(toRows(labelsByDay)) : '<div class="empty-state">No labels printed this month.</div>'}
+    ${krLabel('Orders by station')}
+    ${totalOrders ? krDonut(toSegs(ordersByStation)) : '<div class="empty-state">No data yet.</div>'}
+    ${krLabel('Labels by station')}
+    ${totalLabels ? krDonut(toSegs(labelsByStation)) : '<div class="empty-state">No data yet.</div>'}
+    <div class="sheet-text" style="opacity:.65; margin-top:8px;">${_wtDemoMode
+      ? '🎭 Illustration data — invented numbers, for demo purposes only.'
+      : 'Labels come from the print log (exact). Orders count items still on the Order List from that day — items already cleared after ordering aren\'t counted, so treat it as a floor, not an exact history.'}</div>
+  `;
 }
 function closeMonthDayBars(){
   document.getElementById('monthDayDetailOverlay').classList.remove('open');
