@@ -8288,7 +8288,23 @@ async function renderAdminRequests(){
 }
 
 async function reviewAccessRequest(id, status){
-  await sb.from('access_requests').update({ status, reviewed_by: currentUser.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+  const { data: updated, error } = await sb.from('access_requests')
+    .update({ status, reviewed_by: currentUser.id, reviewed_at: new Date().toISOString() })
+    .eq('id', id).select('email').maybeSingle();
+  if(error){ alert('Could not save: ' + error.message); return; }
+  // Approval email (Richard, 16.7.): the person waiting at "Waiting for approval" gets a real
+  // sign-in email the moment they're approved — one tap on its link and they're in, no
+  // guessing when to press "Check again". Same passwordless mechanism as every invite email
+  // (goes out through the Resend SMTP). Best-effort: a mail failure must never undo the
+  // approval itself, it just means they find out the old way.
+  if(status === 'approved' && updated && updated.email){
+    sb.auth.signInWithOtp({
+      email: updated.email,
+      options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname }
+    }).then(({ error: mailErr })=>{
+      if(mailErr) logClientError('approval email failed for ' + updated.email + ': ' + (mailErr.message || mailErr));
+    });
+  }
   await renderAdminRequests();
   refreshAdminPendingBadge();
 }
