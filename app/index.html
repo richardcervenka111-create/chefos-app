@@ -9290,10 +9290,15 @@ let _scanLanguage = 'en';
    This is just a fast client-side pre-check for a friendly message — the real enforcement (and
    the actual per-call cost deduction) happens server-side in claude-proxy, since this check is
    trivially bypassable from the client. */
-async function callClaudeAPI(body){
-  if(!currentAiTestingMode && currentAccountType === 'personal' && !(currentAiCreditChf > 0)){
+async function callClaudeAPI(body, opts){
+  // freeGrant (17.7.): AI help on a recipe the user agreed to SHARE with the ChefOS library is
+  // on the house — the marker below makes claude-proxy skip both the credit gate and the
+  // metering for this one call. Client-declared for now (see the honest note in the proxy).
+  const freeGrant = !!(opts && opts.freeGrant);
+  if(!freeGrant && !currentAiTestingMode && currentAccountType === 'personal' && !(currentAiCreditChf > 0)){
     throw new Error('Your AI credit is used up. Ask your admin to top it up (Admin Directory).');
   }
+  if(freeGrant) body = { ...body, _share_grant: 'recipe_chefos' };
   const { data, error } = await sb.functions.invoke('claude-proxy', { body });
   if(error){
     let detail = error.message || 'Anthropic API error';
@@ -12216,8 +12221,14 @@ function editCurrentRecipe(){
 function renderForm(data){
   formIngredientRows = data.ingredients.length ? data.ingredients : [['','']];
   formStepRows = data.steps.length ? data.steps : [''];
+  _recipeAiShare = null; // fresh share-with-ChefOS decision per form session (17.7.)
   const el = document.getElementById('formContent');
   const cats = getCategories().filter(c=>c!=='All');
+  // A scanned recipe often arrives with a category this shelf doesn't have yet — offer it as a
+  // real option instead of silently dropping it (17.7., part of the empty-shelf category fix).
+  if(data.category && !cats.includes(data.category)) cats.unshift(data.category);
+  // Per-field Michelin AI helper (17.7.) — every "More details" field gets a ✨ button.
+  const aiLabel = (text, fieldId)=>`<label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><span>${text}</span><button type="button" class="task-status-btn" style="padding:2px 10px; font-size:11px; flex:none;" onclick="aiFillRecipeField('${fieldId}', this)">✨ AI</button></label>`;
 
   let html = `
     <label class="form-label">${formEditingId ? 'Edit Recipe' : 'New Recipe'}</label>
@@ -12262,48 +12273,54 @@ function renderForm(data){
     <details class="more-details">
       <summary>More details (optional)</summary>
 
-      <label class="form-label">Yield</label>
+      ${aiLabel('Yield','f_yield')}
       <input class="form-field" id="f_yield" type="text" placeholder="e.g. Serves 4" value="${(data.yield||'').replace(/"/g,'&quot;')}">
 
-      <label class="form-label">Cuisine</label>
+      ${aiLabel('Cuisine','f_cuisine')}
       <input class="form-field" id="f_cuisine" type="text" placeholder="e.g. Japanese, French" value="${(data.cuisine||'').replace(/"/g,'&quot;')}">
 
-      <label class="form-label">Description</label>
+      ${aiLabel('Description','f_description')}
       <textarea class="form-field" id="f_description" placeholder="A longer description of the dish" style="min-height:70px;">${data.description||''}</textarea>
 
-      <label class="form-label">Equipment</label>
+      ${aiLabel('Equipment','f_equipment')}
       <textarea class="form-field" id="f_equipment" placeholder="e.g. Immersion blender, ring mould, blowtorch" style="min-height:50px;">${data.equipment||''}</textarea>
 
-      <label class="form-label">Chef Notes</label>
+      ${aiLabel('Chef Notes','f_chef_notes')}
       <textarea class="form-field" id="f_chef_notes" placeholder="Anything a chef should know before making this" style="min-height:70px;">${data.chefNotes||''}</textarea>
 
-      <label class="form-label">Storage</label>
+      ${aiLabel('Storage','f_storage')}
       <input class="form-field" id="f_storage" type="text" placeholder="e.g. Refrigerate, covered" value="${(data.storage||'').replace(/"/g,'&quot;')}">
 
-      <label class="form-label">Shelf Life</label>
+      ${aiLabel('Shelf Life','f_shelf_life')}
       <input class="form-field" id="f_shelf_life" type="text" placeholder="e.g. 3 days chilled" value="${(data.shelfLife||'').replace(/"/g,'&quot;')}">
 
-      <label class="form-label">Possible Variations</label>
+      ${aiLabel('Possible Variations','f_variations')}
       <textarea class="form-field" id="f_variations" placeholder="Ways this dish can be changed up" style="min-height:60px;">${data.variations||''}</textarea>
 
-      <label class="form-label">Scaling Notes</label>
+      ${aiLabel('Scaling Notes','f_scaling_notes')}
       <textarea class="form-field" id="f_scaling_notes" placeholder="Anything that doesn't scale linearly (e.g. spice, leavening)" style="min-height:60px;">${data.scalingNotes||''}</textarea>
 
-      <label class="form-label">Plating Suggestions</label>
+      ${aiLabel('Plating Suggestions','f_plating')}
       <textarea class="form-field" id="f_plating" placeholder="How this should be plated / presented" style="min-height:60px;">${data.platingSuggestions||''}</textarea>
 
-      <label class="form-label">Cross References</label>
+      ${aiLabel('Cross References','f_cross_references')}
       <input class="form-field" id="f_cross_references" type="text" placeholder="e.g. Pairs with House Vinaigrette" value="${(data.crossReferences||'').replace(/"/g,'&quot;')}">
 
-      <label class="form-label">Tags (comma-separated)</label>
+      ${aiLabel('Tags (comma-separated)','f_tags')}
       <input class="form-field" id="f_tags" type="text" placeholder="e.g. vegetarian, banquet, signature" value="${(data.tags||[]).join(', ').replace(/"/g,'&quot;')}">
     </details>
   `;
   el.innerHTML = html;
 
-  document.getElementById('f_category').addEventListener('change', (e)=>{
-    document.getElementById('f_category_new').style.display = e.target.value === '__new__' ? 'block' : 'none';
-  });
+  const catSel = document.getElementById('f_category');
+  const syncNewCat = ()=>{
+    document.getElementById('f_category_new').style.display = catSel.value === '__new__' ? 'block' : 'none';
+  };
+  catSel.addEventListener('change', syncNewCat);
+  // Run once on open (Richard's bug, 17.7.): on a fresh shelf "+ New category…" is the ONLY
+  // option and therefore already selected — no change event ever fires, so the name field
+  // never appeared and the first recipe couldn't be given a category at all.
+  syncNewCat();
 
   renderIngredientRows();
   renderStepRows();
@@ -12408,6 +12425,12 @@ async function saveFormBody(){
     cross_references: crossReferences || null, tags, sections
   };
 
+  // Share-with-ChefOS question at save (Richard, 17.7.): if the person already answered it
+  // when they first used an AI helper, don't ask again — otherwise ask now (plain sharing
+  // question, no free-AI wording, since no AI was used).
+  if(!formEditingId && _recipeAiShare === null){
+    _recipeAiShare = confirm('Share this recipe with the ChefOS library?\n\nOK — share it (helps every ChefOS kitchen)\nCancel — keep it private');
+  }
   // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
   // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
   // same convention as ingredients' custom lists.
@@ -12415,13 +12438,15 @@ async function saveFormBody(){
   setSyncStatus('saving');
   let error, savedId = formEditingId;
   if(formEditingId){
+    if(_recipeAiShare === true) payload.shared_with_chefos = true; // never silently un-shares
     ({ error } = await sb.from('recipes').update(payload).eq('id', formEditingId));
   } else {
     let inserted;
     ({ data: inserted, error } = await sb.from('recipes')
       .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
         is_personal: inRecipeProject ? true : currentAccountType === 'personal',
-        list_id: inRecipeProject ? recipeSourceFilter : null })
+        list_id: inRecipeProject ? recipeSourceFilter : null,
+        shared_with_chefos: _recipeAiShare === true })
       .select().single());
     if(inserted) savedId = inserted.id;
   }
@@ -18385,6 +18410,86 @@ function openMenuScanRecipeForm(i){
 /* Writes a professional Method from just the title + ingredient list — same direct-to-Claude
    pattern as the photo scan, reusing the same stored API key. Replaces whatever is currently
    in the step rows; the chef edits/adjusts from there like anywhere else in the form. */
+/* Share-with-ChefOS decision for the current recipe form (Richard, 17.7.): asked ONCE, the
+   first time any AI helper is used in the form (or at save if no AI was used). Yes = the
+   recipe is contributed to the ChefOS library on save AND every AI call in this form is free;
+   No = recipe stays private and AI charges credit as normal. null = not asked yet. */
+let _recipeAiShare = null;
+function maybeAskRecipeAiShare(){
+  if(_recipeAiShare !== null) return _recipeAiShare;
+  _recipeAiShare = confirm(
+    "✨ A Michelin-star AI chef can fill this in for you.\n\n" +
+    "Share the finished recipe with the ChefOS library and ALL AI help on this recipe is free.\n\n" +
+    "OK — share it with ChefOS (AI free)\nCancel — keep it private (AI uses your credit)"
+  );
+  return _recipeAiShare;
+}
+
+/* One ✨ button per "More details" field — a Michelin-star-chef persona writes just that field
+   from whatever is already in the form (title, ingredients, method, the other fields). Never
+   invents a dish: it works strictly from the recipe on screen. */
+const AI_RECIPE_FIELDS = {
+  f_yield:            { label:'Yield',                hint:'A realistic professional yield, e.g. "Serves 4" or "1.2 kg / ~15 portions". One short line.' },
+  f_cuisine:          { label:'Cuisine',              hint:'The cuisine this dish belongs to, e.g. "Italian" or "Modern European". One or two words.' },
+  f_description:      { label:'Description',          hint:'An appetising, professional 2–3 sentence description of the dish for a recipe card.' },
+  f_equipment:        { label:'Equipment',            hint:'The kitchen equipment actually needed, comma-separated, e.g. "Immersion blender, chinois, squeeze bottles".' },
+  f_chef_notes:       { label:'Chef Notes',           hint:'2–4 sharp professional pointers a chef should know before cooking this — technique traps, timing, seasoning judgement.' },
+  f_storage:          { label:'Storage',              hint:'How to store it in a professional kitchen, e.g. "Refrigerate covered, label with use-by". One line.' },
+  f_shelf_life:       { label:'Shelf Life',           hint:'A realistic professional shelf life, e.g. "3 days chilled". One short line.' },
+  f_variations:       { label:'Possible Variations',  hint:'2–3 credible variations of this dish, each one line.' },
+  f_scaling_notes:    { label:'Scaling Notes',        hint:'What does NOT scale linearly here (seasoning, acid, gelling agents, reduction times). 1–3 lines.' },
+  f_plating:          { label:'Plating Suggestions',  hint:'How a professional kitchen would plate/present this. 1–3 lines.' },
+  f_cross_references: { label:'Cross References',     hint:'What this pairs with or is used in, e.g. "Pairs with grilled sea bass". One line.' },
+  f_tags:             { label:'Tags',                 hint:'4–8 short lowercase tags, comma-separated, e.g. "vegetarian, banquet, make-ahead".' },
+};
+async function aiFillRecipeField(fieldId, btn){
+  const def = AI_RECIPE_FIELDS[fieldId];
+  const title = document.getElementById('f_title').value.trim();
+  const ingredients = formIngredientRows.filter(row=>row[0] && row[0].trim());
+  if(!def) return;
+  if(!title || ingredients.length === 0){
+    alert('Add a title and at least one ingredient first — the AI writes from YOUR recipe, it never invents one.');
+    return;
+  }
+  const share = maybeAskRecipeAiShare();
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try{
+    const ingredientList = ingredients.map(row=> row[1] ? `${row[0]} — ${row[1]}` : row[0]).join('\n');
+    const steps = formStepRows.filter(s=>s && s.trim());
+    const context = [
+      `Dish: ${title}`,
+      `Ingredients:\n${ingredientList}`,
+      steps.length ? `Method:\n${steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}` : '',
+      document.getElementById('f_meta').value.trim() ? `Notes: ${document.getElementById('f_meta').value.trim()}` : ''
+    ].filter(Boolean).join('\n\n');
+    const data = await callClaudeAPI({
+      model: 'claude-sonnet-5',
+      max_tokens: 512,
+      tools: [{
+        name: 'fill_recipe_field',
+        description: `Write the "${def.label}" field for this professional recipe card.`,
+        input_schema: { type:'object', properties:{ content:{ type:'string', description: def.hint } }, required:['content'] }
+      }],
+      tool_choice: { type:'tool', name:'fill_recipe_field' },
+      messages: [{
+        role: 'user',
+        content: `You are a Michelin-star chef writing a professional recipe card for another chef. Based ONLY on this recipe, write the "${def.label}" field.\n\n${context}\n\nGuidance: ${def.hint}\n\nUse the fill_recipe_field tool.`
+      }]
+    }, { freeGrant: share });
+    const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+    const content = toolUse && toolUse.input && (toolUse.input.content || '').trim();
+    if(!content) throw new Error('The AI returned nothing — try again.');
+    document.getElementById(fieldId).value = content;
+  } catch(err){
+    alert(err.message || 'Something went wrong.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
 async function generateMethodWithAI(){
   const title = document.getElementById('f_title').value.trim();
   const ingredients = formIngredientRows.filter(row=>row[0] && row[0].trim());
@@ -18392,6 +18497,7 @@ async function generateMethodWithAI(){
     alert('Add a title and at least one ingredient first, then generate the method.');
     return;
   }
+  const _methodShare = maybeAskRecipeAiShare();
   const btn = document.getElementById('generateMethodBtn');
   const originalLabel = btn.textContent;
   btn.disabled = true;
@@ -18418,7 +18524,7 @@ async function generateMethodWithAI(){
         role: 'user',
         content: `Write the professional kitchen method for this dish, as a chef would write it for another chef.\n\nDish: ${title}\n\nIngredients:\n${ingredientList}\n\nWrite clear, ordered steps using proper kitchen technique and terminology. Use the write_method tool.`
       }]
-    });
+    }, { freeGrant: _methodShare });
     const toolUse = (data.content || []).find(b=>b.type==='tool_use');
     if(!toolUse || !toolUse.input.steps || !toolUse.input.steps.length){
       throw new Error('Claude did not return any steps — try again.');

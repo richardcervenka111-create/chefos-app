@@ -93,7 +93,22 @@ Deno.serve(async (req) => {
       .eq('id', user.id)
       .maybeSingle();
     const isPersonal = !profileError && profile?.account_type === 'personal';
-    if (!testingModeOn && isPersonal && !(Number(profile?.ai_credit_chf) > 0)) {
+
+    // Share-with-ChefOS grant (Richard, 17.7.): AI help on a recipe the user agreed to share
+    // with the ChefOS library is free — skip the credit gate AND the metering for this call.
+    // HONEST NOTE: the flag is client-declared, so a determined user could set it on any call
+    // to get free AI. Accepted for the pre-trial phase (the blast radius is one free call, and
+    // shared recipes are curated by Richard, so a fake "share" earns nothing else); tighten to
+    // a server-issued one-time voucher before the public trial if abuse ever shows up in the
+    // usage numbers. The marker is STRIPPED before forwarding to Anthropic.
+    const rawBody = await req.text();
+    let parsedBody: Record<string, unknown> | null = null;
+    try { parsedBody = JSON.parse(rawBody); } catch (_e) { /* forwarded as-is below */ }
+    const shareGrant = parsedBody?._share_grant === 'recipe_chefos';
+    if (shareGrant && parsedBody) delete parsedBody._share_grant;
+    const body = shareGrant && parsedBody ? JSON.stringify(parsedBody) : rawBody;
+
+    if (!testingModeOn && !shareGrant && isPersonal && !(Number(profile?.ai_credit_chf) > 0)) {
       return new Response(JSON.stringify({ error: { message: 'Your AI credit is used up. Ask your admin to top it up (Admin Directory).' } }), {
         status: 402, headers: { ...CORS_HEADERS, 'content-type': 'application/json' }
       });
@@ -122,10 +137,9 @@ Deno.serve(async (req) => {
     }
 
     // Pass the request straight through — model/max_tokens/tools/tool_choice/messages are
-    // whatever the app's own callClaudeXxx() function built, unchanged.
-    const body = await req.text();
-    let requestedModel = '';
-    try { requestedModel = JSON.parse(body)?.model || ''; } catch (_e) { /* fall through, no charge if unparseable */ }
+    // whatever the app's own callClaudeXxx() function built, unchanged (body was already read
+    // above for the share-grant check; only the marker was stripped).
+    const requestedModel = (parsedBody?.model as string) || '';
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -143,7 +157,7 @@ Deno.serve(async (req) => {
     // entirely during testing mode — nothing to meter while it's unlimited for everyone.
     // Best-effort and never blocks the response — a metering hiccup shouldn't cost someone
     // their answer they already paid Anthropic-side for via this same request.
-    if (!testingModeOn && isPersonal && anthropicRes.ok) {
+    if (!testingModeOn && !shareGrant && isPersonal && anthropicRes.ok) {
       try {
         const usage = JSON.parse(responseText)?.usage;
         const pricing = MODEL_PRICING_USD_PER_MILLION[requestedModel];
