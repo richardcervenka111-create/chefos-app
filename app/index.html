@@ -1949,6 +1949,13 @@
     <div class="sheet-title">👋 Add Friend</div>
     <p class="sheet-text">Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code brings them into your kitchen too.</p>
     <div id="friendQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px;"><p style="color:#333;">Loading…</p></div>
+    <!-- Send by email (bod 4, 16.7.) — same one-tap login-link pattern as the admin's invite
+         email, but carrying THIS person's friend QR URL (?invite= + &friend=), so a regular
+         (non-admin) member can invite someone by email too, not just by showing the QR. -->
+    <label class="form-label" style="margin-top:16px; text-align:left; display:block;">Or send it by email</label>
+    <input class="form-field" id="friendInviteEmailField" type="email" placeholder="their@email.com">
+    <button class="save-btn" style="width:100%; margin-top:8px;" onclick="sendFriendInviteByEmail()">Send invite email</button>
+    <div class="form-status" id="friendInviteEmailStatus"></div>
     <button class="sheet-cancel" style="width:100%; margin-top:14px;" onclick="closeMyFriendQr()">Close</button>
   </div>
 </div>
@@ -7643,20 +7650,54 @@ function closeFriendRecipeDetail(){
    admin-only, since this is now something every member's own QR does silently in the
    background. Revoking an invite (My Team's "regenerate" button) stays admin-only; nothing
    here changes who can take that link away. */
+let _currentFriendInviteUrl = null;
 async function showMyFriendQr(){
   const holder = document.getElementById('friendQrHolder');
   holder.innerHTML = '<p style="color:#333;">Loading…</p>';
+  _currentFriendInviteUrl = null;
+  document.getElementById('friendInviteEmailField').value = '';
+  document.getElementById('friendInviteEmailStatus').textContent = '';
   document.getElementById('myFriendQrOverlay').classList.add('open');
   let inviteId;
   try{ inviteId = await getOrCreateActiveInvite(); }
   catch(err){ holder.innerHTML = `<p style="color:#333;">Could not load: ${err.message}</p>`; return; }
   const url = location.origin + location.pathname + '?invite=' + inviteId + '&friend=' + currentUser.id;
+  _currentFriendInviteUrl = url;
   const qr = qrcode(0, 'M');
   qr.addData(url);
   qr.make();
   holder.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
 }
 function closeMyFriendQr(){ document.getElementById('myFriendQrOverlay').classList.remove('open'); }
+/* Send the friend QR as a real login email (bod 4, 16.7.) — identical passwordless pattern to
+   the admin's sendInviteByEmail(), just carrying this member's own ?invite=&friend= URL, so the
+   recipient lands signed-in with BOTH the kitchen join and the friend-connect intact (exactly
+   what scanning the QR with a phone camera would have done). Available to every member — the
+   invite itself already is, since db/95. */
+async function sendFriendInviteByEmail(){
+  const emailField = document.getElementById('friendInviteEmailField');
+  const statusEl = document.getElementById('friendInviteEmailStatus');
+  const email = emailField.value.trim();
+  if(!email){ statusEl.textContent = 'Enter an email address first.'; return; }
+  if(!_currentFriendInviteUrl){ statusEl.textContent = 'Invite not ready yet — try again in a moment.'; return; }
+  statusEl.textContent = 'Sending…';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true, emailRedirectTo: _currentFriendInviteUrl }
+  });
+  if(error){
+    statusEl.textContent = 'Could not send: ' + friendlyAuthErrorMessage(error);
+    logClientError('sendFriendInviteByEmail failed: ' + (error.message || JSON.stringify(error)));
+    return;
+  }
+  // Same best-effort contact logging as the admin invite path — never blocks the confirmation.
+  sb.from('email_contacts').upsert(
+    { email: email.toLowerCase(), source: 'invite_sent', kitchen_id: currentKitchenId, status: 'new' },
+    { onConflict: 'email,source' }
+  ).then(({ error: ecErr })=>{ if(ecErr) console.error('email_contacts upsert failed', ecErr); });
+  statusEl.textContent = `Sent to ${email} — ask them to check their inbox (and spam/junk folder).`;
+  emailField.value = '';
+}
 
 /* ---------- Scan QR — camera + jsQR ---------- */
 let _qrScanStream = null;
