@@ -8161,14 +8161,24 @@ async function renderTeamMembersList(){
   // mark any member of their own kitchen as an assistant. Server re-checks authorization in
   // set_member_assistant() regardless of what renders here.
   const canManageAssistants = currentIsAdmin || !!currentAdminPerms.company_admin;
-  el.innerHTML = (members || []).map(m=>{
+  // Ordering (Richard, 16.7.): YOU always first (the device in hand), then the kitchen's
+  // admins, then everyone else alphabetically. Admins get the shield icon + "(admin)".
+  const isKitchenAdmin = (m)=> m.is_admin || !!((m.admin_perms||{}).company_admin);
+  const sorted = (members || []).slice().sort((a,b)=>{
+    if(a.id === currentUser.id) return -1;
+    if(b.id === currentUser.id) return 1;
+    if(isKitchenAdmin(a) !== isKitchenAdmin(b)) return isKitchenAdmin(a) ? -1 : 1;
+    return (a.full_name||'').localeCompare(b.full_name||'');
+  });
+  el.innerHTML = sorted.map(m=>{
     const perms = m.admin_perms || {};
-    const roleTags = [m.is_admin ? 'Admin' : null, perms.company_admin ? 'Company Admin' : null, perms.assistant ? 'Assistant' : null].filter(Boolean).join(' · ');
+    const admin = isKitchenAdmin(m);
+    const label = `${admin ? '🛡️ ' : ''}${(m.full_name || 'Unnamed').replace(/</g,'&lt;')}${admin ? ' (admin)' : ''}${perms.assistant ? ' · ⭐ Assistant' : ''}${m.id===currentUser.id ? ' (you)' : ''}`;
     return `
     <div class="task-row">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
-          <div class="name task-text">${(m.full_name || 'Unnamed').replace(/</g,'&lt;')}${roleTags ? ' · ' + roleTags : ''}${m.id===currentUser.id ? ' (you)' : ''}</div>
+          <div class="name task-text">${label}</div>
         </div>
       </div>
       ${m.id !== currentUser.id ? `<div class="task-status-group">
