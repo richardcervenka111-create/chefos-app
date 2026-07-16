@@ -11594,11 +11594,13 @@ function showList(){
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
   activeCategory = _favorites.length > 0 ? 'Favorites' : 'All';
-  // 'company' by default, not 'mine' — the original 173 migrated recipes (db/02) predate
-  // created_by tracking entirely, so they'd all be invisible under a 'mine' filter for
-  // literally everyone. 'company' (all non-AI recipes, regardless of who added them) is what
-  // "My Recipes" always meant in practice before this 3-way split existed.
-  recipeSourceFilter = 'chefos'; // the library shelf holds the 173 migrated recipes — always reachable on open
+  // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'chefos' on
+  // every single call, silently undoing whatever shelf showRecipesHome()'s picker just set,
+  // e.g. tapping "My Recipes" landed back on ChefOS every time. It only went unnoticed while a
+  // pill switcher inside this same screen let you flip it back manually; removing that pill
+  // (bod 8) exposed it — ChefOS recipes appeared "everywhere, always", exactly this). The shelf
+  // now only ever changes via an explicit choice on the picker screen, and stays put across
+  // detail view, delete, save, and back navigation, same as every other shelf-based screen.
   renderRecipeSummaryBar();
   renderList();
   window.scrollTo(0,0);
