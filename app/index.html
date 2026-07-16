@@ -6314,6 +6314,33 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: 
 // app manages its own scroll position on every view switch, so let it, not the browser.
 if('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
+/* Universal ✕ on every dismissible bottom sheet (Richard, 17.7.) — a long, scrolled sheet left
+   no obvious way to collapse it ("hľadám kúsok kam kliknúť"). One sticky close button, injected
+   into every sheet whose overlay already closes on a backdrop tap — the ✕ simply performs that
+   same backdrop tap, so each overlay's own close/cleanup function runs, nothing new to wire up.
+   Mandatory gates (Confidentiality, Privacy…) have no backdrop-close on purpose and therefore
+   get NO ✕ either — they stay exactly as strict as before. Sticky, so it stays visible while
+   the sheet scrolls. */
+function injectSheetCloseButtons(){
+  document.querySelectorAll('.sheet-overlay').forEach(ov=>{
+    const inline = ov.getAttribute('onclick') || '';
+    if(!inline.includes('event.target===this')) return; // not dismissible — leave untouched
+    const sheet = ov.querySelector('.sheet');
+    if(!sheet || sheet.querySelector('.sheet-x')) return;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:sticky; top:0; z-index:6; height:0; text-align:right;';
+    const btn = document.createElement('button');
+    btn.className = 'sheet-x';
+    btn.setAttribute('aria-label', 'Close');
+    btn.textContent = '✕';
+    btn.style.cssText = 'width:34px; height:34px; border-radius:50%; border:1px solid var(--rule); background:var(--paper); color:var(--ink-dim); font-size:15px; line-height:1; cursor:pointer;';
+    btn.onclick = (e)=>{ e.stopPropagation(); ov.click(); };
+    wrap.appendChild(btn);
+    sheet.prepend(wrap);
+  });
+}
+injectSheetCloseButtons();
+
 /* Basic client-side error tracking (2026-07-13) — up to now, a JS error on a real user's real
    device was invisible until they thought to mention it. Logs to error_logs (db/51_error_logs.sql)
    instead of a third-party service. Capped per session so a tight error loop can't flood the
