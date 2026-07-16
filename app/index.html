@@ -1368,7 +1368,29 @@
     body.printing-orderlist .order-print-sheet{
       display:block !important; position:absolute; top:0; left:0; width:100%; background:#fff; padding:16px;
     }
+
+    /* Branded recipe print (bod 6, 16.7.) — same visibility-swap trick, its own letterhead
+       instead of the plain default recipe print above. A sample template, not per-kitchen
+       customizable yet (no logo/color storage exists) — see recipePrintBrandedSheet's own
+       comment for the scope note. */
+    body.printing-recipe-branded *{ visibility:hidden; }
+    body.printing-recipe-branded .recipe-print-branded-sheet, body.printing-recipe-branded .recipe-print-branded-sheet *{ visibility:visible; }
+    body.printing-recipe-branded .recipe-print-branded-sheet{
+      display:block !important; position:absolute; top:0; left:0; width:100%; background:#fff; padding:24px; color:#1a1a1a;
+    }
   }
+  .recipe-print-branded-sheet{ display:none; font-family:Georgia, 'Times New Roman', serif; }
+  .rpb-letterhead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:2px solid #0A1A2F; padding-bottom:10px; margin-bottom:18px; }
+  .rpb-kitchen{ font-family:-apple-system,Arial,sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#0A1A2F; font-weight:700; }
+  .rpb-tag{ font-family:-apple-system,Arial,sans-serif; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#888; }
+  .rpb-title{ font-size:26px; margin:0 0 4px 0; color:#0A1A2F; }
+  .rpb-meta{ font-family:-apple-system,Arial,sans-serif; font-size:12px; color:#555; margin-bottom:16px; display:flex; gap:14px; flex-wrap:wrap; }
+  .rpb-section-label{ font-family:-apple-system,Arial,sans-serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#0A1A2F; border-bottom:1px solid #ccc; padding-bottom:4px; margin:16px 0 8px 0; }
+  .rpb-ing-table{ width:100%; border-collapse:collapse; font-family:-apple-system,Arial,sans-serif; font-size:13px; }
+  .rpb-ing-table td{ padding:4px 0; border-bottom:1px solid #eee; }
+  .rpb-ing-table td.qty{ text-align:right; color:#555; white-space:nowrap; padding-left:10px; }
+  .rpb-steps{ font-family:-apple-system,Arial,sans-serif; font-size:13px; line-height:1.6; padding-left:20px; margin:0; }
+  .rpb-footer{ margin-top:26px; padding-top:10px; border-top:1px solid #ccc; font-family:-apple-system,Arial,sans-serif; font-size:10px; color:#999; display:flex; justify-content:space-between; }
   .label-print-sheet{ display:none; }
   .label-block{
     width:5cm; height:3cm; box-sizing:border-box;
@@ -1454,6 +1476,10 @@
         <button class="icon-btn" onclick="openMyProfileSettings()" title="My Profile">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         </button>
+        <!-- Account type badge (bod, 16.7.) — Richard: always visible, not buried in Settings.
+             Text itself (not just an icon) on purpose, per his wording. Click reuses the same
+             openAccountTypeSettings() overlay Settings already has. -->
+        <button class="icon-btn" onclick="openAccountTypeSettings()" title="Change account type" id="homeAccountTypeBadge" style="width:auto; padding:0 10px; font-size:12px; font-weight:600; gap:5px;">👤 Personal</button>
         <button class="icon-btn" onclick="openCurrencySettings()" title="Currency" id="currencyIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10h11l-3-3"/><path d="M17 14H6l3 3"/></svg>
         </button>
@@ -1688,6 +1714,33 @@
 <div id="previewAsUserBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:var(--copper); color:#1a1a1a; padding:10px 16px; text-align:center; font-size:13px; font-weight:600; align-items:center; justify-content:center; gap:10px;">
   👁️ Previewing as a normal user
   <button onclick="exitPreviewAsUser()" style="background:#1a1a1a; color:#fff; border:none; padding:5px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">Exit Preview</button>
+</div>
+
+<!-- Privacy & Data Protection consent (bod 3, 16.7. — db/100). Same versioned-acceptance
+     mechanism as the Confidentiality gate right below (privacy_acceptances mirrors
+     confidentiality_acceptances exactly) but a different subject: this is about what ChefOS
+     itself collects about YOU and why (GDPR/Swiss nFADP-style), not about protecting the
+     kitchen's own data. Checked first, before Confidentiality. Full text this summarizes:
+     /security/PRIVACY_POLICY_DRAFT.html — a DRAFT for a lawyer to review, not reviewed legal
+     advice; built from public GDPR/Swiss nFADP information, not a substitute for counsel. -->
+<div id="privacyGateView" style="display:none;">
+  <div class="box">
+    <div class="login-mark">🔐</div>
+    <h1 class="title display">Your Privacy</h1>
+    <p class="lede">One more thing to agree to, then you're in.</p>
+    <div style="text-align:left; max-height:38vh; overflow-y:auto; background:var(--paper-raised); border:1px solid var(--rule); border-radius:12px; padding:14px 16px; margin:14px 0; font-size:14px; line-height:1.55; color:var(--ink-dim);">
+      <p style="margin:0 0 10px 0;"><b style="color:var(--ink);">What ChefOS collects, and why</b></p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Account data</b> — your email and anything you add to My Profile (name, phone, role), to run your login and identify you within your kitchen.</p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Kitchen data</b> — recipes, ingredients, Check List activity, schedules — needed to run the app's core features.</p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Working hours</b> — only if you separately opt in under Settings → Share My Hours with Admin. Off by default.</p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Feedback</b> you choose to send.</p>
+      <p style="margin:0 0 10px 0;">Some features (Chef Assistant, recipe/photo scanning) send the relevant text or image to Anthropic (our AI provider) to work. Everything is hosted on Supabase (our database/hosting provider). Neither sells your data or uses it to train their own models on ChefOS's behalf.</p>
+      <p style="margin:0 0 10px 0;">Under GDPR (EU) and the Swiss Federal Act on Data Protection, you can ask to see, correct, export, or delete your data at any time — contact your kitchen admin or richard.cervenka@icloud.com.</p>
+      <p style="margin:0;">This is a plain-language summary, not the full policy, and not a lawyer-drafted document — see Settings → Privacy & Terms for the complete draft, currently pending legal review.</p>
+    </div>
+    <button class="save-btn" id="privacyConfirmBtn" style="width:100%;" onclick="confirmPrivacyAccept()">I understand and agree</button>
+    <div class="form-status" id="privacyStatus"></div>
+  </div>
 </div>
 
 <!-- Confidentiality acknowledgement — Richard wants everyone to explicitly agree not to share
@@ -2055,6 +2108,166 @@
   </div>
 </div>
 
+<!-- Send Feedback (bod 4, 16.7. — db/98) — anyone, from Settings. Free text, no reply workflow. -->
+<div id="sendFeedbackOverlay" class="sheet-overlay" onclick="if(event.target===this) closeSendFeedback()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">💬 Send Feedback</div>
+    <p class="sheet-text">Bugs, ideas, anything — goes straight to Richard.</p>
+    <textarea class="form-field" id="feedbackMessage" rows="5" placeholder="What's on your mind?"></textarea>
+    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="submitFeedback()">Send</button>
+    <div class="form-status" id="feedbackStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeSendFeedback()">Cancel</button>
+  </div>
+</div>
+
+<!-- Admin: read all feedback (bod 4, 16.7.) — Head Admin only, matches feedback's own RLS. -->
+<div id="adminFeedbackOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAdminFeedback()">
+  <div class="sheet" style="max-height:80vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">💬 Feedback</div>
+    <div id="adminFeedbackList" style="overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAdminFeedback()">Close</button>
+  </div>
+</div>
+
+<!-- AI Testing Mode (bod, 16.7. — db/103) — platform-wide, Head Admin only. -->
+<div id="aiTestingModeOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAiTestingMode()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🧪 AI Testing Mode</div>
+    <p class="sheet-text">While ON, AI features are unlimited for every device, regardless of account type or credit — for testing before real billing exists. While OFF, normal AI credit rules apply exactly as before.</p>
+    <div class="chip" id="aiTestingModeChip" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleAiTestingMode()">
+      <span><strong id="aiTestingModeLabel"></strong></span>
+      <span id="aiTestingModeState"></span>
+    </div>
+    <div class="form-status" id="aiTestingModeStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAiTestingMode()">Close</button>
+  </div>
+</div>
+
+<!-- Share My Hours consent (bod 2, 16.7. — db/99) — opt-in, revocable anytime, off by default.
+     This is the ONLY thing that puts a name next to hours-worked data in Kitchen Reports. -->
+<div id="performanceConsentOverlay" class="sheet-overlay" onclick="if(event.target===this) closePerformanceConsent()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📊 Share My Hours with Admin</div>
+    <p class="sheet-text">Off by default. If ON, your kitchen admin can see YOUR name next to your logged Working Time hours in Kitchen Reports. If OFF, only anonymous team totals are ever shown — never your name. You can change this anytime.</p>
+    <div class="chip" id="performanceConsentChip" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="togglePerformanceConsent()">
+      <span><strong id="performanceConsentLabel"></strong></span>
+      <span id="performanceConsentState"></span>
+    </div>
+    <div class="form-status" id="performanceConsentStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closePerformanceConsent()">Close</button>
+  </div>
+</div>
+
+<!-- Kitchen Reports (bod 2, 16.7. — db/99) — hasAdminPerm('view_kitchen_reports') or Head Admin,
+     scoped to the viewer's own kitchen. -->
+<div id="kitchenReportsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeKitchenReports()">
+  <div class="sheet" style="max-height:85vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📊 Kitchen Reports</div>
+    <div class="chips" style="margin-bottom:10px;">
+      <button class="task-status-btn active" id="krPeriodWeek" onclick="setKitchenReportsPeriod('week')">This Week</button>
+      <button class="task-status-btn" id="krPeriodMonth" onclick="setKitchenReportsPeriod('month')">This Month</button>
+      <button class="task-status-btn" id="krPeriodQuarter" onclick="setKitchenReportsPeriod('quarter')">This Quarter</button>
+    </div>
+    <div id="kitchenReportsBody" style="overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeKitchenReports()">Close</button>
+  </div>
+</div>
+
+<!-- Create Team (bod 1, 16.7. — db/97) — admin_perms.create_teams only. Mints a new kitchen +
+     one-time plaintext join code (server never stores the plaintext, only its hash — see the
+     migration). The code/QR shown here is the ONLY time it's ever visible; regenerate if lost. -->
+<div id="createTeamOverlay" class="sheet-overlay" onclick="if(event.target===this) closeCreateTeam()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🏗️ Create Team</div>
+    <div id="createTeamFormBlock">
+      <p class="sheet-text">Name the new restaurant/kitchen. You'll get a join code and QR right after — write it down, it won't be shown again (you can always generate a new one).</p>
+      <input class="form-field" id="createTeamName" type="text" placeholder="e.g. Nooch Asian Kitchen — Bern">
+      <button class="save-btn" style="width:100%; margin-top:10px;" onclick="submitCreateTeam()">Create Team</button>
+    </div>
+    <div id="createTeamResultBlock" style="display:none; text-align:center;">
+      <p class="sheet-text">Team created. Join code:</p>
+      <p style="font-size:28px; font-weight:700; letter-spacing:.08em; margin:6px 0 14px;" id="createTeamCode"></p>
+      <div id="createTeamQrHolder" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
+      <p class="sheet-text">New members: Settings → Account Type → Company → Enter Code Manually, or scan this QR.</p>
+    </div>
+    <div class="form-status" id="createTeamStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeCreateTeam()">Close</button>
+  </div>
+</div>
+
+<!-- Team Join landing page (bod 1, 16.7. — db/97). Shown the first time an account switches to
+     Company (profiles.team_join_seen = false). Two ways in, same as the friend-QR pattern
+     already used elsewhere: scan (reuses the existing camera+jsQR flow, scanQrView) or type the
+     code by hand. Skipping is a valid, expected outcome — Richard: an unlinked Company account
+     just behaves like a (limited) Personal one until a real code is entered later from Settings. -->
+<div id="teamJoinView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Company Account</p>
+      <button class="icon-btn" onclick="skipTeamJoin()" title="Skip for now">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">Join your team</h1>
+    <p class="lede">If your kitchen admin gave you a QR code or a join code, use it now to link your Company account to their team. You can skip this and do it later from Settings.</p>
+  </div>
+  <div class="home-grid" id="teamJoinGrid">
+    <button class="home-tile" onclick="startQrScan()">
+      <span class="home-tile-icon">📷</span>
+      <span class="home-tile-label">Scan QR Code</span>
+    </button>
+    <button class="home-tile" onclick="openManualTeamCode()">
+      <span class="home-tile-icon">🔢</span>
+      <span class="home-tile-label">Enter Code Manually</span>
+    </button>
+  </div>
+</div>
+
+<div id="manualTeamCodeOverlay" class="sheet-overlay" onclick="if(event.target===this) closeManualTeamCode()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔢 Enter Team Code</div>
+    <input class="form-field" id="manualTeamCodeInput" type="text" placeholder="6-character code" style="text-transform:uppercase; letter-spacing:.08em; text-align:center; font-size:20px;" maxlength="6">
+    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="lookupManualTeamCode()">Continue</button>
+    <div class="form-status" id="manualTeamCodeStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeManualTeamCode()">Cancel</button>
+  </div>
+</div>
+
+<div id="confirmTeamJoinOverlay" class="sheet-overlay" onclick="if(event.target===this) closeConfirmTeamJoin()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Join this team?</div>
+    <p class="sheet-text" id="confirmTeamJoinText"></p>
+    <button class="save-btn" style="width:100%;" onclick="confirmTeamJoin()">Join</button>
+    <div class="form-status" id="confirmTeamJoinStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeConfirmTeamJoin()">Cancel</button>
+  </div>
+</div>
+
+<!-- Account type switch confirmation (bod 1, 16.7.) — Richard explicitly asked for a "are you
+     sure" step with a persistent "don't ask me again" option (profiles.skip_account_type_confirm,
+     db/97), replacing the old direct one-tap switch in Settings. -->
+<div id="accountTypeSwitchConfirmOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAccountTypeSwitchConfirm()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Switch account type?</div>
+    <p class="sheet-text" id="accountTypeSwitchConfirmText"></p>
+    <label style="display:flex; align-items:center; gap:8px; font-size:14px; color:var(--ink-dim); margin:10px 0;">
+      <input type="checkbox" id="accountTypeSwitchSkipFuture"> Don't ask me again
+    </label>
+    <button class="save-btn" style="width:100%;" onclick="confirmAccountTypeSwitch()">Switch</button>
+    <div class="form-status" id="accountTypeSwitchConfirmStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAccountTypeSwitchConfirm()">Cancel</button>
+  </div>
+</div>
+
 <div id="workingTimeView" style="display:none;">
   <div class="wt-sticky-top">
     <div class="detail-bar no-print" style="position:static; border-bottom:none;">
@@ -2136,6 +2349,11 @@
 <!-- Hidden until printing — @media print swaps the whole page for just this -->
 <div id="labelPrintSheet" class="label-print-sheet"></div>
 <div id="orderListPrintSheet" class="order-print-sheet"></div>
+<!-- Branded recipe print (bod 6, 16.7.) — a sample "professional identity" template, separate
+     from the plain default (the existing printer icon). No per-kitchen logo/color storage
+     exists yet, so this is one fixed ChefOS-style letterhead, not something each restaurant can
+     customize — that would be a follow-up if Richard wants to take it further. -->
+<div id="recipePrintBrandedSheet" class="recipe-print-branded-sheet"></div>
 
 <div id="listView" style="display:none;">
   <div class="sticky-header">
@@ -2180,6 +2398,12 @@
     <button class="icon-btn" onclick="window.print()" title="Print this recipe">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     </button>
+    <button class="icon-btn" onclick="addRecipeToCheckList()" title="Add to Check List">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </button>
+    <button class="icon-btn" onclick="printRecipeBranded()" title="Print (Branded)">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/><path d="M9 17h6M9 20h4"/></svg>
+    </button>
   </div>
   <div class="detail-content" id="detailContent"></div>
 </div>
@@ -2196,13 +2420,40 @@
   <div class="detail-content" id="formContent"></div>
 </div>
 
+<!-- Ingredients landing menu (bod 1, 16.7. — db/97) — same tile pattern as Home/HACCP. Splits
+     the old single ingredientsView into two shelves: the kitchen-wide catalog (now labelled
+     "ChefOS" per Richard, matching the recipe-shelf naming convention) and a brand-new "My
+     Ingredients" — genuinely private (RLS `is_personal`), visible only to its creator, always,
+     regardless of account type or which team they're currently in. -->
+<div id="ingredientsHomeView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Ingredients</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">🧂 Ingredients</h1>
+  </div>
+  <div class="home-grid">
+    <button class="home-tile" onclick="openIngredientShelf('chefos')">
+      <span class="home-tile-icon">✨</span>
+      <span class="home-tile-label">ChefOS</span>
+    </button>
+    <button class="home-tile" onclick="openIngredientShelf('mine')">
+      <span class="home-tile-icon">👤</span>
+      <span class="home-tile-label">My Ingredients</span>
+    </button>
+  </div>
+</div>
+
 <div id="ingredientsView" style="display:none;">
   <div class="sticky-header">
     <div class="topbar">
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <button class="back-btn" onclick="showHome()" style="padding:0;">
+        <button class="back-btn" onclick="showIngredientsHome()" style="padding:0;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-          Home
+          Ingredients
         </button>
         <button class="icon-btn" onclick="openIngredientFilters()" title="Search &amp; filter" style="position:relative; width:auto; display:flex; align-items:center; gap:6px; padding:0 4px;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2216,7 +2467,7 @@
         </button>
         <span class="sync-status saved" id="ingSyncStatus"></span>
       </div>
-      <h1 class="title display">Ingredients &amp; Pricing</h1>
+      <h1 class="title display" id="ingredientsShelfTitle">Ingredients &amp; Pricing</h1>
       <p id="ingredientStickyCount" style="margin:4px 0 0 0; font-size:12.5px; color:var(--ink-dim);"></p>
     </div>
   </div>
@@ -5763,6 +6014,11 @@ function hasAdminPerm(key){ return currentIsAdmin || !!currentAdminPerms[key]; }
    yet, forces the gate). Purely a UI personalization of which Recipe shelves show — it has no
    RLS/security role, recipes are already scoped by kitchen_id regardless of this value. */
 let currentAccountType = null;
+let currentSkipAccountTypeConfirm = false;
+let currentTeamJoinSeen = false;
+let currentAiCreditChf = 0;
+let currentAiTestingMode = false;
+let currentPerformanceConsent = false;
 let currentUserName = '';
 /* Preview as Normal User (bod 2, 16.7.) — client-side only, RLS is unaffected either way. Saves
    the real admin state, temporarily fakes non-admin, re-renders whatever's currently visible.
@@ -6185,18 +6441,28 @@ async function startApp(){
   if(!user) return;
   currentUser = user;
 
-  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type').eq('id', currentUser.id).single();
+  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent').eq('id', currentUser.id).single();
   if(!profile){
     // The profile row is created by a database trigger right as the account is created —
     // on a brand new signup the client can ask before that trigger has finished. One retry.
     await new Promise(res=>setTimeout(res, 800));
-    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type').eq('id', currentUser.id).single());
+    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent').eq('id', currentUser.id).single());
   }
   currentKitchenId = profile ? profile.kitchen_id : null;
   currentIsAdmin = !!(profile && profile.is_admin);
   currentAdminPerms = (profile && profile.admin_perms) || {};
   currentAccountType = (profile && profile.account_type) || null;
   currentUserName = (profile && profile.full_name) || currentUser.email || 'Unknown';
+  currentSkipAccountTypeConfirm = !!(profile && profile.skip_account_type_confirm);
+  currentTeamJoinSeen = !!(profile && profile.team_join_seen);
+  currentAiCreditChf = Number((profile && profile.ai_credit_chf) || 0);
+  // AI testing-mode kill switch (bod, 16.7. — db/103). Fails OPEN on error like every other
+  // gate here — but "open" for THIS particular flag means the normal credit gate stays active,
+  // not that AI becomes unexpectedly unlimited, so a missing migration can't silently waive
+  // every Personal account's credit.
+  const { data: aiConfig } = await sb.from('app_config').select('ai_unlimited_testing_mode').eq('id', 1).maybeSingle();
+  currentAiTestingMode = !!(aiConfig && aiConfig.ai_unlimited_testing_mode);
+  currentPerformanceConsent = !!(profile && profile.performance_tracking_consent);
 
   document.getElementById('loginView').style.display = 'none';
 
@@ -6224,6 +6490,11 @@ async function startApp(){
     }
   }
 
+  if(!(await hasAcceptedPrivacy())){
+    document.getElementById('privacyGateView').style.display = 'block';
+    return;
+  }
+
   if(!(await hasAcceptedConfidentiality())){
     document.getElementById('confidentialityGateView').style.display = 'block';
     return;
@@ -6247,9 +6518,15 @@ async function startApp(){
   await enterApp();
 }
 
+function renderHomeAccountTypeBadge(){
+  const el = document.getElementById('homeAccountTypeBadge');
+  if(!el) return;
+  el.textContent = currentAccountType === 'company' ? '🏢 Company' : '👤 Personal';
+}
 async function enterApp(){
   document.getElementById('homeView').style.display = 'block';
   renderHomeGrid();
+  renderHomeAccountTypeBadge();
   if(shiftReminderEnabled()) startShiftReminderTicker();
 
   await loadAppData();
@@ -6278,6 +6555,49 @@ function getDeviceId(){
 /* Bump this if the confidentiality text ever changes materially — everyone gets asked to
    re-agree to the new version, and the old acceptance row stays as a permanent record of what
    they agreed to at the time. */
+/* Bump this if the privacy text (this gate or legal.html) ever changes materially — everyone,
+   including people already using the app, gets asked to re-agree on their next login. Same
+   fail-OPEN reasoning as every other gate: a query error or not-yet-run migration must never
+   lock people out. */
+const PRIVACY_VERSION = 'v1';
+async function hasAcceptedPrivacy(){
+  const { data, error } = await sb.from('privacy_acceptances').select('id').eq('user_id', currentUser.id).eq('version', PRIVACY_VERSION).maybeSingle();
+  if(error){ logClientError('hasAcceptedPrivacy: ' + error.message); return true; }
+  return !!data;
+}
+async function confirmPrivacyAccept(){
+  const btn = document.getElementById('privacyConfirmBtn');
+  const statusEl = document.getElementById('privacyStatus');
+  btn.disabled = true;
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('privacy_acceptances').insert({
+    user_id: currentUser.id, kitchen_id: currentKitchenId, version: PRIVACY_VERSION
+  });
+  if(error){
+    statusEl.textContent = 'Could not save: ' + error.message;
+    btn.disabled = false;
+    return;
+  }
+  document.getElementById('privacyGateView').style.display = 'none';
+
+  if(!(await hasAcceptedConfidentiality())){
+    document.getElementById('confidentialityGateView').style.display = 'block';
+    return;
+  }
+  if(!(await hasSetPassword())){
+    document.getElementById('passwordGateView').style.display = 'block';
+    return;
+  }
+  if(!(await hasCompletedMyProfile())){
+    document.getElementById('myProfileGateView').style.display = 'block';
+    return;
+  }
+  if(!(await hasChosenAccountType())){
+    document.getElementById('accountTypeGateView').style.display = 'block';
+    return;
+  }
+  await enterApp();
+}
 const CONFIDENTIALITY_VERSION = 'v2';
 async function hasAcceptedConfidentiality(){
   const { data, error } = await sb.from('confidentiality_acceptances').select('id').eq('user_id', currentUser.id).eq('version', CONFIDENTIALITY_VERSION).maybeSingle();
@@ -6412,25 +6732,328 @@ async function chooseAccountType(type){
   currentAccountType = type;
   document.getElementById('accountTypeGateView').style.display = 'none';
   await enterApp();
+  if(type === 'company' && !currentTeamJoinSeen){ showTeamJoinView(); }
 }
 /* Same choice, reachable anytime afterward from Settings instead of the one-time gate above. */
 function openAccountTypeSettings(){
   document.getElementById('accountTypeSettingsList').innerHTML = `
     <button class="chip${currentAccountType==='personal'?' active':''}" style="width:100%; text-align:left; margin-bottom:8px;" onclick="setAccountTypeFromSettings('personal')">👤 Personal — your own recipes + the ChefOS library${currentAccountType==='personal'?' ✓':''}</button>
     <button class="chip${currentAccountType==='company'?' active':''}" style="width:100%; text-align:left;" onclick="setAccountTypeFromSettings('company')">🏢 Company — your team's shared recipes + the ChefOS library${currentAccountType==='company'?' ✓':''}</button>
+    ${currentAccountType==='company' ? `<button class="sheet-cancel" style="width:100%; text-align:left; margin-top:10px;" onclick="closeAccountTypeSettings(); openManualTeamCode();">🔢 Enter/Change Team Code</button>` : ''}
+    ${currentAccountType==='company' ? `<button class="chip${localStorage.getItem('chefos_show_personal_in_company')==='1'?' active':''}" style="width:100%; text-align:left; margin-top:10px;" onclick="toggleShowPersonalInCompany()">📖 Also show my personal recipes here${localStorage.getItem('chefos_show_personal_in_company')==='1'?' ✓':''}</button>` : ''}
   `;
   document.getElementById('accountTypeSettingsOverlay').classList.add('open');
 }
-function closeAccountTypeSettings(){ document.getElementById('accountTypeSettingsOverlay').classList.remove('open'); }
-async function setAccountTypeFromSettings(type){
-  if(type === currentAccountType){ closeAccountTypeSettings(); return; }
-  const { error } = await sb.from('profiles').update({ account_type: type }).eq('id', currentUser.id);
-  if(error){ alert('Could not save: ' + error.message); return; }
-  currentAccountType = type;
-  closeAccountTypeSettings();
+function toggleShowPersonalInCompany(){
+  const on = localStorage.getItem('chefos_show_personal_in_company') === '1';
+  if(!on && !confirm('Show your personal recipes on this device while in Company mode? Nobody on your team will see them — this only affects what YOU see.')) return;
+  localStorage.setItem('chefos_show_personal_in_company', on ? '0' : '1');
+  openAccountTypeSettings();
   const listEl = document.getElementById('listView');
   if(listEl && listEl.style.display !== 'none'){ renderRecipeSummaryBar(); renderList(); }
 }
+function closeAccountTypeSettings(){ document.getElementById('accountTypeSettingsOverlay').classList.remove('open'); }
+/* Switch confirmation (bod 1, 16.7. — db/97). Richard explicitly asked for a confirm step with
+   a persistent "don't ask again" here, so this no longer switches directly — it opens a confirm
+   overlay first (skipped entirely once the person has opted out of it before). */
+let _pendingAccountTypeSwitch = null;
+function setAccountTypeFromSettings(type){
+  if(type === currentAccountType){ closeAccountTypeSettings(); return; }
+  _pendingAccountTypeSwitch = type;
+  if(currentSkipAccountTypeConfirm){ applyAccountTypeSwitch(type); return; }
+  document.getElementById('accountTypeSwitchConfirmText').textContent =
+    `Switch to ${type==='company' ? 'Company' : 'Personal'} account? ` +
+    (type==='company' ? 'You\'ll see your team\'s shared recipes instead of just your own.' : 'You\'ll only see your own recipes + the ChefOS library, not your team\'s.');
+  document.getElementById('accountTypeSwitchSkipFuture').checked = false;
+  document.getElementById('accountTypeSwitchConfirmStatus').textContent = '';
+  document.getElementById('accountTypeSwitchConfirmOverlay').classList.add('open');
+}
+function closeAccountTypeSwitchConfirm(){
+  document.getElementById('accountTypeSwitchConfirmOverlay').classList.remove('open');
+  _pendingAccountTypeSwitch = null;
+}
+async function confirmAccountTypeSwitch(){
+  const type = _pendingAccountTypeSwitch;
+  if(!type) return;
+  const skipFuture = document.getElementById('accountTypeSwitchSkipFuture').checked;
+  const statusEl = document.getElementById('accountTypeSwitchConfirmStatus');
+  if(skipFuture){
+    statusEl.textContent = 'Saving…';
+    const { error } = await sb.from('profiles').update({ skip_account_type_confirm: true }).eq('id', currentUser.id);
+    if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+    currentSkipAccountTypeConfirm = true;
+  }
+  document.getElementById('accountTypeSwitchConfirmOverlay').classList.remove('open');
+  await applyAccountTypeSwitch(type);
+}
+async function applyAccountTypeSwitch(type){
+  closeAccountTypeSettings();
+  const { error } = await sb.from('profiles').update({ account_type: type }).eq('id', currentUser.id);
+  if(error){ alert('Could not save: ' + error.message); return; }
+  currentAccountType = type;
+  _pendingAccountTypeSwitch = null;
+  renderHomeAccountTypeBadge();
+  const listEl = document.getElementById('listView');
+  if(listEl && listEl.style.display !== 'none'){ renderRecipeSummaryBar(); renderList(); }
+  // First time ever switching to Company (bod 1): offer to link a real team via QR/code.
+  // Richard: skipping is a valid outcome — an unlinked Company account just behaves like a
+  // (limited) Personal one until a code is entered later from here in Settings.
+  if(type === 'company' && !currentTeamJoinSeen){
+    showTeamJoinView();
+  }
+}
+/* ---------- Team Join (bod 1, 16.7. — db/97) ---------- */
+function showTeamJoinView(){
+  hideAllViews();
+  document.getElementById('teamJoinView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+async function markTeamJoinSeen(){
+  currentTeamJoinSeen = true;
+  const { error } = await sb.from('profiles').update({ team_join_seen: true }).eq('id', currentUser.id);
+  if(error) logClientError('markTeamJoinSeen: ' + error.message);
+}
+async function skipTeamJoin(){
+  await markTeamJoinSeen();
+  showHome();
+}
+function openManualTeamCode(){
+  document.getElementById('manualTeamCodeInput').value = '';
+  document.getElementById('manualTeamCodeStatus').textContent = '';
+  document.getElementById('manualTeamCodeOverlay').classList.add('open');
+}
+function closeManualTeamCode(){ document.getElementById('manualTeamCodeOverlay').classList.remove('open'); }
+async function lookupManualTeamCode(){
+  const code = document.getElementById('manualTeamCodeInput').value.trim();
+  const statusEl = document.getElementById('manualTeamCodeStatus');
+  if(!code){ statusEl.textContent = 'Enter a code.'; return; }
+  statusEl.textContent = 'Checking…';
+  const { data, error } = await sb.rpc('lookup_team_by_code', { p_code: code });
+  const row = Array.isArray(data) ? data[0] : data;
+  if(error || !row){ statusEl.textContent = "That code doesn't match any team — has db/97 been run? (" + (error ? error.message : 'no match') + ')'; return; }
+  statusEl.textContent = '';
+  closeManualTeamCode();
+  showConfirmTeamJoin(code, row.name);
+}
+let _pendingTeamJoinCode = null;
+function showConfirmTeamJoin(code, name){
+  _pendingTeamJoinCode = code;
+  document.getElementById('confirmTeamJoinText').textContent = `Join "${name}"? Your Company account will show their shared recipes.`;
+  document.getElementById('confirmTeamJoinStatus').textContent = '';
+  document.getElementById('confirmTeamJoinOverlay').classList.add('open');
+}
+function closeConfirmTeamJoin(){
+  document.getElementById('confirmTeamJoinOverlay').classList.remove('open');
+  _pendingTeamJoinCode = null;
+}
+async function confirmTeamJoin(){
+  const code = _pendingTeamJoinCode;
+  if(!code) return;
+  const statusEl = document.getElementById('confirmTeamJoinStatus');
+  statusEl.textContent = 'Joining…';
+  const { error } = await sb.rpc('join_team_by_code', { p_code: code });
+  if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
+  await markTeamJoinSeen();
+  document.getElementById('confirmTeamJoinOverlay').classList.remove('open');
+  _pendingTeamJoinCode = null;
+  await loadAppData();
+  showHome();
+}
+
+/* ---------- Create Team (bod 1, 16.7. — db/97) — admin_perms.create_teams only ---------- */
+function openCreateTeam(){
+  document.getElementById('createTeamName').value = '';
+  document.getElementById('createTeamFormBlock').style.display = 'block';
+  document.getElementById('createTeamResultBlock').style.display = 'none';
+  document.getElementById('createTeamStatus').textContent = '';
+  document.getElementById('createTeamOverlay').classList.add('open');
+}
+function closeCreateTeam(){ document.getElementById('createTeamOverlay').classList.remove('open'); }
+async function submitCreateTeam(){
+  const name = document.getElementById('createTeamName').value.trim();
+  const statusEl = document.getElementById('createTeamStatus');
+  if(!name){ statusEl.textContent = 'Name the team first.'; return; }
+  statusEl.textContent = 'Creating…';
+  const { data, error } = await sb.rpc('create_team', { p_name: name });
+  const row = Array.isArray(data) ? data[0] : data;
+  if(error || !row){ statusEl.textContent = 'Could not create: ' + (error ? error.message : 'unknown error'); return; }
+  statusEl.textContent = '';
+  document.getElementById('createTeamFormBlock').style.display = 'none';
+  document.getElementById('createTeamResultBlock').style.display = 'block';
+  document.getElementById('createTeamCode').textContent = row.join_code;
+  const url = location.origin + location.pathname + '?team=' + row.join_code;
+  const qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  document.getElementById('createTeamQrHolder').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
+}
+
+/* ---------- Send Feedback (bod 4, 16.7. — db/98) ---------- */
+function openSendFeedback(){
+  document.getElementById('feedbackMessage').value = '';
+  document.getElementById('feedbackStatus').textContent = '';
+  document.getElementById('sendFeedbackOverlay').classList.add('open');
+}
+function closeSendFeedback(){ document.getElementById('sendFeedbackOverlay').classList.remove('open'); }
+async function submitFeedback(){
+  const message = document.getElementById('feedbackMessage').value.trim();
+  const statusEl = document.getElementById('feedbackStatus');
+  if(!message){ statusEl.textContent = 'Write something first.'; return; }
+  statusEl.textContent = 'Sending…';
+  const { error } = await sb.from('feedback').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, message });
+  if(error){ statusEl.textContent = 'Could not send: ' + error.message; return; }
+  statusEl.textContent = 'Sent — thank you!';
+  document.getElementById('feedbackMessage').value = '';
+}
+async function openAdminFeedback(){
+  document.getElementById('adminFeedbackList').innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('adminFeedbackOverlay').classList.add('open');
+  const { data, error } = await sb.from('feedback').select('id, message, created_at, created_by, profiles:created_by(full_name, email)').order('created_at', { ascending:false });
+  if(error){ document.getElementById('adminFeedbackList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  if(!data || !data.length){ document.getElementById('adminFeedbackList').innerHTML = '<div class="empty-state">No feedback yet.</div>'; return; }
+  document.getElementById('adminFeedbackList').innerHTML = data.map(f=>`
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(f.message||'').replace(/</g,'&lt;')}</div>
+          <div class="meta">${(f.profiles && (f.profiles.full_name || f.profiles.email)) || 'Unknown'} · ${new Date(f.created_at).toLocaleString()}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function closeAdminFeedback(){ document.getElementById('adminFeedbackOverlay').classList.remove('open'); }
+
+/* ---------- AI Testing Mode (bod, 16.7. — db/103) ---------- */
+function openAiTestingMode(){
+  renderAiTestingMode();
+  document.getElementById('aiTestingModeStatus').textContent = '';
+  document.getElementById('aiTestingModeOverlay').classList.add('open');
+}
+function closeAiTestingMode(){ document.getElementById('aiTestingModeOverlay').classList.remove('open'); }
+function renderAiTestingMode(){
+  const on = currentAiTestingMode;
+  document.getElementById('aiTestingModeChip').className = 'chip' + (on ? ' active' : '');
+  document.getElementById('aiTestingModeLabel').textContent = on ? 'Testing mode is ON — AI unlimited for everyone' : 'Testing mode is OFF — normal credit rules apply';
+  document.getElementById('aiTestingModeState').textContent = on ? 'ON' : 'OFF';
+}
+async function toggleAiTestingMode(){
+  const next = !currentAiTestingMode;
+  const statusEl = document.getElementById('aiTestingModeStatus');
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('app_config').update({ ai_unlimited_testing_mode: next }).eq('id', 1);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  currentAiTestingMode = next;
+  statusEl.textContent = 'Saved.';
+  renderAiTestingMode();
+}
+
+/* ---------- Share My Hours consent (bod 2, 16.7. — db/99) ---------- */
+function openPerformanceConsent(){
+  renderPerformanceConsent();
+  document.getElementById('performanceConsentStatus').textContent = '';
+  document.getElementById('performanceConsentOverlay').classList.add('open');
+}
+function closePerformanceConsent(){ document.getElementById('performanceConsentOverlay').classList.remove('open'); }
+function renderPerformanceConsent(){
+  const on = currentPerformanceConsent;
+  document.getElementById('performanceConsentChip').className = 'chip' + (on ? ' active' : '');
+  document.getElementById('performanceConsentLabel').textContent = on ? 'Sharing is ON' : 'Sharing is OFF';
+  document.getElementById('performanceConsentState').textContent = on ? 'ON' : 'OFF';
+}
+async function togglePerformanceConsent(){
+  const next = !currentPerformanceConsent;
+  if(next && !confirm("Share your name next to your Working Time hours with your kitchen admin? You can turn this off again anytime.")) return;
+  const statusEl = document.getElementById('performanceConsentStatus');
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('profiles').update({ performance_tracking_consent: next, performance_tracking_consent_at: new Date().toISOString() }).eq('id', currentUser.id);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  currentPerformanceConsent = next;
+  statusEl.textContent = 'Saved.';
+  renderPerformanceConsent();
+}
+
+/* ---------- Kitchen Reports (bod 2, 16.7. — db/99) — scoped to the viewer's own kitchen via
+   normal kitchen_id RLS. Hours only ever show a name for someone who has actively consented
+   (performance_tracking_consent); everyone else's hours are folded into the anonymous total
+   only. Recipe/Check List counts are real live counts, not estimates. ---------- */
+let kitchenReportsPeriod = 'week';
+function setKitchenReportsPeriod(period){
+  kitchenReportsPeriod = period;
+  ['Week','Month','Quarter'].forEach(p=>{
+    document.getElementById('krPeriod'+p).classList.toggle('active', p.toLowerCase()===period);
+  });
+  loadKitchenReports();
+}
+function openKitchenReports(){
+  logEvent('view_opened', {view:'kitchen_reports'});
+  document.getElementById('kitchenReportsBody').innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('kitchenReportsOverlay').classList.add('open');
+  kitchenReportsPeriod = 'week';
+  ['Week','Month','Quarter'].forEach(p=>document.getElementById('krPeriod'+p).classList.toggle('active', p==='Week'));
+  loadKitchenReports();
+}
+function closeKitchenReports(){ document.getElementById('kitchenReportsOverlay').classList.remove('open'); }
+function kitchenReportsPeriodStart(){
+  const now = new Date();
+  if(kitchenReportsPeriod === 'week'){
+    const d = new Date(now); const day = (d.getDay() + 6) % 7; d.setDate(d.getDate() - day); d.setHours(0,0,0,0); return d;
+  }
+  if(kitchenReportsPeriod === 'month'){ return new Date(now.getFullYear(), now.getMonth(), 1); }
+  const q = Math.floor(now.getMonth() / 3);
+  return new Date(now.getFullYear(), q * 3, 1);
+}
+async function loadKitchenReports(){
+  const el = document.getElementById('kitchenReportsBody');
+  const periodStart = kitchenReportsPeriodStart();
+
+  const teamRecipeCount = _recipes.filter(r=>r.createdBy && !r.isPersonal).length;
+  const checkListItemCount = _allPrepDishes.length + _allTasks.length;
+  const { data: teamProfiles, error: teamErr } = await sb.from('profiles').select('id, full_name, email, performance_tracking_consent').eq('kitchen_id', currentKitchenId);
+  if(teamErr){ el.innerHTML = `<p class="lede">Could not load team: ${teamErr.message}</p>`; return; }
+  const memberCount = (teamProfiles || []).length;
+
+  const { data: entries, error: entriesErr } = await sb.from('time_entries')
+    .select('user_id, check_in, check_out, break_minutes')
+    .eq('kitchen_id', currentKitchenId)
+    .gte('check_in', periodStart.toISOString());
+  if(entriesErr){
+    el.innerHTML = `<p class="lede">Could not load hours: ${entriesErr.message} — has db/99 been run?</p>`;
+    return;
+  }
+  const hoursByUser = {};
+  let totalHours = 0;
+  (entries || []).forEach(e=>{
+    if(!e.check_out) return;
+    const hrs = Math.max(0, (new Date(e.check_out) - new Date(e.check_in)) / 3600000 - (e.break_minutes||0) / 60);
+    hoursByUser[e.user_id] = (hoursByUser[e.user_id] || 0) + hrs;
+    totalHours += hrs;
+  });
+
+  const consentedRows = (teamProfiles || [])
+    .filter(p=>p.performance_tracking_consent && hoursByUser[p.id] != null)
+    .sort((a,b)=>hoursByUser[b.id]-hoursByUser[a.id]);
+  const namedHours = consentedRows.reduce((s,p)=>s + hoursByUser[p.id], 0);
+  const anonymousHours = totalHours - namedHours;
+
+  el.innerHTML = `
+    <div class="chips" style="flex-wrap:wrap;">
+      <span class="stat-pill">📖 ${teamRecipeCount} team recipes</span>
+      <span class="stat-pill">✅ ${checkListItemCount} Check List items</span>
+      <span class="stat-pill">👥 ${memberCount} team members</span>
+      <span class="stat-pill">⏱️ ${totalHours.toFixed(1)}h logged</span>
+    </div>
+    <div class="rpb-section-label" style="margin-top:16px;">By person (consented only)</div>
+    ${consentedRows.length ? consentedRows.map(p=>`
+      <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+        <div class="name task-text">${(p.full_name||p.email||'Unknown').replace(/</g,'&lt;')}</div>
+        <div class="meta">${hoursByUser[p.id].toFixed(1)}h this ${kitchenReportsPeriod}</div>
+      </div></div></div>
+    `).join('') : '<div class="empty-state">No one has opted in to sharing their hours yet.</div>'}
+    ${anonymousHours > 0.05 ? `<div class="sheet-text" style="margin-top:10px; opacity:.7;">+ ${anonymousHours.toFixed(1)}h logged by team members who haven't opted in — never shown by name.</div>` : ''}
+  `;
+}
+
 function openMyProfileSettings(){
   sb.from('profiles').select('full_name, age, gender, role, phone, bio, password_set').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
     document.getElementById('mps_full_name').value = (data && data.full_name) || '';
@@ -6969,6 +7592,18 @@ function handleScannedQrText(text){
     location.href = text; // hands off to the normal invite flow (renderTeamGate reads the same params)
     return;
   }
+  // Team join code (bod 1, 16.7. — db/97), from Create Team's QR. Looked up (not joined yet) so
+  // the person sees a "Join <name>'s team?" confirm before anything actually changes.
+  if(params.get('team')){
+    const code = params.get('team');
+    document.getElementById('qrScanStatus').textContent = 'Checking code…';
+    sb.rpc('lookup_team_by_code', { p_code: code }).then(({ data, error })=>{
+      const row = Array.isArray(data) ? data[0] : data;
+      if(error || !row){ document.getElementById('qrScanStatus').textContent = "That code doesn't match any team."; return; }
+      showConfirmTeamJoin(code, row.name);
+    });
+    return;
+  }
   document.getElementById('qrScanStatus').textContent = "That QR code isn't a ChefOS link.";
 }
 
@@ -7294,7 +7929,16 @@ let _scanLanguage = 'en';
    no longer lives client-side. `_anthropicKey` itself is kept only as a client-side "has this
    user set one up at all" check, so features can still show a friendly prompt instead of making
    a doomed call. */
+/* AI credit gate for Personal accounts (bod 8, 16.7. — db/102) — one choke point, since every
+   AI feature (Chef Assistant chat, recipe ideas, generate recipe, vision scans, translation)
+   already funnels through this single function. Company accounts are never affected/metered.
+   This is just a fast client-side pre-check for a friendly message — the real enforcement (and
+   the actual per-call cost deduction) happens server-side in claude-proxy, since this check is
+   trivially bypassable from the client. */
 async function callClaudeAPI(body){
+  if(!currentAiTestingMode && currentAccountType === 'personal' && !(currentAiCreditChf > 0)){
+    throw new Error('Your AI credit is used up. Ask your admin to top it up (Admin Directory).');
+  }
   const { data, error } = await sb.functions.invoke('claude-proxy', { body });
   if(error){
     let detail = error.message || 'Anthropic API error';
@@ -7336,7 +7980,8 @@ function dbRowToRecipe(row){
     crossReferences: row.cross_references || '',
     tags: row.tags || [],
     createdAt: row.created_at || null,
-    createdBy: row.created_by || null
+    createdBy: row.created_by || null,
+    isPersonal: !!row.is_personal
   };
 }
 
@@ -8044,7 +8689,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsView','ingredientFormView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
+const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -8053,7 +8698,7 @@ const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredients
 const HOME_TILE_DEFS = [
   { key:'workingTime', icon:'⏱️', staticLabel:'Working Time', onclick:'showWorkingTime()' },
   { key:'recipes', icon:'📖', labelKey:'recipes', staticLabel:'Recipes', onclick:'showList()' },
-  { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredients()' },
+  { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredientsHome()' },
   { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showCheckListProjects()' },
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
   /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
@@ -8172,6 +8817,8 @@ const SETTINGS_TILE_DEFS = [
   { key:'sectionVisibility', icon:'👁️', staticLabel:'Recipe Sections', onclick:'openRecipeCategoryVisibility()' },
   { key:'installGuide', icon:'📲', staticLabel:'Add to Phone', onclick:'openInstallGuide()' },
   { key:'tutorial', icon:'❓', staticLabel:'Tutorial', onclick:'openTutorial()' },
+  { key:'sendFeedback', icon:'💬', staticLabel:'Send Feedback', onclick:'openSendFeedback()' },
+  { key:'performanceConsent', icon:'📊', staticLabel:'Share My Hours with Admin', onclick:'openPerformanceConsent()', dynamicLabel:()=> 'Share My Hours with Admin: ' + (currentPerformanceConsent ? 'ON' : 'OFF') },
   { key:'legal', icon:'🔒', staticLabel:'Privacy & Terms', onclick:"window.open('legal.html','_blank')" },
   { key:'signOut', icon:'🚪', staticLabel:'Sign Out', onclick:'confirmSignOut()' },
 ];
@@ -8310,12 +8957,27 @@ const ADMIN_PERM_DEFS = [
   { key:'language_audit', label:'Language Audit', desc:'Run Check List name rewrites for their kitchen' },
   { key:'view_email_contacts', label:'Email Contacts', desc:'View the Email Contacts directory' },
   { key:'approve_access', label:'Approve Access', desc:'Approve/deny new ChefOS access requests — platform-wide, grant with care' },
+  { key:'create_teams', label:'Create Teams', desc:'Create new restaurant/kitchen teams and generate their join codes — grant with care' },
+  { key:'view_kitchen_reports', label:'View Kitchen Reports', desc:"See their kitchen's recipe/Check List activity + hours for employees who've consented" },
 ];
 const ADMIN_TILE_DEFS = [
   { key:'addAdmin', icon:'➕', staticLabel:'Add Admin', onclick:'openAddAdmin()', adminOnly:()=>currentIsAdmin },
   { key:'adminDirectory', icon:'📋', staticLabel:'Admin Directory', onclick:'showAdminDirectory()', adminOnly:()=>currentIsAdmin },
   { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
   { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
+  /* Create Team (bod 1, 16.7. — db/97) — a brand-new admin tier: someone who can mint new
+     restaurant/kitchen teams and their join codes (scan QR / enter code), separate from every
+     other admin_perms key. Nobody has it yet — Richard grants it himself via Admin Directory. */
+  { key:'createTeam', icon:'🏗️', staticLabel:'Create Team', onclick:'openCreateTeam()', adminOnly:()=>hasAdminPerm('create_teams') },
+  { key:'feedback', icon:'💬', staticLabel:'Feedback', onclick:'openAdminFeedback()', adminOnly:()=>currentIsAdmin },
+  /* AI Testing Mode (bod, 16.7. — db/103) — platform-wide kill switch, Head Admin only. While
+     ON, every device gets unlimited AI regardless of account type/credit (same as everyone
+     already being topped up). While OFF, normal credit gating applies exactly as before. */
+  { key:'aiTestingMode', icon:'🧪', staticLabel:'AI Testing Mode', onclick:'openAiTestingMode()', adminOnly:()=>currentIsAdmin },
+  /* Kitchen Reports (bod 2, 16.7. — db/99) — same 📊 icon as Head Admin's Internal Docs, but
+     scoped to THIS kitchen only and available to any Kitchen Admin with the perm, not just
+     Richard. Named employee data only ever shows for people who opted in (Settings). */
+  { key:'kitchenReports', icon:'📊', staticLabel:'Kitchen Reports', onclick:'openKitchenReports()', adminOnly:()=>hasAdminPerm('view_kitchen_reports') },
   /* Internal Docs (bod, 16.7.) — Richard specifically, by exact email, not just is_admin: since
      today's own Head Admin feature means is_admin is no longer guaranteed to be only him going
      forward. Links out to visual data/ (backlog, status, monetization...), deployed to an
@@ -8444,7 +9106,7 @@ async function showAdminDirectory(){
   document.getElementById('adminDirectorySearch').value = '';
   document.getElementById('adminDirectoryList').innerHTML = '<p class="lede">Loading…</p>';
   window.scrollTo(0,0);
-  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms').order('email');
+  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms, account_type, ai_credit_chf, ai_credit_ever_topped_up').order('email');
   if(error){ document.getElementById('adminDirectoryList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   _adminDirectoryRows = data || [];
   renderAdminDirectory();
@@ -8458,12 +9120,13 @@ function renderAdminDirectory(){
   el.innerHTML = rows.map(p=>{
     const activePerms = ADMIN_PERM_DEFS.filter(d=>!!(p.admin_perms||{})[d.key]).map(d=>d.label);
     const tag = p.is_admin ? 'Head Admin' : (activePerms.length ? `Kitchen Admin (${activePerms.join(', ')})` : '—');
+    const subTag = p.account_type === 'personal' ? ` · 💳 CHF ${Number(p.ai_credit_chf||0).toFixed(2)} AI credit` : '';
     return `
     <div class="task-row">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
           <div class="name task-text">${(p.full_name||p.email||'Unknown').replace(/</g,'&lt;')}</div>
-          <div class="meta">${(p.email||'').replace(/</g,'&lt;')} · ${tag}</div>
+          <div class="meta">${(p.email||'').replace(/</g,'&lt;')} · ${tag}${subTag}</div>
         </div>
         <button class="task-status-btn" onclick="openEditAdminPerms('${p.id}')">Edit</button>
       </div>
@@ -8500,12 +9163,49 @@ function renderEditAdminPermsList(){
   `;}).join('');
   const headAdminOn = !!p.is_admin;
   el.innerHTML = permsHtml + `
+    ${p.account_type === 'personal' ? `
+    <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">AI Credit (bod 8, 16.7. — db/102, manual until billing exists)</div>
+    <div class="chip" style="width:100%; text-align:left; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <span><strong>Current balance</strong><br><span style="font-weight:400; font-size:12px;">Deducted automatically as they use AI features — server tracks real Anthropic cost per call.</span></span>
+      <span>CHF ${Number(p.ai_credit_chf||0).toFixed(2)}</span>
+    </div>
+    <div class="sheet-row" style="gap:8px;">
+      <input class="form-field" id="addCreditAmount" type="number" step="0.01" min="0" placeholder="Amount received (CHF)" style="flex:1;">
+      <button class="save-btn" onclick="addCreditToTarget()">Add Credit</button>
+    </div>
+    <p class="sheet-text" style="margin:6px 0 0 0; opacity:.7;">${p.ai_credit_ever_topped_up
+      ? 'Top-up margin: 10% — e.g. 10 CHF received → 9.00 CHF credited.'
+      : 'First top-up margin: 30% — e.g. 10 CHF received → 7.00 CHF credited. Every top-up after this one only takes 10%.'}</p>
+    ` : ''}
     <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">Super-admin</div>
     <div class="chip${headAdminOn?' active':''}" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleHeadAdmin()">
       <span><strong>Head Admin</strong><br><span style="font-weight:400; font-size:12px;">Full super-admin — everything Richard has. Use sparingly.</span></span>
       <span>${headAdminOn?'ON':'OFF'}</span>
     </div>
   `;
+}
+async function addCreditToTarget(){
+  const p = _editAdminPermsTarget;
+  if(!p) return;
+  const statusEl = document.getElementById('editAdminPermsStatus');
+  const receivedRaw = document.getElementById('addCreditAmount').value;
+  const received = parseFloat(receivedRaw);
+  if(!received || received <= 0){ statusEl.textContent = 'Enter the amount received first.'; return; }
+  // First top-up: 30% margin (70% credited). Every one after that: 10% margin (90% credited) —
+  // Richard, 16.7.
+  const alreadyToppedUp = !!p.ai_credit_ever_topped_up;
+  const marginRate = alreadyToppedUp ? 0.9 : 0.7;
+  const credit = received * marginRate;
+  const nextBalance = Number(p.ai_credit_chf || 0) + credit;
+  statusEl.textContent = 'Saving…';
+  const { error } = await sb.from('profiles').update({ ai_credit_chf: nextBalance, ai_credit_ever_topped_up: true }).eq('id', p.id);
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  p.ai_credit_chf = nextBalance;
+  p.ai_credit_ever_topped_up = true;
+  statusEl.textContent = `Saved — added CHF ${credit.toFixed(2)} credit.`;
+  document.getElementById('addCreditAmount').value = '';
+  renderEditAdminPermsList();
+  renderAdminDirectory();
 }
 async function toggleAdminPerm(key){
   const p = _editAdminPermsTarget;
@@ -8545,7 +9245,7 @@ async function toggleHeadAdmin(){
 async function confirmSignOut(){
   if(!confirm('Sign out of ChefOS on this device?')) return;
   await sb.auth.signOut();
-  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentUserName = '';
+  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
   if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   hideAllViews();
   document.getElementById('loginStep1').style.display = 'block';
@@ -8651,7 +9351,12 @@ function renderRecipeSummaryBar(){
   // Personal accounts only ever see Moje + ChefOS, Company accounts only ever see ChefOS +
   // Firemné (bod, 16.7.) — currentAccountType null (gate never ran / query failed) falls
   // through both checks below and shows all three, same fail-OPEN pattern as every gate.
-  if((recipeSourceFilter === 'mine' && currentAccountType === 'company') || (recipeSourceFilter === 'company' && currentAccountType === 'personal')){
+  // Show My Recipes in Company mode (bod 1, 16.7.) — opt-in, Settings-only toggle, private to
+  // this device on purpose (localStorage, same convention as chefos_settings_tile_order): it
+  // only ever changes what THIS person sees of their OWN "Moje" recipes while operating as
+  // Company, never anything about what teammates see.
+  const showPersonalInCompany = currentAccountType === 'company' && localStorage.getItem('chefos_show_personal_in_company') === '1';
+  if((recipeSourceFilter === 'mine' && currentAccountType === 'company' && !showPersonalInCompany) || (recipeSourceFilter === 'company' && currentAccountType === 'personal')){
     recipeSourceFilter = 'chefos';
   }
   const all = allRecipes();
@@ -8659,7 +9364,7 @@ function renderRecipeSummaryBar(){
   const mineCount = all.filter(r=>r.createdBy === currentUser.id).length;                 // Moje
   const companyCount = all.filter(r=>r.createdBy && r.createdBy !== currentUser.id).length; // Firemné (teammates)
   const shelfButtons = [];
-  if(currentAccountType !== 'company'){
+  if(currentAccountType !== 'company' || showPersonalInCompany){
     shelfButtons.push(`<button class="task-status-btn${recipeSourceFilter==='mine' ? ' active' : ''}" onclick="setRecipeSourceFilter('mine')">📖 Moje (${mineCount})</button>`);
   }
   shelfButtons.push(`<button class="task-status-btn${recipeSourceFilter==='chefos' ? ' active' : ''}" onclick="setRecipeSourceFilter('chefos')">✨ ChefOS (${aiCount})</button>`);
@@ -9551,6 +10256,35 @@ function applyIngredientScale(idx){
   resultEl.textContent = `Scaled using ${label} → ${targetEl.value} (×${mult.toFixed(2)})`;
 }
 
+/* Add to Check List (bod 7, 16.7.) — creates a prep_dish (+ its ingredient rows as prep_items)
+   in whichever project is currently open, named/stationed straight off the recipe. Reuses the
+   exact same insert shape as the manual "Add Dish" form (savePrepDishForm) above. */
+async function addRecipeToCheckList(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  if(!currentProjectId){
+    alert('Open Check List and pick a project first — then come back here to add this recipe.');
+    return;
+  }
+  const station = r.station || 'Extra';
+  const tableSection = (r.sections||[]).find(s=>s.type==='table');
+  const itemNames = tableSection ? tableSection.rows.map(row=>row[0]).filter(Boolean) : [];
+  if(!confirm(`Add "${r.title}" to Check List (${station})?`)) return;
+  const existingForStation = _prepDishes.filter(d=>d.station === station);
+  const nextSort = existingForStation.length ? Math.max(...existingForStation.map(d=>d.sort_order)) + 1 : 0;
+  const { data: dishRow, error: dishError } = await sb.from('prep_dishes').insert({
+    kitchen_id: currentKitchenId, project_id: currentProjectId, station, name: r.title, price: null, sort_order: nextSort
+  }).select().single();
+  if(dishError){ alert('Could not add: ' + dishError.message); return; }
+  if(itemNames.length){
+    const itemRows = itemNames.map((itemName, i)=>({ kitchen_id: currentKitchenId, dish_id: dishRow.id, name: itemName, sort_order: i }));
+    const { error: itemsError } = await sb.from('prep_items').insert(itemRows);
+    if(itemsError){ alert('Added the dish, but could not add its items: ' + itemsError.message); }
+  }
+  if(!PREP_SHEET_STATIONS.includes(station)) PREP_SHEET_STATIONS.push(station);
+  await loadAppData();
+  alert(`Added "${r.title}" to Check List (${station}).`);
+}
 function showDetail(idx){
   window.currentDetailIdx = idx;
   const r = allRecipes()[idx];
@@ -10029,7 +10763,7 @@ async function saveFormBody(){
   } else {
     let inserted;
     ({ data: inserted, error } = await sb.from('recipes')
-      .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true })
+      .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true, is_personal: currentAccountType === 'personal' })
       .select().single());
     if(inserted) savedId = inserted.id;
   }
@@ -10070,10 +10804,23 @@ function toggleIngredientFilterValue(list, value){
   if(i > -1) list.splice(i, 1); else list.push(value);
 }
 
+let ingredientSourceFilter = 'chefos'; // 'chefos' | 'mine' — bod 1, 16.7., db/97
+function showIngredientsHome(){
+  logEvent('view_opened', {view:'ingredients_home'});
+  hideAllViews();
+  document.getElementById('ingredientsHomeView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+function openIngredientShelf(source){
+  ingredientSourceFilter = source;
+  showIngredients();
+}
 function showIngredients(){
-  logEvent('view_opened', {view:'ingredients'});
+  logEvent('view_opened', {view:'ingredients', source:ingredientSourceFilter});
   hideAllViews();
   document.getElementById('ingredientsView').style.display = 'block';
+  const titleEl = document.getElementById('ingredientsShelfTitle');
+  if(titleEl) titleEl.textContent = ingredientSourceFilter === 'mine' ? '👤 My Ingredients' : '✨ ChefOS Ingredients';
   renderIngredientChips();
   renderIngredientSeasonChips();
   renderIngredientStorageChips();
@@ -10274,7 +11021,10 @@ function renderIngredientList(){
     ingredientActiveMinPrice == null && ingredientActiveMaxPrice == null;
 
   const passingIdx = [];
-  _ingredients.forEach((ing, idx)=>{ if(passesIngredientFilters(ing, q)) passingIdx.push(idx); });
+  _ingredients.forEach((ing, idx)=>{
+    const onShelf = ingredientSourceFilter === 'mine' ? !!ing.is_personal : !ing.is_personal;
+    if(onShelf && passesIngredientFilters(ing, q)) passingIdx.push(idx);
+  });
 
   if(passingIdx.length === 0){
     container.innerHTML = `<div class="empty-state">${_ingredients.length===0 ? 'No ingredients yet — tap + to add your first one.' : 'No ingredients match.'}</div>`;
@@ -10444,7 +11194,7 @@ async function saveIngredientForm(){
   if(ingredientEditingId){
     ({ error } = await sb.from('ingredients').update(payload).eq('id', ingredientEditingId));
   } else {
-    ({ error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id }));
+    ({ error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: ingredientSourceFilter === 'mine' }));
   }
   if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
@@ -12401,7 +13151,44 @@ async function printAllLabels(){
 }
 window.addEventListener('afterprint', ()=>{
   document.body.classList.remove('printing-labels');
+  document.body.classList.remove('printing-recipe-branded');
 });
+
+/* Branded recipe print (bod 6, 16.7.) — builds the letterhead sheet from the currently-open
+   recipe and prints just that (visibility-swap trick, same as Print Labels/Order List). Kitchen
+   name is fetched once and cached — "read any kitchen name" (db/34) already allows this. */
+let _rpbKitchenName = null;
+async function printRecipeBranded(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  if(_rpbKitchenName === null){
+    const { data } = await sb.from('kitchens').select('name').eq('id', currentKitchenId).maybeSingle();
+    _rpbKitchenName = (data && data.name) || 'ChefOS';
+  }
+  const tableSection = (r.sections||[]).find(s=>s.type==='table');
+  const stepsSection = (r.sections||[]).find(s=>s.type==='steps');
+  const ingredientsHtml = tableSection ? tableSection.rows.map(row=>`
+    <tr><td>${(row[0]||'').replace(/</g,'&lt;')}</td><td class="qty">${(row[1]||'').replace(/</g,'&lt;')}</td></tr>
+  `).join('') : '';
+  const stepsHtml = stepsSection ? `<ol class="rpb-steps">${stepsSection.items.map(s=>`<li>${s.replace(/</g,'&lt;')}</li>`).join('')}</ol>` : '';
+  const metaParts = [];
+  if(r.yield) metaParts.push(r.yield);
+  if(r.time && (r.time.active || r.time.passive)) metaParts.push([r.time.active, r.time.passive].filter(Boolean).join(' + '));
+  if(r.station) metaParts.push(r.station);
+  document.getElementById('recipePrintBrandedSheet').innerHTML = `
+    <div class="rpb-letterhead">
+      <span class="rpb-kitchen">${_rpbKitchenName.replace(/</g,'&lt;')}</span>
+      <span class="rpb-tag">ChefOS Recipe Card</span>
+    </div>
+    <h1 class="rpb-title">${(r.title||'').replace(/</g,'&lt;')}</h1>
+    <div class="rpb-meta">${metaParts.map(p=>`<span>${p.replace(/</g,'&lt;')}</span>`).join('')}</div>
+    ${ingredientsHtml ? `<div class="rpb-section-label">Ingredients</div><table class="rpb-ing-table">${ingredientsHtml}</table>` : ''}
+    ${stepsHtml ? `<div class="rpb-section-label">Method</div>${stepsHtml}` : ''}
+    <div class="rpb-footer"><span>${_rpbKitchenName.replace(/</g,'&lt;')}</span><span>Printed ${new Date().toLocaleDateString()}</span></div>
+  `;
+  document.body.classList.add('printing-recipe-branded');
+  window.print();
+}
 
 const TASK_STATUSES = ['todo','check','finish'];
 function taskStatusLabel(status){

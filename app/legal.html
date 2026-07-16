@@ -59,10 +59,10 @@
   <div class="mark">👨‍🍳</div>
   <div class="kicker">ChefOS · Closed Trial</div>
   <h1>Privacy &amp; Terms</h1>
-  <div class="updated">Last updated 13 July 2026</div>
+  <div class="updated">Last updated 16 July 2026</div>
 
   <div class="callout">
-    <p><strong>Where this stands right now:</strong> ChefOS is in an early, invite-only trial. This page describes how we actually handle things today, in plain language. It has <strong>not</strong> been reviewed by a lawyer yet — treat it as an honest description of current practice, not a polished legal contract. If anything here matters to you (especially the Working Time / attendance data section below), ask directly using the feedback button in the app.</p>
+    <p><strong>Where this stands right now:</strong> ChefOS is in an early, invite-only trial. This page describes how we actually handle things today, in plain language. It has <strong>not</strong> been reviewed by a lawyer yet — treat it as an honest description of current practice, not a polished legal contract. A lawyer review of this exact page is planned before any public launch (see <code>/security/</code> in the project for the internal draft package). If anything here matters to you, ask directly using the feedback button in the app, or reply to any ChefOS email.</p>
   </div>
 
   <h2>What ChefOS is, right now</h2>
@@ -84,9 +84,26 @@
   <p>We log logins and which parts of the app get opened (not what you do inside them) so we can tell whether the trial is actually being used, and we log JavaScript errors (technical details only — page, browser, error message) so bugs can be fixed. Both are visible only to the ChefOS team, never sold or shared.</p>
   <h3>AI features</h3>
   <p>Features like Chef's Assistant or photo-scanning a recipe send the relevant text or image to Anthropic's Claude API to generate a response. That request goes through ChefOS's own server — your Anthropic API key (if you've set one) is never exposed to other users or stored in the app you can see in your browser.</p>
+  <h3>Personal vs. Company data</h3>
+  <p>Anything you save while your account is set to "Personal" (Settings → Account Type) is private to you at the database level — nobody else on your team can read it, not even your kitchen admin, unless you separately choose to reveal it (e.g. the opt-in "show my personal recipes in Company mode" toggle, or connecting with another chef and turning on recipe sharing). Ingredients work the same way ("My Ingredients" vs. the shared kitchen catalog).</p>
+  <h3>Feedback you send us</h3>
+  <p>Anything you submit through Settings → Send Feedback, together with your name/email, so we can act on it or follow up. Read only by ChefOS's Head Admin.</p>
+  <h3>Kitchen Reports / hours sharing</h3>
+  <p>By default, your logged Working Time hours are only ever shown to your kitchen admin as an anonymous team total — never with your name attached. If you separately opt in (Settings → Share My Hours with Admin, off by default, revocable anytime), your admin can then see your name next to your hours in Kitchen Reports. Recipe and Check List counts shown in that report are kitchen-wide totals, not tied to individuals.</p>
 
   <h2>Who can see your kitchen's data</h2>
-  <p>Only people who've joined your kitchen's team (via an invite link or QR code you control). The ChefOS team (currently a single founder) can access data to fix bugs, run migrations, or provide support — never to read your recipes or attendance data for any other reason.</p>
+  <p>Only people who've joined your kitchen's team (via an invite link, QR code, or team join code you control). The ChefOS team (currently a single founder) can access data to fix bugs, run migrations, or provide support — never to read your recipes or attendance data for any other reason.</p>
+
+  <h2>Your rights (GDPR &amp; Swiss nDSG)</h2>
+  <p>Whether you're in the EU (GDPR) or Switzerland (the revised Federal Act on Data Protection, in force since September 2023), you have the right to:</p>
+  <ul>
+    <li><strong>Access</strong> — ask what personal data we hold about you.</li>
+    <li><strong>Rectification</strong> — ask us to correct anything inaccurate.</li>
+    <li><strong>Erasure</strong> — ask us to delete your account and personal data.</li>
+    <li><strong>Portability</strong> — ask for an export of your own data in a usable format.</li>
+    <li><strong>Object / withdraw consent</strong> — for anything based on your consent (like Working Time sharing), you can withdraw it at any time going forward.</li>
+  </ul>
+  <p>ChefOS relies on: your consent for optional features (AI, hours-sharing); performance of the contract between you/your kitchen and ChefOS for core features; and legitimate interest for basic security/error logging. We act as the data controller for account data, and Supabase/Anthropic act as our data processors — bound to only use your data to provide their service to us, never for their own purposes.</p>
 
   <h2>Where data lives</h2>
   <p>ChefOS runs on Supabase (a hosted Postgres database provider) with servers in the EU. Nothing is stored on individual devices beyond what your browser needs to display the page.</p>
