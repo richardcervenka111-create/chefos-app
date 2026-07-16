@@ -1190,17 +1190,23 @@
   /* Floating Back + Home nav (bod 3, 16.7.) — always top-right on every screen except Home.
      Sits above sticky topbars but below sheet overlays, so an open sheet still covers it. */
   .floating-nav{
-    position:fixed; top:10px; right:10px; z-index:900;
-    display:none; align-items:center; gap:4px;
-    background:var(--paper-raised, #0f2340); border:1px solid var(--rule, #223d57);
-    border-radius:22px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,0.35);
+    position:fixed; top:8px; right:8px; z-index:900;
+    display:none; align-items:center; gap:8px;
   }
+  /* Richard (16.7.): bigger, in the ChefOS accent — same treatment as the Scan/save buttons. */
   .floating-nav button{
-    background:none; border:none; color:var(--ink-dim); cursor:pointer;
+    background:var(--copper); border:none; color:#0A1A2F; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
-    width:32px; height:32px; border-radius:50%; font-size:16px;
+    width:42px; height:42px; border-radius:50%;
+    box-shadow:0 4px 14px rgba(0,0,0,0.4);
   }
-  .floating-nav button:active{ background:var(--paper-hi, #16304f); transform:scale(0.92); }
+  .floating-nav button:active{ transform:scale(0.92); }
+  /* Reserve room so no view's own top-right icons ever sit UNDER the pill (Richard: the
+     comment icon on recipes was covered). Scoped by body class — updateFloatingNav() sets it
+     only while the pill is actually visible, so Home's own icon row keeps its full width. */
+  body.has-floating-nav .detail-bar{ padding-right:104px !important; }
+  body.has-floating-nav .topbar > div:first-child{ padding-right:100px; }
+  body.has-floating-nav .sticky-header .topbar > div:first-child{ padding-right:100px; }
 
   /* Global feedback/bug/question button — same button on every screen after login, not
      duplicated into 22 different topbars. Left side so it never collides with the
@@ -1361,7 +1367,9 @@
 
   @media print{
     body{ background:#fff; color:#000; }
-    .no-print, .topbar, .chips, #listView, .icon-btn, .back-btn, .scale-note{ display:none !important; }
+    /* floating nav + feedback bubble + any open sheets never belong on paper (bod 4, 16.7.) */
+    .no-print, .topbar, .chips, #listView, .icon-btn, .back-btn, .scale-note,
+    .floating-nav, .global-feedback-btn, .sheet-overlay, .fab{ display:none !important; }
     #detailView{ display:block !important; }
     .detail-bar{ display:none !important; }
     .hero{ display:none; }
@@ -1401,18 +1409,36 @@
       display:block !important; position:absolute; top:0; left:0; width:100%; background:#fff; padding:24px; color:#1a1a1a;
     }
   }
-  .recipe-print-branded-sheet{ display:none; font-family:Georgia, 'Times New Roman', serif; }
-  .rpb-letterhead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:2px solid #0A1A2F; padding-bottom:10px; margin-bottom:18px; }
-  .rpb-kitchen{ font-family:-apple-system,Arial,sans-serif; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#0A1A2F; font-weight:700; }
-  .rpb-tag{ font-family:-apple-system,Arial,sans-serif; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#888; }
-  .rpb-title{ font-size:26px; margin:0 0 4px 0; color:#0A1A2F; }
-  .rpb-meta{ font-family:-apple-system,Arial,sans-serif; font-size:12px; color:#555; margin-bottom:16px; display:flex; gap:14px; flex-wrap:wrap; }
-  .rpb-section-label{ font-family:-apple-system,Arial,sans-serif; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#0A1A2F; border-bottom:1px solid #ccc; padding-bottom:4px; margin:16px 0 8px 0; }
-  .rpb-ing-table{ width:100%; border-collapse:collapse; font-family:-apple-system,Arial,sans-serif; font-size:13px; }
-  .rpb-ing-table td{ padding:4px 0; border-bottom:1px solid #eee; }
-  .rpb-ing-table td.qty{ text-align:right; color:#555; white-space:nowrap; padding-left:10px; }
-  .rpb-steps{ font-family:-apple-system,Arial,sans-serif; font-size:13px; line-height:1.6; padding-left:20px; margin:0; }
-  .rpb-footer{ margin-top:26px; padding-top:10px; border-top:1px solid #ccc; font-family:-apple-system,Arial,sans-serif; font-size:10px; color:#999; display:flex; justify-content:space-between; }
+  /* Branded print v2 (bod 4, 16.7. večer): Richard found v1 bland and the footer too faint.
+     Print-safe by construction — everything reads at full contrast even when the browser
+     strips background colors (the default): strong navy ink, doubled rules, structure over
+     color. Two-column body (ingredients rail + method), letterpress-style letterhead. */
+  .recipe-print-branded-sheet{ display:none; font-family:Georgia, 'Times New Roman', serif; color:#0A1A2F; }
+  .rpb-letterhead{ display:flex; align-items:flex-end; justify-content:space-between; border-bottom:3px double #0A1A2F; padding-bottom:12px; margin-bottom:6px; }
+  .rpb-kitchen{ font-size:22px; font-weight:700; color:#0A1A2F; letter-spacing:.01em; }
+  .rpb-tag{ font-family:-apple-system,Arial,sans-serif; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:#0A1A2F; margin-top:3px; }
+  .rpb-mark{ font-family:-apple-system,Arial,sans-serif; font-size:13px; font-weight:800; letter-spacing:.04em; color:#0A1A2F; border:2px solid #0A1A2F; border-radius:8px; padding:6px 10px; }
+  .rpb-mark span{ font-weight:400; font-style:italic; font-family:Georgia,serif; }
+  .rpb-title{ font-size:32px; line-height:1.15; margin:18px 0 2px 0; color:#0A1A2F; }
+  .rpb-subtitle{ font-style:italic; font-size:14px; color:#3a4a5f; margin:2px 0 0 0; }
+  .rpb-meta{ display:flex; gap:0; margin:16px 0 20px 0; border:1.5px solid #0A1A2F; border-radius:8px; overflow:hidden; }
+  .rpb-meta-cell{ flex:1; padding:8px 12px; border-right:1.5px solid #0A1A2F; }
+  .rpb-meta-cell:last-child{ border-right:none; }
+  .rpb-meta-label{ font-family:-apple-system,Arial,sans-serif; font-size:8.5px; letter-spacing:.18em; text-transform:uppercase; color:#3a4a5f; }
+  .rpb-meta-value{ font-family:-apple-system,Arial,sans-serif; font-size:13px; font-weight:700; color:#0A1A2F; margin-top:2px; }
+  .rpb-columns{ display:flex; gap:26px; align-items:flex-start; }
+  .rpb-col-ing{ flex:0 0 38%; }
+  .rpb-col-steps{ flex:1; }
+  .rpb-section-label{ font-family:-apple-system,Arial,sans-serif; font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:#0A1A2F; border-bottom:2px solid #0A1A2F; padding-bottom:5px; margin:0 0 10px 0; }
+  .rpb-ing-table{ width:100%; border-collapse:collapse; font-family:-apple-system,Arial,sans-serif; font-size:12.5px; }
+  .rpb-ing-table td{ padding:5px 0; border-bottom:1px solid #8a97a8; color:#0A1A2F; vertical-align:top; }
+  .rpb-ing-table td.qty{ text-align:right; font-weight:700; white-space:nowrap; padding-left:10px; }
+  .rpb-steps{ font-family:-apple-system,Arial,sans-serif; font-size:13px; line-height:1.65; padding-left:0; margin:0; list-style:none; counter-reset:rpbstep; }
+  .rpb-steps li{ counter-increment:rpbstep; display:flex; gap:10px; margin-bottom:9px; }
+  .rpb-steps li::before{ content:counter(rpbstep); flex:none; width:22px; height:22px; border:2px solid #0A1A2F; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; color:#0A1A2F; }
+  .rpb-notes{ margin-top:20px; border-left:4px solid #0A1A2F; padding:2px 0 2px 14px; }
+  .rpb-notes p{ font-style:italic; font-size:13px; color:#0A1A2F; margin:0; line-height:1.55; }
+  .rpb-footer{ margin-top:28px; padding-top:10px; border-top:3px double #0A1A2F; font-family:-apple-system,Arial,sans-serif; font-size:10px; font-weight:600; color:#0A1A2F; display:flex; justify-content:space-between; }
   .label-print-sheet{ display:none; }
   .label-block{
     width:5cm; height:3cm; box-sizing:border-box;
@@ -2549,16 +2575,10 @@
     </div>
     <h1 class="title display">🧂 Ingredients</h1>
   </div>
-  <div class="home-grid">
-    <button class="home-tile" onclick="openIngredientShelf('chefos')">
-      <span class="home-tile-icon">✨</span>
-      <span class="home-tile-label">ChefOS</span>
-    </button>
-    <button class="home-tile" onclick="openIngredientShelf('mine')">
-      <span class="home-tile-icon">👤</span>
-      <span class="home-tile-label">My Ingredients</span>
-    </button>
-  </div>
+  <!-- Rendered by renderIngredientListsGrid() (bod 5, 16.7. večer — db/112): the two fixed
+       shelves (ChefOS, My Ingredients — never renamable/deletable) + the person's own custom
+       lists (long-press a custom tile for Rename/Hide/Delete) + "New List". -->
+  <div class="home-grid" id="ingredientListsGrid"></div>
 </div>
 
 <div id="ingredientsView" style="display:none;">
@@ -2576,6 +2596,10 @@
         </button>
         <!-- Custom Ingredients (bod 2, 16.7. — moved here from Home per Richard's request:
              belongs with Ingredients, not on the main menu). Admin-only. -->
+        <!-- AI details (bod 8, 16.7.) — fills in category/season/storage/aliases for items on a
+             personal shelf/list that are missing them. Paid AI: runs through the normal credit
+             gate like every other Claude call. Never offered on the ChefOS shelf (curated). -->
+        <button class="icon-btn" onclick="generateIngredientDetails()" title="Generate details with AI" id="generateDetailsBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">✨ AI Details</button>
         <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
         </button>
@@ -3514,8 +3538,28 @@
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeCustomIngredients()">Close</button>
   </div>
 </div>
-<input type="file" id="customIngredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv" style="display:none;" onchange="handleCustomIngredientFileSelected(event)">
-<input type="file" id="ingredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv" style="display:none;" onchange="handleIngredientScanFileSelected(event)">
+<input type="file" id="customIngredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleCustomIngredientFileSelected(event)">
+<input type="file" id="ingredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleIngredientScanFileSelected(event)">
+
+<!-- Recipe peek (bod 2, 16.7. večer) — tap/long-press a recipe inside Kitchen Reports. -->
+<div id="recipePeekOverlay" class="sheet-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="recipePeekTitle"></div>
+    <button class="save-btn" style="width:100%;" id="recipePeekViewBtn">👁️ View Recipe</button>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="document.getElementById('recipePeekOverlay').classList.remove('open')">Cancel</button>
+  </div>
+</div>
+
+<!-- Station picker for "Add to Check List" (bod 7, 16.7.) — no more silent "Extra". -->
+<div id="recipeStationPickOverlay" class="sheet-overlay" onclick="if(event.target===this) closeRecipeStationPick()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="recipeStationPickTitle"></div>
+    <div id="recipeStationPickList" style="max-height:320px; overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeRecipeStationPick()">Cancel</button>
+  </div>
+</div>
 
 <!-- Recipe Comments (bod 2, 16.7. — db/104) — visible to whoever can already see the recipe
      (kitchen-wide, or friend-shared), same subquery-based rule as the RLS policy itself. -->
@@ -7346,7 +7390,81 @@ async function loadKitchenReports(){
       </div></div></div>
     `).join('') : '<div class="empty-state">No one has opted in to sharing their hours yet.</div>'}
     ${anonymousHours > 0.05 ? `<div class="sheet-text" style="margin-top:10px; opacity:.7;">+ ${anonymousHours.toFixed(1)}h logged by team members who haven't opted in — never shown by name.</div>` : ''}
+    <div class="rpb-section-label" style="margin-top:16px;">Recipes</div>
+    <div id="krRecipesBrowse"></div>
   `;
+
+  // Head-admin kitchens directory FIRST (bod 3, 16.7. — db/113): every kitchen's chosen name +
+  // its admin's name/email + member count, above everything else.
+  if(currentIsAdmin){
+    const dirWrap = document.createElement('div');
+    el.prepend(dirWrap);
+    const { data: dir, error: dirErr } = await sb.rpc('admin_kitchen_directory');
+    if(dirErr){
+      dirWrap.innerHTML = `<p class="lede">Could not load kitchens: ${dirErr.message} — has db/113 been run?</p>`;
+    } else {
+      dirWrap.innerHTML = `<div class="rpb-section-label">All kitchens</div>` + (dir || []).map(k=>`
+        <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+          <div class="name task-text">🏢 ${(k.kitchen_name||'Unnamed').replace(/</g,'&lt;')}</div>
+          <div class="meta">${((k.admin_name || k.admin_email) ? (k.admin_name ? k.admin_name + (k.admin_email ? ' · ' + k.admin_email : '') : k.admin_email) : 'no admin yet').replace(/</g,'&lt;')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
+        </div></div></div>
+      `).join('') + `<div class="rpb-section-label" style="margin-top:16px;">Your kitchen</div>`;
+    }
+  }
+
+  _krLevel = 'root'; _krCategory = null;
+  renderKrRecipes();
+}
+
+/* Recipes drill-down inside Kitchen Reports (bod 2, 16.7. večer): shelf → sections →
+   recipes; tapping or long-pressing a recipe offers "View Recipe", which jumps straight into
+   the recipe itself. Only the ChefOS shelf exists as a source today — the level structure is
+   already there for team shelves later. */
+let _krLevel = 'root';
+let _krCategory = null;
+function renderKrRecipes(){
+  const wrap = document.getElementById('krRecipesBrowse');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const chefosRecipes = allRecipes().filter(r=>!r.createdBy);
+  const mkRow = (label, meta, onTap, onHold)=>{
+    const row = document.createElement('div');
+    row.className = 'task-row';
+    row.style.cursor = 'pointer';
+    row.innerHTML = `<div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${label.replace(/</g,'&lt;')}</div>${meta?`<div class="meta">${meta}</div>`:''}</div><div class="chevron">›</div></div>`;
+    if(onTap) row.onclick = onTap;
+    if(onHold) attachLongPress(row, onHold);
+    wrap.appendChild(row);
+  };
+  if(_krLevel === 'root'){
+    mkRow(`✨ ChefOS`, `${chefosRecipes.length} recipes`, ()=>{ _krLevel = 'cats'; renderKrRecipes(); });
+    return;
+  }
+  const backRow = document.createElement('button');
+  backRow.className = 'add-row-btn';
+  backRow.textContent = _krLevel === 'cats' ? '‹ Back' : `‹ Back to sections`;
+  backRow.onclick = ()=>{ if(_krLevel === 'recipes'){ _krLevel = 'cats'; _krCategory = null; } else { _krLevel = 'root'; } renderKrRecipes(); };
+  wrap.appendChild(backRow);
+  if(_krLevel === 'cats'){
+    const byCat = {};
+    chefosRecipes.forEach(r=>{ const c = r.category || 'Uncategorized'; byCat[c] = (byCat[c]||0)+1; });
+    Object.keys(byCat).sort().forEach(cat=>{
+      mkRow(`${categoryIcon(cat)} ${cat}`, `${byCat[cat]} recipes`, ()=>{ _krLevel = 'recipes'; _krCategory = cat; renderKrRecipes(); });
+    });
+    return;
+  }
+  chefosRecipes.filter(r=>(r.category || 'Uncategorized') === _krCategory).sort((a,b)=>a.title.localeCompare(b.title)).forEach(r=>{
+    const openPeek = ()=>{
+      document.getElementById('recipePeekTitle').textContent = r.title;
+      document.getElementById('recipePeekViewBtn').onclick = ()=>{
+        document.getElementById('recipePeekOverlay').classList.remove('open');
+        closeKitchenReports();
+        jumpToRecipeById(r.id);
+      };
+      document.getElementById('recipePeekOverlay').classList.add('open');
+    };
+    mkRow(r.title, r.station || '', openPeek, openPeek);
+  });
 }
 
 function openMyProfileSettings(){
@@ -8479,7 +8597,7 @@ async function loadAppData(){
     sb.from('prep_items').select('*').order('sort_order'),
     sb.from('station_icons').select('station, icon'),
     sb.from('recipe_category_icons').select('category, icon'),
-    sb.from('kitchens').select('display_currency').eq('id', currentKitchenId).maybeSingle(),
+    sb.from('kitchens').select('display_currency, name').eq('id', currentKitchenId).maybeSingle(),
     sb.from('user_settings').select('anthropic_api_key, scan_language').eq('user_id', currentUser.id).maybeSingle()
   ]);
   if(error){ console.error(error); setSyncStatus('offline'); return; }
@@ -8515,6 +8633,10 @@ async function loadAppData(){
   CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
 
   currentKitchenCurrency = (kitchenRow && kitchenRow.display_currency) || 'EUR';
+  // Cached at load (bod 4, 16.7.): printRecipeBranded must NOT await anything before
+  // window.print() — an async gap breaks Safari's user-gesture requirement and the browser
+  // blocks the print dialog ("Automatická tlač touto stránkou bola zablokovaná").
+  _rpbKitchenName = (kitchenRow && kitchenRow.name) || 'ChefOS';
 
   _anthropicKey = (settingsRow && settingsRow.anthropic_api_key) || '';
   _scanLanguage = (settingsRow && settingsRow.scan_language) || 'en';
@@ -9831,7 +9953,9 @@ function updateFloatingNav(){
     return el && el.style.display !== 'none';
   });
   const homeOpen = homeEl && homeEl.style.display !== 'none';
-  nav.style.display = (currentUser && anyMainViewOpen && !homeOpen) ? 'flex' : 'none';
+  const show = !!(currentUser && anyMainViewOpen && !homeOpen);
+  nav.style.display = show ? 'flex' : 'none';
+  document.body.classList.toggle('has-floating-nav', show);
 }
 function goBackView(){
   while(_viewStack.length){
@@ -10788,17 +10912,30 @@ function applyIngredientScale(idx){
 /* Add to Check List (bod 7, 16.7.) — creates a prep_dish (+ its ingredient rows as prep_items)
    in whichever project is currently open, named/stationed straight off the recipe. Reuses the
    exact same insert shape as the manual "Add Dish" form (savePrepDishForm) above. */
-async function addRecipeToCheckList(){
+function addRecipeToCheckList(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
   if(!currentProjectId){
     alert('Open Check List and pick a project first — then come back here to add this recipe.');
     return;
   }
-  const station = r.station || 'Extra';
+  // Station choice (bod 7, 16.7.) — Richard: never silently dump into "Extra"; offer the
+  // project's stations (recipe's own station pre-highlighted when it matches one).
+  const stations = projectPrepSheetStations();
+  const suggested = stations.includes(r.station) ? r.station : null;
+  document.getElementById('recipeStationPickTitle').textContent = `Add "${r.title}" to which station?`;
+  document.getElementById('recipeStationPickList').innerHTML = stations.map(st=>`
+    <button class="chip${st===suggested?' active':''}" style="width:100%; text-align:left; margin-bottom:8px;" onclick="confirmAddRecipeToStation('${st.replace(/'/g,"\\'")}')">${st}${st===suggested ? ' · suggested' : ''}</button>
+  `).join('');
+  document.getElementById('recipeStationPickOverlay').classList.add('open');
+}
+function closeRecipeStationPick(){ document.getElementById('recipeStationPickOverlay').classList.remove('open'); }
+async function confirmAddRecipeToStation(station){
+  closeRecipeStationPick();
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
   const tableSection = (r.sections||[]).find(s=>s.type==='table');
   const itemNames = tableSection ? tableSection.rows.map(row=>row[0]).filter(Boolean) : [];
-  if(!confirm(`Add "${r.title}" to Check List (${station})?`)) return;
   const existingForStation = _prepDishes.filter(d=>d.station === station);
   const nextSort = existingForStation.length ? Math.max(...existingForStation.map(d=>d.sort_order)) + 1 : 0;
   const { data: dishRow, error: dishError } = await sb.from('prep_dishes').insert({
@@ -11442,15 +11579,72 @@ function toggleIngredientFilterValue(list, value){
 
 let ingredientSourceFilter = 'chefos'; // 'chefos' | 'mine' — bod 1, 16.7., db/97
 let showHiddenIngredients = false; // bod 1, 16.7. — db/107
-function showIngredientsHome(){
+let _ingredientLists = [];
+let _showHiddenIngredientLists = false;
+async function showIngredientsHome(){
   logEvent('view_opened', {view:'ingredients_home'});
   hideAllViews();
   document.getElementById('ingredientsHomeView').style.display = 'block';
   window.scrollTo(0,0);
+  const { data, error } = await sb.from('ingredient_lists').select('*').order('created_at');
+  if(error && !/does not exist/i.test(error.message)) console.error('ingredient_lists load failed', error);
+  _ingredientLists = data || [];
+  renderIngredientListsGrid();
+}
+function renderIngredientListsGrid(){
+  const wrap = document.getElementById('ingredientListsGrid');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const addTile = (icon, label, onclick, longPress)=>{
+    const btn = document.createElement('button');
+    btn.className = 'home-tile';
+    btn.innerHTML = `<span class="home-tile-icon">${icon}</span><span class="home-tile-label">${label.replace(/</g,'&lt;')}</span>`;
+    btn.onclick = onclick;
+    if(longPress) attachLongPress(btn, longPress);
+    return wrap.appendChild(btn);
+  };
+  // The two fixed shelves — deliberately no long-press menu, they can never be changed.
+  addTile('✨', 'ChefOS', ()=>openIngredientShelf('chefos'));
+  addTile('👤', 'My Ingredients', ()=>openIngredientShelf('mine'));
+  const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
+  visibleLists.forEach(l=>{
+    addTile('📋', l.name + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
+      ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden));
+  });
+  addTile('➕', 'New List', ()=>createIngredientList());
+  const hiddenCount = _ingredientLists.filter(l=>l.hidden).length;
+  if(hiddenCount || _showHiddenIngredientLists){
+    const toggle = document.createElement('button');
+    toggle.className = 'add-row-btn';
+    toggle.style.cssText = 'grid-column:1/-1; margin-top:6px;';
+    toggle.textContent = _showHiddenIngredientLists ? 'Hide the hidden lists again' : `Show ${hiddenCount} hidden list${hiddenCount===1?'':'s'}`;
+    toggle.onclick = ()=>{ _showHiddenIngredientLists = !_showHiddenIngredientLists; renderIngredientListsGrid(); };
+    wrap.appendChild(toggle);
+  }
+}
+async function createIngredientList(){
+  const name = prompt('Name the new ingredient list:');
+  if(!name || !name.trim()) return;
+  const { error } = await sb.from('ingredient_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim() });
+  if(error){ alert('Could not create: ' + error.message + ' — has db/112 been run?'); return; }
+  await showIngredientsHome();
 }
 function openIngredientShelf(source){
   ingredientSourceFilter = source;
   showIngredients();
+}
+function currentIngredientListName(){
+  if(ingredientSourceFilter === 'mine') return '👤 My Ingredients';
+  if(ingredientSourceFilter === 'chefos') return '✨ ChefOS Ingredients';
+  const l = _ingredientLists.find(x=>x.id === ingredientSourceFilter);
+  return '📋 ' + ((l && l.name) || 'List');
+}
+/* One shelf-membership rule used by the list renderer, the counter, and the scan/save paths —
+   never three separate copies of the same filter. */
+function ingredientOnCurrentShelf(ing){
+  if(ingredientSourceFilter === 'chefos') return !ing.is_personal;
+  if(ingredientSourceFilter === 'mine') return !!ing.is_personal && !ing.list_id;
+  return ing.list_id === ingredientSourceFilter;
 }
 /* Adding to the shared ChefOS shelf is admin-only (Richard, 16.7.) — any kind of admin (Head
    Admin or a Kitchen Admin with any admin_perms), matching the RLS check in db/105. My
@@ -11463,7 +11657,7 @@ function showIngredients(){
   hideAllViews();
   document.getElementById('ingredientsView').style.display = 'block';
   const titleEl = document.getElementById('ingredientsShelfTitle');
-  if(titleEl) titleEl.textContent = ingredientSourceFilter === 'mine' ? '👤 My Ingredients' : '✨ ChefOS Ingredients';
+  if(titleEl) titleEl.textContent = currentIngredientListName();
   renderIngredientChips();
   renderIngredientSeasonChips();
   renderIngredientStorageChips();
@@ -11471,12 +11665,67 @@ function showIngredients(){
   renderIngredientPriceRangeLabel();
   renderIngredientList();
   refreshIngredientFiltersActiveDot();
-  const canAdd = ingredientSourceFilter === 'mine' || canManageSharedIngredients();
+  const canAdd = ingredientSourceFilter !== 'chefos' || canManageSharedIngredients();
   const fab = document.getElementById('addIngredientFab');
   if(fab) fab.style.display = canAdd ? 'flex' : 'none';
   const customIngredientsBtn = document.getElementById('customIngredientsIconBtn');
   if(customIngredientsBtn) customIngredientsBtn.style.display = currentIsAdmin ? 'flex' : 'none';
+  const genBtn = document.getElementById('generateDetailsBtn');
+  if(genBtn) genBtn.style.display = ingredientSourceFilter !== 'chefos' ? 'flex' : 'none';
   window.scrollTo(0,0);
+}
+
+/* AI details for a personal shelf/list (bod 8, 16.7.) — batch-enriches up to 25 items that
+   are missing category/seasons/storage, via one tool call. Goes through callClaudeAPI, so the
+   credit gate + metering apply exactly like Chef Assistant. */
+async function generateIngredientDetails(){
+  const targets = _ingredients.filter(ing=> ingredientOnCurrentShelf(ing) && !ing.hidden
+    && (!ing.category || !ing.storage_type || !(ing.seasons||[]).length)).slice(0, 25);
+  if(!targets.length){ alert('Everything on this list already has its details filled in.'); return; }
+  if(!confirm(`Generate details (category, season, storage, alternate names) for ${targets.length} ingredient${targets.length===1?'':'s'} with AI? This uses your AI credit.`)) return;
+  setSyncStatus('saving');
+  try{
+    const tool = {
+      name: 'fill_ingredient_details',
+      description: 'Fill in professional-kitchen details for each ingredient.',
+      input_schema: { type:'object', properties: { items: { type:'array', items: { type:'object', properties: {
+        name: { type:'string', description:'The ingredient name, exactly as given' },
+        category: { type:'string', description:'One of: Produce, Dairy, Meat, Seafood, Bakery, Dry Goods, Spices & Seasonings, Beverages, Other' },
+        storage_type: { type:'string', description:'One of: Dry Storage, Refrigerated, Freezer, Room Temperature' },
+        seasons: { type:'array', items:{ type:'string', enum:['Spring','Summer','Autumn','Winter'] }, description:'Seasons it is in season — empty array if year-round' },
+        aliases: { type:'array', items:{ type:'string' }, description:'Up to 3 common alternate names, empty if none' }
+      }, required:['name'] } } }, required:['items'] }
+    };
+    const data = await callClaudeAPI({
+      model: 'claude-sonnet-5',
+      max_tokens: 4096,
+      tools: [tool],
+      tool_choice: { type:'tool', name:'fill_ingredient_details' },
+      messages: [{ role:'user', content: 'Fill in details for these professional-kitchen ingredients using the fill_ingredient_details tool. Names, exactly as they must be echoed back: ' + targets.map(t=>t.name).join('; ') }]
+    });
+    const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+    if(!toolUse) throw new Error('No details came back — try again.');
+    let updated = 0;
+    for(const item of (toolUse.input.items || [])){
+      const match = targets.find(t=>t.name.toLowerCase() === (item.name||'').toLowerCase());
+      if(!match) continue;
+      const payload = {};
+      if(!match.category && item.category) payload.category = item.category;
+      if(!match.storage_type && item.storage_type) payload.storage_type = item.storage_type;
+      if(!(match.seasons||[]).length && (item.seasons||[]).length) payload.seasons = item.seasons;
+      if(!(match.aliases||[]).length && (item.aliases||[]).length) payload.aliases = item.aliases;
+      if(!Object.keys(payload).length) continue;
+      const { error } = await sb.from('ingredients').update(payload).eq('id', match.id);
+      if(!error) updated++;
+    }
+    await loadAppData();
+    renderIngredientList();
+    setSyncStatus('saved');
+    alert(`Details generated for ${updated} ingredient${updated===1?'':'s'}.`);
+  } catch(err){
+    setSyncStatus('offline');
+    alert('Could not generate details: ' + (err.message || err));
+  }
 }
 function openIngredientFilters(){
   renderIngredientCategoryChips();
@@ -11534,7 +11783,9 @@ function passesIngredientFilters(ing, q){
    having to reopen Search & Filter to check. Called from renderIngredientList() itself so it
    can never drift out of sync with what's actually on screen. */
 function updateIngredientFilterCount(){
-  const n = _ingredients.reduce((sum, ing)=> sum + (passesIngredientFilters(ing, ingredientActiveQuery) ? 1 : 0), 0);
+  // Count only the shelf being viewed (bod 8, 16.7.) — a personal list must never show the
+  // full 2000+ ChefOS total.
+  const n = _ingredients.reduce((sum, ing)=> sum + ((ingredientOnCurrentShelf(ing) && passesIngredientFilters(ing, ingredientActiveQuery)) ? 1 : 0), 0);
   const label = `${n} ingredient${n===1?'':'s'} match${n===1?'es':''} this filter`;
   const sheetEl = document.getElementById('ingredientFilterCount');
   if(sheetEl) sheetEl.textContent = label;
@@ -11675,43 +11926,52 @@ function closeItemContextMenu(){
   document.getElementById('itemContextMenuOverlay').classList.remove('open');
   _contextMenuTarget = null;
 }
+function _contextMenuTable(t){
+  return t.type === 'ingredient' ? 'ingredients' : t.type === 'ingredientList' ? 'ingredient_lists' : 'prep_dishes';
+}
+async function _contextMenuRefresh(t){
+  if(t.type === 'ingredientList'){ await showIngredientsHome(); return; }
+  await loadAppData();
+  if(t.type === 'ingredient') renderIngredientList(); else await renderActiveStationView();
+}
 async function itemContextRename(){
   const t = _contextMenuTarget;
   if(!t) return;
   const newName = prompt('Rename to:', t.name);
   if(!newName || !newName.trim() || newName.trim() === t.name) return;
-  const table = t.type === 'ingredient' ? 'ingredients' : 'prep_dishes';
-  const { error } = await sb.from(table).update({ name: newName.trim() }).eq('id', t.id);
+  const { error } = await sb.from(_contextMenuTable(t)).update({ name: newName.trim() }).eq('id', t.id);
   if(error){ alert('Could not rename: ' + error.message); return; }
   closeItemContextMenu();
-  await loadAppData();
-  if(t.type === 'ingredient') renderIngredientList(); else await renderActiveStationView();
+  await _contextMenuRefresh(t);
 }
 async function itemContextToggleHide(){
   const t = _contextMenuTarget;
   if(!t) return;
-  const table = t.type === 'ingredient' ? 'ingredients' : 'prep_dishes';
-  const nextHidden = !t.hidden;
-  const { error } = await sb.from(table).update({ hidden: nextHidden }).eq('id', t.id);
+  const { error } = await sb.from(_contextMenuTable(t)).update({ hidden: !t.hidden }).eq('id', t.id);
   if(error){ alert('Could not update: ' + error.message); return; }
   closeItemContextMenu();
-  await loadAppData();
-  if(t.type === 'ingredient') renderIngredientList(); else await renderActiveStationView();
+  await _contextMenuRefresh(t);
 }
 async function itemContextDelete(){
   const t = _contextMenuTarget;
   if(!t) return;
-  if(!confirm(`Delete "${t.name}"? This can't be undone.`)) return;
+  const warning = t.type === 'ingredientList'
+    ? `Delete the list "${t.name}" AND everything in it? This can't be undone.`
+    : `Delete "${t.name}"? This can't be undone.`;
+  if(!confirm(warning)) return;
   let error;
   if(t.type === 'ingredient'){
     ({ error } = await sb.from('ingredients').delete().eq('id', t.id));
+  } else if(t.type === 'ingredientList'){
+    // The list's items first (they'd be orphaned otherwise), then the list itself.
+    ({ error } = await sb.from('ingredients').delete().eq('list_id', t.id));
+    if(!error) ({ error } = await sb.from('ingredient_lists').delete().eq('id', t.id));
   } else {
     ({ error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', t.id));
   }
   if(error){ alert('Could not delete: ' + error.message); return; }
   closeItemContextMenu();
-  await loadAppData();
-  if(t.type === 'ingredient') renderIngredientList(); else await renderActiveStationView();
+  await _contextMenuRefresh(t);
 }
 
 function ingredientRowEl(ing, idx){
@@ -11741,7 +12001,7 @@ function renderIngredientList(){
 
   const passingIdx = [];
   _ingredients.forEach((ing, idx)=>{
-    const onShelf = ingredientSourceFilter === 'mine' ? !!ing.is_personal : !ing.is_personal;
+    const onShelf = ingredientOnCurrentShelf(ing);
     const visibleEnough = showHiddenIngredients || !ing.hidden;
     if(onShelf && visibleEnough && passesIngredientFilters(ing, q)) passingIdx.push(idx);
   });
@@ -11916,7 +12176,7 @@ async function saveIngredientForm(){
   if(ingredientEditingId){
     ({ error } = await sb.from('ingredients').update(payload).eq('id', ingredientEditingId));
   } else {
-    ({ error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: ingredientSourceFilter === 'mine' }));
+    ({ error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: ingredientSourceFilter !== 'chefos', list_id: (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null }));
   }
   if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
@@ -13877,37 +14137,44 @@ window.addEventListener('afterprint', ()=>{
   document.body.classList.remove('printing-recipe-branded');
 });
 
-/* Branded recipe print (bod 6, 16.7.) — builds the letterhead sheet from the currently-open
-   recipe and prints just that (visibility-swap trick, same as Print Labels/Order List). Kitchen
-   name is fetched once and cached — "read any kitchen name" (db/34) already allows this. */
-let _rpbKitchenName = null;
-async function printRecipeBranded(){
+/* Branded recipe print (bod 6, 16.7.; reworked bod 4, 16.7. večer) — builds the letterhead
+   sheet from the currently-open recipe and prints just that (visibility-swap trick, same as
+   Print Labels/Order List). DELIBERATELY SYNCHRONOUS: window.print() must run in the same
+   user-gesture tick as the tap, or Safari blocks the dialog — the kitchen name is pre-cached
+   by loadAppData for exactly this reason. */
+let _rpbKitchenName = 'ChefOS';
+function printRecipeBranded(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
-  if(_rpbKitchenName === null){
-    const { data } = await sb.from('kitchens').select('name').eq('id', currentKitchenId).maybeSingle();
-    _rpbKitchenName = (data && data.name) || 'ChefOS';
-  }
   const tableSection = (r.sections||[]).find(s=>s.type==='table');
   const stepsSection = (r.sections||[]).find(s=>s.type==='steps');
   const ingredientsHtml = tableSection ? tableSection.rows.map(row=>`
     <tr><td>${(row[0]||'').replace(/</g,'&lt;')}</td><td class="qty">${(row[1]||'').replace(/</g,'&lt;')}</td></tr>
   `).join('') : '';
-  const stepsHtml = stepsSection ? `<ol class="rpb-steps">${stepsSection.items.map(s=>`<li>${s.replace(/</g,'&lt;')}</li>`).join('')}</ol>` : '';
+  const stepsHtml = stepsSection ? `<ol class="rpb-steps">${stepsSection.items.map(s=>`<li><span>${s.replace(/</g,'&lt;')}</span></li>`).join('')}</ol>` : '';
   const metaParts = [];
-  if(r.yield) metaParts.push(r.yield);
-  if(r.time && (r.time.active || r.time.passive)) metaParts.push([r.time.active, r.time.passive].filter(Boolean).join(' + '));
-  if(r.station) metaParts.push(r.station);
+  if(r.yield) metaParts.push({ label:'Yield', value:r.yield });
+  if(r.time && (r.time.active || r.time.passive)) metaParts.push({ label:'Time', value:[r.time.active, r.time.passive].filter(Boolean).join(' + ') });
+  if(r.station) metaParts.push({ label:'Station', value:r.station });
+  if(r.category) metaParts.push({ label:'Section', value:r.category });
+  const kn = _rpbKitchenName.replace(/</g,'&lt;');
   document.getElementById('recipePrintBrandedSheet').innerHTML = `
     <div class="rpb-letterhead">
-      <span class="rpb-kitchen">${_rpbKitchenName.replace(/</g,'&lt;')}</span>
-      <span class="rpb-tag">ChefOS Recipe Card</span>
+      <div>
+        <div class="rpb-kitchen">${kn}</div>
+        <div class="rpb-tag">Professional Recipe Card</div>
+      </div>
+      <div class="rpb-mark">Chef<span>OS</span></div>
     </div>
     <h1 class="rpb-title">${(r.title||'').replace(/</g,'&lt;')}</h1>
-    <div class="rpb-meta">${metaParts.map(p=>`<span>${p.replace(/</g,'&lt;')}</span>`).join('')}</div>
-    ${ingredientsHtml ? `<div class="rpb-section-label">Ingredients</div><table class="rpb-ing-table">${ingredientsHtml}</table>` : ''}
-    ${stepsHtml ? `<div class="rpb-section-label">Method</div>${stepsHtml}` : ''}
-    <div class="rpb-footer"><span>${_rpbKitchenName.replace(/</g,'&lt;')}</span><span>Printed ${new Date().toLocaleDateString()}</span></div>
+    ${r.meta ? `<p class="rpb-subtitle">${r.meta.replace(/</g,'&lt;')}</p>` : ''}
+    ${metaParts.length ? `<div class="rpb-meta">${metaParts.map(p=>`<div class="rpb-meta-cell"><div class="rpb-meta-label">${p.label}</div><div class="rpb-meta-value">${String(p.value).replace(/</g,'&lt;')}</div></div>`).join('')}</div>` : ''}
+    <div class="rpb-columns">
+      ${ingredientsHtml ? `<div class="rpb-col-ing"><div class="rpb-section-label">Ingredients</div><table class="rpb-ing-table">${ingredientsHtml}</table></div>` : ''}
+      ${stepsHtml ? `<div class="rpb-col-steps"><div class="rpb-section-label">Method</div>${stepsHtml}</div>` : ''}
+    </div>
+    ${r.chefNotes ? `<div class="rpb-notes"><div class="rpb-section-label">Chef's Notes</div><p>${r.chefNotes.replace(/</g,'&lt;')}</p></div>` : ''}
+    <div class="rpb-footer"><span>${kn} · Confidential — for kitchen use only</span><span>Printed ${new Date().toLocaleDateString()}</span></div>
   `;
   document.body.classList.add('printing-recipe-branded');
   window.print();
@@ -15371,8 +15638,22 @@ function claudeScanSourceBlock(base64, mediaType, fileName){
 }
 /* Every handleXSelected function shares this same read: figure out the media type from the data
    URL, keep the original filename alongside it (needed for the .md detection above), then hand
-   off to the matching runXScan(base64, mediaType, fileName). */
+   off to the matching runXScan(base64, mediaType, fileName). .xlsx files (bod 8, 16.7.) are
+   converted to CSV text client-side first — Claude's API doesn't take spreadsheets directly. */
 function readFileForScan(file, onRead){
+  if(/\.xlsx$/i.test(file.name)){
+    xlsxFileToCsvText(file).then(csv=>{
+      onRead(btoa(unescape(encodeURIComponent(csv))), 'text/csv', file.name.replace(/\.xlsx$/i, '.csv'));
+    }).catch(err=>{
+      console.error('xlsx parse failed', err);
+      alert("Couldn't read that Excel file — export it as CSV (File → Save As → CSV) and upload that instead.");
+    });
+    return;
+  }
+  if(/\.xls$/i.test(file.name)){
+    alert('Old-format .xls files aren\'t supported — save it as .xlsx or CSV first (File → Save As).');
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     const dataUrl = reader.result;
@@ -15381,6 +15662,80 @@ function readFileForScan(file, onRead){
     onRead(base64, mediaType, file.name);
   };
   reader.readAsDataURL(file);
+}
+
+/* Minimal .xlsx reader (bod 8, 16.7.) — an .xlsx is a ZIP of XML files; this pulls
+   sharedStrings + the first worksheet out with the browser's own DecompressionStream, no
+   vendored spreadsheet library needed. Handles the two compression methods ZIP actually uses
+   (stored / deflate). Anything weirder fails cleanly into the "export as CSV" message above. */
+async function xlsxFileToCsvText(file){
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const view = new DataView(buf.buffer);
+  // End-of-central-directory record → where the central directory lives.
+  let eocd = -1;
+  for(let i = buf.length - 22; i >= Math.max(0, buf.length - 65558); i--){
+    if(view.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('EOCD not found');
+  const cdCount = view.getUint16(eocd + 10, true);
+  let off = view.getUint32(eocd + 16, true);
+  const entries = {};
+  for(let i = 0; i < cdCount; i++){
+    if(view.getUint32(off, true) !== 0x02014b50) break;
+    const method = view.getUint16(off + 10, true);
+    const compSize = view.getUint32(off + 20, true);
+    const nameLen = view.getUint16(off + 28, true);
+    const extraLen = view.getUint16(off + 30, true);
+    const commentLen = view.getUint16(off + 32, true);
+    const localOff = view.getUint32(off + 42, true);
+    const name = new TextDecoder().decode(buf.subarray(off + 46, off + 46 + nameLen));
+    entries[name] = { method, compSize, localOff };
+    off += 46 + nameLen + extraLen + commentLen;
+  }
+  async function readEntry(name){
+    const e = entries[name];
+    if(!e) return null;
+    const lo = e.localOff;
+    const nameLen = view.getUint16(lo + 26, true);
+    const extraLen = view.getUint16(lo + 28, true);
+    const dataStart = lo + 30 + nameLen + extraLen;
+    const comp = buf.subarray(dataStart, dataStart + e.compSize);
+    if(e.method === 0) return new TextDecoder().decode(comp);
+    const ds = new DecompressionStream('deflate-raw');
+    const decompressed = await new Response(new Blob([comp]).stream().pipeThrough(ds)).arrayBuffer();
+    return new TextDecoder().decode(decompressed);
+  }
+  const sharedXml = await readEntry('xl/sharedStrings.xml');
+  const shared = [];
+  if(sharedXml){
+    (sharedXml.match(/<si[ >][\s\S]*?<\/si>/g) || []).forEach(si=>{
+      shared.push((si.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || []).map(t=>t.replace(/<[^>]+>/g,'')).join(''));
+    });
+  }
+  const sheetName = Object.keys(entries).find(n=>/^xl\/worksheets\/sheet1\.xml$/.test(n)) || Object.keys(entries).find(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n));
+  const sheetXml = sheetName ? await readEntry(sheetName) : null;
+  if(!sheetXml) throw new Error('no worksheet');
+  const decodeXml = (s)=>s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+  const colIndex = (ref)=>{ let n = 0; for(const ch of (ref.match(/^[A-Z]+/)||[''])[0]) n = n * 26 + (ch.charCodeAt(0) - 64); return n - 1; };
+  const lines = [];
+  (sheetXml.match(/<row[ >][\s\S]*?<\/row>/g) || []).forEach(rowXml=>{
+    const cells = [];
+    (rowXml.match(/<c[ >][\s\S]*?(<\/c>|\/>)/g) || []).forEach(cXml=>{
+      const ref = (cXml.match(/r="([A-Z]+\d+)"/) || [])[1] || '';
+      const type = (cXml.match(/t="([^"]+)"/) || [])[1] || '';
+      let val = '';
+      const v = (cXml.match(/<v>([\s\S]*?)<\/v>/) || [])[1];
+      if(type === 's' && v != null) val = shared[parseInt(v, 10)] || '';
+      else if(type === 'inlineStr') val = ((cXml.match(/<t[^>]*>([\s\S]*?)<\/t>/) || [])[1] || '');
+      else if(v != null) val = v;
+      cells[ref ? colIndex(ref) : cells.length] = decodeXml(val);
+    });
+    lines.push(Array.from(cells, c=>{
+      const s = (c == null ? '' : String(c));
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(','));
+  });
+  return lines.join('\n');
 }
 
 /* ---------- Contract scan — same direct-to-Claude photo/PDF pattern as the recipe and prep
@@ -15744,7 +16099,7 @@ async function runIngredientScan(base64, mediaType, fileName){
 let _pendingScanIngredients = [];
 function openIngredientScanReview(input){
   _pendingScanIngredients = (input.ingredients || []).map(x=>({ ...x, _include:true }));
-  document.getElementById('isr_shelf_label').textContent = ingredientSourceFilter === 'mine' ? 'My Ingredients (private)' : 'ChefOS (shared with your kitchen)';
+  document.getElementById('isr_shelf_label').textContent = ingredientSourceFilter === 'chefos' ? 'ChefOS (shared with your kitchen)' : currentIngredientListName() + ' (private)';
   renderIngredientScanReviewList();
   document.getElementById('ingredientScanReviewOverlay').classList.add('open');
 }
@@ -15770,7 +16125,8 @@ async function saveIngredientScanReview(){
   const toSave = _pendingScanIngredients.filter(x=>x._include && x.name && x.name.trim());
   if(!toSave.length){ statusEl.textContent = 'Nothing selected.'; return; }
   statusEl.textContent = 'Saving…';
-  const isPersonal = ingredientSourceFilter === 'mine';
+  const isPersonal = ingredientSourceFilter !== 'chefos';
+  const listId = (isPersonal && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null;
   let saved = 0, skipped = 0;
   // One at a time, not a bulk insert: a name that already exists on this shelf hits the unique
   // index (ingredients_shared_name_uidx / ingredients_personal_name_uidx) and must not sink the
@@ -15784,7 +16140,8 @@ async function saveIngredientScanReview(){
       category: x.category || null,
       notes: x.note || null,
       created_by: currentUser.id,
-      is_personal: isPersonal
+      is_personal: isPersonal,
+      list_id: listId
     });
     if(error) skipped++; else saved++;
   }
