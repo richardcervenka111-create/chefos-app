@@ -1444,6 +1444,10 @@
       <p style="text-align:center; margin:10px 0 0 0; color:var(--ink-faint); font-size:12px;">or use your email below</p>
     </div>
     <div id="loginStep1">
+      <!-- Friend-invite notice (bod 1, 16.7.) — who invited can't be shown by name pre-login
+           (profiles aren't readable anonymously, by design); the named welcome comes right
+           after sign-in instead. -->
+      <p class="lede" id="friendInviteLoginNotice" style="display:none; color:var(--copper); margin-bottom:12px;">🤝 A ChefOS chef invited you to join as their friend — sign up below and you'll be connected automatically.</p>
       <label class="form-label" data-i18n="yourEmail">Your email</label>
       <input id="loginEmail" class="form-field" type="email" placeholder="you@restaurant.com" autocomplete="email">
       <button class="save-btn" style="width:100%;" onclick="sendLoginCode()" data-i18n="sendCode">Send me a code</button>
@@ -1973,7 +1977,7 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">👋 Add Friend</div>
-    <p class="sheet-text">Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code brings them into your kitchen too.</p>
+    <p class="sheet-text" id="friendQrDescription">Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step.</p>
     <div id="friendQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px;"><p style="color:#333;">Loading…</p></div>
     <!-- Send by email (bod 4, 16.7.) — same one-tap login-link pattern as the admin's invite
          email, but carrying THIS person's friend QR URL (?invite= + &friend=), so a regular
@@ -2186,6 +2190,19 @@
   </div>
 </div>
 
+<!-- Friend welcome (bod 1, 16.7. — db/110) — shown once, right after someone lands in ChefOS
+     via a friend's personal invite. Names the inviter, explains the friendship, says thanks. -->
+<div id="friendWelcomeOverlay" class="sheet-overlay" onclick="if(event.target===this) closeFriendWelcome()">
+  <div class="sheet" style="text-align:center;">
+    <div class="sheet-handle"></div>
+    <div style="font-size:44px; line-height:1; margin:6px 0 10px 0;">🤝</div>
+    <div class="sheet-title" id="friendWelcomeTitle"></div>
+    <p class="sheet-text">You're now friends on ChefOS — you can comment on each other's shared recipes and swap ideas right there. Your own kitchen is ready too: recipes, ingredients, and an empty Check List waiting for your first project.</p>
+    <p class="sheet-text" style="color:var(--copper);">Thank you for choosing ChefOS — we're glad you're here. 🙏</p>
+    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="closeFriendWelcome()">Let's go</button>
+  </div>
+</div>
+
 <!-- Add Company (bod 5, 16.7. — db/109) — Head Admin only. One company, one single-use invite,
      one main admin. The invite email is a real login link carrying ?invite=<id>; accepting it
      joins the new kitchen AND grants company_admin (claim_company_admin, revoking the invite
@@ -2202,6 +2219,8 @@
     </div>
     <div id="addCompanyResultBlock" style="display:none;">
       <p class="sheet-text" id="addCompanyResultText"></p>
+      <div id="addCompanyQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin:8px 0;"></div>
+      <p class="sheet-text">Or let them scan this QR directly — same single-use invite.</p>
       <input class="form-field" id="addCompanyLinkField" type="text" readonly>
       <button class="save-btn" style="width:100%; margin-top:8px;" onclick="copyAddCompanyLink()">Copy Link</button>
     </div>
@@ -6688,6 +6707,16 @@ async function enterApp(){
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
 
+  // Friend welcome (bod 1, 16.7. — db/110): queued by renderTeamGate's friend-only onboarding,
+  // shown exactly once, now that the person is genuinely inside the app. (closeFriendWelcome
+  // is defined right below enterApp.)
+  const welcomeName = sessionStorage.getItem('chefos_friend_welcome');
+  if(welcomeName){
+    sessionStorage.removeItem('chefos_friend_welcome');
+    document.getElementById('friendWelcomeTitle').textContent = `${welcomeName} invited you`;
+    document.getElementById('friendWelcomeOverlay').classList.add('open');
+  }
+
   // ?team=CODE landing (bod 1, 16.7.) — reached via a team-invite email's magic link or a QR
   // opened by the phone's own camera app rather than in-app (handleScannedQrText already
   // covers the in-app scan path). Checked last, once the person is actually inside the app
@@ -6699,7 +6728,34 @@ async function enterApp(){
     const row = Array.isArray(data) ? data[0] : data;
     if(!error && row) showConfirmTeamJoin(teamParam, row.name);
   }
+
+  // Company-admin invite opened by an EXISTING user (bod 1, 16.7. — db/109): Add Company links
+  // normally onboard brand-new people through renderTeamGate, but Richard can also send one to
+  // someone who already uses ChefOS ("nový aj starý užívatelia"). Only invites that grant
+  // company-admin are honored here — an ordinary kitchen invite never silently moves an
+  // existing account between kitchens (same protection as the in-app QR scan path).
+  const inviteParam = new URLSearchParams(location.search).get('invite');
+  if(inviteParam && currentKitchenId){
+    history.replaceState(null, '', location.pathname);
+    const { data: inviteRow } = await sb.from('kitchen_invites')
+      .select('kitchen_id, revoked, expires_at, grants_company_admin')
+      .eq('id', inviteParam).maybeSingle();
+    if(inviteRow && inviteRow.grants_company_admin && !inviteRow.revoked && new Date(inviteRow.expires_at) > new Date()){
+      const { data: k } = await sb.from('kitchens').select('name').eq('id', inviteRow.kitchen_id).maybeSingle();
+      const kitchenName = (k && k.name) || 'a new kitchen';
+      if(confirm(`Richard invited you to become the main admin of "${kitchenName}". Accept? Your account will move to that kitchen.`)){
+        const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id }).eq('id', currentUser.id);
+        if(moveErr){ alert('Could not accept: ' + moveErr.message); return; }
+        const { error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteParam });
+        if(claimErr) console.error('claim_company_admin failed', claimErr);
+        alert(`You're now the main admin of "${kitchenName}". The app will reload with your new kitchen.`);
+        location.reload();
+      }
+    }
+  }
 }
+
+function closeFriendWelcome(){ document.getElementById('friendWelcomeOverlay').classList.remove('open'); }
 
 /* A stable per-device id (kept in localStorage, never sent anywhere but usage_events) so
    "how many devices have ever logged in" is a real, answerable count — logging in twice from
@@ -7131,6 +7187,10 @@ async function submitAddCompany(){
   document.getElementById('addCompanyFormBlock').style.display = 'none';
   document.getElementById('addCompanyResultBlock').style.display = 'block';
   document.getElementById('addCompanyLinkField').value = inviteUrl;
+  const qr = qrcode(0, 'M');
+  qr.addData(inviteUrl);
+  qr.make();
+  document.getElementById('addCompanyQrHolder').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
   if(mailErr){
     statusEl.textContent = 'Company created, but the email failed (' + friendlyAuthErrorMessage(mailErr) + ') — send them the link below yourself.';
   } else {
@@ -7479,6 +7539,32 @@ async function renderTeamGate(){
     return;
   }
 
+  // Friend-only invite from a Personal account (Richard, 16.7. — db/110): no kitchen invite in
+  // the URL, just ?friend=. Onboard them into their OWN brand-new kitchen (empty Check List,
+  // standard ChefOS shelves via the seeding triggers), connect the friendship, and hand off to
+  // the normal gate chain — a welcome message shows once they're actually inside (enterApp).
+  const friendOnlyId = new URLSearchParams(location.search).get('friend');
+  if(friendOnlyId && friendOnlyId !== currentUser.id){
+    el.innerHTML = `<p class="login-tagline">Welcome to ChefOS</p><p class="lede">Setting up your own kitchen…</p>`;
+    const { error: pkErr } = await sb.rpc('ensure_personal_kitchen');
+    if(pkErr){
+      logClientError('ensure_personal_kitchen failed: ' + pkErr.message);
+      el.innerHTML = `<p class="login-tagline">You're approved</p><p class="lede">Could not finish setting up automatically (${pkErr.message}) — has db/110 been run? Ask whoever invited you.</p>`;
+      return;
+    }
+    const { error: connErr } = await sb.from('chef_connections').insert({ user_a: currentUser.id, user_b: friendOnlyId });
+    if(connErr && connErr.code !== '23505') console.error('chef_connections insert failed', connErr);
+    // Grab the inviter's name/email for the welcome message — best-effort, generic fallback.
+    try{
+      const { data: conns } = await sb.rpc('get_my_connections');
+      const inviter = (conns || []).find(c=>c.id === friendOnlyId);
+      sessionStorage.setItem('chefos_friend_welcome', (inviter && (inviter.full_name || inviter.email)) || 'A ChefOS chef');
+    } catch(e){ sessionStorage.setItem('chefos_friend_welcome', 'A ChefOS chef'); }
+    history.replaceState(null, '', location.pathname);
+    await startApp();
+    return;
+  }
+
   el.innerHTML = isSuperAdmin
     ? `<p class="login-tagline">Set up your kitchen</p>
        <p class="lede">You're approved. Name your restaurant/kitchen to get started — you can invite your team afterwards.</p>${createOwnKitchenBlock}`
@@ -7755,10 +7841,23 @@ async function showMyFriendQr(){
   document.getElementById('friendInviteEmailField').value = '';
   document.getElementById('friendInviteEmailStatus').textContent = '';
   document.getElementById('myFriendQrOverlay').classList.add('open');
-  let inviteId;
-  try{ inviteId = await getOrCreateActiveInvite(); }
-  catch(err){ holder.innerHTML = `<p style="color:#333;">Could not load: ${err.message}</p>`; return; }
-  const url = location.origin + location.pathname + '?invite=' + inviteId + '&friend=' + currentUser.id;
+  // Personal accounts share a PURELY social invite (Richard, 16.7. — the "Join Mr. Woof woof"
+  // report): no ?invite= at all, so a new person is never pulled into the inviter's kitchen —
+  // they get their own empty one instead (ensure_personal_kitchen, db/110). Company accounts
+  // keep the dual-purpose QR (friend + join my kitchen), which is what a team context wants.
+  const isPersonalInvite = currentAccountType === 'personal';
+  document.getElementById('friendQrDescription').textContent = isPersonalInvite
+    ? "Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code signs them up as your friend — with their own kitchen, not yours."
+    : "Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code brings them into your kitchen too.";
+  let url;
+  if(isPersonalInvite){
+    url = location.origin + location.pathname + '?friend=' + currentUser.id;
+  } else {
+    let inviteId;
+    try{ inviteId = await getOrCreateActiveInvite(); }
+    catch(err){ holder.innerHTML = `<p style="color:#333;">Could not load: ${err.message}</p>`; return; }
+    url = location.origin + location.pathname + '?invite=' + inviteId + '&friend=' + currentUser.id;
+  }
   _currentFriendInviteUrl = url;
   const qr = qrcode(0, 'M');
   qr.addData(url);
@@ -8180,6 +8279,10 @@ async function reviewAccessRequest(id, status){
   // off app-wide with no redeploy, e.g. once the public trial actually opens.
   const params = new URLSearchParams(location.search);
   const hasInviteContext = params.get('invite') || params.get('join') || params.get('friend');
+  if(params.get('friend')){
+    const notice = document.getElementById('friendInviteLoginNotice');
+    if(notice) notice.style.display = 'block';
+  }
   if(!hasInviteContext){
     // Fails OPEN on purpose, same rule as every other gate in this file (hasAcceptedConfidentiality
     // etc.) — if db/96 hasn't run yet, or the query errors for any reason, the wall must NEVER
@@ -15993,7 +16096,7 @@ const TUTORIAL_SLIDES = [
     { icon:'🔲', text:'Every feature is one of these icons.' },
     { icon:'↕️', text:'Tap the reorder icon to rearrange them.' },
     { icon:'🔒', text:'That order is just for your phone, not shared.' },
-    { icon:'🛡️', text:'Admin & Currency only show up if you\'re the kitchen\'s admin.' }
+    { icon:'🛡️', text:'Admin & Currency only show up if you\'re the kitchen\'s admin.', adminOnly:true }
   ]},
   { icon:'📋', title:'Check List', bullets:[
     { icon:'📁', text:'Opens on your projects — one restaurant/kitchen, one tile.' },
@@ -16051,7 +16154,8 @@ const TUTORIAL_SLIDES = [
     { icon:'👨‍🍳', text:'Chef Friends — see who you\'re connected with, and their shared recipes if they\'ve turned that on.' },
     { icon:'👥', text:'My Team — everyone in your own kitchen.' }
   ]},
-  { icon:'🛡️', title:'Admin (admins only)', bullets:[
+  /* adminOnly (bod 2, 16.7.): non-admins never see this slide at all — not even a mention. */
+  { icon:'🛡️', title:'Admin (admins only)', adminOnly:true, bullets:[
     { icon:'➕', text:'Add Admin — make someone a Kitchen Admin (their own kitchen only) or Head Admin (everything).' },
     { icon:'📋', text:'Admin Directory — search anyone, toggle exactly what they can do.' },
     { icon:'📨', text:'Access Requests and 📧 Email Contacts live here too now.' }
@@ -16064,8 +16168,19 @@ const TUTORIAL_SLIDES = [
   ]}
 ];
 let _tutorialIdx = 0;
+let _tutorialSlides = [];
+/* Non-admins never see admin content in the tutorial — no slide, no bullet, not even a mention
+   (bod 2, 16.7.). Filtered at open time, so someone who later becomes an admin sees the full
+   version next time they open it. */
+function isAnyKindOfAdmin(){
+  return currentIsAdmin || Object.values(currentAdminPerms || {}).some(Boolean);
+}
 function openTutorial(){
   _tutorialIdx = 0;
+  const showAdminContent = isAnyKindOfAdmin();
+  _tutorialSlides = TUTORIAL_SLIDES
+    .filter(s=>!s.adminOnly || showAdminContent)
+    .map(s=>({ ...s, bullets: s.bullets.filter(b=>!b.adminOnly || showAdminContent) }));
   renderTutorialSlide();
   document.getElementById('tutorialOverlay').classList.add('open');
 }
@@ -16075,22 +16190,23 @@ function closeTutorial(){
 }
 function tutorialStep(delta){
   _tutorialIdx += delta;
-  if(_tutorialIdx >= TUTORIAL_SLIDES.length){ closeTutorial(); return; }
+  if(_tutorialIdx >= _tutorialSlides.length){ closeTutorial(); return; }
   if(_tutorialIdx < 0) _tutorialIdx = 0;
   renderTutorialSlide();
 }
 function renderTutorialSlide(){
-  const s = TUTORIAL_SLIDES[_tutorialIdx];
+  const s = _tutorialSlides[_tutorialIdx];
+  if(!s) return;
   document.getElementById('tutorialBody').innerHTML = `
     <div style="text-align:center; padding:6px 4px 2px 4px;">
       <div style="font-size:40px; line-height:1;">${s.icon}</div>
       <div class="sheet-title" style="margin:10px 0 10px 0;">${s.title}</div>
       <div style="text-align:left;">${s.bullets.map(b=>`<div style="display:flex; align-items:flex-start; gap:9px; margin:8px 0;"><span style="font-size:18px; line-height:1.4;">${b.icon}</span><span class="sheet-text" style="margin:0; line-height:1.4;">${b.text}</span></div>`).join('')}</div>
-      <div style="margin-top:12px;">${TUTORIAL_SLIDES.map((_,i)=>`<span style="display:inline-block; width:6px; height:6px; border-radius:50%; margin:0 3px; background:${i===_tutorialIdx?'var(--copper)':'var(--rule)'};"></span>`).join('')}</div>
+      <div style="margin-top:12px;">${_tutorialSlides.map((_,i)=>`<span style="display:inline-block; width:6px; height:6px; border-radius:50%; margin:0 3px; background:${i===_tutorialIdx?'var(--copper)':'var(--rule)'};"></span>`).join('')}</div>
     </div>
   `;
   document.getElementById('tutorialBackBtn').style.visibility = _tutorialIdx === 0 ? 'hidden' : 'visible';
-  document.getElementById('tutorialNextBtn').textContent = _tutorialIdx === TUTORIAL_SLIDES.length - 1 ? 'Done' : 'Next';
+  document.getElementById('tutorialNextBtn').textContent = _tutorialIdx === _tutorialSlides.length - 1 ? 'Done' : 'Next';
 }
 function openScanSettings(){
   document.getElementById('scanLanguageSelect').value = _scanLanguage || 'en';
