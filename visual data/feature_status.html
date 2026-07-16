@@ -41,10 +41,6 @@
   .brandmark .mark{ font-size:20px; }
   .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:0.02em; color:var(--accent); font-style:italic; font-family:Georgia,'Times New Roman',serif; }
 
-  /* Personal/Company toggle — same one-tap pattern + wording as the live app's own topbar
-     badge (homeAccountTypeBadge), so this document echoes the real UI. Also does something
-     real: a few cards below are tagged account-specific and dim out for the type that
-     wouldn't see them. */
   .acct-toggle{
     display:flex; align-items:center; gap:6px; background:var(--paper); border:1px solid var(--rule);
     border-radius:20px; padding:4px; flex:none;
@@ -61,19 +57,13 @@
   h1.title em{ font-style:italic; color:var(--accent); font-weight:800; }
   .lede{ color:var(--ink-dim); font-size:14.5px; max-width:70ch; line-height:1.65; }
 
-  /* Legend — the whole point of the page, so it sits right under the title, not buried. */
   .legend{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
-  /* Filters (Richard, 16.7.) — the legend chips double as toggles: tap to show/hide that
-     status everywhere below. Full-color when active, dimmed when off — same active-chip
-     visibility standard as the app itself (never opacity-only… except "off" here IS the
-     signal, paired with a border change so it's not opacity alone). */
   .legend-item{ display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:8px 13px; font-size:12.5px; color:var(--ink-dim); cursor:pointer; user-select:none; transition:opacity .15s, border-color .15s; }
   .legend-item.active{ border-color:var(--accent-dim); }
   .legend-item:not(.active){ opacity:.38; border-style:dashed; }
   .legend-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
   .legend-item b{ color:var(--ink); font-weight:700; }
 
-  /* Overview counts */
   .pulse-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:24px; background:var(--rule); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
   @media (max-width:680px){ .pulse-strip{ grid-template-columns:repeat(2,1fr); } }
   .pulse-cell{ background:var(--paper); padding:16px 18px 14px 18px; }
@@ -85,7 +75,6 @@
   .pulse-cell.plan .lbl::before{ background:var(--plan); } .pulse-cell.plan .num{ color:var(--plan); }
   .pulse-cell.total .lbl::before{ background:var(--ink-dim); }
 
-  /* Module sections */
   .module{ margin-top:44px; }
   .module-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:16px; }
   .module-icon{
@@ -98,12 +87,13 @@
   .feature-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
   .feature-card{
     background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:13px 15px;
-    border-left:3px solid var(--ok);
+    border-left:3px solid var(--ok); cursor:pointer; transition:border-color .15s, transform .1s;
   }
+  .feature-card:hover{ border-color:var(--accent-dim); }
+  .feature-card:active{ transform:scale(.985); }
   .feature-card.status-test{ border-left-color:var(--test); background:var(--test-wash); }
   .feature-card.status-plan{ border-left-color:var(--plan); }
   .feature-card .fname{ font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:7px; }
-  .feature-card .fdesc{ font-size:12px; color:var(--ink-dim); margin-top:4px; line-height:1.5; }
   .status-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .status-dot.ok{ background:var(--ok); }
   .status-dot.test{ background:var(--test); }
@@ -112,6 +102,21 @@
   .acct-tag.personal{ background:var(--accent-wash); color:var(--accent); }
   .acct-tag.company{ background:var(--gold-wash); color:var(--gold); }
   .feature-card.dim{ opacity:.35; }
+
+  /* Detail modal (Richard, 17.7.) — tap any feature card for a plain-language explanation. */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,0.72); display:none; align-items:center; justify-content:center; padding:22px; z-index:100; }
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background:var(--paper); border:1px solid var(--rule); border-radius:18px; max-width:460px; width:100%; padding:22px 24px 18px 24px; box-shadow:var(--shadow); }
+  .modal .m-module{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-faint); }
+  .modal .m-name{ font-size:18px; font-weight:800; margin:6px 0 10px 0; line-height:1.3; }
+  .modal .m-status{ display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:9px; border:1px solid; }
+  .modal .m-status.ok{ color:var(--ok); border-color:var(--ok-dim); background:var(--ok-wash); }
+  .modal .m-status.test{ color:var(--test); border-color:var(--test-dim); background:var(--test-wash); }
+  .modal .m-status.plan{ color:var(--plan); border-color:var(--plan-dim); background:var(--plan-wash); }
+  .modal .m-desc{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; margin:14px 0 4px 0; }
+  .modal .m-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .modal .m-close{ display:block; width:100%; margin-top:16px; background:none; border:1px solid var(--rule); border-radius:10px; color:var(--ink-dim); font:inherit; font-size:13px; padding:9px 0; cursor:pointer; }
+  .modal .m-close:hover{ border-color:var(--accent-dim); color:var(--ink); }
 
   .chefos-stamp{ text-align:center; font-size:12px; color:var(--ink-faint); margin-top:50px; padding-top:20px; border-top:1px solid var(--rule); }
 </style>
@@ -128,7 +133,7 @@
     </div>
     <p class="kicker">Mapa funkcií</p>
     <h1 class="title">Čo <em>ChefOS</em> vie dnes</h1>
-    <p class="lede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. Toggle hore prepína pohľad presne ako v appke — pár vecí je iba pre Personal alebo iba pre Company účty, tie sa podľa toho stlmia.</p>
+    <p class="lede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. <b style="color:var(--ink);">Klikni na hociktorú funkciu</b> a otvorí sa okno s vysvetlením, čo presne robí. Toggle hore prepína pohľad presne ako v appke — veci iba pre Personal alebo iba pre Company účty sa podľa toho stlmia.</p>
     <div class="legend">
       <div class="legend-item active" id="legendOk" onclick="toggleStatusFilter('ok')"><span class="legend-dot" style="background:var(--ok);"></span>Funkčné, otestované naživo — <b id="legendOkCount"></b></div>
       <div class="legend-item active" id="legendTest" onclick="toggleStatusFilter('test')"><span class="legend-dot" style="background:var(--test);"></span>Postavené, čaká na test naživo — <b id="legendTestCount"></b></div>
@@ -147,133 +152,161 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 16. 7. 2026, 23:45</div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 01:00</div>
+</div>
+
+<!-- Feature detail modal -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this) closeFeatureModal()">
+  <div class="modal">
+    <div class="m-module" id="mModule"></div>
+    <div class="m-name" id="mName"></div>
+    <span class="m-status" id="mStatus"></span>
+    <p class="m-desc" id="mDesc"></p>
+    <div class="m-tags" id="mTags"></div>
+    <button class="m-close" onclick="closeFeatureModal()">Zavrieť</button>
+  </div>
 </div>
 
 <script>
-/* Data — status: 'ok' (funkčné, naživo overené) | 'test' (postavené dnes večer, čaká na test)
-   | 'plan' (iba naplánované, kód ešte neexistuje). acct: 'personal' | 'company' | null (obom). */
+/* Data — status: 'ok' (funkčné, naživo overené) | 'test' (postavené, čaká na živý test)
+   | 'plan' (iba naplánované). acct: 'personal' | 'company' | null (obom). role:'admin' =
+   funkcia viditeľná len pre kitchen adminov. desc = ľudské vysvetlenie pre klik-okno. */
 const MODULES = [
   { icon:'📖', title:'Recepty', items:[
-    { name:'173+ receptov, knižnica ChefOS', status:'ok' },
-    { name:'Poličky Moje / ChefOS / Firemné', status:'ok' },
-    { name:'Skutočné súkromie "Moje" (RLS, nie len UI filter)', status:'test', acct:'personal' },
-    { name:'Zdieľanie s priateľmi (opt-in, read-only)', status:'ok' },
-    { name:'AI generovanie receptu / nápadov', status:'ok' },
-    { name:'Sken receptu z fotky/PDF', status:'ok' },
-    { name:'Tlač — základná', status:'ok' },
-    { name:'Tlač — firemná identita (branded)', status:'test' },
-    { name:'Komentáre na receptoch', status:'test' },
-    { name:'Activity feed (🔔 kto okomentoval)', status:'test' },
-    { name:'Pridať recept do Check Listu (projekt → stanica)', status:'test' },
-    { name:'Obľúbené, poznámky, alergény, škálovanie', status:'ok' },
-    { name:'Poličky pre recepty (Moje/ChefOS, ChefOS/Firemné)', status:'test' },
-    { name:'Tlač v2 — dvojstĺpcový layout, meta pás, Chef\'s Notes', status:'test' },
+    { name:'173 receptov, knižnica ChefOS', status:'ok', desc:'Kompletná profesionálna knižnica receptov v plnom 20-poľovom formáte (suroviny, postup, yield, časy, stanica, food cost…). Každá kuchyňa dostane vlastnú kópiu automaticky pri vzniku.' },
+    { name:'Police: My Recipes / ChefOS / Company', status:'ok', desc:'Recepty sú rozdelené na police podľa autora — tvoje vlastné, spoločná ChefOS knižnica a firemné od kolegov. Polica sa vyberá veľkými dlaždicami pri otvorení Receptov. Naživo overené 16.7. (vrátane opravy bugu, kde sa polica sama prepínala späť na ChefOS).' },
+    { name:'Vlastné projekty (Add Project)', status:'test', desc:'Vedľa pevných políc si vieš vytvoriť vlastné pomenované zbierky receptov — napr. "Svadobné menu 2026" — s výberom z 8 farebných kníh ako ikonou. Dlhé podržanie dlaždice = premenovať / skryť / vymazať.' },
+    { name:'Sekcie per polica (každá vlastné)', status:'test', desc:'Každá polica aj projekt má vlastný, nezávislý zoznam sekcií (Polievky, Dezerty…) — nová polica začína čistá, len Favorites + All, a sekcie si buduje sama cez "+ New Section".' },
+    { name:'Skutočné súkromie "Moje" (RLS)', status:'test', acct:'personal', desc:'Osobné recepty sú súkromné priamo na úrovni databázy — nevidí ich ani admin kuchyne. Nie je to len filter v appke, ale bezpečnostné pravidlo servera.' },
+    { name:'Zdieľanie s priateľmi (opt-in)', status:'ok', desc:'Ak si to zapneš v nastaveniach, tvoji chef-priatelia (Connections) vidia tvoje vlastné recepty — len na čítanie. Vypnuteľné kedykoľvek.' },
+    { name:'Komentáre — zdieľané naprieč kuchyňami', status:'test', desc:'Komentár na ChefOS recepte vidí každá kuchyňa, ktorá ten recept má — funguje to ako spoločná nástenka nad knižnicou. Na osobných/firemných receptoch zostávajú komentáre len v rámci pôvodnej viditeľnosti.' },
+    { name:'Activity feed (🔔 kto okomentoval)', status:'test', desc:'Zvonček na Home ukáže bodku, keď niekto okomentuje TVOJ recept — po otvorení vidíš zoznam nových komentárov.' },
+    { name:'AI generovanie receptu / nápadov', status:'ok', desc:'Chef\'s Assistant vie vygenerovať úplne nový recept na mieru — podľa surovín, diéty alebo štýlu — a uložiť ho rovno do tvojej police.' },
+    { name:'Sken receptu z fotky / PDF', status:'ok', desc:'Odfotíš recept (aj ručne písaný, aj celé menu) a AI ho prepíše do štandardného ChefOS formátu — suroviny, množstvá, postup, všetko na svojom mieste.' },
+    { name:'Sken menu z URL webstránky', status:'ok', desc:'Vložíš adresu webstránky s menu a AI si ju stiahne a spracuje sama — rovnaký výsledok ako sken fotky, bez fotenia.' },
+    { name:'Tlač — firemná identita (branded)', status:'test', desc:'Jedno tlačidlo tlače: profesionálna receptová karta s hlavičkou tvojej kuchyne, ChefOS pečiatkou, dvojstĺpcovým layoutom (suroviny + očíslovaný postup), Chef\'s Notes a sekciou "Used In" — v ktorých ďalších receptoch sa tento používa.' },
+    { name:'Pridať recept do Check Listu', status:'test', desc:'Tlačidlo na recepte — appka sa najprv spýta do ktorého projektu (ak máš viac), potom na ktorú stanicu, a recept pristane v dennom prep liste.' },
+    { name:'Obľúbené, poznámky, škálovanie, alergény', status:'ok', desc:'Hviezdička na obľúbené, vlastné poznámky ku každému receptu, prepočet množstiev podľa porcií alebo jednej suroviny, automatická detekcia alergénov a diét z názvov surovín.' },
   ]},
   { icon:'🧂', title:'Ingrediencie', items:[
-    { name:'Zdieľaný cenník (2005+ položiek)', status:'ok' },
-    { name:'My Ingredients (súkromné, per účet)', status:'test', acct:'personal' },
-    { name:'Pridávanie do zdieľanej police — len admin', status:'test', role:'admin' },
-    { name:'Sken dokumentu/fotky → AI extrakcia', status:'test' },
-    { name:'Sken .xlsx (Excel) bez knižnice', status:'test' },
-    { name:'AI Details — dopĺňanie chýbajúcich polí', status:'test' },
-    { name:'Custom Ingredients (admin upload)', status:'ok' },
-    { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test' },
-    { name:'Vlastné pomenované zoznamy + zdieľanie s priateľmi', status:'test' },
-    { name:'Bulk delete (podľa dátumu / všetko)', status:'test' },
-    { name:'Sezónnosť, kategórie, Ingredient Audit', status:'ok' },
+    { name:'Zdieľaný cenník (~2 000 položiek)', status:'ok', desc:'Cenová databáza surovín tvojej kuchyne — z nej sa automaticky počíta food cost každého receptu. Pozor: väčšina cien je zatiaľ AI odhad, nie overená faktúra.' },
+    { name:'My Ingredients (súkromné)', status:'test', acct:'personal', desc:'Tvoja vlastná polica surovín, oddelená od spoločného cenníka — súkromná na úrovni databázy, rovnako ako osobné recepty.' },
+    { name:'Vlastné zoznamy + zdieľanie s priateľmi', status:'test', desc:'Vytvoríš si ďalšie pomenované zoznamy surovín (napr. "Ázijská špajza") a voliteľne ich zdieľaš s chef-priateľmi — len na čítanie. Dlhé podržanie dlaždice = premenovať / skryť / vymazať / zdieľať.' },
+    { name:'Pridávanie do zdieľanej police — len admin', status:'test', role:'admin', desc:'Do spoločného cenníka kuchyne môže pridávať a upravovať len admin — bežný člen ho používa, ale nerozbije. Vlastné police má každý naplno.' },
+    { name:'Sken dokumentu / fotky → AI extrakcia', status:'test', desc:'Odfotíš cenník od dodávateľa, ručný zoznam alebo PDF a AI z neho vytiahne každú položku aj s cenou.' },
+    { name:'Sken .xlsx (Excel)', status:'test', desc:'Načíta aj Excel súbor od dodávateľa — bez externých knižníc, priamo v prehliadači — a spracuje ho tou istou AI extrakciou.' },
+    { name:'AI Details — dopĺňanie polí', status:'test', desc:'Jedno tlačidlo doplní chýbajúce kategórie, sezónnosť a typ skladovania pre až 25 položiek naraz. Nikdy neprepisuje, čo už je vyplnené.' },
+    { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test', desc:'Podrž prst (alebo pravý klik) na hociktorej surovine a rovno ju upravíš — bez hľadania v menu.' },
+    { name:'Bulk delete (podľa dátumu / všetko)', status:'test', desc:'Hromadné vymazanie surovín podľa dátumu pridania alebo celej police naraz — na upratanie po zlom skene.' },
+    { name:'Sezónnosť, kategórie, filtre, Ingredient Audit', status:'ok', desc:'Filtrovanie podľa kuchyne, kategórie, sezóny, skladovania a ceny; sezónne suroviny navrchu; audit nekonzistentných názvov.' },
   ]},
-  { icon:'✅', title:'Check List', items:[
-    { name:'Prep sheet podľa stanice', status:'ok' },
-    { name:'Projekty / výber reštaurácie', status:'ok' },
-    { name:'Skryť/zobraziť jedlá a položky', status:'ok' },
-    { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test' },
-    { name:'Prepojenie na Order List a Print Labels', status:'ok' },
-  ]},
-  { icon:'⏱️', title:'Working Time', items:[
-    { name:'Check-in / check-out, prestávky', status:'ok' },
-    { name:'Kontrahované hodiny, ďalšie voľno', status:'ok' },
-    { name:'Detail dňa (objednávky + vytlačené štítky)', status:'ok' },
-    { name:'Mesačné grafy', status:'ok' },
-    { name:'Sken rozpisu (Dienstplan) → AI', status:'ok' },
-  ]},
-  { icon:'🧼', title:'HACCP', items:[
-    { name:'Príjem tovaru, teploty varenia, chladenie', status:'ok' },
-    { name:'Čistenie a hygiena', status:'ok' },
-    { name:'Fritézový olej, škodcovia', status:'ok' },
-    { name:'Expirácia štítkov', status:'ok' },
-    { name:'Školenia personálu (vlna 3)', status:'plan' },
-    { name:'Admin report naprieč HACCP', status:'plan' },
-    { name:'Skryté z osobných účtov (admin + firemné vidia naďalej)', status:'test' },
+  { icon:'✅', title:'Check List (Kitchen Flow)', items:[
+    { name:'Prep sheet podľa stanice', status:'ok', desc:'Denný prípravný zoznam po staniciach (SKY, Hot Line, Garde Manger…) — jedlá s položkami, stavy TO DO / CHECK / FINISH / DON\'T DO, priority a minúty. Srdce ChefOS.' },
+    { name:'Projekty / výber reštaurácie', status:'ok', desc:'Jedna kuchyňa môže mať viac projektov (napr. dve prevádzky) — Check List sa otvára cez výber projektu a všetko vnútri je oddelené.' },
+    { name:'Cross-station "All" + overload 🔥', status:'ok', desc:'Pohľad na všetky stanice naraz — kto má koľko roboty pred sebou; stanica s viac ako 3,5 h nevybavenej práce dostane 🔥 odznak.' },
+    { name:'AI sken prep sheetu (fotka / PDF)', status:'ok', desc:'Odfotíš papierový prep sheet a AI z neho postaví celú stanicu — jedlá aj položky — na jedno potvrdenie.' },
+    { name:'Reálne časy per stav (crowd-sourced)', status:'ok', desc:'Každá položka má minúty pre TO DO / CHECK / FINISH; tapnutím na čas zapíšeš, koľko to reálne trvalo, a odhady sa časom spresňujú priemerom.' },
+    { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test', desc:'Rovnaké gesto ako pri ingredienciách — podrž jedlo v prep liste a rovno ho upravíš.' },
+    { name:'Audit log zmien', status:'ok', role:'admin', desc:'Kto čo kedy zmenil v Check Liste — dohľadateľné pre admina, žiadne "to som nebol ja".' },
+    { name:'Language Audit', status:'ok', role:'admin', desc:'AI prejde názvy jedál a položiek a navrhne jednotný jazyk/pravopis pre celú kuchyňu.' },
+    { name:'Prepojenie na Order List a Print Labels', status:'ok', desc:'Z položky v prep liste jedným ťukom: objednať (🛒) alebo vytlačiť štítok (🖨️).' },
   ]},
   { icon:'🛒', title:'Order List', items:[
-    { name:'Objednávky per-osoba', status:'ok' },
-    { name:'Tlač objednávky', status:'ok' },
+    { name:'Objednávky per-osoba', status:'ok', desc:'Každý si pridáva vlastné položky (z Check Listu, Ingrediencií alebo ručne); duplicitné položky sa sčítavajú a admin vidí, kto čo objednal. Naživo overené 16.7.' },
+    { name:'Bulk tlač / vymazanie', status:'ok', desc:'Označíš viac položiek naraz a vytlačíš alebo vyčistíš jedným ťukom.' },
+    { name:'Send to Supplier', status:'plan', desc:'Odoslanie objednávky priamo dodávateľovi jedným tlačidlom — zatiaľ "coming soon" placeholder, plánované po triali (napojenie na švajčiarskych dodávateľov je dlhodobá vízia).' },
+  ]},
+  { icon:'🏷️', title:'Print Labels', items:[
+    { name:'Fronta štítkov z Check Listu / ručne', status:'ok', desc:'Štítky na produkty pripravíš z prep listu jedným ťukom alebo ručne (od 3 písmen navrhuje názvy) a vytlačíš všetky naraz.' },
+    { name:'Use-by dátum automaticky', status:'ok', desc:'Štítok si sám dopočíta dátum spotreby z trvanlivosti produktu — žiadne počítanie v hlave o polnoci.' },
+    { name:'HACCP log každej tlače', status:'ok', desc:'Každý vytlačený štítok sa zapíše s dátumom spotreby — z toho žije obrazovka Expirácia štítkov v HACCP (čo je po dátume / dnes-zajtra / v poriadku).' },
+    { name:'Tlačiareň Brother QL-820NWB', status:'plan', desc:'Odporúčaná tlačiareň (~CHF 130, bez zmluvy) je vybraná a zdôvodnená v docs/LABEL_PRINTER_RESEARCH.md — fyzicky zatiaľ nekúpená, tlačí sa cez bežnú tlačiareň prehliadača.' },
+  ]},
+  { icon:'⏱️', title:'Working Time', items:[
+    { name:'Check-in / check-out, prestávky', status:'ok', desc:'Príchod a odchod jedným ťukom, prestávky, poznámky ku dňu — evidencia odpracovaných hodín pre teba aj pre výplatu.' },
+    { name:'Zabudnutý check-in / check-out', status:'ok', desc:'Ak zabudneš ťuknúť, appka to zistí a dá ti spätne doplniť skutočný čas — obojsmerne (zabudnutý príchod aj odchod).' },
+    { name:'GPS snímka pri check-in/out', status:'ok', desc:'Jednorazová poloha presne v momente príchodu/odchodu (nie priebežné sledovanie — vedomé rozhodnutie z právnych dôvodov). ⚠️ Audit 16.7.: treba ju ešte doplniť do legal.html.' },
+    { name:'Kontrahované hodiny, nadčasy, voľno', status:'ok', desc:'Porovnanie odpracovaného s úväzkom, nadčasy a zostatok voľna — mesačné grafy a koláče.' },
+    { name:'Detail dňa (objednávky + štítky)', status:'ok', desc:'Pri každom dni vidíš, čo sa v ten deň objednalo a koľko štítkov sa vytlačilo — kontext k odpracovaným hodinám.' },
+    { name:'Sken zmluvy → AI poznámka', status:'ok', desc:'Nahráš pracovnú zmluvu a AI z nej vytiahne hodiny, dovolenku a platové podmienky — s ikonami ⚠️/✅/ℹ️ pri každom bode. Zmluva je viditeľná len tebe (chránené na úrovni databázy).' },
+    { name:'Pripomienka zmeny (shift reminder)', status:'ok', desc:'Appka ti pripomenie blížiaci sa začiatok zmeny podľa rozpisu.' },
+  ]},
+  { icon:'📅', title:'Schedule', items:[
+    { name:'Rozpis zmien (shift kódy)', status:'ok', desc:'Mesačný rozpis v mriežke so zmenovými kódmi ako na papieri — postavený podľa reálneho rozpisu z hotela. Roster sa momentálne prestavuje pre Burrito Bandito & Lido.' },
+    { name:'Sken rozpisu (Dienstplan) → AI', status:'ok', desc:'Odfotíš papierový Dienstplan a AI ho prepíše do appky — mená, dni, zmeny.' },
+  ]},
+  { icon:'🧼', title:'HACCP', items:[
+    { name:'Príjem tovaru, teploty varenia, chladenie', status:'ok', desc:'Záznamy teplôt pri príjme, jadrové teploty pri varení a protokol chladenia — presne to, čo pýta švajčiarska kontrola.' },
+    { name:'Teploty chladničiek', status:'ok', desc:'Denné zapisovanie teplôt chladničiek/mrazničiek s históriou. (Automatický senzor SensorPush je preskúmaný, zatiaľ nekúpený.)' },
+    { name:'Čistenie a hygiena checklisty', status:'ok', desc:'Denné/týždenné upratovacie a hygienické checklisty s odškrtávaním — dohľadateľné pri kontrole.' },
+    { name:'Fritézový olej, škodcovia', status:'ok', desc:'Evidencia výmeny oleja a kontrol škodcov — dve najčastejšie otázky inšpekcie.' },
+    { name:'Expirácia štítkov', status:'ok', desc:'Prehľad všetkého, čo bolo oštítkované: po dátume / končí dnes-zajtra / v poriadku — napojené na Print Labels.' },
+    { name:'Skryté z osobných účtov', status:'test', desc:'HACCP (a Team Meetings) vidia len firemné účty a admini — samostatnému kuchárovi na osobnom účte zbytočne nezavadzia.' },
+    { name:'Školenia personálu (vlna 3)', status:'plan', desc:'Evidencia, kto absolvoval hygienické školenie a kedy — zatiaľ "pripravujeme" dlaždica.' },
+    { name:'Admin report naprieč HACCP', status:'plan', desc:'Jedna súhrnná obrazovka cez všetky HACCP moduly pre kontrolu — zatiaľ "pripravujeme" dlaždica.' },
   ]},
   { icon:'🎩', title:"Chef's Assistant (AI)", items:[
-    { name:'Chat asistent, nápady na jedlá', status:'ok' },
-    { name:'Sken zmluvy / menu / rozpisu', status:'ok' },
-    { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal' },
-    { name:'AI Testing Mode (dočasne neobmedzené)', status:'test', role:'admin' },
-    { name:'Gate presadený aj v edge funkcii (nielen appke)', status:'test' },
-    { name:'Centrálny Anthropic API kľúč (user spend oddelene sledovaný)', status:'test' },
+    { name:'Chat asistent, technika, substitúcie', status:'ok', desc:'Michelin-štýl kuchársky poradca: náhrady surovín, technika, nápady na jedlá — priamo v appke.' },
+    { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal', desc:'Osobné účty majú AI funkcie cez kreditový zostatok v CHF (prvé dobitie 70 % kreditu, ďalšie 90 %) — firemné účty majú AI v predplatnom. Účtuje sa podľa reálnej spotreby tokenov.' },
+    { name:'Centrálny Anthropic API kľúč', status:'test', desc:'Všetky AI funkcie bežia cez jeden firemný kľúč v samostatnom workspace — spotreba užívateľov sa sleduje oddelene od vývojárskej. Nikto si už nemusí vkladať vlastný kľúč.' },
+    { name:'AI Testing Mode', status:'test', role:'admin', desc:'Platformový vypínač pre Head Admina: kým je zapnutý, AI je pre všetkých neobmedzené (na testovanie) — kreditový systém sa obchádza.' },
+    { name:'Gate presadený aj na serveri', status:'test', desc:'Kreditová kontrola beží aj v serverovej funkcii, nielen v appke — obísť ju z prehliadača nestačí.' },
+    { name:'Chef Challenge', status:'ok', desc:'Hravé AI výzvy na varenie. ⚠️ Audit odporúča vyhodiť z trial buildu — hračka bez väzby na hodnotu pre kuchyňu.' },
   ]},
   { icon:'🔗', title:'Connections', items:[
-    { name:'Add Friend QR', status:'ok' },
-    { name:'Add Friend QR = pozvánka do kuchyne', status:'ok' },
-    { name:'Chef Friends zoznam', status:'ok' },
-    { name:'Zdieľané recepty od priateľov', status:'ok' },
+    { name:'Add Friend QR / email', status:'ok', desc:'Pridáš si kolegu-kuchára naskenovaním jeho QR alebo emailom — vznikne priateľské prepojenie na zdieľanie receptov a zoznamov.' },
+    { name:'Chef Friends zoznam', status:'ok', desc:'Zoznam tvojich prepojených kuchárov — pri každom vidíš, čo s tebou zdieľa.' },
+    { name:'Zdieľané recepty od priateľov', status:'ok', desc:'Recepty, ktoré ti priatelia sprístupnili (read-only) — otváraš ich priamo z ich profilu.' },
+    { name:'Zdieľané zoznamy ingrediencií od priateľov', status:'test', desc:'To isté pre vlastné zoznamy surovín — priateľ ti ukáže napr. svoju "Ázijskú špajzu", len na čítanie.' },
+    { name:'Scan QR (univerzálny)', status:'ok', desc:'Jeden skener kamery rozozná priateľský QR, tímovú pozvánku aj join kód — a vždy sa najprv spýta, čo chceš urobiť.' },
   ]},
   { icon:'🏗️', title:'Tímy / Typ účtu', items:[
-    { name:'Personal / Company brána + filter receptov', status:'ok' },
-    { name:'Jedno-klikový prepínač s potvrdením', status:'test' },
-    { name:'Create Team (nová admin rola)', status:'test', acct:'company', role:'admin' },
-    { name:'Join kód — sken QR / ručne / email', status:'test', acct:'company' },
-    { name:'Stará "hocikto môže vytvoriť kuchyňu" diera', status:'ok' },
-    { name:'Reálne členstvo (in_team) — brána na Company prepnutie', status:'test' },
-    { name:'QR pozvánka do tímu s potvrdzovacou obrazovkou', status:'test', acct:'company', role:'admin' },
-    { name:'ROLE v My Profile (Head Admin/Admin/Assistant/Member)', status:'test' },
+    { name:'Personal / Company prepínač', status:'ok', desc:'Jeden účet, dva režimy: osobný zápisník vs. firemná kuchyňa. Prepnutie jedným ťukom na Home s potvrdením.' },
+    { name:'Reálne členstvo — brána na Company', status:'test', desc:'Do Company režimu sa dostane len ten, kto sa REÁLNE pripojil do tímu (pozvánka, join kód) alebo je admin — hocikto cudzí už nie.' },
+    { name:'Join kód — QR / ručne / email', status:'test', acct:'company', desc:'Admin vygeneruje kód alebo QR svojej kuchyne; nový člen ho naskenuje alebo zadá a appka sa spýta "chceš sa stať členom tímu X?" pred pripojením.' },
+    { name:'Create Team', status:'test', acct:'company', role:'admin', desc:'Kitchen admin (company_admin) vie založiť novú reštauráciu/kuchyňu a vygenerovať jej join kódy — Richard onboarduje firmy cez Add Company, ich admin si potom tvorí tímy sám.' },
+    { name:'ROLE v My Profile', status:'test', desc:'V profile vidíš svoju rolu: Head Admin / Admin / Admin Assistant / Member — podľa skutočných práv, nie podľa dojmu.' },
+    { name:'Team Members — Make Assistant / Remove', status:'ok', role:'admin', desc:'Admin vidí zoznam členov svojej kuchyne (v Admin aj v Connections > My Team), vie prideliť rolu asistenta a odstrániť člena. Naživo overené 17.7. po trojkolovej oprave RLS.' },
+    { name:'Remove ponecháva osobný ChefOS', status:'ok', desc:'Odstránený člen príde LEN o firemnú kuchyňu — okamžite dostane vlastnú čistú "My Kitchen" so štandardnými policami a jeho osobné recepty/suroviny mu zostávajú. Naživo overené 17.7.' },
   ]},
   { icon:'🛡️', title:'Admin', items:[
-    { name:'Add Admin (Head / Kitchen Admin)', status:'ok', role:'admin' },
-    { name:'Admin Directory', status:'ok', role:'admin' },
-    { name:'Access Requests + refresh', status:'ok', role:'admin' },
-    { name:'Email Contacts (+ trigger, nie best-effort)', status:'test', role:'admin' },
-    { name:'Internal Docs (len Richard)', status:'ok', role:'admin' },
-    { name:'Feedback inbox', status:'test', role:'admin' },
-    { name:'Kitchen Reports (adresár + drill-down do receptov)', status:'test', acct:'company', role:'admin' },
-    { name:'Preview as Normal User', status:'ok', role:'admin' },
+    { name:'Add Admin (Head / Kitchen Admin)', status:'ok', role:'admin', desc:'Dve úrovne: Head Admin (Richard, plný dosah) a Kitchen Admin (vybrané práva cez prepínače — pozvánky, tím, reporty…).' },
+    { name:'Add Company (jednorazová pozvánka)', status:'ok', role:'admin', desc:'Richard založí firmu a pošle JEDNU pozvánku emailom — kto ju prijme, automaticky sa stane hlavným adminom tej kuchyne. Odolné aj voči "spálenému" odkazu (email preview) — overené na chefos@protonmail.com.' },
+    { name:'Admin Directory', status:'ok', role:'admin', desc:'Prehľad všetkých účtov s on/off prepínačmi práv, typom účtu a AI kreditom (ak nejaký má).' },
+    { name:'Access Requests', status:'ok', role:'admin', desc:'Schvaľovanie nových žiadostí o prístup do ChefOS — appka je invite-only, bez schválenia sa nikto nedostane dnu.' },
+    { name:'Kitchen Reports', status:'test', acct:'company', role:'admin', desc:'Adresár všetkých kuchýň (pre Head Admina) + report per kuchyňa: aktivita v receptoch a Check Liste, hodiny zamestnancov LEN s ich súhlasom, rozklikávanie až na recept.' },
+    { name:'Feedback inbox', status:'test', role:'admin', desc:'Všetka spätná väzba od užívateľov (Settings > Send Feedback) na jednom mieste.' },
+    { name:'Email Contacts', status:'test', role:'admin', desc:'Každá emailová adresa, ktorú ChefOS kedy videl (žiadosti, pozvánky) — plnené automaticky databázovým triggerom, nie krehkým zápisom z appky.' },
+    { name:'AI Testing Mode + Internal Docs', status:'ok', role:'admin', desc:'Vypínač neobmedzeného AI na testovanie + interné dokumenty (status, backlog, investor deck, najnovší Critical Review) — Internal Docs len pre Richarda.' },
+    { name:'Preview as Normal User', status:'ok', role:'admin', desc:'Admin si jedným ťukom pozrie appku očami bežného člena — s trvalým bannerom na návrat.' },
   ]},
   { icon:'⚙️', title:'Nastavenia', items:[
-    { name:'My Profile & Security, heslo, Face ID', status:'ok' },
-    { name:'Jazyk, mena, AI/scan nastavenia', status:'ok' },
-    { name:'Preusporiadanie ikoniek Home/Settings', status:'ok' },
-    { name:'Typ účtu vždy viditeľný (badge v topbare)', status:'test' },
-    { name:'Zdieľať hodiny s adminom (súhlas)', status:'test' },
-    { name:'Send Feedback', status:'test' },
-    { name:'Tutorial, návod na pridanie na plochu', status:'ok' },
-    { name:'Vždy viditeľný hlavičkový pás (Späť/Domov)', status:'test' },
+    { name:'My Profile & Security (heslo, Face ID)', status:'ok', desc:'Meno, email, tím, rola; povinné heslo + voliteľné Face ID odomknutie na tomto zariadení (biometria nikdy neopúšťa telefón).' },
+    { name:'Light / Dark mode', status:'test', desc:'Prepínač vzhľadu — tmavý (pôvodný ChefOS) alebo svetlý pre kuchyňu pri dennom svetle. Per zariadenie, každý člen tímu si volí sám.' },
+    { name:'Jazyk (EN/DE/FR/IT/SK)', status:'ok', desc:'Prepnutie jazyka rozhrania — čiastočné pokrytie (login, Home, Check List), zvyšok postupne. Dáta kuchyne sa nikdy neprekladajú.' },
+    { name:'What\'s New notifikácie', status:'test', desc:'Srdiečko na Home s bodkou, keď pribudne nová funkcia — krátke obrazovky s vysvetlením, čo je nové. Plní sa pri každom vydaní.' },
+    { name:'Preusporiadanie ikoniek Home/Settings', status:'ok', desc:'Poradie dlaždíc si každý nastaví sám — platí len pre jeho zariadenie.' },
+    { name:'Send Feedback', status:'test', desc:'Správa priamo Richardovi z appky — chyba, nápad alebo pochvala.' },
+    { name:'Zdieľať hodiny s adminom (súhlas)', status:'test', desc:'Defaultne admin vidí hodiny tímu len anonymne v súčte; menovite len ak si to tu sám zapneš. Kedykoľvek odvolateľné.' },
+    { name:'Tutorial + pridanie na plochu', status:'ok', desc:'Obrazovka-po-obrazovke sprievodca appkou (bez admin obsahu pre bežných členov) + návod, ako si dať ChefOS na plochu telefónu ako appku.' },
+    { name:'Vždy viditeľný hlavičkový pás', status:'test', desc:'Kitchen Notebook / ChefOS pás s tlačidlami Späť a Domov na každej obrazovke okrem hlavného menu — Domov navyše vždy vyroluje čistý vrch stránky.' },
   ]},
   { icon:'🔐', title:'Bezpečnosť a súkromie', items:[
-    { name:'Confidentiality brána', status:'ok' },
-    { name:'Privacy & Data Protection brána (GDPR/nDSG)', status:'test' },
-    { name:'Možnosť nesúhlasiť (odhlási namiesto slepej uličky)', status:'test' },
-    { name:'/security dokumenty pre právnika', status:'test' },
-    { name:'Platobná brána, faktúry', status:'plan' },
-    { name:'GmbH registrácia', status:'plan' },
-    { name:'Značkové Supabase auth emaily (magic link, confirm)', status:'test' },
-    { name:'Trvalá oprava admin-invite reclaim bugu (db/118)', status:'test' },
+    { name:'Invite-only prístup + schvaľovanie', status:'ok', desc:'Do appky sa nedá samoregistrovať — len pozvánkou (QR/link/email) a po schválení. "Coming soon" stena pre náhodných návštevníkov.' },
+    { name:'Confidentiality + Privacy brány', status:'test', desc:'Pri prvom prihlásení (a po každej zmene verzie) musí každý odsúhlasiť mlčanlivosť a ochranu osobných údajov (GDPR/nDSG) — s možnosťou nesúhlasiť a odhlásiť sa.' },
+    { name:'RLS izolácia dát per kuchyňa', status:'ok', desc:'Každá tabuľka v databáze má bezpečnostné pravidlá — dáta jednej kuchyne druhá nikdy nevidí, a osobné dáta nevidí ani vlastný admin. Kontrolované automatickým auditom pri každom commite.' },
+    { name:'Branded auth emaily', status:'test', desc:'Prihlasovacie a potvrdzovacie emaily prichádzajú v ChefOS identite (navy/teal, vlastná doména) namiesto generického Supabase vzhľadu.' },
+    { name:'Trvalé opravy incidentov (db/118, 121–125)', status:'ok', desc:'Tri bezpečnostné incidenty zo 16.7. (spálená admin pozvánka, nefunkčný Remove, zamknutý účet po remove) — každý opravený štrukturálne, nie záplatou, a zapísaný v HEALTH_LOG.md aj s ponaučením.' },
+    { name:'/security dokumenty pre právnika', status:'test', desc:'Priečinok s bezpečnostným review a podkladmi pre právnu konzultáciu pred trialom.' },
+    { name:'legal.html — aktualizácia (heslo, GPS)', status:'plan', desc:'Audit 16.7. našiel dve zastarané tvrdenia: dokument tvrdí "žiadne heslá" (heslo je povinné od 15.7.) a nespomína GPS snímku pri check-in/out. Oprava textu čaká — pred trialom povinná.' },
+    { name:'Platobná brána, faktúry', status:'plan', desc:'Na štart ručné faktúry (do ~20 kuchýň), platobná brána až potom — vedomé rozhodnutie z monetizačného plánu.' },
+    { name:'Einzelfirma / GmbH registrácia', status:'plan', desc:'Právna forma na fakturáciu: najprv Einzelfirma/AHV (blokátor prvého príjmu, termín 20.7.), GmbH až po prvých reálnych tržbách.' },
   ]},
 ];
 
-/* Status filters (Richard, 16.7.) — which statuses are currently shown. Counts in the legend
-   and pulse strip always reflect the FULL list, so toggling a filter never makes the totals
-   lie; only the cards below get filtered. */
+/* Status filters — counts in the legend and pulse strip always reflect the FULL list, so
+   toggling a filter never makes the totals lie; only the cards below get filtered. */
 const activeStatuses = new Set(['ok','test','plan']);
-// Kitchen Admin filter (bod 4, 16.7.) — separate axis from status: "how many features does a
-// Kitchen Admin have" (role:'admin' items, tagged wherever a feature is admin-gated in the real
-// app). Off by default (shows everything); toggling it isolates just the admin-tier features,
-// same one-tap chip pattern as the status filters, just its own dimension.
 let showAdminOnly = false;
 function toggleStatusFilter(status){
   if(activeStatuses.has(status)){
@@ -296,18 +329,15 @@ function renderModules(){
   const wrap = document.getElementById('modulesWrap');
   const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
   let ok=0, test=0, plan=0, adminTotal=0;
-  wrap.innerHTML = MODULES.map(mod=>{
-    const visibleItems = mod.items.filter(it=>{
+  wrap.innerHTML = MODULES.map((mod, mi)=>{
+    const cards = mod.items.map((it, ii)=>{
       if(it.status==='ok') ok++; else if(it.status==='test') test++; else plan++;
       if(it.role==='admin') adminTotal++;
-      if(showAdminOnly && it.role!=='admin') return false;
-      return activeStatuses.has(it.status);
-    });
-    if(!visibleItems.length) return '';
-    const cards = visibleItems.map(it=>{
+      if(showAdminOnly && it.role!=='admin') return null;
+      if(!activeStatuses.has(it.status)) return null;
       const dimmed = it.acct && it.acct !== acct;
       return `
-        <div class="feature-card status-${it.status}${dimmed?' dim':''}">
+        <div class="feature-card status-${it.status}${dimmed?' dim':''}" onclick="openFeatureModal(${mi},${ii})">
           <div class="fname"><span class="status-dot ${it.status}"></span>${it.name}</div>
           <div style="display:flex; gap:5px; flex-wrap:wrap;">
             ${it.acct ? `<span class="acct-tag ${it.acct}">${it.acct === 'personal' ? 'Personal' : 'Company'}</span>` : ''}
@@ -315,15 +345,16 @@ function renderModules(){
           </div>
         </div>
       `;
-    }).join('');
+    }).filter(Boolean);
+    if(!cards.length) return '';
     return `
       <div class="module">
         <div class="module-head">
           <div class="module-icon">${mod.icon}</div>
           <div class="module-title">${mod.title}</div>
-          <div class="module-count">${visibleItems.length}${visibleItems.length !== mod.items.length ? ' / ' + mod.items.length : ''} funkcií</div>
+          <div class="module-count">${cards.length}${cards.length !== mod.items.length ? ' / ' + mod.items.length : ''} funkcií</div>
         </div>
-        <div class="feature-grid">${cards}</div>
+        <div class="feature-grid">${cards.join('')}</div>
       </div>
     `;
   }).join('');
@@ -341,6 +372,27 @@ function setAcctView(type){
   document.getElementById('acctCompanyBtn').classList.toggle('active', type==='company');
   renderModules();
 }
+
+/* Detail modal (Richard, 17.7.) — tap a card, read what the feature actually does. */
+const STATUS_LABELS = { ok:'Funkčné, otestované naživo', test:'Postavené, čaká na test naživo', plan:'Naplánované, ešte nepostavené' };
+function openFeatureModal(mi, ii){
+  const mod = MODULES[mi], it = mod.items[ii];
+  document.getElementById('mModule').textContent = mod.icon + ' ' + mod.title;
+  document.getElementById('mName').textContent = it.name;
+  const st = document.getElementById('mStatus');
+  st.className = 'm-status ' + it.status;
+  st.textContent = STATUS_LABELS[it.status];
+  document.getElementById('mDesc').textContent = it.desc || '';
+  document.getElementById('mTags').innerHTML =
+    (it.acct ? `<span class="acct-tag ${it.acct}">${it.acct === 'personal' ? 'Len Personal účty' : 'Len Company účty'}</span>` : '') +
+    (it.role==='admin' ? `<span class="acct-tag" style="background:var(--gold-wash); color:var(--gold);">🛡️ Len Kitchen Admin</span>` : '');
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function closeFeatureModal(){
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeFeatureModal(); });
+
 setAcctView('personal');
 </script>
 </body>
