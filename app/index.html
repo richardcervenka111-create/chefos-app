@@ -2171,6 +2171,23 @@
   <div class="detail-content" id="adminRequestsContent"></div>
 </div>
 
+<!-- Team Members, reachable from Admin too (bod, 16.7. neskoro večer) — same list/actions as
+     Connections > My Team (renderTeamMembersList is shared, just points at this container id
+     instead), so there's exactly one place the member list logic lives. -->
+<div id="adminTeamMembersView" style="display:none;">
+  <div class="detail-bar no-print">
+    <button class="back-btn" onclick="showAdmin()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Admin
+    </button>
+  </div>
+  <div class="detail-content">
+    <h1 class="title display" style="margin-bottom:4px;">Team Members</h1>
+    <p class="lede" style="margin-bottom:16px;">Everyone in your kitchen. Make Assistant hands out the helper role; Remove takes them out of the kitchen — they'll need a new invite to get back in.</p>
+    <div id="adminTeamMembersList"><p class="lede">Loading…</p></div>
+  </div>
+</div>
+
 <!-- Admin hub (bod 1, 16.7.) — Home-styled tile grid, same pattern as HACCP/Settings/Connections. -->
 <div id="adminView" style="display:none;">
   <div class="topbar">
@@ -8579,8 +8596,10 @@ async function revokeAndRegenerateInvite(){
   await sb.from('kitchen_invites').update({ revoked: true }).eq('kitchen_id', currentKitchenId).eq('revoked', false);
   await showTeamInvite();
 }
-async function renderTeamMembersList(){
-  const el = document.getElementById('teamMembersList');
+let _teamMembersContainerId = 'teamMembersList';
+async function renderTeamMembersList(containerId){
+  _teamMembersContainerId = containerId || 'teamMembersList';
+  const el = document.getElementById(_teamMembersContainerId);
   if(!el) return;
   const { data: members, error } = await sb.from('profiles').select('id, full_name, is_admin, admin_perms').eq('kitchen_id', currentKitchenId).order('full_name');
   if(error){ el.innerHTML = `<p class="lede">Could not load team members.</p>`; return; }
@@ -8618,13 +8637,13 @@ async function renderTeamMembersList(){
 async function toggleMemberAssistant(memberId, on){
   const { error } = await sb.rpc('set_member_assistant', { p_member: memberId, p_on: on });
   if(error){ alert('Could not update: ' + error.message + ' — has db/109 been run?'); return; }
-  renderTeamMembersList();
+  renderTeamMembersList(_teamMembersContainerId);
 }
 async function removeTeamMember(userId, name){
   if(!confirm(`Remove ${name} from this kitchen? They'll need to create or join a kitchen again to get back in.`)) return;
   const { error } = await sb.from('profiles').update({ kitchen_id: null }).eq('id', userId);
-  if(error){ alert('Could not remove: ' + error.message); return; }
-  renderTeamMembersList();
+  if(error){ alert('Could not remove: ' + error.message + ' — has db/121 been run?'); return; }
+  renderTeamMembersList(_teamMembersContainerId);
 }
 
 function copyInviteLink(){
@@ -8640,6 +8659,14 @@ function copyInviteLink(){
 function shareInviteLink(){
   const url = document.getElementById('inviteLinkField').value;
   navigator.share({ title: 'Join my ChefOS team', url }).catch(()=>{});
+}
+
+async function showAdminTeamMembers(){
+  logEvent('view_opened', {view:'admin_team_members'});
+  hideAllViews();
+  document.getElementById('adminTeamMembersView').style.display = 'block';
+  window.scrollTo(0,0);
+  await renderTeamMembersList('adminTeamMembersList');
 }
 
 /* ---------- Admin: approve/deny access requests (only visible to is_admin) ---------- */
@@ -9537,7 +9564,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
+const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','adminTeamMembersView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -9817,6 +9844,7 @@ const ADMIN_PERM_DEFS = [
 const ADMIN_TILE_DEFS = [
   { key:'addAdmin', icon:'➕', staticLabel:'Add Admin', onclick:'openAddAdmin()', adminOnly:()=>currentIsAdmin },
   { key:'adminDirectory', icon:'📋', staticLabel:'Admin Directory', onclick:'showAdminDirectory()', adminOnly:()=>currentIsAdmin },
+  { key:'teamMembers', icon:'👥', staticLabel:'Team Members', onclick:'showAdminTeamMembers()', adminOnly:()=> currentIsAdmin || !!currentAdminPerms.company_admin || hasAdminPerm('manage_team') },
   { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
   { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
   /* Create Team (bod 1+5, 16.7. — db/97/db/109) — kitchen MAIN admins only (company_admin,
@@ -10228,6 +10256,7 @@ const VIEW_REOPENERS = {
   connectionsView: ()=>showConnections(),
   adminView: ()=>showAdmin(),
   adminDirectoryView: ()=>showAdminDirectory(),
+  adminTeamMembersView: ()=>showAdminTeamMembers(),
   adminRequestsView: ()=>showAdminRequests(),
   friendsRecipesView: ()=>showChefFriends(),
   teamInviteView: ()=>showTeamInvite(),
