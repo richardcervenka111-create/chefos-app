@@ -7690,7 +7690,9 @@ function krPredictBlock(id, innerHtml){
       <div style="opacity:.6; margin-top:6px;">Simple pace-based estimate from existing data — not a promise.</div>
     </div>`;
 }
-function krLabel(text){ return `<div class="rpb-section-label" style="margin-top:16px;">${text}</div>`; }
+/* On-screen section label for reports — deliberately NOT .rpb-section-label (that class is
+   print CSS, navy ink for white paper, which rendered as near-black on the dark app UI). */
+function krLabel(text){ return `<div style="font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); border-bottom:2px solid var(--copper-dim); padding-bottom:5px; margin:16px 0 10px 0;">${text}</div>`; }
 
 /* ---------- root hub ---------- */
 async function krRenderRoot(){
@@ -7722,12 +7724,12 @@ async function krRenderRoot(){
     if(dirErr){
       slot.innerHTML = `<p class="lede">Could not load kitchens: ${dirErr.message} — has db/113 been run?</p>`;
     } else {
-      slot.innerHTML = `<div class="rpb-section-label">All kitchens</div>` + (dir || []).map(k=>`
+      slot.innerHTML = krLabel('All kitchens') + (dir || []).map(k=>`
         <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
           <div class="name task-text">🏢 ${krEsc(k.kitchen_name||'Unnamed')}</div>
           <div class="meta">${krEsc((k.admin_name || k.admin_email) ? (k.admin_name ? k.admin_name + (k.admin_email ? ' · ' + k.admin_email : '') : k.admin_email) : 'no admin yet')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
         </div></div></div>
-      `).join('') + `<div class="rpb-section-label" style="margin:16px 0 6px 0;">Your kitchen's reports</div>`;
+      `).join('') + krLabel("Your kitchen's reports");
     }
   }
 }
