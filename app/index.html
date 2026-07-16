@@ -1189,24 +1189,35 @@
 
   /* Floating Back + Home nav (bod 3, 16.7.) — always top-right on every screen except Home.
      Sits above sticky topbars but below sheet overlays, so an open sheet still covers it. */
+  /* Back + Home header band (bod, 16.7. večer v3 — per Richard's own mockup): a full-width
+     ChefOS-branded strip pinned above EVERYTHING on every screen except Home, with the two
+     accent buttons inside it. Content and every sticky bar shift down by its height, so
+     nothing can ever sit underneath it — the previous floating pill kept overlapping view
+     icons no matter how much right-side room was reserved. */
   .floating-nav{
-    position:fixed; top:8px; right:8px; z-index:900;
-    display:none; align-items:center; gap:8px;
+    position:fixed; top:0; left:0; right:0; height:58px; z-index:900;
+    display:none; align-items:center; justify-content:space-between;
+    padding:0 10px 0 18px;
+    background:var(--bg);
+    border-bottom:1px solid var(--copper-dim, rgba(52,247,215,0.35));
   }
-  /* Richard (16.7.): bigger, in the ChefOS accent — same treatment as the Scan/save buttons. */
-  .floating-nav button{
+  .floating-nav .fn-brand{ display:flex; flex-direction:column; line-height:1.15; }
+  .floating-nav .fn-brand .fn-kicker{ font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--copper); font-weight:700; }
+  .floating-nav .fn-brand .fn-name{ font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:17px; color:var(--ink); }
+  .floating-nav .fn-buttons{ display:flex; align-items:center; gap:8px; }
+  .floating-nav .fn-buttons button{
     background:var(--copper); border:none; color:#0A1A2F; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     width:42px; height:42px; border-radius:50%;
     box-shadow:0 4px 14px rgba(0,0,0,0.4);
   }
-  .floating-nav button:active{ transform:scale(0.92); }
-  /* Reserve room so no view's own top-right icons ever sit UNDER the pill (Richard: the
-     comment icon on recipes was covered). Scoped by body class — updateFloatingNav() sets it
-     only while the pill is actually visible, so Home's own icon row keeps its full width. */
-  body.has-floating-nav .detail-bar{ padding-right:104px !important; }
-  body.has-floating-nav .topbar > div:first-child{ padding-right:100px; }
-  body.has-floating-nav .sticky-header .topbar > div:first-child{ padding-right:100px; }
+  .floating-nav .fn-buttons button:active{ transform:scale(0.92); }
+  body.has-floating-nav{ padding-top:58px; }
+  body.has-floating-nav .topbar{ top:58px; }
+  body.has-floating-nav .sticky-header{ top:58px; }
+  body.has-floating-nav .detail-bar{ top:58px; }
+  body.has-floating-nav .wt-sticky-top{ top:58px; }
+  body.has-floating-nav #tasksView .sticky-header{ top:58px; }
 
   /* Global feedback/bug/question button — same button on every screen after login, not
      duplicated into 22 different topbars. Left side so it never collides with the
@@ -1771,12 +1782,18 @@
 <!-- Floating Back + Home (bod 3, 16.7.) — outside ALL_VIEW_IDS on purpose, same reasoning as
      the preview banner below: visibility is managed by updateFloatingNav(), not hideAllViews. -->
 <div class="floating-nav" id="floatingNav">
-  <button onclick="goBackView()" title="Back">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-  </button>
-  <button onclick="showHome()" title="Home">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
-  </button>
+  <div class="fn-brand">
+    <span class="fn-kicker">Kitchen Notebook</span>
+    <span class="fn-name">ChefOS</span>
+  </div>
+  <div class="fn-buttons">
+    <button onclick="goBackView()" title="Back">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button onclick="showHome()" title="Home">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+    </button>
+  </div>
 </div>
 
 <div id="previewAsUserBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:var(--copper); color:#1a1a1a; padding:10px 16px; text-align:center; font-size:13px; font-weight:600; align-items:center; justify-content:center; gap:10px;">
@@ -2219,6 +2236,7 @@
     <div class="sheet-title" id="itemContextMenuTitle"></div>
     <button class="task-status-btn" style="width:100%; margin-bottom:8px;" onclick="itemContextRename()">✏️ Rename</button>
     <button class="task-status-btn" style="width:100%; margin-bottom:8px;" id="itemContextHideBtn" onclick="itemContextToggleHide()">🙈 Hide</button>
+    <button class="task-status-btn" style="width:100%; margin-bottom:8px; display:none;" id="itemContextShareBtn" onclick="itemContextToggleShare()">🤝 Share with friends</button>
     <button class="danger-btn" style="width:100%;" onclick="itemContextDelete()">🗑️ Delete</button>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeItemContextMenu()">Cancel</button>
   </div>
@@ -2496,9 +2514,9 @@
   <div class="sticky-header">
     <div class="topbar">
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <button class="back-btn" onclick="showHome()" style="padding:0;">
+        <button class="back-btn" onclick="showRecipesHome()" style="padding:0;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-          Home
+          Recipes
         </button>
         <button class="icon-btn" onclick="openRecipeCategoryPicker()" title="Switch section">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
@@ -2565,6 +2583,22 @@
      "ChefOS" per Richard, matching the recipe-shelf naming convention) and a brand-new "My
      Ingredients" — genuinely private (RLS `is_personal`), visible only to its creator, always,
      regardless of account type or which team they're currently in. -->
+<!-- Recipes landing menu (bod 4, 16.7. večer) — same shelf-picker pattern as Ingredients:
+     Personal accounts see My Recipes + ChefOS, Company accounts see ChefOS + Company Recipes.
+     Long-press "My Recipes" opens the existing Share My Recipes toggle (db/89). -->
+<div id="recipesHomeView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Recipes</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">📖 Recipes</h1>
+  </div>
+  <div class="home-grid" id="recipeShelvesGrid"></div>
+</div>
+
 <div id="ingredientsHomeView" style="display:none;">
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -2600,6 +2634,11 @@
              personal shelf/list that are missing them. Paid AI: runs through the normal credit
              gate like every other Claude call. Never offered on the ChefOS shelf (curated). -->
         <button class="icon-btn" onclick="generateIngredientDetails()" title="Generate details with AI" id="generateDetailsBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">✨ AI Details</button>
+        <!-- Bulk delete (bod 1, 16.7. večer) — by date added, or the whole shelf. Same
+             visibility rule as adding (your own shelves; ChefOS admin-only). -->
+        <button class="icon-btn" onclick="openBulkDeleteIngredients()" title="Delete ingredients" id="bulkDeleteIngredientsBtn" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
         <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
         </button>
@@ -3540,6 +3579,32 @@
 </div>
 <input type="file" id="customIngredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleCustomIngredientFileSelected(event)">
 <input type="file" id="ingredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleIngredientScanFileSelected(event)">
+
+<!-- Friend's shared ingredient list, read-only (bod 4, 16.7. večer — db/114). -->
+<div id="friendListItemsOverlay" class="sheet-overlay" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="sheet" style="max-height:80vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="friendListItemsTitle"></div>
+    <p class="sheet-text">Read-only — shared by a chef friend.</p>
+    <div id="friendListItemsBody" style="overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="document.getElementById('friendListItemsOverlay').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<!-- Bulk delete ingredients (bod 1, 16.7. večer) — current shelf, by date added or all. -->
+<div id="bulkDeleteIngredientsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeBulkDeleteIngredients()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🗑️ Delete ingredients</div>
+    <p class="sheet-text">From <b id="bulkDeleteShelfName"></b>. This can't be undone — you'll be asked to confirm with the exact count.</p>
+    <label class="form-label">Added on or after</label>
+    <input class="form-field" id="bulkDeleteDate" type="date">
+    <button class="save-btn" style="width:100%; margin-top:8px;" onclick="bulkDeleteIngredients('since')">Delete items added since that date</button>
+    <button class="danger-btn" style="width:100%; margin-top:14px;" onclick="bulkDeleteIngredients('all')">Delete ALL on this list</button>
+    <div class="form-status" id="bulkDeleteStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeBulkDeleteIngredients()">Cancel</button>
+  </div>
+</div>
 
 <!-- Recipe peek (bod 2, 16.7. večer) — tap/long-press a recipe inside Kitchen Reports. -->
 <div id="recipePeekOverlay" class="sheet-overlay" onclick="if(event.target===this) this.classList.remove('open')">
@@ -7886,11 +7951,7 @@ async function showFriendRecipes(friendId){
   const { data, error } = await sb.from('recipes').select('*').eq('created_by', friendId).order('title');
   if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   _friendRecipeRows = data || [];
-  if(!_friendRecipeRows.length){
-    el.innerHTML = '<div class="empty-state">Nothing shared right now — they may have turned sharing off, or haven’t created any recipes of their own yet.</div>';
-    return;
-  }
-  el.innerHTML = _friendRecipeRows.map(row=>`
+  const recipesHtml = _friendRecipeRows.length ? _friendRecipeRows.map(row=>`
     <div class="task-row" onclick="openFriendRecipeDetail('${row.id}')" style="cursor:pointer;">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
@@ -7900,6 +7961,35 @@ async function showFriendRecipes(friendId){
         <span style="font-size:18px;">›</span>
       </div>
     </div>
+  `).join('') : '<div class="empty-state">Nothing shared right now — they may have turned sharing off, or haven’t created any recipes of their own yet.</div>';
+  // Shared ingredient lists (bod 4, 16.7. večer — db/114): RLS only surfaces lists this friend
+  // explicitly shared, so a plain query is already correctly filtered.
+  const { data: sharedLists } = await sb.from('ingredient_lists').select('id, name').eq('created_by', friendId);
+  const listsHtml = (sharedLists && sharedLists.length) ? `
+    <div class="section-label" style="margin-top:16px;">🧂 Shared ingredient lists</div>
+    ${sharedLists.map(l=>`
+      <div class="task-row" onclick="openFriendIngredientList('${l.id}', '${(l.name||'').replace(/'/g,"\\'").replace(/</g,'&lt;')}')" style="cursor:pointer;">
+        <div class="task-row-top">
+          <div class="info" style="flex:1;"><div class="name task-text">📋 ${(l.name||'List').replace(/</g,'&lt;')}</div></div>
+          <span style="font-size:18px;">›</span>
+        </div>
+      </div>
+    `).join('')}` : '';
+  el.innerHTML = recipesHtml + listsHtml;
+}
+async function openFriendIngredientList(listId, listName){
+  document.getElementById('friendListItemsTitle').textContent = '📋 ' + listName;
+  const el = document.getElementById('friendListItemsBody');
+  el.innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('friendListItemsOverlay').classList.add('open');
+  const { data, error } = await sb.from('ingredients').select('name, unit, price, category').eq('list_id', listId).order('name');
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  if(!data || !data.length){ el.innerHTML = '<div class="empty-state">This list is empty.</div>'; return; }
+  el.innerHTML = data.map(i=>`
+    <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+      <div class="name task-text">${(i.name||'').replace(/</g,'&lt;')}</div>
+      <div class="meta">${[i.category, i.price != null ? formatMoney(i.price) + (i.unit ? ' / ' + i.unit : '') : null].filter(Boolean).join(' · ') || '—'}</div>
+    </div></div></div>
   `).join('');
 }
 /* Read-only section renderer — same visual blocks as renderSection(), minus everything that
@@ -8154,6 +8244,21 @@ async function showTeamInvite(){
   const el = document.getElementById('teamInviteContent');
   el.innerHTML = `<p class="lede">Loading…</p>`;
   window.scrollTo(0,0);
+
+  // Personal accounts are never shown a "team" (bod 2, 16.7. večer) — a personal account's
+  // kitchen row is an implementation detail (this is how Mariann + "Mr. Woof woof" showed up
+  // on richard.cervenka111@gmail.com: both accounts genuinely share a kitchen row from the old
+  // dual-purpose QR days, My Team just listed it). Someone becomes part of a real team by
+  // scanning an admin's team QR / being made an admin — i.e. account_type company or any admin
+  // role. Everyone else gets an honest empty state + the (not yet functional) friends-team idea.
+  if(currentAccountType === 'personal' && !currentIsAdmin && !Object.values(currentAdminPerms || {}).some(Boolean)){
+    el.innerHTML = `
+      <p class="login-tagline">My Team</p>
+      <p class="lede">You're not part of any team yet. Join one by scanning your kitchen admin's QR code, or ask them for a join code (Settings → Account Type → Company).</p>
+      <button class="save-btn" style="width:100%; margin-top:14px;" onclick="openPausedFeature('👥 Team of Friends', 'Create a team with your chef friends — cook, plan, and share together. We\'re building this right now; it\'ll open here soon.')">👥 Create a team of friends</button>
+    `;
+    return;
+  }
 
   const { data: kitchen } = await sb.from('kitchens').select('id, name').eq('id', currentKitchenId).maybeSingle();
 
@@ -9248,7 +9353,7 @@ let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
 
-const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
+const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -9256,7 +9361,7 @@ const ALL_VIEW_IDS = ['homeView','listView','detailView','formView','ingredients
    tile's visibility) can change at runtime. ---------- */
 const HOME_TILE_DEFS = [
   { key:'workingTime', icon:'⏱️', staticLabel:'Working Time', onclick:'showWorkingTime()' },
-  { key:'recipes', icon:'📖', labelKey:'recipes', staticLabel:'Recipes', onclick:'showList()' },
+  { key:'recipes', icon:'📖', labelKey:'recipes', staticLabel:'Recipes', onclick:'showRecipesHome()' },
   { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredientsHome()' },
   { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showCheckListProjects()' },
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
@@ -9271,7 +9376,8 @@ const HOME_TILE_DEFS = [
      feature, its overlay, and all its code below are untouched; bringing it back later is
      just un-commenting this one line.
   { key:'chefChallenge', icon:'🎯', staticLabel:'Chef Challenge', onclick:'openChefChallenge()' }, */
-  { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()' },
+  /* Company accounts only (bod 3, 16.7. večer) — meetings are a team thing by definition. */
+  { key:'teamMeetings', icon:'🗣️', staticLabel:'Team Meetings', onclick:'openTeamMeetingsPlaceholder()', adminOnly:()=> currentAccountType !== 'personal' },
   /* Connections (bod 6, 15.7. late night) — renamed + rebuilt from My Team into a Home-styled
      hub of its own: Scan QR, Share QR Code, My Team. showTeamInvite() and all its code are
      untouched underneath, just reached from here now instead of directly from Home. */
@@ -9904,6 +10010,7 @@ function showHome(){
 const _viewStack = [];
 const VIEW_REOPENERS = {
   homeView: ()=>showHome(),
+  recipesHomeView: ()=>showRecipesHome(),
   listView: ()=>showList(),
   detailView: ()=> (typeof window.currentDetailIdx === 'number' && window.currentDetailIdx > -1 ? showDetail(window.currentDetailIdx) : showList()),
   ingredientsHomeView: ()=>showIngredientsHome(),
@@ -11579,6 +11686,31 @@ function toggleIngredientFilterValue(list, value){
 
 let ingredientSourceFilter = 'chefos'; // 'chefos' | 'mine' — bod 1, 16.7., db/97
 let showHiddenIngredients = false; // bod 1, 16.7. — db/107
+/* ---------- Recipes landing (bod 4, 16.7. večer) ---------- */
+function showRecipesHome(){
+  logEvent('view_opened', {view:'recipes_home'});
+  hideAllViews();
+  document.getElementById('recipesHomeView').style.display = 'block';
+  window.scrollTo(0,0);
+  const wrap = document.getElementById('recipeShelvesGrid');
+  wrap.innerHTML = '';
+  const addTile = (icon, label, shelf, longPress)=>{
+    const btn = document.createElement('button');
+    btn.className = 'home-tile';
+    btn.innerHTML = `<span class="home-tile-icon">${icon}</span><span class="home-tile-label">${label}</span>`;
+    btn.onclick = ()=>{ recipeSourceFilter = shelf; showList(); };
+    if(longPress) attachLongPress(btn, longPress);
+    wrap.appendChild(btn);
+  };
+  if(currentAccountType !== 'company'){
+    addTile('📖', 'My Recipes', 'mine', ()=>openShareMyRecipes());
+  }
+  addTile('✨', 'ChefOS', 'chefos');
+  if(currentAccountType === 'company'){
+    addTile('🏢', 'Company Recipes', 'company');
+  }
+}
+
 let _ingredientLists = [];
 let _showHiddenIngredientLists = false;
 async function showIngredientsHome(){
@@ -11608,8 +11740,8 @@ function renderIngredientListsGrid(){
   addTile('👤', 'My Ingredients', ()=>openIngredientShelf('mine'));
   const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
   visibleLists.forEach(l=>{
-    addTile('📋', l.name + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
-      ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden));
+    addTile('📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
+      ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
   });
   addTile('➕', 'New List', ()=>createIngredientList());
   const hiddenCount = _ingredientLists.filter(l=>l.hidden).length;
@@ -11672,7 +11804,41 @@ function showIngredients(){
   if(customIngredientsBtn) customIngredientsBtn.style.display = currentIsAdmin ? 'flex' : 'none';
   const genBtn = document.getElementById('generateDetailsBtn');
   if(genBtn) genBtn.style.display = ingredientSourceFilter !== 'chefos' ? 'flex' : 'none';
+  const bulkBtn = document.getElementById('bulkDeleteIngredientsBtn');
+  if(bulkBtn) bulkBtn.style.display = canAdd ? 'flex' : 'none';
   window.scrollTo(0,0);
+}
+
+/* ---------- Bulk delete (bod 1, 16.7. večer) — current shelf only, by date added or all. ---------- */
+function openBulkDeleteIngredients(){
+  document.getElementById('bulkDeleteShelfName').textContent = currentIngredientListName();
+  document.getElementById('bulkDeleteDate').value = '';
+  document.getElementById('bulkDeleteStatus').textContent = '';
+  document.getElementById('bulkDeleteIngredientsOverlay').classList.add('open');
+}
+function closeBulkDeleteIngredients(){ document.getElementById('bulkDeleteIngredientsOverlay').classList.remove('open'); }
+async function bulkDeleteIngredients(mode){
+  const statusEl = document.getElementById('bulkDeleteStatus');
+  let targets = _ingredients.filter(ing=>ingredientOnCurrentShelf(ing));
+  if(mode === 'since'){
+    const dateVal = document.getElementById('bulkDeleteDate').value;
+    if(!dateVal){ statusEl.textContent = 'Pick a date first.'; return; }
+    const cutoff = new Date(dateVal); cutoff.setHours(0,0,0,0);
+    targets = targets.filter(ing=> ing.created_at && new Date(ing.created_at) >= cutoff);
+  }
+  if(!targets.length){ statusEl.textContent = 'Nothing matches — nothing was deleted.'; return; }
+  if(!confirm(`Delete ${targets.length} ingredient${targets.length===1?'':'s'} from ${currentIngredientListName()}? This can't be undone.`)) return;
+  statusEl.textContent = 'Deleting…';
+  // Chunked — .in() with thousands of ids can exceed URL limits on the big ChefOS shelf.
+  const ids = targets.map(t=>t.id);
+  for(let i = 0; i < ids.length; i += 200){
+    const { error } = await sb.from('ingredients').delete().in('id', ids.slice(i, i + 200));
+    if(error){ statusEl.textContent = 'Stopped: ' + error.message; return; }
+  }
+  await loadAppData();
+  renderIngredientList();
+  statusEl.textContent = `Deleted ${ids.length}.`;
+  setTimeout(closeBulkDeleteIngredients, 900);
 }
 
 /* AI details for a personal shelf/list (bod 8, 16.7.) — batch-enriches up to 25 items that
@@ -11915,12 +12081,26 @@ function attachLongPress(el, onLongPress){
   el.addEventListener('mouseleave', cancel);
   el.addEventListener('contextmenu', (e)=>{ e.preventDefault(); cancel(); onLongPress(e); });
 }
-let _contextMenuTarget = null; // { type:'ingredient'|'prepDish', id, name, hidden }
-function openItemContextMenu(type, id, name, hidden){
-  _contextMenuTarget = { type, id, name, hidden: !!hidden };
+let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
+function openItemContextMenu(type, id, name, hidden, shared){
+  _contextMenuTarget = { type, id, name, hidden: !!hidden, shared: !!shared };
   document.getElementById('itemContextMenuTitle').textContent = name;
   document.getElementById('itemContextHideBtn').textContent = hidden ? '👁️ Unhide' : '🙈 Hide';
+  // Sharing (bod 4, 16.7. večer — db/114): custom ingredient lists only.
+  const shareBtn = document.getElementById('itemContextShareBtn');
+  shareBtn.style.display = type === 'ingredientList' ? '' : 'none';
+  shareBtn.textContent = shared ? '🤝 Sharing is ON — turn off' : '🤝 Share with friends';
   document.getElementById('itemContextMenuOverlay').classList.add('open');
+}
+async function itemContextToggleShare(){
+  const t = _contextMenuTarget;
+  if(!t || t.type !== 'ingredientList') return;
+  const next = !t.shared;
+  if(next && !confirm(`Share "${t.name}" with your chef friends? They'll see the list and its items, read-only. You can turn it off anytime.`)) return;
+  const { error } = await sb.from('ingredient_lists').update({ shared: next }).eq('id', t.id);
+  if(error){ alert('Could not update: ' + error.message + ' — has db/114 been run?'); return; }
+  closeItemContextMenu();
+  await showIngredientsHome();
 }
 function closeItemContextMenu(){
   document.getElementById('itemContextMenuOverlay').classList.remove('open');
