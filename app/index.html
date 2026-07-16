@@ -7067,7 +7067,7 @@ async function chooseAccountType(type){
   currentAccountType = type;
   document.getElementById('accountTypeGateView').style.display = 'none';
   await enterApp();
-  if(type === 'company' && !currentTeamJoinSeen){ showTeamJoinView(); }
+  if(type === 'company' && !currentTeamJoinSeen && !currentAdminPerms.company_admin){ showTeamJoinView(); }
 }
 /* Same choice, reachable anytime afterward from Settings instead of the one-time gate above. */
 function openAccountTypeSettings(){
@@ -7133,7 +7133,7 @@ async function applyAccountTypeSwitch(type){
   // First time ever switching to Company (bod 1): offer to link a real team via QR/code.
   // Richard: skipping is a valid outcome — an unlinked Company account just behaves like a
   // (limited) Personal one until a code is entered later from here in Settings.
-  if(type === 'company' && !currentTeamJoinSeen){
+  if(type === 'company' && !currentTeamJoinSeen && !currentAdminPerms.company_admin){
     showTeamJoinView();
   }
 }
@@ -9796,7 +9796,9 @@ function renderAdminDirectory(){
   el.innerHTML = rows.map(p=>{
     const activePerms = ADMIN_PERM_DEFS.filter(d=>!!(p.admin_perms||{})[d.key]).map(d=>d.label);
     const tag = p.is_admin ? 'Head Admin' : (activePerms.length ? `Kitchen Admin (${activePerms.join(', ')})` : '—');
-    const subTag = p.account_type === 'personal' ? ` · 💳 CHF ${Number(p.ai_credit_chf||0).toFixed(2)} AI credit` : '';
+    // Only shown when there's an actual balance (Richard, 16.7. večer) — a CHF 0.00 tag on
+    // every personal row read as clutter. Full balance always visible inside Edit.
+    const subTag = (p.account_type === 'personal' && Number(p.ai_credit_chf) > 0) ? ` · 💳 CHF ${Number(p.ai_credit_chf).toFixed(2)} AI credit` : '';
     return `
     <div class="task-row">
       <div class="task-row-top">
