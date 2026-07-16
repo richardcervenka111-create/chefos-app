@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Critical Review · 16. júl 2026</title>
+<style>
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-hi:#16304f; --rule:#223d57;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --teal:#34F7D7; --teal-dim:rgba(52,247,215,0.35); --teal-wash:rgba(52,247,215,0.08);
+    --gold:#F7C948; --gold-wash:rgba(247,201,72,0.10);
+    --red:#FF7A68; --red-wash:rgba(255,122,104,0.10);
+    --ok:#4ADE80;
+    --mono:"SF Mono",Menlo,Consolas,monospace;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; line-height:1.55; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:960px; margin:0 auto; padding:0 18px 90px 18px;}
+  ::selection{background:var(--teal); color:#0A1A2F;}
+  a{color:var(--teal);}
+
+  header.hero{padding:44px 0 30px 0; border-bottom:1px solid var(--rule);}
+  .kicker{color:var(--teal); font-size:12px; letter-spacing:.2em; text-transform:uppercase; font-weight:700;}
+  h1{font-family:var(--serif); font-style:italic; font-size:34px; margin:8px 0 10px 0; line-height:1.15;}
+  .lede{color:var(--ink-dim); font-size:14.5px; max-width:66ch;}
+  .meta-strip{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.08em;}
+  .meta-strip span{border:1px solid var(--rule); border-radius:8px; padding:5px 10px;}
+
+  .ticket{margin-top:46px;}
+  .ticket-head{display:flex; align-items:baseline; gap:12px; border-bottom:2px solid var(--teal-dim); padding-bottom:8px; margin-bottom:16px;}
+  .ticket-no{font-family:var(--mono); font-size:11px; color:var(--teal); letter-spacing:.15em;}
+  .ticket h2{font-family:var(--serif); font-style:italic; font-size:22px; margin:0;}
+  .ticket h3{font-size:15px; margin:20px 0 8px 0;}
+  p{font-size:14px;}
+  .dim{color:var(--ink-dim);}
+  .small{font-size:12.5px;}
+
+  .card{background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px 18px; margin:12px 0;}
+  .card.red{border-left:4px solid var(--red); background:var(--red-wash);}
+  .card.gold{border-left:4px solid var(--gold); background:var(--gold-wash);}
+  .card.teal{border-left:4px solid var(--teal); background:var(--teal-wash);}
+
+  .stamp{display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.12em; padding:3px 10px; border-radius:6px; border:1.5px solid; transform:rotate(-1.5deg);}
+  .stamp.fire{color:var(--ok); border-color:var(--ok);}
+  .stamp.hold{color:var(--gold); border-color:var(--gold);}
+  .stamp.cut{color:var(--red); border-color:var(--red);}
+  .stamp.done{color:var(--ok); border-color:var(--ok);}
+  .stamp.open{color:var(--red); border-color:var(--red);}
+  .stamp.unknown{color:var(--ink-dim); border-color:var(--ink-dim);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px; margin:10px 0;}
+  th{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); text-align:left; padding:8px 10px; border-bottom:1px solid var(--rule);}
+  td{padding:9px 10px; border-bottom:1px solid var(--rule); vertical-align:top;}
+  .table-scroll{overflow-x:auto;}
+  .mono{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+
+  .facts{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:14px 0;}
+  .fact{background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:12px 14px;}
+  .fact .num{font-family:var(--mono); font-size:21px; font-weight:700; color:var(--teal);}
+  .fact .lbl{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-dim); margin-top:4px; line-height:1.35;}
+  .fact.warn .num{color:var(--gold);}
+  .fact.bad .num{color:var(--red);}
+
+  .bar-row{display:flex; align-items:center; gap:10px; margin:7px 0; font-size:12.5px;}
+  .bar-label{flex:0 0 190px; color:var(--ink-dim);}
+  .bar-track{flex:1; height:12px; background:var(--paper-hi); border-radius:6px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px; background:var(--teal);}
+  .bar-fill.gold{background:var(--gold);} .bar-fill.red{background:var(--red);}
+  .bar-val{flex:0 0 76px; font-family:var(--mono); font-size:11.5px; text-align:right;}
+
+  ul{margin:8px 0; padding-left:20px;} li{font-size:13.5px; margin:5px 0;}
+  .strike{text-decoration:line-through; color:var(--ink-faint);}
+  .matrix{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media(max-width:640px){ .matrix{grid-template-columns:1fr;} .bar-label{flex-basis:120px;} }
+  .matrix .q{background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 16px;}
+  .matrix .q h4{margin:0 0 8px 0; font-size:12px; text-transform:uppercase; letter-spacing:.08em;}
+  .q.q1 h4{color:var(--ok);} .q.q2 h4{color:var(--gold);} .q.q3 h4{color:var(--ink-dim);} .q.q4 h4{color:var(--red);}
+  footer{margin-top:60px; padding-top:16px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--ink-faint); text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="kicker">Critical Review — interný audit</p>
+  <h1>Tretí týždenný audit: appka šprintuje, biznis stojí na mieste</h1>
+  <p class="lede">Stav ChefOS k 16. júlu 2026 neskoro v noci, krížovo overený proti auditom z 13. a 15. júla, proti celému repozitáru (125 migrácií, všetky dokumenty) a proti živej produkčnej databáze. Verdikt na jednu vetu: <b>za 36 hodín pribudlo 41 migrácií a tri natrvalo opravené bezpečnostné incidenty — a zároveň neodišiel jediný z piatich administratívnych krokov, ktoré 15.7. audit označil za „urob pred čímkoľvek iným".</b></p>
+  <div class="meta-strip">
+    <span>Pre: Richard Červenka</span>
+    <span>Zdroje: repo + živá DB + git log + 2 staré audity</span>
+    <span>Pracovný dokument, nie právne/finančné poradenstvo</span>
+  </div>
+</header>
+
+<!-- ============================ LÍSTOK 00 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 00</span><h2>Delta oproti 15.7. — skóre kvadrantu „urob tento týždeň"</h2></div>
+  <p>Audit z 15.7. dal do kvadrantu <i>vysoký dopad / nízka námaha — urob pred čímkoľvek iným</i> päť úloh. Stav dnes:</p>
+  <div class="table-scroll"><table>
+    <tr><th>Úloha z 15.7.</th><th>Stav 16.7. neskoro v noci</th><th></th></tr>
+    <tr><td>Poslať Nebenerwerb list (10 min)</td><td>Draft pripravený v priečinku „VYRIEŠIŤ DO 20.7.2026/", odoslanie z repa neoveriteľné — <b>potvrď</b>. Termín je 20.7. — <b>tento víkend</b>.</td><td><span class="stamp unknown">POTVRĎ</span></td></tr>
+    <tr><td>Prejsť regression checklist aspoň 1× na zariadení</td><td>Žiadny záznam o behu. (Dnešné živé testovanie remove/invite/komentárov je reálne, ale nebolo to systematické prejdenie checklistu.)</td><td><span class="stamp open">NEUROBENÉ</span></td></tr>
+    <tr><td>Vyhodiť Chef Challenge z trial buildu (1 riadok)</td><td>Stále v kóde (37 výskytov), stále dostupný.</td><td><span class="stamp open">NEUROBENÉ</span></td></tr>
+    <tr><td>Opraviť 3 zastarané doc položky (počet receptov, popisy, legal.html)</td><td>Počet receptov je v poriadku (173 unikátnych potvrdených živou DB). legal.html ale NEopravený — a pribudli dve nové diery (Lístok 02).</td><td><span class="stamp open">ČIASTOČNE</span></td></tr>
+    <tr><td>Registrovať Einzelfirmu / AHV (1–2 h)</td><td>Z repa neoveriteľné — <b>potvrď</b>. Bez toho nemôže odísť prvá faktúra.</td><td><span class="stamp unknown">POTVRĎ</span></td></tr>
+  </table></div>
+  <div class="card red"><b>Skóre: 0–1 / 5</b> (podľa toho, či Nebenerwerb reálne odišiel). Tretí audit po sebe s tým istým nálezom: kapacita tečie do buildovania — kde je disciplína vynikajúca — a nie do piatich admin úloh, ktoré ako jediné delia projekt od prvého franku. Rozdiel oproti minulým auditom: teraz je termín 20.7. už o 4 dni.</div>
+  <div class="card teal"><b>Čo sa medzitým REÁLNE pohlo (a je to veľa):</b> 41 migrácií (db/85 → db/125) za ~36 h a 55 commitov. Kompletný admin systém (Head/Kitchen Admin, Add Company, roly, Team Members s funkčným Remove). Skutočná databázová izolácia osobných dát (RLS, nie UI filter). Reálne tímové členstvo s bránou na Company režim. HACCP vlny 1+2 živé. Branded onboarding (vlastné Supabase emaily). Centrálny Anthropic kľúč + AI kreditový systém s maržami. Privacy brána (nDSG/GDPR). Tri bezpečnostné incidenty nájdené, opravené a <i>premenené na trvalé guardy</i> (super-admin lockout → auditor hard-fail; spálená admin pozvánka → tolerantný reclaim; nefunkčný Remove → SECURITY DEFINER RPC). Toto tempo a táto samoopravná disciplína sú v sólo projekte výnimočné — problém nie je rýchlosť, ale smer posledných 10 %.</div>
+</section>
+
+<!-- ============================ LÍSTOK 01 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 01</span><h2>Tvrdé fakty — overené programovo, nie čítaním</h2></div>
+  <div class="facts">
+    <div class="fact"><div class="num">924 KB</div><div class="lbl">index.html (jeden súbor, bez build kroku)</div></div>
+    <div class="fact"><div class="num">814</div><div class="lbl">JS funkcií v monolite</div></div>
+    <div class="fact"><div class="num">13</div><div class="lbl">dlaždíc na Home</div></div>
+    <div class="fact"><div class="num">125</div><div class="lbl">migrácií, bez dier a duplicít, všetky potvrdené spustené</div></div>
+    <div class="fact"><div class="num">45</div><div class="lbl">tabuliek, všetky s RLS + policy (audit_db clean)</div></div>
+    <div class="fact"><div class="num">42</div><div class="lbl">tabuliek reálne používaných appkou — všetky kryté migráciami</div></div>
+    <div class="fact"><div class="num">5</div><div class="lbl">jazykov UI (EN/DE/FR/IT/SK, čiastočné pokrytie)</div></div>
+    <div class="fact"><div class="num">15</div><div class="lbl">AI call sites, všetky cez claude-proxy</div></div>
+    <div class="fact"><div class="num">173</div><div class="lbl">unikátnych ChefOS receptov (živá DB — počet sedí s dokumentmi)</div></div>
+    <div class="fact warn"><div class="num">24 272</div><div class="lbl">riadkov ingrediencií = ~2 000 × 12 kuchýň (kópie per kuchyňa)</div></div>
+    <div class="fact warn"><div class="num">12 / 10</div><div class="lbl">kuchýň vs. profilov — siroty po presunoch sa hromadia</div></div>
+    <div class="fact"><div class="num">1 632</div><div class="lbl">usage events; 11 JS chýb za 7 dní; 1 feedback</div></div>
+  </div>
+  <h3>Čo z toho vyplýva</h3>
+  <ul>
+    <li><b>Architektúra kópií:</b> každá nová kuchyňa dostane vlastnú kópiu 173 receptov + ~2 000 ingrediencií. Pri 12 kuchyniach je to 24 k riadkov pre 10 ľudí; pri 100 kuchyniach ~200 k. Postgres to zvládne, ale siroty (kuchyne bez členov po removoch/presunoch) nesú mŕtve kópie — treba občasné upratovanie, nie redizajn.</li>
+    <li><b>Overenosť cien:</b> chips Verified/Estimated boli 13.7. odstránené z UI — appka podiel overených cien už ani nesleduje. Posledné známe číslo: 7,65 % (15.7. audit). Transparentnosť tu cúvla o krok.</li>
+    <li>DESTRUCTIVE značku nesú 2 migrácie (db/18, db/102) — obe historické, zdokumentované.</li>
+  </ul>
+</section>
+
+<!-- ============================ LÍSTOK 02 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 02</span><h2>Rozpory a právne diery — najvážnejšia časť auditu</h2></div>
+
+  <div class="card red">
+    <b>🔴 legal.html preukázateľne klame v dvoch bodoch.</b>
+    <ul>
+      <li><b>„We don't ask for or store a password."</b> — Nepravda od 15.7.: heslo je povinné pre všetkých (db/83) + Face ID odomknutie. Kód: povinná brána po mlčanlivosti. Jedna veta v dokumente, ktorý má budovať dôveru, je vyvrátiteľná za 10 sekúnd používania appky.</li>
+      <li><b>GPS pri check-in/out nie je deklarované vôbec.</b> Kód (getCurrentPosition, db/63 location snapshot) zapisuje jednorazovú polohu pri príchode/odchode — to sú <i>zamestnanecké lokalizačné dáta</i>, ktoré nDSG aj GDPR radia k citlivým. Working Time sekcia legal.html hovorí o časoch a prestávkach, o polohe mlčí. Toto nie je kozmetika — pri prvom spore so zamestnancom pilotnej kuchyne je to reálny problém.</li>
+    </ul>
+    <b>Oprava:</b> 30 minút práce na texte legal.html (heslo + veta o GPS s účelom a dobrovoľnosťou + veta o kamere pri QR skene). Alternatíva pre GPS: snapshot vypnúť do trialu.
+  </div>
+
+  <div class="table-scroll"><table>
+    <tr><th>Dokumenty</th><th>Rozpor</th><th>Prečo to vadí / oprava</th></tr>
+    <tr><td>MVP_DEFINITION (8.7.) vs. realita</td><td>Definuje 5 modulov; postavených je 13 dlaždíc vrátane výslovne odložených vecí (inventory-adjacent Order List, HACCP, AI vrstva)</td><td>Scope creep je zdokumentovaný fakt, nie tajnosť — ale MVP_DEFINITION je „living document" naposledy aktualizovaný 8.7. Buď ho aktualizuj, alebo premenuj na „Phase-0 snapshot".</td></tr>
+    <tr><td>presentation.html vs. FOUNDING_OFFER</td><td>Deck modeluje Restaurant tier na CHF 149/mes (1 788/rok); founding ponuka dáva ten istý tier za CHF 490/rok</td><td>To je −73 % — legitímny founding hák, ale deck a ponuka na seba neodkazujú. Investor, ktorý uvidí obe, sa spýta. Jedna veta v decku („founding cohort pricing") to rieši.</td></tr>
+    <tr><td>PILOT_AGREEMENT vs. funkcie</td><td>Zmluva (v1, 13.7.) nepokrýva AI kreditový systém, GPS snapshot ani Kitchen Reports súhlasy — vznikli po nej</td><td>Pred podpisom s pilotom doplniť 3 vety. Stále platí aj vlastná poznámka zmluvy: neprešla právnikom.</td></tr>
+    <tr><td>ROADMAP.md vs. status.html</td><td>Tabuľka fáz synchronizovaná 15.7., ale denný log v ROADMAP končí ~13.7. — dva dni najväčších zmien (celý admin systém) tam nie sú</td><td>Vedomé rozhodnutie (denný zdroj = status.html), ale ROADMAP to deklaruje len v poznámke hore. OK, nechať — len vedieť o tom.</td></tr>
+    <tr><td>features.html vs. feature_status.html</td><td>Dva prehľady funkcií s rôznou granularitou aj čerstvosťou (features.html je z 15.7.)</td><td>Konsolidovať do jedného, alebo features.html presmerovať na feature_status.html.</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================ LÍSTOK 03 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 03</span><h2>Moduly — pečiatky a najväčšia páka</h2></div>
+  <div class="table-scroll"><table>
+    <tr><th>Modul</th><th>Verdikt</th><th>Najväčšia páka teraz</th></tr>
+    <tr><td><b>1 · Recepty</b> (173 + police/sekcie/projekty, komentáre cross-kitchen, branded tlač)</td><td><span class="stamp fire">FIRE</span></td><td>Nič nové nestavať — nechať kuchárov 2 týždne používať dnešný stav políc/projektov a až potom ladiť.</td></tr>
+    <tr><td><b>2 · Check List / Kitchen Flow</b> (vlajková loď)</td><td><span class="stamp fire">FIRE</span></td><td>Jediné, čo mu chýba, je <b>test počas reálnej služby</b> v Burrito Bandito & Lido. To je zároveň jediný dôkaz, ktorý trial aj investor potrebujú.</td></tr>
+    <tr><td><b>3 · Ingredients & Pricing</b> (24 k riadkov, ceny prevažne odhady)</td><td><span class="stamp hold">HOLD</span></td><td>Vrátiť merateľnosť overenosti cien (stĺpec + tichý filter). Nerozširovať, kým pilot nepotvrdí, že food cost čísla niekto reálne používa.</td></tr>
+    <tr><td><b>4 · Working Time</b> (check-in/out, zmluvy, grafy)</td><td><span class="stamp hold">HOLD</span></td><td>Právny fix GPS deklarácie (Lístok 02) — pred trialom povinné.</td></tr>
+    <tr><td><b>5 · HACCP</b> (vlny 1+2 živé)</td><td><span class="stamp fire">FIRE</span></td><td>Švajčiarska kontrola je predajný argument č. 1 pre reštaurácie. Vlnu 3 (školenia, report) až po triali.</td></tr>
+    <tr><td><b>6 · Chef's Assistant / AI</b> (kredity, centrálny kľúč, testing mode)</td><td><span class="stamp hold">HOLD</span></td><td>Infra je hotová a dobrá. Sledovať reálne náklady per kuchyňa v triali; marže (30 %/10 %) sú zatiaľ len teória.</td></tr>
+    <tr><td><b>6b · Chef Challenge</b></td><td><span class="stamp cut">86</span></td><td>Tretí audit po sebe: z trial buildu von. Hravý experiment bez väzby na hodnotu pre kuchyňu.</td></tr>
+    <tr><td><b>7 · Order List + Print Labels</b> (per-osoba, expiry log)</td><td><span class="stamp fire">FIRE</span></td><td>Kúpiť tlačiareň (CHF ~130) — jediné, čo delí Print Labels od reálneho papiera.</td></tr>
+    <tr><td><b>8 · Admin / Teams</b> (invite → rola → remove, po dnešku kompletné)</td><td><span class="stamp fire">FIRE</span></td><td>Dnes uzavretý celý lifecycle. Jediný dlh: upratať sirotské kuchyne (12 kuchýň / 10 ľudí).</td></tr>
+    <tr><td><b>9 · Connections</b> (priatelia, zdieľanie)</td><td><span class="stamp hold">HOLD</span></td><td>Pre trial nice-to-have. „Create team of friends" nechať ako placeholder, nerozvíjať.</td></tr>
+    <tr><td><b>10 · Schedule</b> (roster starého pilota v prestavbe)</td><td><span class="stamp hold">HOLD</span></td><td>Do trialu skryť z Home pre nové kuchyne (prázdny roster mätie), oživiť až s reálnym rozpisom BB&L.</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================ LÍSTOK 04 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 04</span><h2>Matica priorít 2×2</h2></div>
+  <div class="matrix">
+    <div class="q q1">
+      <h4>Vysoký dopad · nízka námaha — TENTO VÍKEND</h4>
+      <ul>
+        <li><b>Poslať Nebenerwerb</b> (10 min, termín 20.7.)</li>
+        <li><b>Einzelfirma/AHV registrácia</b> (1–2 h online)</li>
+        <li><b>legal.html oprava</b>: heslo + GPS + kamera (30 min — spravím na pokyn)</li>
+        <li><b>Chef Challenge von z trialu</b> (pár riadkov — spravím na pokyn)</li>
+        <li><b>1× regression checklist</b> na iPade (60–90 min)</li>
+      </ul>
+    </div>
+    <div class="q q2">
+      <h4>Vysoký dopad · vysoká námaha — plánovane</h4>
+      <ul>
+        <li>Service-test Check Listu počas reálnej zmeny v BB&L</li>
+        <li>Nemecká UI na plné pokrytie (Bern trial)</li>
+        <li>Automatizované smoke testy jadra (po triali)</li>
+        <li>Modularizácia 924 KB monolitu (po triali, nie teraz)</li>
+      </ul>
+    </div>
+    <div class="q q3">
+      <h4>Nízky dopad · nízka námaha — keď zvýši čas</h4>
+      <ul>
+        <li>Upratať sirotské kuchyne + ich mŕtve kópie dát</li>
+        <li>features.html → presmerovať na feature_status.html</li>
+        <li class="strike">Filter viditeľnosti chipov (hotové 16.7.)</li>
+        <li class="strike">Print v2 + Used In (hotové 16.7.)</li>
+      </ul>
+    </div>
+    <div class="q q4">
+      <h4>Nízky dopad · vysoká námaha — ODMIETNI</h4>
+      <ul>
+        <li>Natívna appka / App Store pred trialom</li>
+        <li>Marketplace, benchmarking, Home Cook tier</li>
+        <li>Ďalšie infra migrácie pred prvým regression passom</li>
+        <li>Nové veľké moduly do 1.8. — <b>feature freeze od 21.7.</b> (tretí pokus, tentoraz to termín 1.8. vynúti sám)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ LÍSTOK 05 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 05</span><h2>Blokátory príjmu a trialu — stav k dnešku</h2></div>
+  <div class="table-scroll"><table>
+    <tr><th>Blokátor</th><th>Stav</th><th></th></tr>
+    <tr><td>Nebenerwerb oznámenie zamestnávateľovi</td><td>Draft hotový a právne správne preformulovaný (oznámenie, nie žiadosť). Odoslanie z repa neoveriteľné — potvrď. Termín: <b>20.7.</b></td><td><span class="stamp unknown">POTVRĎ</span></td></tr>
+    <tr><td>Einzelfirma / AHV</td><td>Neoveriteľné z repa — potvrď. Bez nej žiadna faktúra.</td><td><span class="stamp unknown">POTVRĎ</span></td></tr>
+    <tr><td>Email login cudzou adresou (mailer)</td><td>Vyriešené: chefos.ch + custom SMTP (15.7.), ChefOS-branded šablóny (16.7.), magic-link redirect bug opravený.</td><td><span class="stamp done">VYRIEŠENÉ</span></td></tr>
+    <tr><td>Regresný prechod na reálnych zariadeniach</td><td>Checklist existuje od 13.7., zdokumentovaných behov: 0.</td><td><span class="stamp open">OTVORENÉ</span></td></tr>
+    <tr><td>Test obnovy zálohy</td><td>Žiadny záznam o restore teste. Pri 125 migráciách a jednom vývojárovi je netestovaná záloha len teória zálohy.</td><td><span class="stamp open">OTVORENÉ</span></td></tr>
+    <tr><td>Fronta nespustených migrácií</td><td>Prázdna — všetkých 125 potvrdených na produkcii (dnes večer aj s trojkolovou verifikáciou remove bugu priamo v DB).</td><td><span class="stamp done">VYRIEŠENÉ</span></td></tr>
+    <tr><td>Tlačiareň štítkov (Brother QL-820NWB)</td><td>Odporúčanie hotové, nekúpená (~CHF 130).</td><td><span class="stamp open">OTVORENÉ</span></td></tr>
+  </table></div>
+  <div class="bar-row"><span class="bar-label">Blokátory vyriešené</span><div class="bar-track"><div class="bar-fill" style="width:29%"></div></div><span class="bar-val">2 / 7</span></div>
+  <div class="bar-row"><span class="bar-label">Neoveriteľné (biznis)</span><div class="bar-track"><div class="bar-fill gold" style="width:29%"></div></div><span class="bar-val">2 / 7</span></div>
+  <div class="bar-row"><span class="bar-label">Otvorené</span><div class="bar-track"><div class="bar-fill red" style="width:42%"></div></div><span class="bar-val">3 / 7</span></div>
+</section>
+
+<!-- ============================ LÍSTOK 06 ============================ -->
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">LÍSTOK 06</span><h2>Master plán — 4 týždne, kapacitne úprimný</h2></div>
+  <p class="dim small">Predpoklad: od 20.7. nový plný úväzok v kuchyni; na ChefOS reálne ~10–12 h/týždeň. Plán preto stavia na tom, že kód je hotový „dosť" — ďalšie 4 týždne rozhoduje papier, testovanie a ľudia, nie nové funkcie.</p>
+  <div class="card gold"><b>T29 · do nedele 20.7.</b> — Nebenerwerb ODOSLAŤ · AHV/Einzelfirma formulár · legal.html fix (30 min) · Chef Challenge von · 1× regression pass na iPade. <b>Nula nových funkcií.</b> Spolu ~4–5 h.</div>
+  <div class="card"><b>T30 · 21.–27.7.</b> — štart nového jobu, len stabilizácia: 2. regression pass · test obnovy zálohy (1 h) · objednať tlačiareň · pripraviť trial QR pozvánky + 5-riadkový onboarding text · doplniť 3 vety do PILOT_AGREEMENT. ~6–8 h.</div>
+  <div class="card"><b>T31 · 28.7.–3.8.</b> — soft launch: 5–10 kuchárov rolling (nie 25 naraz) · denných 5 min na error_logs/usage_events · opravy len toho, čo trial reálne rozbije. ~10 h.</div>
+  <div class="card"><b>T32 · 4.–10.8.</b> — rozšíriť k 25 · prvé founding rozhovory s 2–3 najaktívnejšími kuchyňami (ponuka je napísaná) · prvý kontakt na Nooch až s týždňom reálnych dát v ruke. ~10 h.</div>
+</section>
+
+<footer>
+  ChefOS · Critical Review 16.7.2026 · pripravené z repozitára + živej produkčnej DB · čísla bez zdroja v repe sú označené ako neoveriteľné · žiadne externé knižnice
+</footer>
+
+</div>
+</body>
+</html>
