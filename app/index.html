@@ -6891,10 +6891,14 @@ async function enterApp(){
       const { data: k } = await sb.from('kitchens').select('name').eq('id', inviteRow.kitchen_id).maybeSingle();
       const kitchenName = (k && k.name) || 'a new kitchen';
       if(confirm(`Richard invited you to become the main admin of "${kitchenName}". Accept? Your account will move to that kitchen.`)){
-        const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id }).eq('id', currentUser.id);
+        const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id, in_team: true, team_join_seen: true }).eq('id', currentUser.id);
         if(moveErr){ alert('Could not accept: ' + moveErr.message); return; }
-        const { error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteParam });
-        if(claimErr) console.error('claim_company_admin failed', claimErr);
+        const { data: claimed, error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteParam });
+        // This invite WAS an admin invite — a silent no-op here is exactly how the protonmail
+        // account ended up in the kitchen without its role (16.7.). Say it out loud instead.
+        if(claimErr || claimed === false){
+          alert("You've joined the kitchen, but the admin role could not be applied (" + (claimErr ? claimErr.message : 'invite already used') + ") — ask Richard to grant it from Admin Directory.");
+        }
         alert(`You're now the main admin of "${kitchenName}". The app will reload with your new kitchen.`);
         location.reload();
       }
@@ -7850,8 +7854,10 @@ async function acceptKitchenInvite(){
   const { error } = await sb.from('profiles').update({ kitchen_id: p.kitchenId, in_team: true, team_join_seen: true }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
   if(p.inviteId){
-    const { error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: p.inviteId });
-    if(claimErr) console.error('claim_company_admin failed', claimErr);
+    const { data: claimed, error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: p.inviteId });
+    if(p.grantsAdmin && (claimErr || claimed === false)){
+      alert("You've joined the team, but the admin role could not be applied (" + (claimErr ? claimErr.message : 'invite already used') + ") — ask the kitchen's owner to grant it.");
+    }
   }
   _pendingKitchenInvite = null;
   document.getElementById('confirmKitchenInviteOverlay').classList.remove('open');
@@ -8262,19 +8268,20 @@ function handleScannedQrText(text){
     (async ()=>{
       let kitchenId = legacyKitchen;
       if(inviteId){
-        const { data: inviteRow } = await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at').eq('id', inviteId).maybeSingle();
+        const { data: inviteRow } = await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at, grants_company_admin').eq('id', inviteId).maybeSingle();
         if(!inviteRow || inviteRow.revoked || new Date(inviteRow.expires_at) < new Date()){
           document.getElementById('qrScanStatus').textContent = 'That invite is no longer valid — ask for a fresh one.';
           return;
         }
         kitchenId = inviteRow.kitchen_id;
+        var _scanGrantsAdmin = !!inviteRow.grants_company_admin;
       }
       if(kitchenId === currentKitchenId){
         document.getElementById('qrScanStatus').textContent = "You're already in this team.";
         return;
       }
       const { data: k } = await sb.from('kitchens').select('name').eq('id', kitchenId).maybeSingle();
-      _pendingKitchenInvite = { kitchenId, inviteId };
+      _pendingKitchenInvite = { kitchenId, inviteId, grantsAdmin: typeof _scanGrantsAdmin !== 'undefined' && _scanGrantsAdmin };
       document.getElementById('confirmKitchenInviteTitle').textContent = `Do you want to become a member of team "${(k && k.name) || 'this kitchen'}"?`;
       document.getElementById('confirmKitchenInviteStatus').textContent = '';
       document.getElementById('confirmKitchenInviteOverlay').classList.add('open');
