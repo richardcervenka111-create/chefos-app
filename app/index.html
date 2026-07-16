@@ -44,6 +44,23 @@
     --sage: #F7C948;
     --shadow: 0 8px 28px rgba(0,0,0,0.35);
   }
+  /* Light mode (bod 10, 16.7.) — same tokens, re-defined. --ink reuses the brand navy itself as
+     body text (continuity with the dark theme's identity instead of a generic gray), --copper
+     is deepened from the neon dark-mode teal since bright mint text is nearly unreadable on a
+     white page — the same hue, just legible at light-background contrast. */
+  :root[data-theme="light"]{
+    --bg: #F2F6FA;
+    --paper: #FFFFFF;
+    --paper-raised: #E7EEF5;
+    --ink: #0A1A2F;
+    --ink-dim: #56677D;
+    --ink-faint: rgba(10,26,47,0.5);
+    --rule: #D7E1EA;
+    --copper: #0E9C8B;
+    --copper-dim: rgba(14,156,139,0.22);
+    --sage: #B9860A;
+    --shadow: 0 8px 28px rgba(10,26,47,0.12);
+  }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0; padding:0; height:100%; max-width:100vw; overflow-x:hidden;}
   body{
@@ -1424,11 +1441,12 @@
      strips background colors (the default): strong navy ink, doubled rules, structure over
      color. Two-column body (ingredients rail + method), letterpress-style letterhead. */
   .recipe-print-branded-sheet{ display:none; font-family:Georgia, 'Times New Roman', serif; color:#0A1A2F; }
+  .rpb-accent-bar{ height:5px; background:#34F7D7; border-radius:3px; margin-bottom:16px; }
   .rpb-letterhead{ display:flex; align-items:flex-end; justify-content:space-between; border-bottom:3px double #0A1A2F; padding-bottom:12px; margin-bottom:6px; }
   .rpb-kitchen{ font-size:22px; font-weight:700; color:#0A1A2F; letter-spacing:.01em; }
-  .rpb-tag{ font-family:-apple-system,Arial,sans-serif; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:#0A1A2F; margin-top:3px; }
-  .rpb-mark{ font-family:-apple-system,Arial,sans-serif; font-size:13px; font-weight:800; letter-spacing:.04em; color:#0A1A2F; border:2px solid #0A1A2F; border-radius:8px; padding:6px 10px; }
-  .rpb-mark span{ font-weight:400; font-style:italic; font-family:Georgia,serif; }
+  .rpb-tag{ font-family:-apple-system,Arial,sans-serif; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:#1a7e6f; margin-top:3px; }
+  .rpb-mark{ font-family:-apple-system,Arial,sans-serif; font-size:13px; font-weight:800; letter-spacing:.04em; color:#0A1A2F; background:#34F7D7; border:2px solid #34F7D7; border-radius:8px; padding:6px 10px; }
+  .rpb-mark span{ font-weight:400; font-style:italic; font-family:Georgia,serif; color:#0A1A2F; }
   .rpb-title{ font-size:32px; line-height:1.15; margin:18px 0 2px 0; color:#0A1A2F; }
   .rpb-subtitle{ font-style:italic; font-size:14px; color:#3a4a5f; margin:2px 0 0 0; }
   .rpb-meta{ display:flex; gap:0; margin:16px 0 20px 0; border:1.5px solid #0A1A2F; border-radius:8px; overflow:hidden; }
@@ -1439,15 +1457,18 @@
   .rpb-columns{ display:flex; gap:26px; align-items:flex-start; }
   .rpb-col-ing{ flex:0 0 38%; }
   .rpb-col-steps{ flex:1; }
-  .rpb-section-label{ font-family:-apple-system,Arial,sans-serif; font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:#0A1A2F; border-bottom:2px solid #0A1A2F; padding-bottom:5px; margin:0 0 10px 0; }
+  .rpb-section-label{ font-family:-apple-system,Arial,sans-serif; font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:#0A1A2F; border-bottom:2px solid #34F7D7; padding-bottom:5px; margin:0 0 10px 0; }
   .rpb-ing-table{ width:100%; border-collapse:collapse; font-family:-apple-system,Arial,sans-serif; font-size:12.5px; }
   .rpb-ing-table td{ padding:5px 0; border-bottom:1px solid #8a97a8; color:#0A1A2F; vertical-align:top; }
   .rpb-ing-table td.qty{ text-align:right; font-weight:700; white-space:nowrap; padding-left:10px; }
   .rpb-steps{ font-family:-apple-system,Arial,sans-serif; font-size:13px; line-height:1.65; padding-left:0; margin:0; list-style:none; counter-reset:rpbstep; }
   .rpb-steps li{ counter-increment:rpbstep; display:flex; gap:10px; margin-bottom:9px; }
-  .rpb-steps li::before{ content:counter(rpbstep); flex:none; width:22px; height:22px; border:2px solid #0A1A2F; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; color:#0A1A2F; }
-  .rpb-notes{ margin-top:20px; border-left:4px solid #0A1A2F; padding:2px 0 2px 14px; }
+  .rpb-steps li::before{ content:counter(rpbstep); flex:none; width:22px; height:22px; border:2px solid #1a7e6f; background:#34F7D7; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; color:#0A1A2F; }
+  .rpb-notes{ margin-top:20px; border-left:4px solid #34F7D7; padding:2px 0 2px 14px; }
   .rpb-notes p{ font-style:italic; font-size:13px; color:#0A1A2F; margin:0; line-height:1.55; }
+  .rpb-used-in{ margin-top:16px; }
+  .rpb-used-in ul{ margin:0; padding-left:18px; font-family:-apple-system,Arial,sans-serif; font-size:12px; color:#0A1A2F; }
+  .rpb-used-in li{ margin-bottom:3px; }
   .rpb-footer{ margin-top:28px; padding-top:10px; border-top:3px double #0A1A2F; font-family:-apple-system,Arial,sans-serif; font-size:10px; font-weight:600; color:#0A1A2F; display:flex; justify-content:space-between; }
   .label-print-sheet{ display:none; }
   .label-block{
@@ -1466,6 +1487,18 @@
   .order-print-sheet td{ padding:5px 0; border-bottom:1px solid #eee; font-size:13px; }
   .order-print-sheet td.qty{ text-align:right; white-space:nowrap; padding-left:10px; }
 </style>
+<!-- Apply the saved Appearance theme before first paint (bod 10, 16.7.) — this has to run here,
+     not in the main script at the bottom of the page, or the page would flash dark-then-light
+     on every load for anyone using Light mode. Kept deliberately tiny and dependency-free. -->
+<script>
+  (function(){
+    var theme = localStorage.getItem('chefos_theme') === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    var metaTheme = document.querySelector('meta[name="theme-color"]');
+    if(metaTheme && theme === 'light') metaTheme.setAttribute('content', '#F2F6FA');
+  })();
+</script>
 </head>
 <body>
 
@@ -1535,6 +1568,12 @@
         </button>
         <button class="icon-btn" onclick="openTutorial()" title="How this works">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <!-- What's New (bod 1, 16.7.) — a small notification + mini-tour whenever a feature is
+             shipped, separate from the full onboarding Tutorial above. -->
+        <button class="icon-btn" onclick="openWhatsNew()" title="What's new" id="whatsNewBtn" style="position:relative;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
+          <span id="whatsNewDot" style="display:none; position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--copper);"></span>
         </button>
         <button class="icon-btn" onclick="openMyProfileSettings()" title="My Profile">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -2578,13 +2617,10 @@
     <button class="icon-btn" id="favBtn" onclick="toggleFavorite()" title="Favorite">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
     </button>
-    <button class="icon-btn" onclick="window.print()" title="Print this recipe">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-    </button>
     <button class="icon-btn" onclick="addRecipeToCheckList()" title="Add to Check List">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
     </button>
-    <button class="icon-btn" onclick="printRecipeBranded()" title="Print (Branded)">
+    <button class="icon-btn" onclick="printRecipeBranded()" title="Print">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/><path d="M9 17h6M9 20h4"/></svg>
     </button>
     <button class="icon-btn" onclick="openRecipeComments()" title="Comments">
@@ -3758,6 +3794,35 @@
       <button class="save-btn" id="tutorialNextBtn" onclick="tutorialStep(1)">Next</button>
     </div>
     <button class="sheet-cancel" style="margin-top:8px;" onclick="closeTutorial()">Skip</button>
+  </div>
+</div>
+
+<!-- What's New (bod 1, 16.7.) — same carousel pattern as the onboarding Tutorial, but a growing
+     feed of one-slide-per-shipped-feature announcements instead of a fixed screen-by-screen tour. -->
+<div id="whatsNewOverlay" class="sheet-overlay" onclick="if(event.target===this) closeWhatsNew()">
+  <div class="sheet" style="max-height:82vh;">
+    <div class="sheet-handle"></div>
+    <div id="whatsNewBody"></div>
+    <div class="sheet-row" style="margin-top:10px;">
+      <button class="sheet-cancel" id="whatsNewBackBtn" onclick="whatsNewStep(-1)">Back</button>
+      <button class="save-btn" id="whatsNewNextBtn" onclick="whatsNewStep(1)">Next</button>
+    </div>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeWhatsNew()">Close</button>
+  </div>
+</div>
+
+<!-- Appearance (bod 10, 16.7.) — Light/Dark toggle. Dark is the app's original, always-on look
+     (Richard's own kitchen-notebook identity); Light is new, for cooking under bright daylight. -->
+<div id="appearanceSettingsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAppearanceSettings()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Appearance</div>
+    <p class="sheet-text">Pick how ChefOS looks on this device. This is per-device — everyone on your team can choose their own.</p>
+    <div class="sheet-row">
+      <button class="task-status-btn" id="appearanceDarkBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('dark')">🌙 Dark</button>
+      <button class="task-status-btn" id="appearanceLightBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('light')">☀️ Light</button>
+    </div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAppearanceSettings()">Close</button>
   </div>
 </div>
 
@@ -6196,6 +6261,11 @@ const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
    for shared-kitchen-device hygiene instead of relying on that happening automatically. */
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.localStorage } });
 
+// The browser's own scroll restoration fights showHome()'s reset on some mobile browsers
+// (it can silently put the old scroll position back after our own reset already ran) — this
+// app manages its own scroll position on every view switch, so let it, not the browser.
+if('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 /* Basic client-side error tracking (2026-07-13) — up to now, a JS error on a real user's real
    device was invisible until they thought to mention it. Logs to error_logs (db/51_error_logs.sql)
    instead of a third-party service. Capped per session so a tight error loop can't flood the
@@ -6851,6 +6921,7 @@ async function enterApp(){
   subscribeToRealtimeUpdates();
   logEvent('login', { device_id: getDeviceId(), user_agent: navigator.userAgent });
   checkUnreadActivity();
+  updateWhatsNewBadge();
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
 
@@ -6887,7 +6958,11 @@ async function enterApp(){
     const { data: inviteRow } = await sb.from('kitchen_invites')
       .select('kitchen_id, revoked, expires_at, grants_company_admin')
       .eq('id', inviteParam).maybeSingle();
-    if(inviteRow && inviteRow.grants_company_admin && !inviteRow.revoked && new Date(inviteRow.expires_at) > new Date()){
+    // Deliberately NOT gated on !revoked/!expired (16.7. fix, bod 3) — a revoked/expired link
+    // is exactly the protonmail failure mode db/118 exists to recover from. The confirm dialog
+    // and the RPC call below still run; claim_company_admin's own server-side invariant (caller
+    // already in the kitchen + seat still empty) is what actually decides pass/fail now.
+    if(inviteRow && inviteRow.grants_company_admin){
       const { data: k } = await sb.from('kitchens').select('name').eq('id', inviteRow.kitchen_id).maybeSingle();
       const kitchenName = (k && k.name) || 'a new kitchen';
       if(confirm(`Richard invited you to become the main admin of "${kitchenName}". Accept? Your account will move to that kitchen.`)){
@@ -7884,8 +7959,19 @@ async function joinKitchenViaLink(kitchenId){
   // verified server-side. For any ordinary invite it just returns false — awaited (not
   // fire-and-forget) so startApp() below reads the profile AFTER the perms exist.
   if(inviteId){
-    const { error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteId });
-    if(claimErr) console.error('claim_company_admin failed', claimErr);
+    // Check whether THIS invite was actually meant to grant admin before deciding how loud to
+    // be about a `false`/failed claim — an ordinary (non-admin) invite legitimately returns
+    // false here every time, that's not an error. Only alert when a KNOWN admin invite fails to
+    // apply (16.7. fix, bod 3 — a silent console.error here is exactly how the protonmail
+    // account lost its role, and this is the very first time this invite is ever opened, so a
+    // pre-burnt link is a real possibility here too, e.g. a mail client's link-preview bot).
+    const { data: inviteRow } = await sb.from('kitchen_invites').select('grants_company_admin').eq('id', inviteId).maybeSingle();
+    const { data: claimed, error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteId });
+    if(inviteRow && inviteRow.grants_company_admin && (claimErr || claimed === false)){
+      alert("You've joined the kitchen, but the admin role could not be applied (" + (claimErr ? claimErr.message : 'invite already used') + ") — ask the kitchen's owner to grant it from Admin Directory.");
+    } else if(claimErr){
+      console.error('claim_company_admin failed', claimErr);
+    }
   }
   history.replaceState(null, '', location.pathname);
   await startApp();
@@ -8737,7 +8823,9 @@ function dbRowToRecipe(row){
     tags: row.tags || [],
     createdAt: row.created_at || null,
     createdBy: row.created_by || null,
-    isPersonal: !!row.is_personal
+    isPersonal: !!row.is_personal,
+    chefosMasterId: row.chefos_master_id || null,
+    listId: row.list_id || null
   };
 }
 
@@ -9573,6 +9661,7 @@ const SETTINGS_TILE_DEFS = [
   { key:'myProfile', icon:'👤', staticLabel:'My Profile & Security', onclick:'openMyProfileSettings()' },
   { key:'scanSettings', icon:'🔑', staticLabel:'AI & Scan Settings', onclick:'openScanSettings()' },
   { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
+  { key:'appearance', icon:'🌗', staticLabel:'Appearance', onclick:'openAppearanceSettings()', dynamicLabel:()=> 'Appearance: ' + (getChefosTheme()==='light' ? 'Light' : 'Dark') },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
   { key:'accountType', icon:'📖', staticLabel:'Account Type', onclick:'openAccountTypeSettings()', dynamicLabel:()=> 'Account Type: ' + (currentAccountType==='company' ? 'Company' : currentAccountType==='personal' ? 'Personal' : 'Not set') },
   { key:'previewAsUser', icon:'👁️', staticLabel:'Preview as Normal User', onclick:'togglePreviewAsUser()', adminOnly:true },
@@ -10099,7 +10188,15 @@ function showHome(){
   hideAllViews();
   document.getElementById('homeView').style.display = 'block';
   renderHomeGrid();
+  // Force-reset scroll on Home (Richard, 16.7. — coming back from a long scrolled view left the
+  // menu looking stuck mid-page). window.scrollTo alone isn't always enough: some mobile browsers
+  // restore the old scroll position AFTER this runs (history scroll restoration, see the
+  // `history.scrollRestoration = 'manual'` set at load), and the tile grid can still be
+  // reflowing on the same tick — so reset on window, both scroll roots, and again next frame.
   window.scrollTo(0,0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  requestAnimationFrame(()=>{ window.scrollTo(0,0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; });
 }
 /* ---------- Floating Back + Home nav (bod 3, 16.7.) — Richard: back-one-page + Home must be
    ALWAYS visible, top-right, on every screen except Home itself. There's no browser history to
@@ -10227,18 +10324,6 @@ function renderRecipeSummaryBar(){
   if((recipeSourceFilter === 'mine' && currentAccountType === 'company' && !showPersonalInCompany) || (recipeSourceFilter === 'company' && currentAccountType === 'personal')){
     recipeSourceFilter = 'chefos';
   }
-  const all = allRecipes();
-  const aiCount = all.filter(r=>!r.createdBy).length;                                    // ChefOS library shelf
-  const mineCount = all.filter(r=>r.createdBy === currentUser.id).length;                 // Moje
-  const companyCount = all.filter(r=>r.createdBy && r.createdBy !== currentUser.id).length; // Firemné (teammates)
-  const shelfButtons = [];
-  if(currentAccountType !== 'company' || showPersonalInCompany){
-    shelfButtons.push(`<button class="task-status-btn${recipeSourceFilter==='mine' ? ' active' : ''}" onclick="setRecipeSourceFilter('mine')">📖 Moje (${mineCount})</button>`);
-  }
-  shelfButtons.push(`<button class="task-status-btn${recipeSourceFilter==='chefos' ? ' active' : ''}" onclick="setRecipeSourceFilter('chefos')">✨ ChefOS (${aiCount})</button>`);
-  if(currentAccountType !== 'personal'){
-    shelfButtons.push(`<button class="task-status-btn${recipeSourceFilter==='company' ? ' active' : ''}" onclick="setRecipeSourceFilter('company')">🏢 Firemné (${companyCount})</button>`);
-  }
   el.innerHTML = `
     <div class="prep-summary-row2" style="padding:8px 18px 12px 18px;">
       <span class="prep-section-name" onclick="openRecipeCategoryPicker()" title="Switch section">${categoryIcon(activeCategory)} ${activeCategory}</span>
@@ -10248,16 +10333,18 @@ function renderRecipeSummaryBar(){
       </span>
     </div>
     <div class="prep-line3" style="padding:0 18px 10px 18px;">
-      ${shelfButtons.join('')}
+      <span class="prep-item-clock" style="cursor:default;">${currentRecipeShelfName()}</span>
     </div>
   `;
 }
-function setRecipeSourceFilter(mode){
-  recipeSourceFilter = mode;
-  logEvent('recipe_source_filter_changed', {mode});
-  renderRecipeSummaryBar();
-  renderList();
-  window.scrollTo(0,0);
+// Shelf switching now lives only on the big-tile Recipes picker (showRecipesHome) — bod 8, 16.7.
+// This just names whichever shelf is currently open, so a "back" from Home doesn't lose context.
+function currentRecipeShelfName(){
+  if(recipeSourceFilter === 'mine') return '📖 My Recipes';
+  if(recipeSourceFilter === 'chefos') return '✨ ChefOS';
+  if(recipeSourceFilter === 'company') return '🏢 Company Recipes';
+  const l = _recipeLists.find(x=>x.id === recipeSourceFilter);
+  return '🗂️ ' + ((l && l.name) || 'Project');
 }
 function showNewestRecipes(){
   activeCategory = 'Newest';
@@ -10527,7 +10614,10 @@ function passesRecipeFilters(r, q){
   // no longer the shelf axis.
   if(recipeSourceFilter === 'chefos' && r.createdBy) return false;
   if(recipeSourceFilter === 'company' && (!r.createdBy || r.createdBy === currentUser.id)) return false;
-  if(recipeSourceFilter === 'mine' && r.createdBy !== currentUser.id) return false;
+  // 'mine' excludes recipes filed into a custom project (bod 8, 16.7. — those get their own
+  // shelf, same split as My Ingredients vs. a custom ingredient list).
+  if(recipeSourceFilter === 'mine' && (r.createdBy !== currentUser.id || r.listId)) return false;
+  if(recipeSourceFilter !== 'chefos' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine' && r.listId !== recipeSourceFilter) return false;
   if(!matchesQuery(r, q)) return false;
   if(DIET_FILTER_OPTIONS.some(o=>dietFilter[o.key])){
     const diet = computeDietTags(r);
@@ -11181,10 +11271,12 @@ async function confirmAddRecipeToStation(station){
 }
 /* ---------- Recipe Comments (bod 2, 16.7. — db/104) ---------- */
 let _currentCommentsRecipeId = null;
+let _currentCommentsMasterId = null;
 async function openRecipeComments(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
   _currentCommentsRecipeId = r.id;
+  _currentCommentsMasterId = r.chefosMasterId || null;
   document.getElementById('recipeCommentInput').value = '';
   document.getElementById('recipeCommentStatus').textContent = '';
   document.getElementById('recipeCommentsList').innerHTML = '<p class="lede">Loading…</p>';
@@ -11194,14 +11286,23 @@ async function openRecipeComments(){
 function closeRecipeComments(){
   document.getElementById('recipeCommentsOverlay').classList.remove('open');
   _currentCommentsRecipeId = null;
+  _currentCommentsMasterId = null;
 }
 async function renderRecipeComments(){
   const el = document.getElementById('recipeCommentsList');
+  // ChefOS-shelf recipes exist as one physical copy per kitchen (db/87) — a comment thread is
+  // shared across every kitchen's copy of "the same" recipe via chefos_master_id (db/119), so
+  // fetch every sibling row's id first rather than filtering on just this kitchen's own row.
+  let recipeIds = [_currentCommentsRecipeId];
+  if(_currentCommentsMasterId){
+    const { data: siblings } = await sb.from('recipes').select('id').eq('chefos_master_id', _currentCommentsMasterId);
+    if(siblings && siblings.length) recipeIds = siblings.map(s=>s.id);
+  }
   const { data, error } = await sb.from('recipe_comments')
     .select('id, message, created_at, created_by, profiles:created_by(full_name, email)')
-    .eq('recipe_id', _currentCommentsRecipeId)
+    .in('recipe_id', recipeIds)
     .order('created_at', { ascending:true });
-  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message} — has db/104 been run?</p>`; return; }
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message} — has db/104/db/119 been run?</p>`; return; }
   if(!data || !data.length){ el.innerHTML = '<div class="empty-state">No comments yet — be the first.</div>'; return; }
   el.innerHTML = data.map(c=>`
     <div class="task-row">
@@ -11757,6 +11858,10 @@ async function saveFormBody(){
     cross_references: crossReferences || null, tags, sections
   };
 
+  // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
+  // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
+  // same convention as ingredients' custom lists.
+  const inRecipeProject = recipeSourceFilter !== 'chefos' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine';
   setSyncStatus('saving');
   let error, savedId = formEditingId;
   if(formEditingId){
@@ -11764,7 +11869,9 @@ async function saveFormBody(){
   } else {
     let inserted;
     ({ data: inserted, error } = await sb.from('recipes')
-      .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true, is_personal: currentAccountType === 'personal' })
+      .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
+        is_personal: inRecipeProject ? true : currentAccountType === 'personal',
+        list_id: inRecipeProject ? recipeSourceFilter : null })
       .select().single());
     if(inserted) savedId = inserted.id;
   }
@@ -11808,28 +11915,62 @@ function toggleIngredientFilterValue(list, value){
 let ingredientSourceFilter = 'chefos'; // 'chefos' | 'mine' — bod 1, 16.7., db/97
 let showHiddenIngredients = false; // bod 1, 16.7. — db/107
 /* ---------- Recipes landing (bod 4, 16.7. večer) ---------- */
-function showRecipesHome(){
+let _recipeLists = [];
+let _showHiddenRecipeLists = false;
+async function showRecipesHome(){
   logEvent('view_opened', {view:'recipes_home'});
   hideAllViews();
   document.getElementById('recipesHomeView').style.display = 'block';
   window.scrollTo(0,0);
+  const { data, error } = await sb.from('recipe_lists').select('*').order('created_at');
+  if(error && !/does not exist/i.test(error.message)) console.error('recipe_lists load failed', error);
+  _recipeLists = data || [];
+  renderRecipeShelvesGrid();
+}
+function renderRecipeShelvesGrid(){
   const wrap = document.getElementById('recipeShelvesGrid');
   wrap.innerHTML = '';
-  const addTile = (icon, label, shelf, longPress)=>{
+  const showPersonalInCompany = currentAccountType === 'company' && localStorage.getItem('chefos_show_personal_in_company') === '1';
+  const addTile = (icon, label, onclick, longPress)=>{
     const btn = document.createElement('button');
     btn.className = 'home-tile';
-    btn.innerHTML = `<span class="home-tile-icon">${icon}</span><span class="home-tile-label">${label}</span>`;
-    btn.onclick = ()=>{ recipeSourceFilter = shelf; showList(); };
+    btn.innerHTML = `<span class="home-tile-icon">${icon}</span><span class="home-tile-label">${label.replace(/</g,'&lt;')}</span>`;
+    btn.onclick = onclick;
     if(longPress) attachLongPress(btn, longPress);
     wrap.appendChild(btn);
   };
-  if(currentAccountType !== 'company'){
-    addTile('📖', 'My Recipes', 'mine', ()=>openShareMyRecipes());
+  const openShelf = (shelf)=>{ recipeSourceFilter = shelf; showList(); };
+  if(currentAccountType !== 'company' || showPersonalInCompany){
+    addTile('📖', 'My Recipes', ()=>openShelf('mine'), ()=>openShareMyRecipes());
   }
-  addTile('✨', 'ChefOS', 'chefos');
+  addTile('✨', 'ChefOS', ()=>openShelf('chefos'));
   if(currentAccountType === 'company'){
-    addTile('🏢', 'Company Recipes', 'company');
+    addTile('🏢', 'Company Recipes', ()=>openShelf('company'));
   }
+  // Custom recipe projects (bod 8, 16.7.) — same pattern as custom ingredient lists (db/112):
+  // named, private collections owned by their creator, alongside the two fixed shelves.
+  const visibleLists = _recipeLists.filter(l=>_showHiddenRecipeLists || !l.hidden);
+  visibleLists.forEach(l=>{
+    addTile('🗂️', l.name + (l.hidden ? ' (hidden)' : ''), ()=>openShelf(l.id),
+      ()=>openItemContextMenu('recipeList', l.id, l.name, l.hidden, false));
+  });
+  addTile('➕', 'Add Project', ()=>createRecipeList());
+  const hiddenCount = _recipeLists.filter(l=>l.hidden).length;
+  if(hiddenCount || _showHiddenRecipeLists){
+    const toggle = document.createElement('button');
+    toggle.className = 'add-row-btn';
+    toggle.style.cssText = 'grid-column:1/-1; margin-top:6px;';
+    toggle.textContent = _showHiddenRecipeLists ? 'Hide the hidden projects again' : `Show ${hiddenCount} hidden project${hiddenCount===1?'':'s'}`;
+    toggle.onclick = ()=>{ _showHiddenRecipeLists = !_showHiddenRecipeLists; renderRecipeShelvesGrid(); };
+    wrap.appendChild(toggle);
+  }
+}
+async function createRecipeList(){
+  const name = prompt('Name the new recipe project:');
+  if(!name || !name.trim()) return;
+  const { error } = await sb.from('recipe_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim() });
+  if(error){ alert('Could not create: ' + error.message + ' — has db/120 been run?'); return; }
+  await showRecipesHome();
 }
 
 let _ingredientLists = [];
@@ -12228,10 +12369,14 @@ function closeItemContextMenu(){
   _contextMenuTarget = null;
 }
 function _contextMenuTable(t){
-  return t.type === 'ingredient' ? 'ingredients' : t.type === 'ingredientList' ? 'ingredient_lists' : 'prep_dishes';
+  if(t.type === 'ingredient') return 'ingredients';
+  if(t.type === 'ingredientList') return 'ingredient_lists';
+  if(t.type === 'recipeList') return 'recipe_lists';
+  return 'prep_dishes';
 }
 async function _contextMenuRefresh(t){
   if(t.type === 'ingredientList'){ await showIngredientsHome(); return; }
+  if(t.type === 'recipeList'){ await showRecipesHome(); return; }
   await loadAppData();
   if(t.type === 'ingredient') renderIngredientList(); else await renderActiveStationView();
 }
@@ -12256,7 +12401,7 @@ async function itemContextToggleHide(){
 async function itemContextDelete(){
   const t = _contextMenuTarget;
   if(!t) return;
-  const warning = t.type === 'ingredientList'
+  const warning = (t.type === 'ingredientList' || t.type === 'recipeList')
     ? `Delete the list "${t.name}" AND everything in it? This can't be undone.`
     : `Delete "${t.name}"? This can't be undone.`;
   if(!confirm(warning)) return;
@@ -12267,6 +12412,9 @@ async function itemContextDelete(){
     // The list's items first (they'd be orphaned otherwise), then the list itself.
     ({ error } = await sb.from('ingredients').delete().eq('list_id', t.id));
     if(!error) ({ error } = await sb.from('ingredient_lists').delete().eq('id', t.id));
+  } else if(t.type === 'recipeList'){
+    ({ error } = await sb.from('recipes').delete().eq('list_id', t.id));
+    if(!error) ({ error } = await sb.from('recipe_lists').delete().eq('id', t.id));
   } else {
     ({ error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', t.id));
   }
@@ -14459,7 +14607,10 @@ function printRecipeBranded(){
   if(r.station) metaParts.push({ label:'Station', value:r.station });
   if(r.category) metaParts.push({ label:'Section', value:r.category });
   const kn = _rpbKitchenName.replace(/</g,'&lt;');
+  const usedIn = findUsedIn(r, window.currentDetailIdx);
+  const usedInHtml = usedIn.length ? `<div class="rpb-used-in"><div class="rpb-section-label">Used In</div><ul>${usedIn.map(i=>`<li>${(allRecipes()[i].title||'').replace(/</g,'&lt;')}</li>`).join('')}</ul></div>` : '';
   document.getElementById('recipePrintBrandedSheet').innerHTML = `
+    <div class="rpb-accent-bar"></div>
     <div class="rpb-letterhead">
       <div>
         <div class="rpb-kitchen">${kn}</div>
@@ -14475,6 +14626,7 @@ function printRecipeBranded(){
       ${stepsHtml ? `<div class="rpb-col-steps"><div class="rpb-section-label">Method</div>${stepsHtml}</div>` : ''}
     </div>
     ${r.chefNotes ? `<div class="rpb-notes"><div class="rpb-section-label">Chef's Notes</div><p>${r.chefNotes.replace(/</g,'&lt;')}</p></div>` : ''}
+    ${usedInHtml}
     <div class="rpb-footer"><span>${kn} · Confidential — for kitchen use only</span><span>Printed ${new Date().toLocaleDateString()}</span></div>
   `;
   document.body.classList.add('printing-recipe-branded');
@@ -14682,7 +14834,7 @@ async function loadAndRenderOrderListSummary(){
 }
 
 function orderListNotImplemented(){
-  alert('We are working on it.');
+  openPausedFeature('📤 Send to Supplier', "Coming soon — one tap to send this order straight to your supplier, no copy-pasting. For now, use Print to hand a paper copy to whoever's ordering.");
 }
 
 function orderListItemLabel(r){
@@ -16913,6 +17065,101 @@ function renderTutorialSlide(){
   `;
   document.getElementById('tutorialBackBtn').style.visibility = _tutorialIdx === 0 ? 'hidden' : 'visible';
   document.getElementById('tutorialNextBtn').textContent = _tutorialIdx === _tutorialSlides.length - 1 ? 'Done' : 'Next';
+}
+/* What's New feed (bod 1, 16.7.) — one slide per shipped feature, newest last. Whenever a new
+   feature ships, Richard is asked whether it should get an entry here before one is added —
+   this is the mechanism that ask feeds into, not an automatic log of every commit. */
+const WHATS_NEW = [
+  { date:'2026-07-16', icon:'✋', title:'Hold to manage', bullets:[
+    { icon:'👆', text:'Press and hold any ingredient, dish, or list.' },
+    { icon:'✏️', text:'Rename, hide, or delete it right there — no separate menu.' }
+  ]},
+  { date:'2026-07-16', icon:'🗂️', title:'Custom lists & projects', bullets:[
+    { icon:'🧂', text:'Ingredients: make extra named lists beyond ChefOS / My Ingredients.' },
+    { icon:'📖', text:'Recipes: same idea — tap ➕ Add Project on the Recipes screen.' },
+    { icon:'🤝', text:'Ingredient lists can be shared read-only with your chef friends.' }
+  ]},
+  { date:'2026-07-16', icon:'💬', title:'Recipe comments, properly shared', bullets:[
+    { icon:'✨', text:'Comments on a ChefOS-shelf recipe are now visible to every kitchen using it.' },
+    { icon:'♾️', text:'Works the same for any new ChefOS recipe added later, automatically.' }
+  ]},
+  { date:'2026-07-16', icon:'🖨️', title:'Print, reworked', bullets:[
+    { icon:'📄', text:'One branded print button now (the plain one is gone).' },
+    { icon:'🔗', text:'Shows "Used In" again — which other recipes use this one as an ingredient.' }
+  ]},
+  { date:'2026-07-16', icon:'👥', title:'Real team membership', bullets:[
+    { icon:'🔒', text:'Switching to a Company account now needs a real invite, code, or admin role.' },
+    { icon:'📷', text:'Scanning a team QR asks you to confirm before joining.' },
+    { icon:'🏷️', text:'My Profile now shows your Role (Admin, Assistant, Member…).' }
+  ]}
+];
+let _whatsNewIdx = 0;
+function unseenWhatsNewCount(){
+  const seen = parseInt(localStorage.getItem('chefos_whats_new_seen') || '0', 10);
+  return Math.max(0, WHATS_NEW.length - seen);
+}
+function updateWhatsNewBadge(){
+  const dot = document.getElementById('whatsNewDot');
+  if(dot) dot.style.display = unseenWhatsNewCount() > 0 ? 'block' : 'none';
+}
+function openWhatsNew(){
+  _whatsNewIdx = Math.max(0, WHATS_NEW.length - unseenWhatsNewCount());
+  renderWhatsNewSlide();
+  document.getElementById('whatsNewOverlay').classList.add('open');
+}
+function closeWhatsNew(){
+  document.getElementById('whatsNewOverlay').classList.remove('open');
+  localStorage.setItem('chefos_whats_new_seen', String(WHATS_NEW.length));
+  updateWhatsNewBadge();
+}
+function whatsNewStep(delta){
+  _whatsNewIdx += delta;
+  if(_whatsNewIdx >= WHATS_NEW.length){ closeWhatsNew(); return; }
+  if(_whatsNewIdx < 0) _whatsNewIdx = 0;
+  renderWhatsNewSlide();
+}
+function renderWhatsNewSlide(){
+  const s = WHATS_NEW[_whatsNewIdx];
+  if(!s) return;
+  document.getElementById('whatsNewBody').innerHTML = `
+    <div style="text-align:center; padding:6px 4px 2px 4px;">
+      <div style="font-size:40px; line-height:1;">${s.icon}</div>
+      <div class="sheet-title" style="margin:10px 0 10px 0;">${s.title}</div>
+      <div style="text-align:left;">${s.bullets.map(b=>`<div style="display:flex; align-items:flex-start; gap:9px; margin:8px 0;"><span style="font-size:18px; line-height:1.4;">${b.icon}</span><span class="sheet-text" style="margin:0; line-height:1.4;">${b.text}</span></div>`).join('')}</div>
+      <div style="margin-top:12px;">${WHATS_NEW.map((_,i)=>`<span style="display:inline-block; width:6px; height:6px; border-radius:50%; margin:0 3px; background:${i===_whatsNewIdx?'var(--copper)':'var(--rule)'};"></span>`).join('')}</div>
+    </div>
+  `;
+  document.getElementById('whatsNewBackBtn').style.visibility = _whatsNewIdx === 0 ? 'hidden' : 'visible';
+  document.getElementById('whatsNewNextBtn').textContent = _whatsNewIdx === WHATS_NEW.length - 1 ? 'Done' : 'Next';
+}
+/* Appearance / Light-Dark mode (bod 10, 16.7.) — per-device, localStorage, applied as early as
+   possible (see the inline <script> right after this file's <style> block) to avoid a flash of
+   the wrong theme on load. Dark stays the default so nobody's existing look changes underneath
+   them; Light is opt-in. */
+function getChefosTheme(){
+  return localStorage.getItem('chefos_theme') === 'light' ? 'light' : 'dark';
+}
+function setChefosTheme(theme){
+  theme = theme === 'light' ? 'light' : 'dark';
+  localStorage.setItem('chefos_theme', theme);
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute('content', theme === 'light' ? '#F2F6FA' : '#0A1A2F');
+  if(document.getElementById('appearanceDarkBtn')){
+    document.getElementById('appearanceDarkBtn').classList.toggle('active', theme==='dark');
+    document.getElementById('appearanceLightBtn').classList.toggle('active', theme==='light');
+  }
+  renderSettingsGrid();
+}
+function openAppearanceSettings(){
+  const theme = getChefosTheme();
+  document.getElementById('appearanceDarkBtn').classList.toggle('active', theme==='dark');
+  document.getElementById('appearanceLightBtn').classList.toggle('active', theme==='light');
+  document.getElementById('appearanceSettingsOverlay').classList.add('open');
+}
+function closeAppearanceSettings(){
+  document.getElementById('appearanceSettingsOverlay').classList.remove('open');
 }
 function openScanSettings(){
   document.getElementById('scanLanguageSelect').value = _scanLanguage || 'en';

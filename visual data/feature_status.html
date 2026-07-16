@@ -133,6 +133,7 @@
       <div class="legend-item active" id="legendOk" onclick="toggleStatusFilter('ok')"><span class="legend-dot" style="background:var(--ok);"></span>Funkčné, otestované naživo — <b id="legendOkCount"></b></div>
       <div class="legend-item active" id="legendTest" onclick="toggleStatusFilter('test')"><span class="legend-dot" style="background:var(--test);"></span>Postavené, čaká na test naživo — <b id="legendTestCount"></b></div>
       <div class="legend-item active" id="legendPlan" onclick="toggleStatusFilter('plan')"><span class="legend-dot" style="background:var(--plan);"></span>Naplánované, ešte nepostavené — <b id="legendPlanCount"></b></div>
+      <div class="legend-item" id="legendAdmin" onclick="toggleAdminOnlyFilter()"><span class="legend-dot" style="background:var(--gold);"></span>🛡️ Iba Kitchen Admin — <b id="legendAdminCount"></b></div>
     </div>
     <div class="pulse-strip">
       <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl">Funkčné</div></div>
@@ -172,7 +173,7 @@ const MODULES = [
   { icon:'🧂', title:'Ingrediencie', items:[
     { name:'Zdieľaný cenník (2005+ položiek)', status:'ok' },
     { name:'My Ingredients (súkromné, per účet)', status:'test', acct:'personal' },
-    { name:'Pridávanie do zdieľanej police — len admin', status:'test' },
+    { name:'Pridávanie do zdieľanej police — len admin', status:'test', role:'admin' },
     { name:'Sken dokumentu/fotky → AI extrakcia', status:'test' },
     { name:'Sken .xlsx (Excel) bez knižnice', status:'test' },
     { name:'AI Details — dopĺňanie chýbajúcich polí', status:'test' },
@@ -213,7 +214,7 @@ const MODULES = [
     { name:'Chat asistent, nápady na jedlá', status:'ok' },
     { name:'Sken zmluvy / menu / rozpisu', status:'ok' },
     { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal' },
-    { name:'AI Testing Mode (dočasne neobmedzené)', status:'test' },
+    { name:'AI Testing Mode (dočasne neobmedzené)', status:'test', role:'admin' },
     { name:'Gate presadený aj v edge funkcii (nielen appke)', status:'test' },
     { name:'Centrálny Anthropic API kľúč (user spend oddelene sledovaný)', status:'test' },
   ]},
@@ -226,22 +227,22 @@ const MODULES = [
   { icon:'🏗️', title:'Tímy / Typ účtu', items:[
     { name:'Personal / Company brána + filter receptov', status:'ok' },
     { name:'Jedno-klikový prepínač s potvrdením', status:'test' },
-    { name:'Create Team (nová admin rola)', status:'test', acct:'company' },
+    { name:'Create Team (nová admin rola)', status:'test', acct:'company', role:'admin' },
     { name:'Join kód — sken QR / ručne / email', status:'test', acct:'company' },
     { name:'Stará "hocikto môže vytvoriť kuchyňu" diera', status:'ok' },
     { name:'Reálne členstvo (in_team) — brána na Company prepnutie', status:'test' },
-    { name:'QR pozvánka do tímu s potvrdzovacou obrazovkou', status:'test', acct:'company' },
+    { name:'QR pozvánka do tímu s potvrdzovacou obrazovkou', status:'test', acct:'company', role:'admin' },
     { name:'ROLE v My Profile (Head Admin/Admin/Assistant/Member)', status:'test' },
   ]},
   { icon:'🛡️', title:'Admin', items:[
-    { name:'Add Admin (Head / Kitchen Admin)', status:'ok' },
-    { name:'Admin Directory', status:'ok' },
-    { name:'Access Requests + refresh', status:'ok' },
-    { name:'Email Contacts (+ trigger, nie best-effort)', status:'test' },
-    { name:'Internal Docs (len Richard)', status:'ok' },
-    { name:'Feedback inbox', status:'test' },
-    { name:'Kitchen Reports (adresár + drill-down do receptov)', status:'test', acct:'company' },
-    { name:'Preview as Normal User', status:'ok' },
+    { name:'Add Admin (Head / Kitchen Admin)', status:'ok', role:'admin' },
+    { name:'Admin Directory', status:'ok', role:'admin' },
+    { name:'Access Requests + refresh', status:'ok', role:'admin' },
+    { name:'Email Contacts (+ trigger, nie best-effort)', status:'test', role:'admin' },
+    { name:'Internal Docs (len Richard)', status:'ok', role:'admin' },
+    { name:'Feedback inbox', status:'test', role:'admin' },
+    { name:'Kitchen Reports (adresár + drill-down do receptov)', status:'test', acct:'company', role:'admin' },
+    { name:'Preview as Normal User', status:'ok', role:'admin' },
   ]},
   { icon:'⚙️', title:'Nastavenia', items:[
     { name:'My Profile & Security, heslo, Face ID', status:'ok' },
@@ -269,6 +270,11 @@ const MODULES = [
    and pulse strip always reflect the FULL list, so toggling a filter never makes the totals
    lie; only the cards below get filtered. */
 const activeStatuses = new Set(['ok','test','plan']);
+// Kitchen Admin filter (bod 4, 16.7.) — separate axis from status: "how many features does a
+// Kitchen Admin have" (role:'admin' items, tagged wherever a feature is admin-gated in the real
+// app). Off by default (shows everything); toggling it isolates just the admin-tier features,
+// same one-tap chip pattern as the status filters, just its own dimension.
+let showAdminOnly = false;
 function toggleStatusFilter(status){
   if(activeStatuses.has(status)){
     if(activeStatuses.size === 1) return; // never allow an empty page
@@ -281,13 +287,20 @@ function toggleStatusFilter(status){
   document.getElementById('legendPlan').classList.toggle('active', activeStatuses.has('plan'));
   renderModules();
 }
+function toggleAdminOnlyFilter(){
+  showAdminOnly = !showAdminOnly;
+  document.getElementById('legendAdmin').classList.toggle('active', showAdminOnly);
+  renderModules();
+}
 function renderModules(){
   const wrap = document.getElementById('modulesWrap');
   const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
-  let ok=0, test=0, plan=0;
+  let ok=0, test=0, plan=0, adminTotal=0;
   wrap.innerHTML = MODULES.map(mod=>{
     const visibleItems = mod.items.filter(it=>{
       if(it.status==='ok') ok++; else if(it.status==='test') test++; else plan++;
+      if(it.role==='admin') adminTotal++;
+      if(showAdminOnly && it.role!=='admin') return false;
       return activeStatuses.has(it.status);
     });
     if(!visibleItems.length) return '';
@@ -296,7 +309,10 @@ function renderModules(){
       return `
         <div class="feature-card status-${it.status}${dimmed?' dim':''}">
           <div class="fname"><span class="status-dot ${it.status}"></span>${it.name}</div>
-          ${it.acct ? `<span class="acct-tag ${it.acct}">${it.acct === 'personal' ? 'Personal' : 'Company'}</span>` : ''}
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            ${it.acct ? `<span class="acct-tag ${it.acct}">${it.acct === 'personal' ? 'Personal' : 'Company'}</span>` : ''}
+            ${it.role==='admin' ? `<span class="acct-tag" style="background:var(--gold-wash); color:var(--gold);">🛡️ Kitchen Admin</span>` : ''}
+          </div>
         </div>
       `;
     }).join('');
@@ -318,6 +334,7 @@ function renderModules(){
   document.getElementById('legendOkCount').textContent = ok;
   document.getElementById('legendTestCount').textContent = test;
   document.getElementById('legendPlanCount').textContent = plan;
+  document.getElementById('legendAdminCount').textContent = adminTotal;
 }
 function setAcctView(type){
   document.getElementById('acctPersonalBtn').classList.toggle('active', type==='personal');
