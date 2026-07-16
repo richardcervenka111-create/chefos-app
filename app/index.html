@@ -2375,8 +2375,8 @@
 <div id="kitchenReportsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeKitchenReports()">
   <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">📊 Kitchen Reports</div>
-    <div class="chips" style="margin-bottom:10px;">
+    <div class="sheet-title" id="krTitle">📊 Kitchen Reports</div>
+    <div class="chips" id="krPeriodChips" style="margin-bottom:10px; display:none;">
       <button class="task-status-btn active" id="krPeriodWeek" onclick="setKitchenReportsPeriod('week')">This Week</button>
       <button class="task-status-btn" id="krPeriodMonth" onclick="setKitchenReportsPeriod('month')">This Month</button>
       <button class="task-status-btn" id="krPeriodQuarter" onclick="setKitchenReportsPeriod('quarter')">This Quarter</button>
@@ -7535,155 +7535,441 @@ async function togglePerformanceConsent(){
    normal kitchen_id RLS. Hours only ever show a name for someone who has actively consented
    (performance_tracking_consent); everyone else's hours are folded into the anonymous total
    only. Recipe/Check List counts are real live counts, not estimates. ---------- */
+/* ============================================================
+   Kitchen Reports v2 (Richard, 17.7.) — a hub like Internal Docs: Team Members / Recipes /
+   Ingredients / Check List, each opening a full report with bar charts, donut charts,
+   percentages and a 🔮 Prediction block (simple linear pace projections, always labelled as
+   estimates). HACCP report entries are listed too, as "we're working on it" placeholders.
+   Named per-person data appears ONLY for members who opted in (performance_tracking_consent) —
+   everyone else is aggregated anonymously, same consent rule as v1.
+   ============================================================ */
 let kitchenReportsPeriod = 'week';
+let _krSection = null;
+let _krShelf = null;
+let _krLevel = 'root';
+let _krCategory = null;
+
 function setKitchenReportsPeriod(period){
   kitchenReportsPeriod = period;
   ['Week','Month','Quarter'].forEach(p=>{
     document.getElementById('krPeriod'+p).classList.toggle('active', p.toLowerCase()===period);
   });
-  loadKitchenReports();
+  if(_krSection === 'team') krRenderTeam();
 }
 function openKitchenReports(){
   logEvent('view_opened', {view:'kitchen_reports'});
-  document.getElementById('kitchenReportsBody').innerHTML = '<p class="lede">Loading…</p>';
   document.getElementById('kitchenReportsOverlay').classList.add('open');
   kitchenReportsPeriod = 'week';
   ['Week','Month','Quarter'].forEach(p=>document.getElementById('krPeriod'+p).classList.toggle('active', p==='Week'));
-  loadKitchenReports();
+  krRenderRoot();
 }
 function closeKitchenReports(){ document.getElementById('kitchenReportsOverlay').classList.remove('open'); }
-function kitchenReportsPeriodStart(){
+
+function krPeriodBounds(){
   const now = new Date();
+  let start, end;
   if(kitchenReportsPeriod === 'week'){
-    const d = new Date(now); const day = (d.getDay() + 6) % 7; d.setDate(d.getDate() - day); d.setHours(0,0,0,0); return d;
+    start = new Date(now); const day = (start.getDay() + 6) % 7; start.setDate(start.getDate() - day); start.setHours(0,0,0,0);
+    end = new Date(start); end.setDate(end.getDate() + 7);
+  } else if(kitchenReportsPeriod === 'month'){
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  } else {
+    const q = Math.floor(now.getMonth() / 3);
+    start = new Date(now.getFullYear(), q * 3, 1);
+    end = new Date(now.getFullYear(), q * 3 + 3, 1);
   }
-  if(kitchenReportsPeriod === 'month'){ return new Date(now.getFullYear(), now.getMonth(), 1); }
-  const q = Math.floor(now.getMonth() / 3);
-  return new Date(now.getFullYear(), q * 3, 1);
+  const elapsedFrac = Math.min(1, Math.max(0.001, (now - start) / (end - start)));
+  return { start, end, elapsedFrac };
 }
-async function loadKitchenReports(){
+
+/* ---------- tiny chart helpers (pure inline SVG/CSS, no libraries) ---------- */
+const KR_COLORS = ['#34F7D7','#F7C948','#FF7A68','#4ADE80','#7FB3FF','#C792EA','#9C949E'];
+function krEsc(s){ return String(s == null ? '' : s).replace(/</g,'&lt;'); }
+function krPct(part, whole){ return whole > 0 ? Math.round(part / whole * 100) : 0; }
+/* Donut chart: segments = [{label, value}], colors assigned in order. Legend shows counts + %. */
+function krDonut(segments){
+  const total = segments.reduce((s,x)=>s + x.value, 0);
+  if(total <= 0) return '<div class="empty-state">No data yet.</div>';
+  const R = 40, C = 2 * Math.PI * R;
+  let offset = 0;
+  const circles = segments.map((seg, i)=>{
+    const frac = seg.value / total;
+    const c = `<circle cx="50" cy="50" r="${R}" fill="none" stroke="${KR_COLORS[i % KR_COLORS.length]}" stroke-width="16"
+      stroke-dasharray="${(frac * C).toFixed(2)} ${(C - frac * C).toFixed(2)}" stroke-dashoffset="${(-offset * C).toFixed(2)}"
+      transform="rotate(-90 50 50)"/>`;
+    offset += frac;
+    return c;
+  }).join('');
+  const legend = segments.map((seg, i)=>`
+    <div style="display:flex; align-items:center; gap:7px; font-size:12px; margin:3px 0;">
+      <span style="width:10px; height:10px; border-radius:3px; background:${KR_COLORS[i % KR_COLORS.length]}; flex:none;"></span>
+      <span style="flex:1; color:var(--ink-dim); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${krEsc(seg.label)}</span>
+      <b style="font-variant-numeric:tabular-nums;">${seg.value}</b>
+      <span style="color:var(--ink-dim); width:40px; text-align:right; font-variant-numeric:tabular-nums;">${krPct(seg.value, total)}%</span>
+    </div>`).join('');
+  return `<div style="display:flex; gap:16px; align-items:center; margin:8px 0;">
+    <svg viewBox="0 0 100 100" style="width:110px; height:110px; flex:none;">${circles}
+      <text x="50" y="47" text-anchor="middle" fill="var(--ink)" font-size="17" font-weight="700">${Math.round(total * 10) / 10}</text>
+      <text x="50" y="61" text-anchor="middle" fill="var(--ink-dim)" font-size="8">total</text>
+    </svg>
+    <div style="flex:1; min-width:0;">${legend}</div>
+  </div>`;
+}
+/* Horizontal bar rows: rows = [{label, value, display}] — width relative to the max value. */
+function krBars(rows, suffix){
+  const max = Math.max(1, ...rows.map(r=>r.value));
+  if(!rows.length) return '<div class="empty-state">No data yet.</div>';
+  return rows.map((r, i)=>`
+    <div style="margin:7px 0;">
+      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;">
+        <span style="color:var(--ink-dim); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${krEsc(r.label)}</span>
+        <b style="flex:none; margin-left:8px; font-variant-numeric:tabular-nums;">${r.display != null ? r.display : r.value}${suffix || ''}</b>
+      </div>
+      <div style="height:10px; background:var(--paper-raised); border-radius:5px; overflow:hidden;">
+        <div style="height:100%; width:${Math.max(2, r.value / max * 100)}%; border-radius:5px; background:${r.color || KR_COLORS[i % KR_COLORS.length]};"></div>
+      </div>
+    </div>`).join('');
+}
+function krPills(pills){
+  return `<div class="chips" style="flex-wrap:wrap;">${pills.map(p=>`<span class="stat-pill">${p}</span>`).join('')}</div>`;
+}
+function krSectionShell(title, bodyHtml){
+  document.getElementById('krTitle').textContent = title;
+  document.getElementById('kitchenReportsBody').innerHTML = `
+    <button class="add-row-btn" onclick="krRenderRoot()" style="margin-bottom:10px;">‹ All reports</button>
+    ${bodyHtml}`;
+}
+function krPredictBlock(id, innerHtml){
+  return `
+    <button class="add-row-btn" style="margin-top:14px;" onclick="const d=document.getElementById('${id}'); d.style.display = d.style.display==='none' ? 'block' : 'none';">🔮 Prediction</button>
+    <div id="${id}" style="display:none; background:var(--paper-raised); border:1px solid var(--copper-dim); border-radius:12px; padding:12px 14px; margin-top:8px; font-size:12.5px; line-height:1.6;">
+      ${innerHtml}
+      <div style="opacity:.6; margin-top:6px;">Simple pace-based estimate from existing data — not a promise.</div>
+    </div>`;
+}
+function krLabel(text){ return `<div class="rpb-section-label" style="margin-top:16px;">${text}</div>`; }
+
+/* ---------- root hub ---------- */
+async function krRenderRoot(){
+  _krSection = null;
+  document.getElementById('krTitle').textContent = '📊 Kitchen Reports';
+  document.getElementById('krPeriodChips').style.display = 'none';
   const el = document.getElementById('kitchenReportsBody');
-  const periodStart = kitchenReportsPeriodStart();
-
-  const teamRecipeCount = _recipes.filter(r=>r.createdBy && !r.isPersonal).length;
-  const checkListItemCount = _allPrepDishes.length + _allTasks.length;
-  const { data: teamProfiles, error: teamErr } = await sb.from('profiles').select('id, full_name, email, performance_tracking_consent').eq('kitchen_id', currentKitchenId);
-  if(teamErr){ el.innerHTML = `<p class="lede">Could not load team: ${teamErr.message}</p>`; return; }
-  const memberCount = (teamProfiles || []).length;
-
-  const { data: entries, error: entriesErr } = await sb.from('time_entries')
-    .select('user_id, check_in, check_out, break_minutes')
-    .eq('kitchen_id', currentKitchenId)
-    .gte('check_in', periodStart.toISOString());
-  if(entriesErr){
-    el.innerHTML = `<p class="lede">Could not load hours: ${entriesErr.message} — has db/99 been run?</p>`;
-    return;
-  }
-  const hoursByUser = {};
-  let totalHours = 0;
-  (entries || []).forEach(e=>{
-    if(!e.check_out) return;
-    const hrs = Math.max(0, (new Date(e.check_out) - new Date(e.check_in)) / 3600000 - (e.break_minutes||0) / 60);
-    hoursByUser[e.user_id] = (hoursByUser[e.user_id] || 0) + hrs;
-    totalHours += hrs;
-  });
-
-  const consentedRows = (teamProfiles || [])
-    .filter(p=>p.performance_tracking_consent && hoursByUser[p.id] != null)
-    .sort((a,b)=>hoursByUser[b.id]-hoursByUser[a.id]);
-  const namedHours = consentedRows.reduce((s,p)=>s + hoursByUser[p.id], 0);
-  const anonymousHours = totalHours - namedHours;
-
+  const mkHub = (icon, name, meta, onclick)=>`
+    <div class="task-row" style="cursor:pointer;" onclick="${onclick}">
+      <div class="task-row-top"><div class="info" style="flex:1;">
+        <div class="name task-text">${icon} ${name}</div>
+        <div class="meta">${meta}</div>
+      </div><div class="chevron">›</div></div>
+    </div>`;
   el.innerHTML = `
-    <div class="chips" style="flex-wrap:wrap;">
-      <span class="stat-pill">📖 ${teamRecipeCount} team recipes</span>
-      <span class="stat-pill">✅ ${checkListItemCount} Check List items</span>
-      <span class="stat-pill">👥 ${memberCount} team members</span>
-      <span class="stat-pill">⏱️ ${totalHours.toFixed(1)}h logged</span>
-    </div>
-    <div class="rpb-section-label" style="margin-top:16px;">By person (consented only)</div>
-    ${consentedRows.length ? consentedRows.map(p=>`
-      <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
-        <div class="name task-text">${(p.full_name||p.email||'Unknown').replace(/</g,'&lt;')}</div>
-        <div class="meta">${hoursByUser[p.id].toFixed(1)}h this ${kitchenReportsPeriod}</div>
-      </div></div></div>
-    `).join('') : '<div class="empty-state">No one has opted in to sharing their hours yet.</div>'}
-    ${anonymousHours > 0.05 ? `<div class="sheet-text" style="margin-top:10px; opacity:.7;">+ ${anonymousHours.toFixed(1)}h logged by team members who haven't opted in — never shown by name.</div>` : ''}
-    <div class="rpb-section-label" style="margin-top:16px;">Recipes</div>
-    <div id="krRecipesBrowse"></div>
+    <div id="krDirSlot"></div>
+    ${mkHub('👥','Team Members','Attendance, logged hours, activity — who does what, in numbers','krRenderTeam()')}
+    ${mkHub('📖','Recipes','Shelves & sections, timing/cost data completeness, growth','krRenderRecipes()')}
+    ${mkHub('🧂','Ingredients','How many have prices and complete data, category mix','krRenderIngredients()')}
+    ${mkHub('✅','Check List','Live prep state across projects and stations','krRenderCheckList()')}
+    ${krLabel('HACCP')}
+    ${HACCP_TILE_DEFS.map(t=>mkHub(t.icon, t.staticLabel, 'Report coming soon', `openPausedFeature('${t.icon} ${t.staticLabel} — Report', 'We\\'re working on this HACCP report. The module itself already works in the HACCP tile — this is about the admin summary view.')`)).join('')}
   `;
-
-  // Head-admin kitchens directory FIRST (bod 3, 16.7. — db/113): every kitchen's chosen name +
-  // its admin's name/email + member count, above everything else.
+  // Head-admin kitchens directory stays at the top of the hub (db/113).
   if(currentIsAdmin){
-    const dirWrap = document.createElement('div');
-    el.prepend(dirWrap);
     const { data: dir, error: dirErr } = await sb.rpc('admin_kitchen_directory');
+    const slot = document.getElementById('krDirSlot');
+    if(!slot) return;
     if(dirErr){
-      dirWrap.innerHTML = `<p class="lede">Could not load kitchens: ${dirErr.message} — has db/113 been run?</p>`;
+      slot.innerHTML = `<p class="lede">Could not load kitchens: ${dirErr.message} — has db/113 been run?</p>`;
     } else {
-      dirWrap.innerHTML = `<div class="rpb-section-label">All kitchens</div>` + (dir || []).map(k=>`
+      slot.innerHTML = `<div class="rpb-section-label">All kitchens</div>` + (dir || []).map(k=>`
         <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
-          <div class="name task-text">🏢 ${(k.kitchen_name||'Unnamed').replace(/</g,'&lt;')}</div>
-          <div class="meta">${((k.admin_name || k.admin_email) ? (k.admin_name ? k.admin_name + (k.admin_email ? ' · ' + k.admin_email : '') : k.admin_email) : 'no admin yet').replace(/</g,'&lt;')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
+          <div class="name task-text">🏢 ${krEsc(k.kitchen_name||'Unnamed')}</div>
+          <div class="meta">${krEsc((k.admin_name || k.admin_email) ? (k.admin_name ? k.admin_name + (k.admin_email ? ' · ' + k.admin_email : '') : k.admin_email) : 'no admin yet')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
         </div></div></div>
-      `).join('') + `<div class="rpb-section-label" style="margin-top:16px;">Your kitchen</div>`;
+      `).join('') + `<div class="rpb-section-label" style="margin:16px 0 6px 0;">Your kitchen's reports</div>`;
     }
   }
-
-  _krLevel = 'root'; _krCategory = null;
-  renderKrRecipes();
 }
 
-/* Recipes drill-down inside Kitchen Reports (bod 2, 16.7. večer): shelf → sections →
-   recipes; tapping or long-pressing a recipe offers "View Recipe", which jumps straight into
-   the recipe itself. Only the ChefOS shelf exists as a source today — the level structure is
-   already there for team shelves later. */
-let _krLevel = 'root';
-let _krCategory = null;
-function renderKrRecipes(){
+/* ---------- 👥 Team Members ---------- */
+async function krRenderTeam(){
+  _krSection = 'team';
+  document.getElementById('krPeriodChips').style.display = 'flex';
+  krSectionShell('👥 Team Members', '<p class="lede">Loading…</p>');
+  const { start, end, elapsedFrac } = krPeriodBounds();
+  const prevStart = new Date(start.getTime() - (end.getTime() - start.getTime()));
+
+  const [{ data: teamProfiles, error: teamErr }, { data: entries, error: entriesErr }, { data: prevEntries }, { data: auditRows }, { data: eventRows }] = await Promise.all([
+    sb.from('profiles').select('id, full_name, email, performance_tracking_consent').eq('kitchen_id', currentKitchenId),
+    sb.from('time_entries').select('user_id, check_in, check_out, break_minutes').eq('kitchen_id', currentKitchenId).gte('check_in', start.toISOString()),
+    sb.from('time_entries').select('user_id, check_in, check_out, break_minutes').eq('kitchen_id', currentKitchenId).gte('check_in', prevStart.toISOString()).lt('check_in', start.toISOString()),
+    sb.from('check_list_audit_log').select('changed_by').eq('kitchen_id', currentKitchenId).gte('created_at', start.toISOString()).limit(3000),
+    sb.from('usage_events').select('user_id').eq('kitchen_id', currentKitchenId).gte('created_at', start.toISOString()).limit(5000)
+  ]);
+  if(teamErr || entriesErr){
+    krSectionShell('👥 Team Members', `<p class="lede">Could not load: ${(teamErr||entriesErr).message}</p>`);
+    return;
+  }
+  const sumHours = rows => {
+    const by = {}; let total = 0;
+    (rows || []).forEach(e=>{
+      if(!e.check_out) return;
+      const hrs = Math.max(0, (new Date(e.check_out) - new Date(e.check_in)) / 3600000 - (e.break_minutes||0) / 60);
+      by[e.user_id] = (by[e.user_id] || 0) + hrs; total += hrs;
+    });
+    return { by, total };
+  };
+  const cur = sumHours(entries), prev = sumHours(prevEntries);
+  const actionsBy = {};
+  (auditRows || []).forEach(r=>{ if(r.changed_by) actionsBy[r.changed_by] = (actionsBy[r.changed_by] || 0) + 1; });
+  (eventRows || []).forEach(r=>{ if(r.user_id) actionsBy[r.user_id] = (actionsBy[r.user_id] || 0) + 1; });
+  const totalActions = Object.values(actionsBy).reduce((s,x)=>s+x, 0);
+  const activeMembers = new Set([...Object.keys(cur.by), ...Object.keys(actionsBy)]).size;
+
+  const consented = (teamProfiles || []).filter(p=>p.performance_tracking_consent);
+  const consentedIds = new Set(consented.map(p=>p.id));
+  const name = p => p.full_name || p.email || 'Unknown';
+  const anonHours = cur.total - consented.reduce((s,p)=>s + (cur.by[p.id] || 0), 0);
+  const anonActions = totalActions - consented.reduce((s,p)=>s + (actionsBy[p.id] || 0), 0);
+
+  const hourRows = consented.filter(p=>cur.by[p.id]).sort((a,b)=>(cur.by[b.id]||0)-(cur.by[a.id]||0))
+    .map(p=>({ label: name(p), value: cur.by[p.id], display: cur.by[p.id].toFixed(1) }));
+  if(anonHours > 0.05) hourRows.push({ label:'🔒 Not opted in (combined)', value: anonHours, display: anonHours.toFixed(1), color:'#9C949E' });
+  const actionRows = consented.filter(p=>actionsBy[p.id]).sort((a,b)=>(actionsBy[b.id]||0)-(actionsBy[a.id]||0))
+    .map(p=>({ label: name(p), value: actionsBy[p.id] }));
+  if(anonActions > 0) actionRows.push({ label:'🔒 Not opted in (combined)', value: anonActions, color:'#9C949E' });
+
+  const donutSegs = consented.filter(p=>cur.by[p.id]).map(p=>({ label: name(p), value: Math.round(cur.by[p.id] * 10) / 10 }));
+  if(anonHours > 0.05) donutSegs.push({ label:'Not opted in', value: Math.round(anonHours * 10) / 10 });
+
+  const projected = cur.total / elapsedFrac;
+  const deltaPct = prev.total > 0 ? Math.round((projected - prev.total) / prev.total * 100) : null;
+  const predictHtml = cur.total > 0
+    ? `At the current pace the team will log <b>~${projected.toFixed(0)} h</b> by the end of this ${kitchenReportsPeriod} (${cur.total.toFixed(1)} h so far, ${Math.round(elapsedFrac*100)}% of the period elapsed).`
+      + (deltaPct != null ? ` That's <b>${deltaPct >= 0 ? '+' : ''}${deltaPct}%</b> vs the previous ${kitchenReportsPeriod} (${prev.total.toFixed(1)} h).` : ' No previous period to compare against yet.')
+    : 'No hours logged this period yet — nothing to project.';
+
+  krSectionShell('👥 Team Members', `
+    ${krPills([`👥 ${(teamProfiles||[]).length} members`, `⚡ ${activeMembers} active this ${kitchenReportsPeriod}`, `⏱️ ${cur.total.toFixed(1)} h logged`, `🔁 ${totalActions} actions`])}
+    ${krLabel('Hours share')}
+    ${krDonut(donutSegs)}
+    ${krLabel('Hours by person')}
+    ${krBars(hourRows, ' h')}
+    ${krLabel('Activity — Check List edits + app usage')}
+    ${krBars(actionRows)}
+    <div class="sheet-text" style="opacity:.65; margin-top:8px;">Named numbers appear only for members who opted in (Settings → Share My Hours with Admin). Everyone else is combined, never named.</div>
+    ${krPredictBlock('krPredictTeam', predictHtml)}
+  `);
+}
+
+/* ---------- 📖 Recipes — shelves first (ChefOS, then Company), drill-down kept ---------- */
+function krRenderRecipes(){
+  _krSection = 'recipes';
+  document.getElementById('krPeriodChips').style.display = 'none';
+  const chefos = allRecipes().filter(r=>!r.createdBy);
+  const company = allRecipes().filter(r=>r.createdBy && !r.isPersonal);
+  if(_krShelf === null){
+    krSectionShell('📖 Recipes', `
+      <div class="task-row" style="cursor:pointer;" onclick="_krShelf='chefos'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
+        <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">✨ ChefOS</div><div class="meta">${chefos.length} recipes — the built-in library</div></div><div class="chevron">›</div></div>
+      </div>
+      <div class="task-row" style="cursor:pointer;" onclick="_krShelf='company'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
+        <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">🏢 Company Recipes</div><div class="meta">${company.length} recipes — authored by your team</div></div><div class="chevron">›</div></div>
+      </div>
+    `);
+    return;
+  }
+  const recipes = _krShelf === 'chefos' ? chefos : company;
+  const shelfName = _krShelf === 'chefos' ? '✨ ChefOS' : '🏢 Company Recipes';
+  const withTimes = recipes.filter(r=>(r.time && (r.time.active || r.time.passive)) || r.productionTime).length;
+  const withMethod = recipes.filter(r=>(r.sections||[]).some(s=>s.type==='steps' && s.items && s.items.length)).length;
+  const withCost = recipes.filter(r=>r.cost && (r.cost.total != null || r.cost.perKg != null)).length;
+  const withStation = recipes.filter(r=>r.station).length;
+  const byCat = {};
+  recipes.forEach(r=>{ const c = r.category || 'Uncategorized'; byCat[c] = (byCat[c]||0)+1; });
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const donutSegs = catEntries.slice(0,6).map(([c,n])=>({ label:c, value:n }));
+  const restCount = catEntries.slice(6).reduce((s,[,n])=>s+n, 0);
+  if(restCount) donutSegs.push({ label:'Other sections', value: restCount });
+
+  let predictHtml;
+  if(_krShelf === 'company'){
+    const cutoff = Date.now() - 28 * 86400000;
+    const recent = recipes.filter(r=>r.createdAt && new Date(r.createdAt).getTime() > cutoff).length;
+    const perWeek = recent / 4;
+    predictHtml = recent > 0
+      ? `Your team added <b>${recent}</b> recipes in the last 4 weeks (~${perWeek.toFixed(1)}/week). At that pace the shelf reaches <b>~${recipes.length + Math.round(perWeek * 4)}</b> recipes a month from now.`
+      : 'No company recipes added in the last 4 weeks — nothing to project.';
+  } else {
+    predictHtml = 'The ChefOS library is curated centrally — it grows with ChefOS releases, not at a per-kitchen pace, so there\'s nothing meaningful to project here.';
+  }
+
+  krSectionShell('📖 Recipes', `
+    <button class="add-row-btn" onclick="_krShelf=null; krRenderRecipes();" style="margin-bottom:8px;">‹ Shelves</button>
+    <div class="sheet-title" style="font-size:16px;">${shelfName}</div>
+    ${krPills([`📖 ${recipes.length} recipes`, `🗂️ ${catEntries.length} sections`])}
+    ${krLabel('Data completeness')}
+    ${krBars([
+      { label:'⏱️ With timing data', value: withTimes, display: `${withTimes} · ${krPct(withTimes, recipes.length)}%` },
+      { label:'📝 With method steps', value: withMethod, display: `${withMethod} · ${krPct(withMethod, recipes.length)}%` },
+      { label:'💰 With cost data', value: withCost, display: `${withCost} · ${krPct(withCost, recipes.length)}%` },
+      { label:'🧑‍🍳 With a station', value: withStation, display: `${withStation} · ${krPct(withStation, recipes.length)}%` },
+    ])}
+    ${krLabel('Sections mix')}
+    ${krDonut(donutSegs)}
+    ${krPredictBlock('krPredictRecipes', predictHtml)}
+    ${krLabel('Browse')}
+    <div id="krRecipesBrowse"></div>
+  `);
+  renderKrRecipesBrowse(recipes);
+}
+function renderKrRecipesBrowse(recipes){
   const wrap = document.getElementById('krRecipesBrowse');
   if(!wrap) return;
   wrap.innerHTML = '';
-  const chefosRecipes = allRecipes().filter(r=>!r.createdBy);
   const mkRow = (label, meta, onTap, onHold)=>{
     const row = document.createElement('div');
     row.className = 'task-row';
     row.style.cursor = 'pointer';
-    row.innerHTML = `<div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${label.replace(/</g,'&lt;')}</div>${meta?`<div class="meta">${meta}</div>`:''}</div><div class="chevron">›</div></div>`;
+    row.innerHTML = `<div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${krEsc(label)}</div>${meta?`<div class="meta">${meta}</div>`:''}</div><div class="chevron">›</div></div>`;
     if(onTap) row.onclick = onTap;
     if(onHold) attachLongPress(row, onHold);
     wrap.appendChild(row);
   };
-  if(_krLevel === 'root'){
-    mkRow(`✨ ChefOS`, `${chefosRecipes.length} recipes`, ()=>{ _krLevel = 'cats'; renderKrRecipes(); });
-    return;
-  }
-  const backRow = document.createElement('button');
-  backRow.className = 'add-row-btn';
-  backRow.textContent = _krLevel === 'cats' ? '‹ Back' : `‹ Back to sections`;
-  backRow.onclick = ()=>{ if(_krLevel === 'recipes'){ _krLevel = 'cats'; _krCategory = null; } else { _krLevel = 'root'; } renderKrRecipes(); };
-  wrap.appendChild(backRow);
-  if(_krLevel === 'cats'){
-    const byCat = {};
-    chefosRecipes.forEach(r=>{ const c = r.category || 'Uncategorized'; byCat[c] = (byCat[c]||0)+1; });
-    Object.keys(byCat).sort().forEach(cat=>{
-      mkRow(`${categoryIcon(cat)} ${cat}`, `${byCat[cat]} recipes`, ()=>{ _krLevel = 'recipes'; _krCategory = cat; renderKrRecipes(); });
+  if(_krLevel === 'recipes'){
+    const backRow = document.createElement('button');
+    backRow.className = 'add-row-btn';
+    backRow.textContent = '‹ Back to sections';
+    backRow.onclick = ()=>{ _krLevel = 'root'; _krCategory = null; krRenderRecipes(); };
+    wrap.appendChild(backRow);
+    recipes.filter(r=>(r.category || 'Uncategorized') === _krCategory).sort((a,b)=>a.title.localeCompare(b.title)).forEach(r=>{
+      const openPeek = ()=>{
+        document.getElementById('recipePeekTitle').textContent = r.title;
+        document.getElementById('recipePeekViewBtn').onclick = ()=>{
+          document.getElementById('recipePeekOverlay').classList.remove('open');
+          closeKitchenReports();
+          jumpToRecipeById(r.id);
+        };
+        document.getElementById('recipePeekOverlay').classList.add('open');
+      };
+      mkRow(r.title, r.station || '', openPeek, openPeek);
     });
     return;
   }
-  chefosRecipes.filter(r=>(r.category || 'Uncategorized') === _krCategory).sort((a,b)=>a.title.localeCompare(b.title)).forEach(r=>{
-    const openPeek = ()=>{
-      document.getElementById('recipePeekTitle').textContent = r.title;
-      document.getElementById('recipePeekViewBtn').onclick = ()=>{
-        document.getElementById('recipePeekOverlay').classList.remove('open');
-        closeKitchenReports();
-        jumpToRecipeById(r.id);
-      };
-      document.getElementById('recipePeekOverlay').classList.add('open');
-    };
-    mkRow(r.title, r.station || '', openPeek, openPeek);
+  const byCat = {};
+  recipes.forEach(r=>{ const c = r.category || 'Uncategorized'; byCat[c] = (byCat[c]||0)+1; });
+  Object.keys(byCat).sort().forEach(cat=>{
+    mkRow(`${categoryIcon(cat)} ${cat}`, `${byCat[cat]} recipes`, ()=>{ _krLevel = 'recipes'; _krCategory = cat; krRenderRecipes(); });
   });
+}
+
+/* ---------- 🧂 Ingredients ---------- */
+function krRenderIngredients(){
+  _krSection = 'ingredients';
+  document.getElementById('krPeriodChips').style.display = 'none';
+  const rows = _ingredients.filter(i=>!i.is_personal);
+  const total = rows.length;
+  const withPrice = rows.filter(i=>i.price != null && Number(i.price) > 0).length;
+  const withCat = rows.filter(i=>i.category).length;
+  const withStorage = rows.filter(i=>i.storage_type).length;
+  const withSeasons = rows.filter(i=>i.seasons && i.seasons.length).length;
+  const complete = rows.filter(i=>i.price != null && Number(i.price) > 0 && i.category && i.storage_type && i.seasons && i.seasons.length).length;
+  const byCat = {};
+  rows.forEach(i=>{ const c = i.category || 'Uncategorized'; byCat[c] = (byCat[c]||0)+1; });
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const donutSegs = catEntries.slice(0,6).map(([c,n])=>({ label:c, value:n }));
+  const restCount = catEntries.slice(6).reduce((s,[,n])=>s+n, 0);
+  if(restCount) donutSegs.push({ label:'Other categories', value: restCount });
+
+  const cutoff = Date.now() - 28 * 86400000;
+  const recent = rows.filter(i=>i.created_at && new Date(i.created_at).getTime() > cutoff).length;
+  const perWeek = recent / 4;
+  const predictHtml = (recent > 0
+    ? `<b>${recent}</b> ingredients were added in the last 4 weeks (~${perWeek.toFixed(1)}/week) — at that pace the catalog reaches <b>~${total + Math.round(perWeek * 4)}</b> items a month from now.`
+    : 'No new ingredients in the last 4 weeks — the catalog size is stable.')
+    + `<br>Data completeness isn't tracked over time yet, so no completion date can be projected honestly — today <b>${krPct(complete, total)}%</b> of items have everything filled in (price + category + storage + season).`;
+
+  krSectionShell('🧂 Ingredients', `
+    ${krPills([`🧂 ${total} items`, `🗂️ ${catEntries.length} categories`, `✅ ${krPct(complete, total)}% fully complete`])}
+    ${krLabel('Data completeness')}
+    ${krBars([
+      { label:'💰 With a price', value: withPrice, display: `${withPrice} · ${krPct(withPrice, total)}%` },
+      { label:'🗂️ With a category', value: withCat, display: `${withCat} · ${krPct(withCat, total)}%` },
+      { label:'❄️ With storage type', value: withStorage, display: `${withStorage} · ${krPct(withStorage, total)}%` },
+      { label:'🌱 With seasons', value: withSeasons, display: `${withSeasons} · ${krPct(withSeasons, total)}%` },
+    ])}
+    <div class="sheet-text" style="opacity:.65; margin-top:6px;">Heads-up: most prices are AI estimates, not verified invoices — "has a price" ≠ "price is confirmed".</div>
+    ${krLabel('Category mix')}
+    ${krDonut(donutSegs)}
+    ${krPredictBlock('krPredictIngredients', predictHtml)}
+  `);
+}
+
+/* ---------- ✅ Check List ---------- */
+async function krRenderCheckList(){
+  _krSection = 'checklist';
+  document.getElementById('krPeriodChips').style.display = 'none';
+  krSectionShell('✅ Check List', '<p class="lede">Loading…</p>');
+  const [{ data: projects }, { data: finishLog }] = await Promise.all([
+    sb.from('projects').select('id, name').eq('kitchen_id', currentKitchenId).order('created_at'),
+    sb.from('check_list_audit_log').select('created_at').eq('kitchen_id', currentKitchenId)
+      .eq('field','status').eq('new_value','finish')
+      .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString()).limit(3000)
+  ]);
+  const dishes = _allPrepDishes.filter(d=>!d.deleted);
+  const dishById = {}; dishes.forEach(d=>{ dishById[d.id] = d; });
+  const items = _prepItems.filter(it=>dishById[it.dish_id] && !it.hidden && !it.deleted);
+  const counts = { todo:0, check:0, finish:0, dontdo:0 };
+  let remainingMin = 0;
+  const minByStation = {};
+  items.forEach(it=>{
+    const st = it.status || 'dontdo';
+    counts[st] = (counts[st] || 0) + 1;
+    let mins = 0;
+    if(st === 'todo') mins = Number(it.todo_minutes) || 0;
+    else if(st === 'check') mins = Number(it.check_minutes) || 0;
+    if(mins > 0){
+      remainingMin += mins;
+      const station = (dishById[it.dish_id] || {}).station || '—';
+      minByStation[station] = (minByStation[station] || 0) + mins;
+    }
+  });
+  const optedIn = counts.todo + counts.check + counts.finish;
+  const stationRows = Object.entries(minByStation).sort((a,b)=>b[1]-a[1]).slice(0,8)
+    .map(([st, mins])=>({ label: st, value: mins, display: `${Math.round(mins)} min` }));
+
+  const projectRows = (projects || []).map(p=>{
+    const pDishes = dishes.filter(d=>d.project_id === p.id);
+    const pDishIds = new Set(pDishes.map(d=>d.id));
+    const pItems = items.filter(it=>pDishIds.has(it.dish_id));
+    const pDone = pItems.filter(it=>it.status === 'finish').length;
+    const pOpted = pItems.filter(it=>['todo','check','finish'].includes(it.status)).length;
+    return `<div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+      <div class="name task-text">📁 ${krEsc(p.name)}</div>
+      <div class="meta">${pDishes.length} dishes · ${pItems.length} items · ${krPct(pDone, pOpted)}% finished (of ${pOpted} opted-in)</div>
+    </div></div></div>`;
+  }).join('') || '<div class="empty-state">No projects yet.</div>';
+
+  const finishedPerDay = (finishLog || []).length / 7;
+  const openItems = counts.todo + counts.check;
+  const predictHtml = finishedPerDay > 0.1
+    ? `The team finishes <b>~${finishedPerDay.toFixed(1)}</b> items/day (7-day average). At that pace the current <b>${openItems}</b> open items clear in <b>~${Math.ceil(openItems / finishedPerDay)}</b> day(s). Estimated remaining work: <b>~${Math.round(remainingMin)} min</b> (from each item's own stage times).`
+    : `Not enough completion history in the last 7 days to project a pace. Estimated remaining work right now: <b>~${Math.round(remainingMin)} min</b> across ${openItems} open item(s).`;
+
+  krSectionShell('✅ Check List', `
+    ${krPills([`📁 ${(projects||[]).length} projects`, `🍽️ ${dishes.length} dishes`, `📌 ${optedIn} opted-in items`, `⏳ ~${Math.round(remainingMin)} min left`])}
+    ${krLabel('Items by status')}
+    ${krDonut([
+      { label:'TO DO', value: counts.todo },
+      { label:'CHECK', value: counts.check },
+      { label:'FINISH', value: counts.finish },
+      { label:"DON'T DO (skipped)", value: counts.dontdo },
+    ])}
+    ${krLabel('Remaining minutes by station')}
+    ${krBars(stationRows)}
+    ${krLabel('Projects')}
+    ${projectRows}
+    ${krPredictBlock('krPredictCheckList', predictHtml)}
+  `);
 }
 
 function openMyProfileSettings(){
