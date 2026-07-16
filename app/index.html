@@ -3274,6 +3274,23 @@
   </div>
 </div>
 
+<!-- New recipe project (bod 8, 16.7. neskoro večer) — mirrors New Section's name+icon overlay,
+     8 colored books instead of the full recipe icon set. -->
+<div id="newRecipeProjectOverlay" class="sheet-overlay" onclick="if(event.target===this) closeNewRecipeProjectPrompt()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">New Project</div>
+    <input class="form-field" id="newRecipeProjectName" type="text" placeholder="e.g. Wedding Menu 2026">
+    <label class="form-label">Icon</label>
+    <div id="newRecipeProjectIconGrid" class="icon-choice-grid"></div>
+    <div class="sheet-status" id="newRecipeProjectStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="createRecipeList()">Create</button>
+      <button class="sheet-cancel" onclick="closeNewRecipeProjectPrompt()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete a recipe section — never deletes the recipes themselves, just recategorizes them
      to "Uncategorized" (unlike Check List's deleteStation(), a recipe is real, hard-to-recreate
      content, so this stays non-destructive by design). -->
@@ -6932,7 +6949,7 @@ async function enterApp(){
   if(shiftReminderEnabled()) startShiftReminderTicker();
 
   await loadAppData();
-  activeCategory = _favorites.length > 0 ? 'Favorites' : 'All';
+  activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
   renderRecipeSummaryBar();
   renderList();
   subscribeToRealtimeUpdates();
@@ -8912,7 +8929,7 @@ async function loadAppData(){
     sb.from('prep_dishes').select('*').order('sort_order'),
     sb.from('prep_items').select('*').order('sort_order'),
     sb.from('station_icons').select('station, icon'),
-    sb.from('recipe_category_icons').select('category, icon'),
+    sb.from('recipe_category_icons').select('category, icon, shelf_scope'),
     sb.from('kitchens').select('display_currency, name').eq('id', currentKitchenId).maybeSingle(),
     sb.from('user_settings').select('anthropic_api_key, scan_language').eq('user_id', currentUser.id).maybeSingle()
   ]);
@@ -8944,9 +8961,8 @@ async function loadAppData(){
   _customStationIcons = {};
   (iconRows || []).forEach(r=>{ _customStationIcons[r.station] = r.icon; });
 
-  _customCategoryIcons = {};
-  (catIconRows || []).forEach(r=>{ _customCategoryIcons[r.category] = r.icon; });
-  CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
+  _categoryIconRows = catIconRows || [];
+  refreshCustomCategoryState();
 
   currentKitchenCurrency = (kitchenRow && kitchenRow.display_currency) || 'EUR';
   // Cached at load (bod 4, 16.7.): printRecipeBranded must NOT await anything before
@@ -9290,7 +9306,7 @@ function computeRecipeNutrition(r){
 
 function allRecipes(){ return _recipes; }
 function getCategories(){
-  return Array.from(new Set([...allRecipes().map(r=>r.category).filter(Boolean), ...CUSTOM_RECIPE_CATEGORIES]));
+  return Array.from(new Set([...allRecipes().filter(recipeOnCurrentShelf).map(r=>r.category).filter(Boolean), ...CUSTOM_RECIPE_CATEGORIES]));
 }
 function categoryIcon(cat){
   if(cat === 'Favorites') return '⭐';
@@ -9563,6 +9579,18 @@ let activeQuery = "";
 let currentScale = 1;
 let _customCategoryIcons = {};
 let CUSTOM_RECIPE_CATEGORIES = [];
+// Raw rows from recipe_category_icons (every shelf, unfiltered) — _customCategoryIcons/
+// CUSTOM_RECIPE_CATEGORIES above stay the derived, CURRENT-SHELF-ONLY view every other function
+// already reads, refreshed here on load and on every shelf switch (bod, 16.7. neskoro večer:
+// sections used to be one flat kitchen-wide pool, so ChefOS's own taxonomy leaked into My
+// Recipes/Company Recipes/every project).
+let _categoryIconRows = [];
+function refreshCustomCategoryState(){
+  const rows = _categoryIconRows.filter(r => (r.shelf_scope || 'chefos') === recipeSourceFilter);
+  _customCategoryIcons = {};
+  rows.forEach(r=>{ _customCategoryIcons[r.category] = r.icon; });
+  CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
+}
 
 const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','adminTeamMembersView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
 
@@ -10398,7 +10426,8 @@ function renderRecipeCategoryChips(){
   ).forEach(cat=>{
     const el = document.createElement('button');
     el.className = 'station-tile' + (cat===activeCategory ? ' active' : '');
-    const count = cat==='Favorites' ? _favorites.length : cat==='All' ? allRecipes().length : allRecipes().filter(r=>r.category===cat).length;
+    const shelfRecipes = allRecipes().filter(recipeOnCurrentShelf);
+    const count = cat==='Favorites' ? shelfRecipes.filter(r=>isFavorite(r.id)).length : cat==='All' ? shelfRecipes.length : shelfRecipes.filter(r=>r.category===cat).length;
     el.innerHTML = `
       <span class="station-tile-icon">${categoryIcon(cat)}</span>
       <span class="station-tile-label">${cat}</span>
@@ -10460,8 +10489,9 @@ async function createNewRecipeCategory(){
     statusEl.textContent = 'A section with that name already exists.';
     return;
   }
-  const { error } = await sb.from('recipe_category_icons').insert({ kitchen_id: currentKitchenId, category: name, icon: _newRecipeCategoryIcon, created_by: currentUser.id });
-  if(error){ statusEl.textContent = 'Could not save icon: ' + error.message; return; }
+  const { error } = await sb.from('recipe_category_icons').insert({ kitchen_id: currentKitchenId, category: name, icon: _newRecipeCategoryIcon, created_by: currentUser.id, shelf_scope: recipeSourceFilter });
+  if(error){ statusEl.textContent = 'Could not save icon: ' + error.message + ' — has db/122 been run?'; return; }
+  _categoryIconRows.push({ category: name, icon: _newRecipeCategoryIcon, shelf_scope: recipeSourceFilter });
   _customCategoryIcons[name] = _newRecipeCategoryIcon;
   if(!CUSTOM_RECIPE_CATEGORIES.includes(name)) CUSTOM_RECIPE_CATEGORIES.push(name);
   activeCategory = name;
@@ -10533,19 +10563,23 @@ async function saveEditRecipeCategory(){
   }
   setSyncStatus('saving');
   if(newCat !== oldCat){
-    const { error } = await sb.from('recipes').update({ category: newCat }).eq('category', oldCat).eq('kitchen_id', currentKitchenId);
+    let q = sb.from('recipes').update({ category: newCat }).eq('category', oldCat).eq('kitchen_id', currentKitchenId);
+    const { error } = await applyRecipeShelfQueryFilter(q);
     if(error){ statusEl.textContent = 'Could not rename: ' + error.message; setSyncStatus('offline'); return; }
-    await sb.from('recipe_category_icons').delete().eq('kitchen_id', currentKitchenId).eq('category', oldCat);
+    await sb.from('recipe_category_icons').delete().eq('kitchen_id', currentKitchenId).eq('category', oldCat).eq('shelf_scope', recipeSourceFilter);
   }
   const { error: iconError } = await sb.from('recipe_category_icons').upsert(
-    { kitchen_id: currentKitchenId, category: newCat, icon: _editRecipeCategoryIcon, created_by: currentUser.id },
-    { onConflict: 'kitchen_id,category' }
+    { kitchen_id: currentKitchenId, category: newCat, icon: _editRecipeCategoryIcon, created_by: currentUser.id, shelf_scope: recipeSourceFilter },
+    { onConflict: 'kitchen_id,category,shelf_scope' }
   );
-  if(iconError){ statusEl.textContent = 'Could not save icon: ' + iconError.message; setSyncStatus('offline'); return; }
+  if(iconError){ statusEl.textContent = 'Could not save icon: ' + iconError.message + ' — has db/122 been run?'; setSyncStatus('offline'); return; }
   delete _customCategoryIcons[oldCat];
   _customCategoryIcons[newCat] = _editRecipeCategoryIcon;
   const ci = CUSTOM_RECIPE_CATEGORIES.indexOf(oldCat); if(ci > -1) CUSTOM_RECIPE_CATEGORIES.splice(ci, 1, newCat);
-  _recipes.forEach(r=>{ if(r.category === oldCat) r.category = newCat; });
+  const riOld = _categoryIconRows.findIndex(r=>r.category===oldCat && (r.shelf_scope||'chefos')===recipeSourceFilter);
+  if(riOld > -1) _categoryIconRows.splice(riOld, 1);
+  _categoryIconRows.push({ category: newCat, icon: _editRecipeCategoryIcon, shelf_scope: recipeSourceFilter });
+  _recipes.forEach(r=>{ if(r.category === oldCat && recipeOnCurrentShelf(r)) r.category = newCat; });
   if(activeCategory === oldCat) activeCategory = newCat;
   setSyncStatus('saved');
   closeEditRecipeCategory();
@@ -10556,12 +10590,14 @@ async function saveEditRecipeCategory(){
 async function deleteRecipeCategory(cat){
   if(!confirm(`Delete the "${cat}" section? Its recipes move to "Uncategorized" — no recipe gets deleted.`)) return;
   setSyncStatus('saving');
-  const { error } = await sb.from('recipes').update({ category: 'Uncategorized' }).eq('category', cat).eq('kitchen_id', currentKitchenId);
+  let q = sb.from('recipes').update({ category: 'Uncategorized' }).eq('category', cat).eq('kitchen_id', currentKitchenId);
+  const { error } = await applyRecipeShelfQueryFilter(q);
   if(error){ alert('Could not update: ' + error.message); setSyncStatus('offline'); return; }
-  await sb.from('recipe_category_icons').delete().eq('kitchen_id', currentKitchenId).eq('category', cat);
+  await sb.from('recipe_category_icons').delete().eq('kitchen_id', currentKitchenId).eq('category', cat).eq('shelf_scope', recipeSourceFilter);
   delete _customCategoryIcons[cat];
   CUSTOM_RECIPE_CATEGORIES = CUSTOM_RECIPE_CATEGORIES.filter(c=>c!==cat);
-  _recipes.forEach(r=>{ if(r.category === cat) r.category = 'Uncategorized'; });
+  _categoryIconRows = _categoryIconRows.filter(r=>!(r.category===cat && (r.shelf_scope||'chefos')===recipeSourceFilter));
+  _recipes.forEach(r=>{ if(r.category === cat && recipeOnCurrentShelf(r)) r.category = 'Uncategorized'; });
   setSyncStatus('saved');
   if(activeCategory === cat) activeCategory = 'Favorites';
   renderManageRecipeCategoriesList();
@@ -10634,19 +10670,32 @@ const DIET_FILTER_OPTIONS = [
 ];
 let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false, paleo:false, mediterranean:false, highProtein:false, freeFrom:[] };
 
+/* Shelves (Richard, 15.7., extended 16.7. with custom projects): ChefOS = the built-in library
+   — every recipe with no author (all migrated ones and anything else unattributed). Mine =
+   created by me, excluding anything filed into a custom project. Company = created by a
+   teammate. Anything else is a specific custom project's list_id. One shared predicate, used by
+   the shelf filter, the section/category list, and the shelf-scoped rename/delete flows below —
+   never re-derived separately (that's exactly how ChefOS's own sections ended up leaking into
+   My Recipes/Company Recipes, 16.7. neskoro večer). */
+function recipeOnCurrentShelf(r){
+  if(recipeSourceFilter === 'chefos') return !r.createdBy;
+  if(recipeSourceFilter === 'company') return !!r.createdBy && r.createdBy !== currentUser.id;
+  if(recipeSourceFilter === 'mine') return r.createdBy === currentUser.id && !r.listId;
+  return r.listId === recipeSourceFilter;
+}
+/* Same shelf rule as recipeOnCurrentShelf(), expressed as Supabase query filters instead of a
+   JS predicate — used by section rename/delete so renaming "Soups" on My Recipes can't touch a
+   same-named section's recipes on a different shelf. */
+function applyRecipeShelfQueryFilter(query){
+  if(recipeSourceFilter === 'chefos') return query.is('created_by', null);
+  if(recipeSourceFilter === 'company') return query.not('created_by', 'is', null).neq('created_by', currentUser.id);
+  if(recipeSourceFilter === 'mine') return query.eq('created_by', currentUser.id).is('list_id', null);
+  return query.eq('list_id', recipeSourceFilter);
+}
 function passesRecipeFilters(r, q){
   if(activeCategory === 'Favorites' && !isFavorite(r.id)) return false;
   if(activeCategory !== 'Favorites' && activeCategory !== 'All' && activeCategory !== 'Newest' && r.category !== activeCategory) return false;
-  // Shelves (Richard, 15.7.): ChefOS = the built-in library — every recipe with no author
-  // (all 173 migrated ones and anything else unattributed). Moje = created by me (including
-  // my AI-generated saves). Firemné = created by a teammate. 'AI-generated' stays a tag/badge,
-  // no longer the shelf axis.
-  if(recipeSourceFilter === 'chefos' && r.createdBy) return false;
-  if(recipeSourceFilter === 'company' && (!r.createdBy || r.createdBy === currentUser.id)) return false;
-  // 'mine' excludes recipes filed into a custom project (bod 8, 16.7. — those get their own
-  // shelf, same split as My Ingredients vs. a custom ingredient list).
-  if(recipeSourceFilter === 'mine' && (r.createdBy !== currentUser.id || r.listId)) return false;
-  if(recipeSourceFilter !== 'chefos' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine' && r.listId !== recipeSourceFilter) return false;
+  if(!recipeOnCurrentShelf(r)) return false;
   if(!matchesQuery(r, q)) return false;
   if(DIET_FILTER_OPTIONS.some(o=>dietFilter[o.key])){
     const diet = computeDietTags(r);
@@ -11622,7 +11671,7 @@ function showList(){
   // permanently-empty "No favorites yet" screen reads as "the recipes are gone/broken," not
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
-  activeCategory = _favorites.length > 0 ? 'Favorites' : 'All';
+  activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
   // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'chefos' on
   // every single call, silently undoing whatever shelf showRecipesHome()'s picker just set,
   // e.g. tapping "My Recipes" landed back on ChefOS every time. It only went unnoticed while a
@@ -11970,7 +12019,7 @@ function renderRecipeShelvesGrid(){
     if(longPress) attachLongPress(btn, longPress);
     wrap.appendChild(btn);
   };
-  const openShelf = (shelf)=>{ recipeSourceFilter = shelf; showList(); };
+  const openShelf = (shelf)=>{ recipeSourceFilter = shelf; refreshCustomCategoryState(); showList(); };
   if(currentAccountType !== 'company' || showPersonalInCompany){
     addTile('📖', 'My Recipes', ()=>openShelf('mine'), ()=>openShareMyRecipes());
   }
@@ -11982,10 +12031,10 @@ function renderRecipeShelvesGrid(){
   // named, private collections owned by their creator, alongside the two fixed shelves.
   const visibleLists = _recipeLists.filter(l=>_showHiddenRecipeLists || !l.hidden);
   visibleLists.forEach(l=>{
-    addTile('🗂️', l.name + (l.hidden ? ' (hidden)' : ''), ()=>openShelf(l.id),
+    addTile(l.icon || '🗂️', l.name + (l.hidden ? ' (hidden)' : ''), ()=>openShelf(l.id),
       ()=>openItemContextMenu('recipeList', l.id, l.name, l.hidden, false));
   });
-  addTile('➕', 'Add Project', ()=>createRecipeList());
+  addTile('➕', 'Add Project', ()=>openNewRecipeProjectPrompt());
   const hiddenCount = _recipeLists.filter(l=>l.hidden).length;
   if(hiddenCount || _showHiddenRecipeLists){
     const toggle = document.createElement('button');
@@ -11996,11 +12045,36 @@ function renderRecipeShelvesGrid(){
     wrap.appendChild(toggle);
   }
 }
+// 8 colored books to choose from (Richard, 16.7. neskoro večer) — the standard Unicode "book"
+// set doubles as exactly that: 4 solid colors + 3 notebook styles + the stack.
+const RECIPE_PROJECT_ICON_CHOICES = ['📕','📗','📘','📙','📓','📔','📒','📚'];
+let _newRecipeProjectIcon = RECIPE_PROJECT_ICON_CHOICES[0];
+function openNewRecipeProjectPrompt(){
+  document.getElementById('newRecipeProjectName').value = '';
+  document.getElementById('newRecipeProjectStatus').textContent = '';
+  _newRecipeProjectIcon = RECIPE_PROJECT_ICON_CHOICES[0];
+  renderNewRecipeProjectIconGrid();
+  document.getElementById('newRecipeProjectOverlay').classList.add('open');
+}
+function closeNewRecipeProjectPrompt(){
+  document.getElementById('newRecipeProjectOverlay').classList.remove('open');
+}
+function renderNewRecipeProjectIconGrid(){
+  document.getElementById('newRecipeProjectIconGrid').innerHTML = RECIPE_PROJECT_ICON_CHOICES.map(icon=>`
+    <button type="button" class="icon-choice-btn${icon===_newRecipeProjectIcon?' active':''}" onclick="pickNewRecipeProjectIcon('${icon}')">${icon}</button>
+  `).join('');
+}
+function pickNewRecipeProjectIcon(icon){
+  _newRecipeProjectIcon = icon;
+  renderNewRecipeProjectIconGrid();
+}
 async function createRecipeList(){
-  const name = prompt('Name the new recipe project:');
-  if(!name || !name.trim()) return;
-  const { error } = await sb.from('recipe_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim() });
-  if(error){ alert('Could not create: ' + error.message + ' — has db/120 been run?'); return; }
+  const statusEl = document.getElementById('newRecipeProjectStatus');
+  const name = document.getElementById('newRecipeProjectName').value.trim();
+  if(!name){ statusEl.textContent = 'Give the project a name.'; return; }
+  const { error } = await sb.from('recipe_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name, icon: _newRecipeProjectIcon });
+  if(error){ statusEl.textContent = 'Could not create: ' + error.message + ' — has db/120/db/123 been run?'; return; }
+  closeNewRecipeProjectPrompt();
   await showRecipesHome();
 }
 
