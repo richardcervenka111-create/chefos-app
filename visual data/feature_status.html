@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Mapa funkcií</title>
+<style>
+  :root{
+    --bg:#0A1A2F; --bg-2:#0d2036; --paper:#122845; --paper-raised:#0f2340; --paper-hi:#16304f;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --rule-soft:#1a3149;
+    --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4); --accent-wash:rgba(52,247,215,0.08);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4); --gold-wash:rgba(247,201,72,0.08);
+    --danger:#FF7A68; --danger-dim:rgba(255,122,104,0.4); --danger-wash:rgba(255,122,104,0.08);
+    /* Status colors, specific to this doc: functional / needs testing / planned only. */
+    --ok:#4ADE80; --ok-dim:rgba(74,222,128,0.4); --ok-wash:rgba(74,222,128,0.09);
+    --test:#FB923C; --test-dim:rgba(251,146,60,0.5); --test-wash:rgba(251,146,60,0.14);
+    --plan:#FF7A68; --plan-dim:rgba(255,122,104,0.4); --plan-wash:rgba(255,122,104,0.08);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+    --mono:"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 24px 100px 24px; }
+  ::selection{ background:var(--accent); color:#0A1A2F; }
+
+  header.hero{ position:relative; padding:36px 0 30px 0; border-bottom:1px solid var(--rule); overflow:hidden; }
+  header.hero::before{
+    content:''; position:absolute; top:-160px; left:50%; transform:translateX(-50%);
+    width:900px; height:460px; pointer-events:none;
+    background:radial-gradient(ellipse at center, var(--accent-wash), transparent 70%);
+  }
+  .hero-inner{ position:relative; max-width:1180px; margin:0 auto; padding:0 24px; }
+  .topline{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
+  .brandmark{ display:flex; align-items:center; gap:9px; }
+  .brandmark .mark{ font-size:20px; }
+  .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:0.02em; color:var(--accent); font-style:italic; font-family:Georgia,'Times New Roman',serif; }
+
+  /* Personal/Company toggle — same one-tap pattern + wording as the live app's own topbar
+     badge (homeAccountTypeBadge), so this document echoes the real UI. Also does something
+     real: a few cards below are tagged account-specific and dim out for the type that
+     wouldn't see them. */
+  .acct-toggle{
+    display:flex; align-items:center; gap:6px; background:var(--paper); border:1px solid var(--rule);
+    border-radius:20px; padding:4px; flex:none;
+  }
+  .acct-toggle button{
+    border:none; background:none; color:var(--ink-dim); font-size:12px; font-weight:700;
+    padding:7px 14px; border-radius:16px; cursor:pointer; transition:background .15s, color .15s;
+    font-family:inherit;
+  }
+  .acct-toggle button.active{ background:var(--accent); color:#0A1A2F; }
+
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:700; margin-bottom:10px; }
+  h1.title{ font-size:36px; font-weight:800; margin:0 0 12px 0; line-height:1.14; letter-spacing:-0.01em; }
+  h1.title em{ font-style:italic; color:var(--accent); font-weight:800; }
+  .lede{ color:var(--ink-dim); font-size:14.5px; max-width:70ch; line-height:1.65; }
+
+  /* Legend — the whole point of the page, so it sits right under the title, not buried. */
+  .legend{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+  .legend-item{ display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:8px 13px; font-size:12.5px; color:var(--ink-dim); }
+  .legend-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .legend-item b{ color:var(--ink); font-weight:700; }
+
+  /* Overview counts */
+  .pulse-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:24px; background:var(--rule); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
+  @media (max-width:680px){ .pulse-strip{ grid-template-columns:repeat(2,1fr); } }
+  .pulse-cell{ background:var(--paper); padding:16px 18px 14px 18px; }
+  .pulse-cell .num{ font-family:var(--mono); font-size:26px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums; }
+  .pulse-cell .lbl{ font-size:11px; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-dim); margin-top:7px; display:flex; align-items:center; gap:6px; }
+  .pulse-cell .lbl::before{ content:''; width:7px; height:7px; border-radius:50%; flex:none; }
+  .pulse-cell.ok .lbl::before{ background:var(--ok); } .pulse-cell.ok .num{ color:var(--ok); }
+  .pulse-cell.test .lbl::before{ background:var(--test); } .pulse-cell.test .num{ color:var(--test); }
+  .pulse-cell.plan .lbl::before{ background:var(--plan); } .pulse-cell.plan .num{ color:var(--plan); }
+  .pulse-cell.total .lbl::before{ background:var(--ink-dim); }
+
+  /* Module sections */
+  .module{ margin-top:44px; }
+  .module-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:16px; }
+  .module-icon{
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:18px; background:var(--paper-raised); border:1px solid var(--rule); flex:none;
+  }
+  .module-title{ font-size:19px; font-weight:800; }
+  .module-count{ font-size:12px; color:var(--ink-faint); font-family:var(--mono); }
+
+  .feature-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:10px; }
+  .feature-card{
+    background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:13px 15px;
+    border-left:3px solid var(--ok);
+  }
+  .feature-card.status-test{ border-left-color:var(--test); background:var(--test-wash); }
+  .feature-card.status-plan{ border-left-color:var(--plan); }
+  .feature-card .fname{ font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:7px; }
+  .feature-card .fdesc{ font-size:12px; color:var(--ink-dim); margin-top:4px; line-height:1.5; }
+  .status-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+  .status-dot.ok{ background:var(--ok); }
+  .status-dot.test{ background:var(--test); }
+  .status-dot.plan{ background:var(--plan); }
+  .acct-tag{ display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 7px; border-radius:8px; margin-top:7px; }
+  .acct-tag.personal{ background:var(--accent-wash); color:var(--accent); }
+  .acct-tag.company{ background:var(--gold-wash); color:var(--gold); }
+  .feature-card.dim{ opacity:.35; }
+
+  .chefos-stamp{ text-align:center; font-size:12px; color:var(--ink-faint); margin-top:50px; padding-top:20px; border-top:1px solid var(--rule); }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="topline">
+      <div class="brandmark"><span class="mark">👨‍🍳</span><span class="word">ChefOS</span></div>
+      <div class="acct-toggle" id="acctToggle">
+        <button id="acctPersonalBtn" onclick="setAcctView('personal')">👤 Personal</button>
+        <button id="acctCompanyBtn" onclick="setAcctView('company')">🏢 Company</button>
+      </div>
+    </div>
+    <p class="kicker">Mapa funkcií</p>
+    <h1 class="title">Čo <em>ChefOS</em> vie dnes</h1>
+    <p class="lede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. Toggle hore prepína pohľad presne ako v appke — pár vecí je iba pre Personal alebo iba pre Company účty, tie sa podľa toho stlmia.</p>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--ok);"></span>Funkčné, otestované naživo — <b id="legendOkCount"></b></div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--test);"></span>Postavené, čaká na test naživo — <b id="legendTestCount"></b></div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--plan);"></span>Naplánované, ešte nepostavené — <b id="legendPlanCount"></b></div>
+    </div>
+    <div class="pulse-strip">
+      <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl">Funkčné</div></div>
+      <div class="pulse-cell test"><div class="num" id="pulseTest"></div><div class="lbl">Čaká na test</div></div>
+      <div class="pulse-cell plan"><div class="num" id="pulsePlan"></div><div class="lbl">Naplánované</div></div>
+      <div class="pulse-cell total"><div class="num" id="pulseTotal"></div><div class="lbl">Spolu funkcií</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" id="modulesWrap"></div>
+
+<div class="wrap">
+  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 16. 7. 2026, 23:45</div>
+</div>
+
+<script>
+/* Data — status: 'ok' (funkčné, naživo overené) | 'test' (postavené dnes večer, čaká na test)
+   | 'plan' (iba naplánované, kód ešte neexistuje). acct: 'personal' | 'company' | null (obom). */
+const MODULES = [
+  { icon:'📖', title:'Recepty', items:[
+    { name:'173+ receptov, knižnica ChefOS', status:'ok' },
+    { name:'Poličky Moje / ChefOS / Firemné', status:'ok' },
+    { name:'Skutočné súkromie "Moje" (RLS, nie len UI filter)', status:'test', acct:'personal' },
+    { name:'Zdieľanie s priateľmi (opt-in, read-only)', status:'ok' },
+    { name:'AI generovanie receptu / nápadov', status:'ok' },
+    { name:'Sken receptu z fotky/PDF', status:'ok' },
+    { name:'Tlač — základná', status:'ok' },
+    { name:'Tlač — firemná identita (branded)', status:'test' },
+    { name:'Komentáre na receptoch', status:'test' },
+    { name:'Activity feed (🔔 kto okomentoval)', status:'test' },
+    { name:'Pridať recept do Check Listu (1 klik)', status:'test' },
+    { name:'Obľúbené, poznámky, alergény, škálovanie', status:'ok' },
+  ]},
+  { icon:'🧂', title:'Ingrediencie', items:[
+    { name:'Zdieľaný cenník (2005+ položiek)', status:'ok' },
+    { name:'My Ingredients (súkromné, per účet)', status:'test', acct:'personal' },
+    { name:'Pridávanie do zdieľanej police — len admin', status:'test' },
+    { name:'Sken dokumentu/fotky → AI extrakcia', status:'test' },
+    { name:'Custom Ingredients (admin upload)', status:'ok' },
+    { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test' },
+    { name:'Sezónnosť, kategórie, Ingredient Audit', status:'ok' },
+  ]},
+  { icon:'✅', title:'Check List', items:[
+    { name:'Prep sheet podľa stanice', status:'ok' },
+    { name:'Projekty / výber reštaurácie', status:'ok' },
+    { name:'Skryť/zobraziť jedlá a položky', status:'ok' },
+    { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'test' },
+    { name:'Prepojenie na Order List a Print Labels', status:'ok' },
+  ]},
+  { icon:'⏱️', title:'Working Time', items:[
+    { name:'Check-in / check-out, prestávky', status:'ok' },
+    { name:'Kontrahované hodiny, ďalšie voľno', status:'ok' },
+    { name:'Detail dňa (objednávky + vytlačené štítky)', status:'ok' },
+    { name:'Mesačné grafy', status:'ok' },
+    { name:'Sken rozpisu (Dienstplan) → AI', status:'ok' },
+  ]},
+  { icon:'🧼', title:'HACCP', items:[
+    { name:'Príjem tovaru, teploty varenia, chladenie', status:'ok' },
+    { name:'Čistenie a hygiena', status:'ok' },
+    { name:'Fritézový olej, škodcovia', status:'ok' },
+    { name:'Expirácia štítkov', status:'ok' },
+    { name:'Školenia personálu (vlna 3)', status:'plan' },
+    { name:'Admin report naprieč HACCP', status:'plan' },
+  ]},
+  { icon:'🛒', title:'Order List', items:[
+    { name:'Objednávky per-osoba', status:'ok' },
+    { name:'Tlač objednávky', status:'ok' },
+  ]},
+  { icon:'🎩', title:"Chef's Assistant (AI)", items:[
+    { name:'Chat asistent, nápady na jedlá', status:'ok' },
+    { name:'Sken zmluvy / menu / rozpisu', status:'ok' },
+    { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal' },
+    { name:'AI Testing Mode (dočasne neobmedzené)', status:'test' },
+    { name:'Gate presadený aj v edge funkcii (nielen appke)', status:'test' },
+  ]},
+  { icon:'🔗', title:'Connections', items:[
+    { name:'Add Friend QR', status:'ok' },
+    { name:'Add Friend QR = pozvánka do kuchyne', status:'ok' },
+    { name:'Chef Friends zoznam', status:'ok' },
+    { name:'Zdieľané recepty od priateľov', status:'ok' },
+  ]},
+  { icon:'🏗️', title:'Tímy / Typ účtu', items:[
+    { name:'Personal / Company brána + filter receptov', status:'ok' },
+    { name:'Jedno-klikový prepínač s potvrdením', status:'test' },
+    { name:'Create Team (nová admin rola)', status:'test', acct:'company' },
+    { name:'Join kód — sken QR / ručne / email', status:'test', acct:'company' },
+    { name:'Stará "hocikto môže vytvoriť kuchyňu" diera', status:'ok' },
+  ]},
+  { icon:'🛡️', title:'Admin', items:[
+    { name:'Add Admin (Head / Kitchen Admin)', status:'ok' },
+    { name:'Admin Directory', status:'ok' },
+    { name:'Access Requests + refresh', status:'ok' },
+    { name:'Email Contacts (+ trigger, nie best-effort)', status:'test' },
+    { name:'Internal Docs (len Richard)', status:'ok' },
+    { name:'Feedback inbox', status:'test' },
+    { name:'Kitchen Reports (per-zamestnanec so súhlasom)', status:'test', acct:'company' },
+    { name:'Preview as Normal User', status:'ok' },
+  ]},
+  { icon:'⚙️', title:'Nastavenia', items:[
+    { name:'My Profile & Security, heslo, Face ID', status:'ok' },
+    { name:'Jazyk, mena, AI/scan nastavenia', status:'ok' },
+    { name:'Preusporiadanie ikoniek Home/Settings', status:'ok' },
+    { name:'Typ účtu vždy viditeľný (badge v topbare)', status:'test' },
+    { name:'Zdieľať hodiny s adminom (súhlas)', status:'test' },
+    { name:'Send Feedback', status:'test' },
+    { name:'Tutorial, návod na pridanie na plochu', status:'ok' },
+  ]},
+  { icon:'🔐', title:'Bezpečnosť a súkromie', items:[
+    { name:'Confidentiality brána', status:'ok' },
+    { name:'Privacy & Data Protection brána (GDPR/nDSG)', status:'test' },
+    { name:'Možnosť nesúhlasiť (odhlási namiesto slepej uličky)', status:'test' },
+    { name:'/security dokumenty pre právnika', status:'test' },
+    { name:'Platobná brána, faktúry', status:'plan' },
+    { name:'GmbH registrácia', status:'plan' },
+  ]},
+];
+
+function renderModules(){
+  const wrap = document.getElementById('modulesWrap');
+  const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
+  let ok=0, test=0, plan=0;
+  wrap.innerHTML = MODULES.map(mod=>{
+    const cards = mod.items.map(it=>{
+      if(it.status==='ok') ok++; else if(it.status==='test') test++; else plan++;
+      const dimmed = it.acct && it.acct !== acct;
+      return `
+        <div class="feature-card status-${it.status}${dimmed?' dim':''}">
+          <div class="fname"><span class="status-dot ${it.status}"></span>${it.name}</div>
+          ${it.acct ? `<span class="acct-tag ${it.acct}">${it.acct === 'personal' ? 'Personal' : 'Company'}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="module">
+        <div class="module-head">
+          <div class="module-icon">${mod.icon}</div>
+          <div class="module-title">${mod.title}</div>
+          <div class="module-count">${mod.items.length} funkcií</div>
+        </div>
+        <div class="feature-grid">${cards}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('pulseOk').textContent = ok;
+  document.getElementById('pulseTest').textContent = test;
+  document.getElementById('pulsePlan').textContent = plan;
+  document.getElementById('pulseTotal').textContent = ok+test+plan;
+  document.getElementById('legendOkCount').textContent = ok;
+  document.getElementById('legendTestCount').textContent = test;
+  document.getElementById('legendPlanCount').textContent = plan;
+}
+function setAcctView(type){
+  document.getElementById('acctPersonalBtn').classList.toggle('active', type==='personal');
+  document.getElementById('acctCompanyBtn').classList.toggle('active', type==='company');
+  renderModules();
+}
+setAcctView('personal');
+</script>
+</body>
+</html>
