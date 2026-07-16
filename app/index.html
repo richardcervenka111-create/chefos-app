@@ -1480,6 +1480,11 @@
              Text itself (not just an icon) on purpose, per his wording. Click reuses the same
              openAccountTypeSettings() overlay Settings already has. -->
         <button class="icon-btn" onclick="openAccountTypeSettings()" title="Change account type" id="homeAccountTypeBadge" style="width:auto; padding:0 10px; font-size:12px; font-weight:600; gap:5px;">👤 Personal</button>
+        <!-- Activity feed (bod 2, 16.7.) — comments on your own recipes, in-app badge count. -->
+        <button class="icon-btn" onclick="openActivityFeed()" title="Activity" style="position:relative;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span id="activityUnreadDot" style="display:none; position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--copper);"></span>
+        </button>
         <button class="icon-btn" onclick="openCurrencySettings()" title="Currency" id="currencyIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10h11l-3-3"/><path d="M17 14H6l3 3"/></svg>
         </button>
@@ -1739,6 +1744,7 @@
       <p style="margin:0;">This is a plain-language summary, not the full policy, and not a lawyer-drafted document — see Settings → Privacy & Terms for the complete draft, currently pending legal review.</p>
     </div>
     <button class="save-btn" id="privacyConfirmBtn" style="width:100%;" onclick="confirmPrivacyAccept()">I understand and agree</button>
+    <button class="sheet-cancel" style="width:100%; margin-top:10px;" onclick="declineConsent()">I don't agree</button>
     <div class="form-status" id="privacyStatus"></div>
   </div>
 </div>
@@ -1778,6 +1784,7 @@
       <span class="lede" style="margin:0;">I have read this and agree.</span>
     </label>
     <button class="save-btn" id="confidentialityConfirmBtn" style="width:100%;" disabled onclick="confirmConfidentialityAccept()">Confirm and continue</button>
+    <button class="sheet-cancel" style="width:100%; margin-top:10px;" onclick="declineConsent()">I don't agree</button>
     <div class="form-status" id="confidentialityStatus"></div>
   </div>
 </div>
@@ -2195,6 +2202,11 @@
       <p style="font-size:28px; font-weight:700; letter-spacing:.08em; margin:6px 0 14px;" id="createTeamCode"></p>
       <div id="createTeamQrHolder" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
       <p class="sheet-text">New members: Settings → Account Type → Company → Enter Code Manually, or scan this QR.</p>
+      <label class="form-label" style="margin-top:18px; text-align:left; display:block;">Or send it by email</label>
+      <p class="sheet-text" style="margin-bottom:6px;">They'll get a real login email with the join already built in — one tap and they're a Company account in this team.</p>
+      <input class="form-field" id="createTeamEmailField" type="email" placeholder="their@email.com">
+      <button class="save-btn" style="width:100%; margin-top:8px;" onclick="sendCreateTeamInviteByEmail()">Send invite email</button>
+      <div class="form-status" id="createTeamEmailStatus"></div>
     </div>
     <div class="form-status" id="createTeamStatus"></div>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeCreateTeam()">Close</button>
@@ -2404,6 +2416,9 @@
     <button class="icon-btn" onclick="printRecipeBranded()" title="Print (Branded)">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/><path d="M9 17h6M9 20h4"/></svg>
     </button>
+    <button class="icon-btn" onclick="openRecipeComments()" title="Comments">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
   </div>
   <div class="detail-content" id="detailContent"></div>
 </div>
@@ -2463,6 +2478,13 @@
         <!-- Custom Ingredients (bod 2, 16.7. — moved here from Home per Richard's request:
              belongs with Ingredients, not on the main menu). Admin-only. -->
         <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+        </button>
+        <!-- Add ingredients via document scan (bod 3, 16.7.) — anyone, on whichever shelf
+             they're currently viewing (ChefOS or My Ingredients); reuses the exact same
+             extraction tool as admin's Custom Ingredients scan, just saves into `ingredients`
+             instead, tagged with the current shelf's is_personal. -->
+        <button class="icon-btn" onclick="triggerIngredientScan()" title="Add ingredients from a document">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
         </button>
         <span class="sync-status saved" id="ingSyncStatus"></span>
@@ -3391,6 +3413,50 @@
   </div>
 </div>
 <input type="file" id="customIngredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv" style="display:none;" onchange="handleCustomIngredientFileSelected(event)">
+<input type="file" id="ingredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv" style="display:none;" onchange="handleIngredientScanFileSelected(event)">
+
+<!-- Recipe Comments (bod 2, 16.7. — db/104) — visible to whoever can already see the recipe
+     (kitchen-wide, or friend-shared), same subquery-based rule as the RLS policy itself. -->
+<div id="recipeCommentsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeRecipeComments()">
+  <div class="sheet" style="max-height:80vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">💬 Comments</div>
+    <div id="recipeCommentsList" style="overflow-y:auto; margin-bottom:10px;"></div>
+    <div class="sheet-row" style="gap:8px;">
+      <input class="form-field" id="recipeCommentInput" type="text" placeholder="Add a comment…" style="flex:1;">
+      <button class="save-btn" onclick="postRecipeComment()">Post</button>
+    </div>
+    <div class="form-status" id="recipeCommentStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeRecipeComments()">Close</button>
+  </div>
+</div>
+
+<!-- Activity feed (bod 2, 16.7. — db/104) — comments on recipes YOU created, in-app only (no
+     push, per Richard's 16.7. call). Unread = newer than profiles.activity_last_seen_at. -->
+<div id="activityFeedOverlay" class="sheet-overlay" onclick="if(event.target===this) closeActivityFeed()">
+  <div class="sheet" style="max-height:80vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🔔 Activity</div>
+    <div id="activityFeedList" style="overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeActivityFeed()">Close</button>
+  </div>
+</div>
+
+<!-- Review what Claude extracted before saving any of it into `ingredients` (bod 3, 16.7.) —
+     same review-before-save pattern as Custom Ingredients above. -->
+<div id="ingredientScanReviewOverlay" class="sheet-overlay" onclick="if(event.target===this) closeIngredientScanReview()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Review — <span id="isr_count"></span> selected</div>
+    <p class="sheet-text">Tap any item to leave it out. Saving into <span id="isr_shelf_label"></span>.</p>
+    <div id="isr_list" style="max-height:320px; overflow-y:auto;"></div>
+    <div class="sheet-status" id="ingredientScanReviewStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="saveIngredientScanReview()">Save</button>
+      <button class="sheet-cancel" onclick="closeIngredientScanReview()">Discard</button>
+    </div>
+  </div>
+</div>
 
 <!-- Review what Claude extracted from the uploaded file before saving any of it -->
 <div id="customIngredientReviewOverlay" class="sheet-overlay" onclick="if(event.target===this) closeCustomIngredientReview()">
@@ -6535,8 +6601,21 @@ async function enterApp(){
   renderList();
   subscribeToRealtimeUpdates();
   logEvent('login', { device_id: getDeviceId(), user_agent: navigator.userAgent });
+  checkUnreadActivity();
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
+
+  // ?team=CODE landing (bod 1, 16.7.) — reached via a team-invite email's magic link or a QR
+  // opened by the phone's own camera app rather than in-app (handleScannedQrText already
+  // covers the in-app scan path). Checked last, once the person is actually inside the app
+  // with a resolved account, since joining doesn't make sense any earlier in the gate chain.
+  const teamParam = new URLSearchParams(location.search).get('team');
+  if(teamParam){
+    history.replaceState(null, '', location.pathname);
+    const { data, error } = await sb.rpc('lookup_team_by_code', { p_code: teamParam });
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!error && row) showConfirmTeamJoin(teamParam, row.name);
+  }
 }
 
 /* A stable per-device id (kept in localStorage, never sent anywhere but usage_events) so
@@ -6869,6 +6948,7 @@ function openCreateTeam(){
   document.getElementById('createTeamOverlay').classList.add('open');
 }
 function closeCreateTeam(){ document.getElementById('createTeamOverlay').classList.remove('open'); }
+let _currentTeamJoinUrl = null;
 async function submitCreateTeam(){
   const name = document.getElementById('createTeamName').value.trim();
   const statusEl = document.getElementById('createTeamStatus');
@@ -6881,11 +6961,32 @@ async function submitCreateTeam(){
   document.getElementById('createTeamFormBlock').style.display = 'none';
   document.getElementById('createTeamResultBlock').style.display = 'block';
   document.getElementById('createTeamCode').textContent = row.join_code;
-  const url = location.origin + location.pathname + '?team=' + row.join_code;
+  _currentTeamJoinUrl = location.origin + location.pathname + '?team=' + row.join_code;
   const qr = qrcode(0, 'M');
-  qr.addData(url);
+  qr.addData(_currentTeamJoinUrl);
   qr.make();
   document.getElementById('createTeamQrHolder').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 });
+  document.getElementById('createTeamEmailField').value = '';
+  document.getElementById('createTeamEmailStatus').textContent = '';
+}
+/* Send by email (bod 1, 16.7.) — same passwordless pattern as the existing kitchen invite
+   email (sendInviteByEmail), just pointed at this team's ?team=CODE join link instead of a
+   ?invite= one. Whoever gets it taps the link, signs in, and lands on Team Join already primed
+   with this code via handleScannedQrText's URL-param handling — no code to type. */
+async function sendCreateTeamInviteByEmail(){
+  const emailField = document.getElementById('createTeamEmailField');
+  const statusEl = document.getElementById('createTeamEmailStatus');
+  const email = emailField.value.trim();
+  if(!email){ statusEl.textContent = 'Enter an email address first.'; return; }
+  if(!_currentTeamJoinUrl){ statusEl.textContent = 'Create the team first.'; return; }
+  statusEl.textContent = 'Sending…';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true, emailRedirectTo: _currentTeamJoinUrl }
+  });
+  if(error){ statusEl.textContent = 'Could not send: ' + friendlyAuthErrorMessage(error); return; }
+  statusEl.textContent = 'Sent.';
+  emailField.value = '';
 }
 
 /* ---------- Send Feedback (bod 4, 16.7. — db/98) ---------- */
@@ -9257,6 +9358,28 @@ async function confirmSignOut(){
   window.scrollTo(0,0);
 }
 
+/* Decline consent (bod 4, 16.7.) — Richard explicitly asked for a real way to say no, not just
+   a mandatory "I agree" with no other way out. You can't use ChefOS without agreeing (it's a
+   real data-processing consent, not a formality), but declining now cleanly signs you out with
+   an honest explanation instead of leaving you stuck on a dead-end screen. Nothing about your
+   choice is recorded anywhere — declining just means no acceptance row ever gets written, so
+   you're simply asked again next time you try to log in. */
+async function declineConsent(){
+  await sb.auth.signOut();
+  currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
+  if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
+  document.getElementById('privacyGateView').style.display = 'none';
+  document.getElementById('confidentialityGateView').style.display = 'none';
+  hideAllViews();
+  document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginStatus1').textContent = "You've been signed out — ChefOS needs you to agree to keep using it. You can sign back in and agree anytime.";
+  document.getElementById('loginView').style.display = 'block';
+  renderLoginFaceIdBlock();
+  window.scrollTo(0,0);
+}
+
 let _homeReorderList = [];
 function openHomeReorder(){
   _homeReorderList = getHomeTileOrder().filter(key=>{
@@ -10285,6 +10408,113 @@ async function addRecipeToCheckList(){
   await loadAppData();
   alert(`Added "${r.title}" to Check List (${station}).`);
 }
+/* ---------- Recipe Comments (bod 2, 16.7. — db/104) ---------- */
+let _currentCommentsRecipeId = null;
+async function openRecipeComments(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  _currentCommentsRecipeId = r.id;
+  document.getElementById('recipeCommentInput').value = '';
+  document.getElementById('recipeCommentStatus').textContent = '';
+  document.getElementById('recipeCommentsList').innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('recipeCommentsOverlay').classList.add('open');
+  await renderRecipeComments();
+}
+function closeRecipeComments(){
+  document.getElementById('recipeCommentsOverlay').classList.remove('open');
+  _currentCommentsRecipeId = null;
+}
+async function renderRecipeComments(){
+  const el = document.getElementById('recipeCommentsList');
+  const { data, error } = await sb.from('recipe_comments')
+    .select('id, message, created_at, created_by, profiles:created_by(full_name, email)')
+    .eq('recipe_id', _currentCommentsRecipeId)
+    .order('created_at', { ascending:true });
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message} — has db/104 been run?</p>`; return; }
+  if(!data || !data.length){ el.innerHTML = '<div class="empty-state">No comments yet — be the first.</div>'; return; }
+  el.innerHTML = data.map(c=>`
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(c.message||'').replace(/</g,'&lt;')}</div>
+          <div class="meta">${((c.profiles && (c.profiles.full_name || c.profiles.email)) || 'Unknown').replace(/</g,'&lt;')} · ${new Date(c.created_at).toLocaleString()}</div>
+        </div>
+        ${c.created_by === currentUser.id ? `<button class="task-status-btn" onclick="deleteRecipeComment('${c.id}')">🗑️</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+async function postRecipeComment(){
+  const input = document.getElementById('recipeCommentInput');
+  const statusEl = document.getElementById('recipeCommentStatus');
+  const message = input.value.trim();
+  if(!message){ statusEl.textContent = 'Write something first.'; return; }
+  statusEl.textContent = 'Posting…';
+  const { error } = await sb.from('recipe_comments').insert({ recipe_id: _currentCommentsRecipeId, created_by: currentUser.id, message });
+  if(error){ statusEl.textContent = 'Could not post: ' + error.message; return; }
+  input.value = '';
+  statusEl.textContent = '';
+  await renderRecipeComments();
+}
+async function deleteRecipeComment(id){
+  if(!confirm('Delete this comment?')) return;
+  const { error } = await sb.from('recipe_comments').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  await renderRecipeComments();
+}
+
+/* ---------- Activity feed (bod 2, 16.7. — db/104) — comments on recipes YOU created. ---------- */
+async function checkUnreadActivity(){
+  const dot = document.getElementById('activityUnreadDot');
+  if(!dot) return;
+  const { data: profileRow } = await sb.from('profiles').select('activity_last_seen_at').eq('id', currentUser.id).maybeSingle();
+  const since = (profileRow && profileRow.activity_last_seen_at) || '1970-01-01';
+  const myRecipeIds = allRecipes().filter(r=>r.createdBy === currentUser.id).map(r=>r.id);
+  if(!myRecipeIds.length){ dot.style.display = 'none'; return; }
+  const { count } = await sb.from('recipe_comments').select('id', { count:'exact', head:true })
+    .in('recipe_id', myRecipeIds).gt('created_at', since).neq('created_by', currentUser.id);
+  dot.style.display = (count && count > 0) ? 'block' : 'none';
+}
+async function openActivityFeed(){
+  document.getElementById('activityFeedList').innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('activityFeedOverlay').classList.add('open');
+  const myRecipeIds = allRecipes().filter(r=>r.createdBy === currentUser.id).map(r=>r.id);
+  const el = document.getElementById('activityFeedList');
+  if(!myRecipeIds.length){ el.innerHTML = '<div class="empty-state">Comment activity on your own recipes shows up here.</div>'; }
+  else {
+    const { data, error } = await sb.from('recipe_comments')
+      .select('id, recipe_id, message, created_at, created_by, profiles:created_by(full_name, email)')
+      .in('recipe_id', myRecipeIds)
+      .neq('created_by', currentUser.id)
+      .order('created_at', { ascending:false })
+      .limit(50);
+    if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; }
+    else if(!data || !data.length){ el.innerHTML = '<div class="empty-state">Comment activity on your own recipes shows up here.</div>'; }
+    else {
+      el.innerHTML = data.map(c=>{
+        const r = allRecipes().find(rr=>rr.id === c.recipe_id);
+        return `
+        <div class="task-row" onclick="closeActivityFeed(); jumpToRecipeById('${c.recipe_id}');" style="cursor:pointer;">
+          <div class="task-row-top">
+            <div class="info" style="flex:1;">
+              <div class="name task-text">${((c.profiles && (c.profiles.full_name || c.profiles.email)) || 'Someone').replace(/</g,'&lt;')} commented on ${r ? r.title.replace(/</g,'&lt;') : 'your recipe'}</div>
+              <div class="meta">"${(c.message||'').replace(/</g,'&lt;')}" · ${new Date(c.created_at).toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+      `;}).join('');
+    }
+  }
+  const { error: seenErr } = await sb.from('profiles').update({ activity_last_seen_at: new Date().toISOString() }).eq('id', currentUser.id);
+  if(seenErr) logClientError('activity_last_seen_at update failed: ' + seenErr.message);
+  document.getElementById('activityUnreadDot').style.display = 'none';
+}
+function closeActivityFeed(){ document.getElementById('activityFeedOverlay').classList.remove('open'); }
+function jumpToRecipeById(recipeId){
+  const idx = allRecipes().findIndex(r=>r.id === recipeId);
+  if(idx > -1) showDetail(idx);
+}
+
 function showDetail(idx){
   window.currentDetailIdx = idx;
   const r = allRecipes()[idx];
@@ -14970,6 +15200,117 @@ async function saveCustomIngredientReview(){
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   closeCustomIngredientReview();
   await openCustomIngredients();
+}
+
+/* ---------- Add ingredients from a document scan (bod 3, 16.7.) — anyone, straight into the
+   real `ingredients` catalog (not the separate admin-only custom_ingredients table), tagged
+   is_personal to match whichever shelf (ChefOS / My Ingredients) they were on when they
+   triggered the scan. Reuses callClaudeCustomIngredientVision as-is — the extraction itself
+   isn't specific to the custom_ingredients table, only where the result gets saved differs. */
+function triggerIngredientScan(){
+  if(!_anthropicKey){
+    alert('Add your Anthropic API key first, under Photo-scan settings (accessible from the Recipes "+" menu).');
+    return;
+  }
+  document.getElementById('ingredientScanInput').value = '';
+  document.getElementById('ingredientScanInput').click();
+}
+function handleIngredientScanFileSelected(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  readFileForScan(file, runIngredientScan);
+}
+async function runIngredientScan(base64, mediaType, fileName){
+  const overlay = document.getElementById('scanOverlay');
+  const spinner = document.getElementById('scanSpinner');
+  const statusEl = document.getElementById('scanStatus');
+  const errorEl = document.getElementById('scanError');
+  const closeBtn = document.getElementById('scanCloseBtn');
+
+  spinner.style.display = 'block';
+  statusEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  closeBtn.style.display = 'none';
+  document.getElementById('scanMinimizeBtn').style.display = 'block';
+  overlay.classList.add('open');
+  startBgScan('Ingredients scan');
+
+  const messages = ['Reading the file…', 'Finding ingredients…', 'Extracting prices & units…'];
+  let msgIdx = 0;
+  statusEl.textContent = messages[0];
+  clearInterval(_scanMsgTimer);
+  _scanMsgTimer = setInterval(()=>{
+    msgIdx = (msgIdx + 1) % messages.length;
+    statusEl.textContent = messages[msgIdx];
+  }, 2400);
+
+  try{
+    const input = await callClaudeCustomIngredientVision(base64, mediaType, fileName);
+    finishBgScan(()=> openIngredientScanReview(input));
+  } catch(err){
+    clearInterval(_scanMsgTimer);
+    _bgScan = null; updateBgScanPill();
+    logClientError('runIngredientScan failed: ' + (err.message || err), err.stack);
+    spinner.style.display = 'none';
+    statusEl.style.display = 'none';
+    errorEl.style.display = 'block';
+    errorEl.textContent = err.message || 'Something went wrong reading that file.';
+    document.getElementById('scanMinimizeBtn').style.display = 'none';
+    closeBtn.style.display = 'block';
+    overlay.classList.add('open');
+  }
+}
+let _pendingScanIngredients = [];
+function openIngredientScanReview(input){
+  _pendingScanIngredients = (input.ingredients || []).map(x=>({ ...x, _include:true }));
+  document.getElementById('isr_shelf_label').textContent = ingredientSourceFilter === 'mine' ? 'My Ingredients (private)' : 'ChefOS (shared with your kitchen)';
+  renderIngredientScanReviewList();
+  document.getElementById('ingredientScanReviewOverlay').classList.add('open');
+}
+function renderIngredientScanReviewList(){
+  document.getElementById('isr_count').textContent = _pendingScanIngredients.filter(x=>x._include).length;
+  document.getElementById('isr_list').innerHTML = _pendingScanIngredients.map((ing,i)=>`
+    <div class="chip${ing._include?' active':''}" style="width:100%; text-align:left; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleIngredientScanInclude(${i})">
+      <span><strong>${(ing.name||'').replace(/</g,'&lt;')}</strong><br><span style="font-weight:400; font-size:12px;">${[ing.category, ing.unit, ing.price!=null?String(ing.price):null].filter(Boolean).join(' · ') || '—'}</span></span>
+      <span>${ing._include?'✓':''}</span>
+    </div>
+  `).join('');
+}
+function toggleIngredientScanInclude(i){
+  _pendingScanIngredients[i]._include = !_pendingScanIngredients[i]._include;
+  renderIngredientScanReviewList();
+}
+function closeIngredientScanReview(){
+  document.getElementById('ingredientScanReviewOverlay').classList.remove('open');
+  _pendingScanIngredients = [];
+}
+async function saveIngredientScanReview(){
+  const statusEl = document.getElementById('ingredientScanReviewStatus');
+  const toSave = _pendingScanIngredients.filter(x=>x._include && x.name && x.name.trim());
+  if(!toSave.length){ statusEl.textContent = 'Nothing selected.'; return; }
+  statusEl.textContent = 'Saving…';
+  const isPersonal = ingredientSourceFilter === 'mine';
+  let saved = 0, skipped = 0;
+  // One at a time, not a bulk insert: a name that already exists on this shelf hits the unique
+  // index (ingredients_shared_name_uidx / ingredients_personal_name_uidx) and must not sink the
+  // whole batch — those just get skipped and reported, everything else still saves.
+  for(const x of toSave){
+    const { error } = await sb.from('ingredients').insert({
+      kitchen_id: currentKitchenId,
+      name: x.name.trim(),
+      unit: x.unit || 'kg',
+      price: x.price != null ? x.price : null,
+      category: x.category || null,
+      notes: x.note || null,
+      created_by: currentUser.id,
+      is_personal: isPersonal
+    });
+    if(error) skipped++; else saved++;
+  }
+  statusEl.textContent = skipped ? `Saved ${saved}, skipped ${skipped} (already on this shelf).` : `Saved ${saved}.`;
+  await loadAppData();
+  renderIngredientList();
+  setTimeout(closeIngredientScanReview, skipped ? 1800 : 400);
 }
 
 /* ---------- Upload Schedule — scan a real roster (Dienstplan, same format the Schedule
