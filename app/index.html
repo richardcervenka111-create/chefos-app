@@ -12094,7 +12094,7 @@ function showDetail(idx){
         <div class="value">${formatMoney(computed.costSum)}</div>
       </div>
     </div>
-    <div class="scale-note" style="margin:-14px 0 12px 0;">Based on ${computed.matched} of ${computed.total} ingredient line${computed.total===1?'':'s'} matched against your ingredient price list — not a full total until every line is priced and matched.</div>
+    <div class="scale-note" style="margin:-14px 0 12px 0;">Based on ${computed.matched} of ${computed.total} ingredient line${computed.total===1?'':'s'} matched against your ingredient price list — not a full total until every line is priced and matched. Lines given as a piece count (e.g. "6") only match an ingredient priced per piece.</div>
     <div id="costBreakdown" class="cost-breakdown" style="display:none;">
       ${computed.lines.map(l=>`
         <div class="cost-breakdown-row">
@@ -13153,7 +13153,10 @@ function ingredientRowEl(ing, idx){
   row.innerHTML = `
     <div class="info">
       <div class="name">${ing.name}${ing.hidden ? ' <span class="meta">(hidden)</span>' : ''}${ing.cuisine ? `<span class="cuisine-badge">${ing.cuisine}</span>` : ''}</div>
-      <div class="meta">${(ing.aliases||[]).length ? 'aka ' + ing.aliases.join(', ') : ''}</div>
+      <div class="meta">${[
+        (ing.aliases||[]).length ? 'aka ' + ing.aliases.join(', ') : '',
+        ing.kcal_per_100g != null ? `🔥 ${Math.round(ing.kcal_per_100g)} kcal/100g` : ''
+      ].filter(Boolean).join(' · ')}</div>
     </div>
     <div class="price mono">${ing.price != null ? formatMoney(ing.price)+' / '+ing.unit : 'no price'}</div>
     <div class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></div>
@@ -13248,7 +13251,11 @@ function editIngredientForm(idx){
     name: ing.name, cuisine: ing.cuisine || 'Universal', category: ing.category || '',
     unit: ing.unit, price: ing.price != null ? ing.price : '', notes: ing.notes || '',
     aliases: (ing.aliases||[]).join(', '), storage_type: ing.storage_type || '', seasons: ing.seasons || [],
-    yield_pct: ing.yield_pct != null ? ing.yield_pct : 100
+    yield_pct: ing.yield_pct != null ? ing.yield_pct : 100,
+    kcal: ing.kcal_per_100g != null ? ing.kcal_per_100g : '',
+    protein: ing.protein_g_per_100g != null ? ing.protein_g_per_100g : '',
+    carbs: ing.carbs_g_per_100g != null ? ing.carbs_g_per_100g : '',
+    fat: ing.fat_g_per_100g != null ? ing.fat_g_per_100g : ''
   });
 }
 
@@ -13298,6 +13305,14 @@ function renderIngredientForm(data){
       `).join('')}
     </div>
 
+    <label class="form-label">Nutrition per 100 g (optional — feeds the recipe Calories block)</label>
+    <div class="sheet-row" style="flex-wrap:wrap; gap:8px;">
+      <input class="form-field" id="i_kcal" type="number" step="0.1" min="0" placeholder="kcal" style="flex:1; min-width:70px;" value="${data.kcal!=='' && data.kcal!=null ? data.kcal : ''}">
+      <input class="form-field" id="i_protein" type="number" step="0.1" min="0" placeholder="protein g" style="flex:1; min-width:70px;" value="${data.protein!=='' && data.protein!=null ? data.protein : ''}">
+      <input class="form-field" id="i_carbs" type="number" step="0.1" min="0" placeholder="carbs g" style="flex:1; min-width:70px;" value="${data.carbs!=='' && data.carbs!=null ? data.carbs : ''}">
+      <input class="form-field" id="i_fat" type="number" step="0.1" min="0" placeholder="fat g" style="flex:1; min-width:70px;" value="${data.fat!=='' && data.fat!=null ? data.fat : ''}">
+    </div>
+
     <label class="form-label">Notes (optional)</label>
     <input class="form-field" id="i_notes" type="text" placeholder="e.g. priced as fresh, not frozen" value="${(data.notes||'').replace(/"/g,'&quot;')}">
   `;
@@ -13336,10 +13351,15 @@ async function saveIngredientForm(){
   const seasons = Array.from(document.querySelectorAll('.i_season:checked')).map(el=>el.value);
   const yieldRaw = document.getElementById('i_yield_pct').value;
   const yield_pct = yieldRaw === '' ? 100 : Math.min(100, Math.max(1, parseFloat(yieldRaw)));
+  const numOrNull = id => { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); };
 
   const payload = {
     name, cuisine, category, unit, aliases, notes, storage_type, seasons, yield_pct,
-    price, price_updated_at: price != null ? new Date().toISOString() : null
+    price, price_updated_at: price != null ? new Date().toISOString() : null,
+    kcal_per_100g: numOrNull('i_kcal'),
+    protein_g_per_100g: numOrNull('i_protein'),
+    carbs_g_per_100g: numOrNull('i_carbs'),
+    fat_g_per_100g: numOrNull('i_fat')
   };
 
   setSyncStatus('saving');
