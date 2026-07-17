@@ -178,7 +178,7 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 17:53</div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 18:02</div>
 </div>
 
 <!-- Feature detail modal -->
@@ -224,10 +224,10 @@ const MODULES = [
     { name:'Pridávanie do zdieľanej police — len admin', status:'test', role:'admin', desc:'Do spoločného cenníka kuchyne môže pridávať a upravovať len admin — bežný člen ho používa, ale nerozbije. Vlastné police má každý naplno.' },
     { name:'Sken dokumentu / fotky → AI extrakcia', status:'ok', desc:'Odfotíš cenník od dodávateľa, ručný zoznam alebo PDF a AI z neho vytiahne každú položku aj s cenou.' },
     { name:'Invoice Scan v2 (dodávateľ + viacjazyčný)', status:'test', desc:'Sken faktúry: 17.7. prepísaný — číta ktorýkoľvek jazyk (DE/SK/CZ…), z hlavičky rozpozná DODÁVATEĽA a nastaví ho na všetky položky z tej faktúry, aktualizuje ceny + dátum, doplní kategóriu. Preskakuje dátumy, čísla faktúr, súčty, DPH a zálohy (predtým z dátumu robil položku). Pribudlo pole Dodávateľ v ingredienciách (db/137) — základ pre budúce objednávanie na klik. Nutričné/sezónne detaily doladí ✨ AI Details.' },
-    { name:'Sken .xlsx (Excel) — viacjazyčný', status:'test', desc:'Načíta aj Excel súbor od dodávateľa — bez externých knižníc, priamo v prehliadači — a spracuje ho tou istou AI extrakciou. Vylepšené 17.7.: sken teraz zvláda zoznamy v ktoromkoľvek jazyku (SK/CZ/DE/PL/FR…), názvy ponechá v origináli a jednotky (ks/kus/Stück…) aj kategórie normalizuje. Predtým fungoval poriadne len po anglicky.' },
+    { name:'Sken .xlsx (Excel) — viacjazyčný', status:'ok', desc:'Načíta aj Excel súbor od dodávateľa — bez externých knižníc, priamo v prehliadači — a spracuje ho tou istou AI extrakciou. Vylepšené 17.7.: sken teraz zvláda zoznamy v ktoromkoľvek jazyku (SK/CZ/DE/PL/FR…), názvy ponechá v origináli a jednotky (ks/kus/Stück…) aj kategórie normalizuje. Predtým fungoval poriadne len po anglicky.' },
     { name:'AI Details — dopĺňanie polí', status:'ok', desc:'Jedno tlačidlo doplní chýbajúce kategórie, sezónnosť, skladovanie a nutričné hodnoty pre až 25 položiek naraz. Nikdy neprepisuje, čo už je vyplnené. Naživo overené 17.7.; výsledok teraz aj vysvetľuje, odkiaľ dáta pochádzajú (typické referenčné hodnoty AI, nie laboratórne meranie — vždy upraviteľné).' },
     { name:'Dlhé podržanie: premenovať / skryť / vymazať', status:'ok', desc:'Podrž prst (alebo pravý klik) na hociktorej surovine a rovno ju upravíš — bez hľadania v menu.' },
-    { name:'Bulk delete (podľa dátumu / všetko)', status:'test', desc:'Hromadné vymazanie surovín podľa dátumu pridania alebo celej police naraz — na upratanie po zlom skene.' },
+    { name:'Bulk delete (podľa dátumu / všetko)', status:'ok', desc:'Hromadné vymazanie surovín podľa dátumu pridania alebo celej police naraz — na upratanie po zlom skene.' },
     { name:'Sezónnosť, kategórie, filtre, Ingredient Audit', status:'ok', desc:'Filtrovanie podľa kuchyne, kategórie, sezóny, skladovania a ceny; sezónne suroviny navrchu; audit nekonzistentných názvov.' },
   ]},
   { icon:'✅', title:'Check List (Kitchen Flow)', items:[
