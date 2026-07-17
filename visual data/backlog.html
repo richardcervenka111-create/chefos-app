@@ -94,6 +94,19 @@
   /* Per-phase progress (injected by JS) */
   /* Phase overview chart (17.7.) */
   .phase-overview{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px 18px 10px 18px; margin:26px 0 6px 0; }
+  .po-flex{ display:flex; align-items:center; gap:22px; flex-wrap:wrap; }
+  .po-rows{ flex:1; min-width:260px; }
+  #overallDonut text{ fill:var(--ink); font-family:var(--mono); }
+  /* Sticky phase-jump nav (17.7.) */
+  .phase-nav{ position:sticky; top:0; z-index:30; background:rgba(10,26,47,0.94); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-bottom:1px solid var(--rule); display:flex; gap:6px; overflow-x:auto; padding:8px 14px; scrollbar-width:none; margin:0 -20px; }
+  .phase-nav::-webkit-scrollbar{ display:none; }
+  .phase-nav button{ flex:none; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:11px; font-weight:700; padding:5px 11px; border-radius:20px; cursor:pointer; white-space:nowrap; transition:border-color .15s, color .15s; font-family:inherit; }
+  .phase-nav button:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  /* Collapsible phases (17.7.) */
+  .phase-head{ cursor:pointer; user-select:none; }
+  .phase-head .collapse-chev{ margin-left:auto; color:var(--ink-faint); font-size:12px; transition:transform .15s; flex:none; }
+  .phase-head.collapsed .collapse-chev{ transform:rotate(-90deg); }
+  .tasklist.collapsed{ display:none !important; }
   .po-title{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); font-weight:700; margin-bottom:12px; }
   .po-row{ display:flex; align-items:center; gap:10px; padding:5px 0; cursor:pointer; }
   .po-row:hover .po-name{ color:var(--accent); }
@@ -217,7 +230,12 @@
 
 <div class="wrap">
 
-  <!-- Phase overview chart (Richard, 17.7.): done vs open per phase — click a row to jump. -->
+  <!-- Sticky phase-jump nav (Richard, 17.7. "vylepši vizuál"): always-visible chips, one per
+       phase — jump anywhere in this long document with one tap. -->
+  <nav class="phase-nav" id="phaseNav"></nav>
+
+  <!-- Phase overview chart (Richard, 17.7.): done vs open per phase — click a row to jump.
+       Now with the overall-progress donut alongside. -->
   <div class="phase-overview" id="phaseOverview"></div>
 
   <!-- FOUNDER RISKS -->
@@ -337,6 +355,11 @@
     <div class="task v2"><input type="checkbox" class="task-check" id="t162" checked><div class="task-body"><div class="task-title">🧾 Invoice Scan v2 + dodávateľ + prekladové/viacjazyčné skeny (17.7.)</div><div class="task-desc">Sken faktúry: z hlavičky rozpozná <b>DODÁVATEĽA</b> a nastaví ho na všetky položky, aktualizuje ceny + dátum, preskakuje dátumy/čísla/súčty/DPH/zálohy (predtým z dátumu robil položku). Nové pole <b>Dodávateľ</b> v ingredienciách (<b>db/137</b>) — základ pre budúce objednávanie na klik podľa dodávateľa. Oba skeny (faktúra aj cenník/dokument/xlsx) teraz <b>PREKLADAJÚ</b> názvy do jazyka z nastavenia Scan Settings (default English), originál ukladajú ako alias na párovanie a spoznanie. Ikony v ingredienciách rozdelené do dvoch riadkov (netlačia sa). Opravený pád skenu (aliases NOT NULL → prázdne pole).</div><span class="role">Nasadené naživo</span></div><div class="tags"><span class="tag tag-v2">Hotovo</span></div></div>
     <div class="task v2"><input type="checkbox" class="task-check" id="t163" checked><div class="task-body"><div class="task-title">💬 Zdieľané komentáre + 🎓 tutoriály pre každé okno + osobná polica opravená (17.7.)</div><div class="task-desc">Komentáre na ChefOS receptoch konečne viditeľné naprieč kuchyňami (<b>db/129</b> denormalizácia master id) + počítadlo na tlačidle aj bublinka priamo v zozname receptov (1–9, potom 9+). Každá hlavná obrazovka má vlastný podrobný tutoriál — otvorí sa pri prvom otvorení, ❓ v hornej lište na zopakovanie; úvodný sprievodca zoštíhlený len na privítanie + Home; What's New srdiečko zmazané ako duplicitné. Firemný recept sa už NIKDY neukáže na osobnej polici My Recipes ani po prepnutí režimu (<b>db/130</b>, staré výnimkové pravidlo nahradené opravou dát).</div><span class="role">Nasadené naživo</span></div><div class="tags"><span class="tag tag-v2">Hotovo</span></div></div>
     <div class="task v2"><input type="checkbox" class="task-check" id="t164" checked><div class="task-body"><div class="task-title">📧 Email Contacts číslované + detail · Feedback iba Head Admin (17.7.)</div><div class="task-desc">Email kontakty dostali číslovanie (#1 najstarší naspodu, najnovší hore) a ťuknutím sa hlavnému adminovi otvorí celý detail kontaktu vrátane napojeného ChefOS účtu (meno, rola, typ, kuchyňa), ak taký existuje. Feedback inbox potvrdený ako výhradne Head-Admin (aj DB `is_super_admin()`, aj UI — doc opravený, predtým mylne uvádzal Kitchen Admin). AI Details teraz vysvetľuje pôvod dát (typické referenčné hodnoty AI, nie laboratórne meranie). Overené: HACCP správne skryté z personal účtov, viditeľné v company admin.</div><span class="role">Nasadené naživo</span></div><div class="tags"><span class="tag tag-v2">Hotovo</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t165"><div class="task-body"><div class="task-title">🔴 legal.html — doplniť heslá a GPS do právnych textov (nález auditu)</div><div class="task-desc">Privacy/legal texty nepokrývajú prihlásenie heslom (db/83) ani GPS snímky pri check-in/out vo Working Time — obe funkcie už bežia naživo. Top nález kritického review, stále otvorený. Pred verejným trialom povinné.</div><span class="role">Claude — pripravené na pokyn</span></div><div class="tags"><span class="tag tag-crit">Pred trialom</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t166"><div class="task-body"><div class="task-title">Vypnúť AI testing mode pred verejným trialom</div><div class="task-desc">app_config.ai_unlimited_testing_mode je stále ON — každý účet má neobmedzené AI zadarmo na centrálnom kľúči. Na testovanie zámer, pred pustením cudzích ľudí treba vypnúť (jeden SQL riadok) a nechať kreditový systém robiť svoju prácu.</div><span class="role">1 SQL riadok, deň pred trialom</span></div><div class="tags"><span class="tag tag-crit">Pred trialom</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t167"><div class="task-body"><div class="task-title">Share-grant na server-side voucher (free AI pri zdieľaní receptu)</div><div class="task-desc">Flag „_share_grant" je deklarovaný klientom — technicky zdatný užívateľ by ním obišiel kreditovú bránu. Prijaté riziko pre pred-trial fázu (dosah = jeden AI call), pred trialom utiahnuť na server-vydávaný jednorazový voucher v claude-proxy.</div><span class="role">Claude — edge funkcia</span></div><div class="tags"><span class="tag tag-v2">Pred trialom</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t168"><div class="task-body"><div class="task-title">Živý test RLS súkromia „Moje" z dvoch účtov</div><div class="task-desc">Posledná oranžová položka zo série testov 17.7.: na osobnom účte uložiť recept do „Moje", z druhého účtu tej istej kuchyne overiť, že nie je viditeľný nikde (ani cez hľadanie). Mechanizmus je v RLS od db/97, treba len ľudské potvrdenie.</div><span class="role">LEN TY — 5 minút</span></div><div class="tags"><span class="tag tag-plan">Netestované</span></div></div>
+    <div class="task v2"><input type="checkbox" class="task-check" id="t169"><div class="task-body"><div class="task-title">Preložiť 105 popisov funkcií do angličtiny (feature_status)</div><div class="task-desc">SK/EN prepínač je od 17.7. všade, chrome dokumentov je dvojjazyčný — telá 105 funkcií v Mape funkcií zatiaľ ostávajú po slovensky (poctivo priznané v EN verzii). Preklad dáva zmysel najneskôr, keď dokumenty uvidí prvý anglicky hovoriaci partner/investor.</div><span class="role">Claude — na pokyn</span></div><div class="tags"><span class="tag tag-v2">Nové</span></div></div>
     <div class="task"><input type="checkbox" class="task-check" id="t35"><div class="task-body"><div class="task-title">RLS bezpečnostný audit · uptime monitoring · support kanál · Innosuisse/Venturelab grant · live test na reálnom iOS zariadení</div><div class="task-desc">Všetko z v1 — zostáva. Dva konkrétne chýbajúce RLS prípady (kitchens UPDATE, station_icons DELETE) už opravené v 48_kitchens_and_station_icons_policy_fix.sql.</div></div><div class="tags"><span class="tag tag-new">v1</span></div></div>
     <div class="task v2"><input type="checkbox" class="task-check" id="t36"><div class="task-body"><div class="task-title">Zaviesť poradie nasadzovania: staging → regresný checklist → prod (nikdy naopak)</div><div class="task-desc">Nie je to úloha, je to zvyk — ale musí sa rozhodnúť raz a dodržiavať. Kombinuje tri v2 položky (Git, staging, checklist) do jedného pracovného postupu.</div><span class="role">CTO + QA</span></div><div class="tags"><span class="tag tag-v2">v2</span></div></div>
     <div class="task"><input type="checkbox" class="task-check" id="t37" checked><div class="task-body"><div class="task-title">Penetračný pohľad na access gate a invite linky pred rastom</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> nový kitchen_invites token (7-dňová expirácia, revokovateľný) nahradil holé kitchen id v odkaze; pridané "Revoke &amp; get new link" aj zoznam členov tímu s admin-only "Remove". Ty ešte musíš spustiť db/53_invite_expiry_and_remove_member.sql.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Kód hotový</span></div></div>
@@ -583,10 +606,9 @@ function applyFilters(){
   const filtering = q || _filters.open || _filters.crit || _filters.v2;
   hits.textContent = filtering ? ('🔍 ' + shown + '/' + total) : '';
 }
-/* Phase overview chart (Richard, 17.7.) — done vs open per phase, click jumps to the phase. */
-function renderPhaseOverview(){
-  const wrap = document.getElementById('phaseOverview');
-  if(!wrap) return;
+/* Phase overview (Richard, 17.7.) — overall donut + done-vs-open bar per phase (click jumps),
+   plus the sticky phase-jump nav and collapsible phases. */
+function collectPhases(){
   const rows = [];
   document.querySelectorAll('.phase-head').forEach((head, idx)=>{
     let list = head.nextElementSibling;
@@ -595,22 +617,66 @@ function renderPhaseOverview(){
     const checks = [...list.querySelectorAll('.task-check')];
     if(!checks.length) return;
     const done = checks.filter(c=>c.checked).length;
-    const name = (head.querySelector('.phase-num')?.textContent || '') + ' ' + (head.querySelector('h2')?.textContent || '');
+    const num = head.querySelector('.phase-num')?.textContent || '';
+    const name = (num + ' ' + (head.querySelector('h2')?.textContent || '')).trim();
     head.id = head.id || ('phaseHead' + idx);
-    rows.push({ name: name.trim(), done, total: checks.length, id: head.id });
+    rows.push({ num, name, done, total: checks.length, id: head.id, head, list });
   });
+  return rows;
+}
+function renderPhaseOverview(){
+  const wrap = document.getElementById('phaseOverview');
+  if(!wrap) return;
+  const rows = collectPhases();
+  const done = rows.reduce((s,r)=>s+r.done,0), total = rows.reduce((s,r)=>s+r.total,0);
+  const R = 40, C = 2*Math.PI*R, frac = total ? done/total : 0;
+  const donut = `<svg id="overallDonut" viewBox="0 0 110 110" style="width:120px; height:120px; flex:none;">
+    <circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--rule)" stroke-width="13"/>
+    <circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--accent)" stroke-width="13"
+      stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-linecap="round"
+      transform="rotate(-90 55 55)"/>
+    <text x="55" y="53" text-anchor="middle" font-size="20" font-weight="700">${Math.round(frac*100)}%</text>
+    <text x="55" y="68" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${done}/${total}</text>
+  </svg>`;
   wrap.innerHTML = '<div class="po-title">' + (_lang==='sk' ? 'Prehľad fáz — hotové vs. otvorené (klikni pre skok)' : 'Phase overview — done vs. open (click to jump)') + '</div>' +
+    `<div class="po-flex">${donut}<div class="po-rows">` +
     rows.map(r=>`
-      <div class="po-row" onclick="document.getElementById('${r.id}').scrollIntoView({behavior:'smooth', block:'start'})">
+      <div class="po-row" onclick="jumpToPhase('${r.id}')">
         <span class="po-name" title="${r.name.replace(/"/g,'&quot;')}">${r.name}</span>
         <span class="po-bar"><span class="po-fill" style="width:${r.total ? Math.round(r.done/r.total*100) : 0}%"></span></span>
         <span class="po-count">${r.done}/${r.total}</span>
-      </div>`).join('');
+      </div>`).join('') + '</div></div>';
+  const nav = document.getElementById('phaseNav');
+  if(nav) nav.innerHTML = rows.map(r=>`<button onclick="jumpToPhase('${r.id}')" title="${r.name.replace(/"/g,'&quot;')}">${r.num} · ${r.done}/${r.total}</button>`).join('');
+}
+function jumpToPhase(id){
+  const head = document.getElementById(id);
+  if(!head) return;
+  head.classList.remove('collapsed');
+  const list = collectPhases().find(r=>r.id===id)?.list;
+  if(list) list.classList.remove('collapsed');
+  head.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+/* Collapsible phases — tap a phase header to roll its task list up/down. */
+function initPhaseCollapse(){
+  collectPhases().forEach(r=>{
+    if(r.head.querySelector('.collapse-chev')) return;
+    const chev = document.createElement('span');
+    chev.className = 'collapse-chev';
+    chev.textContent = '▼';
+    r.head.appendChild(chev);
+    r.head.addEventListener('click', (e)=>{
+      if(e.target.closest('a, button, input')) return;
+      r.head.classList.toggle('collapsed');
+      r.list.classList.toggle('collapsed');
+    });
+  });
 }
 applyLang();
 renderPhaseOverview();
+initPhaseCollapse();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:03" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:03">🔄 Stav ChefOS k 17. 7. 2026, 14:03</div>
 </body>
 </html>
