@@ -2724,6 +2724,12 @@
              personal shelf/list that are missing them. Paid AI: runs through the normal credit
              gate like every other Claude call. Never offered on the ChefOS shelf (curated). -->
         <button class="icon-btn" onclick="generateIngredientDetails()" title="Generate details with AI" id="generateDetailsBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">✨ AI Details</button>
+        <!-- Invoice Scan (Richard, 17.7.) — scan any supplier invoice: prices get matched onto
+             existing ingredients on this shelf (with today's date), unmatched items are added
+             WITH their price, and every price lands in ingredient_price_history (db/127) so
+             Kitchen Reports can chart and project price movement. -->
+        <button class="icon-btn" onclick="document.getElementById('invoiceScanFile').click()" title="Scan a supplier invoice" id="invoiceScanBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">🧾 Invoice Scan</button>
+        <input type="file" id="invoiceScanFile" accept="image/*,.pdf,.xlsx" style="display:none;" onchange="handleInvoiceScanFile(this)">
         <!-- Bulk delete (bod 1, 16.7. večer) — by date added, or the whole shelf. Same
              visibility rule as adding (your own shelves; ChefOS admin-only). -->
         <button class="icon-btn" onclick="openBulkDeleteIngredients()" title="Delete ingredients" id="bulkDeleteIngredientsBtn" style="display:none;">
@@ -8020,10 +8026,57 @@ function krDemoIngredientRows(){
   _krDemoIngCache = out;
   return out;
 }
-function krRenderIngredients(){
+async function krRenderIngredients(){
   _krSection = 'ingredients';
   document.getElementById('krPeriodChips').style.display = 'none';
   const rows = krDemoActive() ? krDemoIngredientRows() : _ingredients.filter(i=>!i.is_personal);
+
+  // Price movement (Richard, 17.7.) — from ingredient_price_history (db/127, fed by Invoice
+  // Scan + manual price edits). An item needs ≥2 recorded prices before it can "move".
+  let moverBars = '', movementNote = '', pricePredict = '';
+  if(krDemoActive()){
+    const demoMovers = [
+      { label:'Eggs (free-range)', pct: 12.0 }, { label:'Butter', pct: 8.5 },
+      { label:'Cream 35%', pct: 6.2 }, { label:'Olive oil', pct: 4.4 },
+      { label:'Veal shoulder', pct: -2.4 }, { label:'Flour T550', pct: -3.1 },
+    ];
+    moverBars = krBars(demoMovers.map(m=>({ label:m.label, value: Math.abs(m.pct), display:(m.pct>0?'+':'')+m.pct.toFixed(1)+'%', color: m.pct>0 ? '#FF7A68' : '#4ADE80' })));
+    movementNote = `<div class="sheet-text" style="opacity:.65; margin-top:6px;">Price index across tracked items: <b style="color:#FF7A68;">+3.1%</b> over 90 days.</div>`;
+    pricePredict = `<br><b>Prices:</b> at the current trend the tracked basket rises <b>~+1.0%</b> in the next 30 days — biggest risk: Eggs (+4.0%/30d, → CHF 0.92/pc) and Butter (+2.8%/30d, → CHF 15.30/kg).`;
+  } else {
+    const { data: hist } = await sb.from('ingredient_price_history')
+      .select('ingredient_id, name, price, created_at')
+      .eq('kitchen_id', currentKitchenId)
+      .gte('created_at', new Date(Date.now() - 90 * 86400000).toISOString())
+      .order('created_at').limit(4000);
+    const series = {};
+    (hist || []).forEach(h=>{
+      const key = h.ingredient_id || h.name;
+      (series[key] = series[key] || { name: h.name, points: [] }).points.push(h);
+    });
+    const movers = Object.values(series)
+      .filter(s=>s.points.length >= 2)
+      .map(s=>{
+        const first = s.points[0], last = s.points[s.points.length - 1];
+        const days = Math.max(1, (new Date(last.created_at) - new Date(first.created_at)) / 86400000);
+        const pct = Number(first.price) > 0 ? (Number(last.price) - Number(first.price)) / Number(first.price) * 100 : 0;
+        return { name: s.name, pct, days, lastPrice: Number(last.price) };
+      })
+      .filter(m=>Math.abs(m.pct) > 0.05)
+      .sort((a,b)=>Math.abs(b.pct) - Math.abs(a.pct));
+    if(movers.length){
+      moverBars = krBars(movers.slice(0, 8).map(m=>({ label: m.name, value: Math.abs(m.pct), display:(m.pct>0?'+':'')+m.pct.toFixed(1)+'%', color: m.pct>0 ? '#FF7A68' : '#4ADE80' })));
+      const index = movers.reduce((s,m)=>s+m.pct, 0) / movers.length;
+      movementNote = `<div class="sheet-text" style="opacity:.65; margin-top:6px;">Simple average across ${movers.length} tracked item${movers.length===1?'':'s'}: <b style="color:${index>0?'#FF7A68':'#4ADE80'};">${index>0?'+':''}${index.toFixed(1)}%</b> over their recorded window.</div>`;
+      const top = movers.slice(0, 3).map(m=>{
+        const monthly = m.pct / m.days * 30;
+        return `${krEsc(m.name)} (${monthly>0?'+':''}${monthly.toFixed(1)}%/30d → ${formatMoney(m.lastPrice * (1 + monthly/100))})`;
+      }).join(', ');
+      pricePredict = `<br><b>Prices:</b> extending each item's own recorded trend 30 days ahead: ${top}.`;
+    } else {
+      moverBars = '<div class="empty-state">No price movement recorded yet — scan an invoice (🧾 Invoice Scan in Ingredients) or edit a price twice over time, and the movement appears here.</div>';
+    }
+  }
   const total = rows.length;
   const withPrice = rows.filter(i=>i.price != null && Number(i.price) > 0).length;
   const withCat = rows.filter(i=>i.category).length;
@@ -8054,10 +8107,13 @@ function krRenderIngredients(){
       { label:'❄️ With storage type', value: withStorage, display: `${withStorage} · ${krPct(withStorage, total)}%` },
       { label:'🌱 With seasons', value: withSeasons, display: `${withSeasons} · ${krPct(withSeasons, total)}%` },
     ])}
-    <div class="sheet-text" style="opacity:.65; margin-top:6px;">Heads-up: most prices are AI estimates, not verified invoices — "has a price" ≠ "price is confirmed".</div>
+    <div class="sheet-text" style="opacity:.65; margin-top:6px;">Heads-up: most prices are AI estimates, not verified invoices — "has a price" ≠ "price is confirmed". Invoice Scan prices count as real.</div>
+    ${krLabel('Price movement (90 days)')}
+    ${moverBars}
+    ${movementNote}
     ${krLabel('Category mix')}
     ${krDonut(donutSegs)}
-    ${krPredictBlock('krPredictIngredients', predictHtml)}
+    ${krPredictBlock('krPredictIngredients', predictHtml + pricePredict)}
   `);
 }
 
@@ -12775,6 +12831,8 @@ function showIngredients(){
   if(customIngredientsBtn) customIngredientsBtn.style.display = currentIsAdmin ? 'flex' : 'none';
   const genBtn = document.getElementById('generateDetailsBtn');
   if(genBtn) genBtn.style.display = ingredientSourceFilter !== 'chefos' ? 'flex' : 'none';
+  const invBtn = document.getElementById('invoiceScanBtn');
+  if(invBtn) invBtn.style.display = ingredientSourceFilter !== 'chefos' ? 'flex' : 'none';
   const bulkBtn = document.getElementById('bulkDeleteIngredientsBtn');
   if(bulkBtn) bulkBtn.style.display = canAdd ? 'flex' : 'none';
   window.scrollTo(0,0);
@@ -13155,7 +13213,8 @@ function ingredientRowEl(ing, idx){
       <div class="name">${ing.name}${ing.hidden ? ' <span class="meta">(hidden)</span>' : ''}${ing.cuisine ? `<span class="cuisine-badge">${ing.cuisine}</span>` : ''}</div>
       <div class="meta">${[
         (ing.aliases||[]).length ? 'aka ' + ing.aliases.join(', ') : '',
-        ing.kcal_per_100g != null ? `🔥 ${Math.round(ing.kcal_per_100g)} kcal/100g` : ''
+        ing.kcal_per_100g != null ? `🔥 ${Math.round(ing.kcal_per_100g)} kcal/100g` : '',
+        (ing.price != null && ing.price_updated_at) ? `💰 upd ${new Date(ing.price_updated_at).toLocaleDateString('sk-SK')}` : ''
       ].filter(Boolean).join(' · ')}</div>
     </div>
     <div class="price mono">${ing.price != null ? formatMoney(ing.price)+' / '+ing.unit : 'no price'}</div>
@@ -13307,10 +13366,22 @@ function renderIngredientForm(data){
 
     <label class="form-label">Nutrition per 100 g (optional — feeds the recipe Calories block)</label>
     <div class="sheet-row" style="flex-wrap:wrap; gap:8px;">
-      <input class="form-field" id="i_kcal" type="number" step="0.1" min="0" placeholder="kcal" style="flex:1; min-width:70px;" value="${data.kcal!=='' && data.kcal!=null ? data.kcal : ''}">
-      <input class="form-field" id="i_protein" type="number" step="0.1" min="0" placeholder="protein g" style="flex:1; min-width:70px;" value="${data.protein!=='' && data.protein!=null ? data.protein : ''}">
-      <input class="form-field" id="i_carbs" type="number" step="0.1" min="0" placeholder="carbs g" style="flex:1; min-width:70px;" value="${data.carbs!=='' && data.carbs!=null ? data.carbs : ''}">
-      <input class="form-field" id="i_fat" type="number" step="0.1" min="0" placeholder="fat g" style="flex:1; min-width:70px;" value="${data.fat!=='' && data.fat!=null ? data.fat : ''}">
+      <div style="flex:1; min-width:90px;">
+        <input class="form-field" id="i_kcal" type="number" step="0.1" min="0" placeholder="e.g. 245" title="Kilocalories per 100 g of the raw ingredient" value="${data.kcal!=='' && data.kcal!=null ? data.kcal : ''}" style="margin-bottom:2px;">
+        <div style="font-size:10.5px; color:var(--ink-faint); text-align:center;">kcal — energy</div>
+      </div>
+      <div style="flex:1; min-width:90px;">
+        <input class="form-field" id="i_protein" type="number" step="0.1" min="0" placeholder="e.g. 12.5" title="Protein in grams per 100 g" value="${data.protein!=='' && data.protein!=null ? data.protein : ''}" style="margin-bottom:2px;">
+        <div style="font-size:10.5px; color:var(--ink-faint); text-align:center;">protein g — builds muscle</div>
+      </div>
+      <div style="flex:1; min-width:90px;">
+        <input class="form-field" id="i_carbs" type="number" step="0.1" min="0" placeholder="e.g. 48" title="Carbohydrates in grams per 100 g" value="${data.carbs!=='' && data.carbs!=null ? data.carbs : ''}" style="margin-bottom:2px;">
+        <div style="font-size:10.5px; color:var(--ink-faint); text-align:center;">carbs g — energy source</div>
+      </div>
+      <div style="flex:1; min-width:90px;">
+        <input class="form-field" id="i_fat" type="number" step="0.1" min="0" placeholder="e.g. 8.2" title="Fat in grams per 100 g" value="${data.fat!=='' && data.fat!=null ? data.fat : ''}" style="margin-bottom:2px;">
+        <div style="font-size:10.5px; color:var(--ink-faint); text-align:center;">fat g — flavour & richness</div>
+      </div>
     </div>
 
     <label class="form-label">Notes (optional)</label>
@@ -13364,10 +13435,24 @@ async function saveIngredientForm(){
 
   setSyncStatus('saving');
   let error;
+  // Manual price changes feed the same history the Invoice Scan writes (db/127) — Kitchen
+  // Reports' price-movement chart shouldn't care HOW a price arrived. Best-effort, never
+  // blocks the save itself.
+  const prevRow = ingredientEditingId ? _ingredients.find(i=>i.id === ingredientEditingId) : null;
+  const priceChanged = price != null && (!prevRow || Number(prevRow.price) !== Number(price));
+  let savedIngredientId = ingredientEditingId;
   if(ingredientEditingId){
     ({ error } = await sb.from('ingredients').update(payload).eq('id', ingredientEditingId));
   } else {
-    ({ error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: ingredientSourceFilter !== 'chefos', list_id: (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null }));
+    let insertedRow;
+    ({ data: insertedRow, error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: ingredientSourceFilter !== 'chefos', list_id: (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null }).select().single());
+    if(insertedRow) savedIngredientId = insertedRow.id;
+  }
+  if(!error && priceChanged && savedIngredientId){
+    sb.from('ingredient_price_history').insert({
+      kitchen_id: currentKitchenId, ingredient_id: savedIngredientId, name, price, unit,
+      source: 'manual', created_by: currentUser.id
+    }).then(({ error: hErr })=>{ if(hErr) console.error('price history insert failed — has db/127 been run?', hErr); });
   }
   if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
@@ -17307,6 +17392,103 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
   if(!toolUse) throw new Error('Claude could not read this file — try a clearer photo or PDF.');
   return toolUse.input;
 }
+/* ---------- Invoice Scan (Richard, 17.7.) ----------
+   Reads any supplier invoice/delivery note (photo, PDF, Excel), extracts line items with their
+   UNIT prices, then: matched ingredients on the CURRENT shelf get the new price (+ today's
+   date), unmatched ones are added with their price. Every applied price is also appended to
+   ingredient_price_history (db/127) — the raw material for Kitchen Reports' price-movement
+   charts and projections. A confirm with a preview runs before anything is written. */
+function handleInvoiceScanFile(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  readFileForScan(file, (base64, mediaType, fileName)=>{ runInvoiceScan(base64, mediaType, fileName); });
+}
+async function runInvoiceScan(base64, mediaType, fileName){
+  const btn = document.getElementById('invoiceScanBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '🧾 Reading…';
+  try{
+    const tool = {
+      name: 'record_invoice_items',
+      description: 'Extract every priced line item from this supplier invoice or delivery note.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          currency: { type:'string', description:'ISO currency code of the invoice, e.g. CHF or EUR' },
+          items: { type:'array', items: { type:'object', properties: {
+            name: { type:'string', description:'Product/ingredient name, cleaned of article numbers' },
+            unit: { type:'string', description:'kg, l or pc — the unit the UNIT price refers to; omit if unclear' },
+            price: { type:'number', description:'UNIT price (per kg / per litre / per piece). Compute line total ÷ quantity when only a total is shown.' }
+          }, required:['name','price'] } }
+        },
+        required: ['items']
+      }
+    };
+    const data = await callClaudeAPI({
+      model: 'claude-sonnet-5',
+      max_tokens: 4096,
+      tools: [tool],
+      tool_choice: { type:'tool', name:'record_invoice_items' },
+      messages: [{ role:'user', content: [
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is a supplier invoice or delivery note for a professional kitchen. Extract every priced line item with its UNIT price (per kg / per litre / per piece — compute it from line total ÷ quantity when needed) using the record_invoice_items tool. Skip VAT lines, deposits, delivery fees and discounts. Also return the invoice currency.' }
+      ] }]
+    });
+    const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+    if(!toolUse || !(toolUse.input.items||[]).length) throw new Error('No priced items found on this invoice — try a clearer photo.');
+    const currency = String(toolUse.input.currency || 'CHF').toUpperCase();
+    const rate = (CURRENCY_INFO[currency] || CURRENCY_INFO.EUR).fromEur; // stored prices are EUR-based
+    const shelfRows = _ingredients.filter(i=>ingredientOnCurrentShelf(i));
+    const byName = {};
+    shelfRows.forEach(i=>{
+      byName[normalizeIngredientText(i.name)] = i;
+      (i.aliases || []).forEach(a=>{ byName[normalizeIngredientText(a)] = i; });
+    });
+    const updates = [], adds = [];
+    (toolUse.input.items || []).forEach(it=>{
+      if(!it.name || typeof it.price !== 'number' || !(it.price > 0)) return;
+      const priceEur = it.price / rate;
+      const match = byName[normalizeIngredientText(it.name)];
+      if(match) updates.push({ row: match, priceEur });
+      else adds.push({ name: it.name.trim(), priceEur, unit: ['kg','l','pc'].includes(String(it.unit||'').toLowerCase()) ? String(it.unit).toLowerCase() : 'kg' });
+    });
+    if(!updates.length && !adds.length) throw new Error('No usable priced items found on this invoice.');
+    const preview = [...updates.map(u=>'↺ ' + u.row.name), ...adds.map(a=>'+ ' + a.name)].slice(0, 10).join('\n');
+    if(!confirm(`Invoice read (${currency}): update ${updates.length} price(s), add ${adds.length} new ingredient(s) to ${currentIngredientListName()}.\n\n${preview}${updates.length + adds.length > 10 ? '\n…' : ''}\n\nApply?`)) return;
+    const nowIso = new Date().toISOString();
+    const history = [];
+    for(const u of updates){
+      const { error } = await sb.from('ingredients').update({ price: u.priceEur, price_updated_at: nowIso }).eq('id', u.row.id);
+      if(error) continue;
+      u.row.price = u.priceEur; u.row.price_updated_at = nowIso;
+      history.push({ kitchen_id: currentKitchenId, ingredient_id: u.row.id, name: u.row.name, price: u.priceEur, unit: u.row.unit, source:'invoice_scan', created_by: currentUser.id });
+    }
+    let addedCount = 0;
+    if(adds.length){
+      const listId = (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null;
+      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso }));
+      const { data: ins, error } = await sb.from('ingredients').insert(rows).select();
+      if(error) throw error;
+      (ins || []).forEach(x=>{
+        _ingredients.push(x); addedCount++;
+        history.push({ kitchen_id: currentKitchenId, ingredient_id: x.id, name: x.name, price: x.price, unit: x.unit, source:'invoice_scan', created_by: currentUser.id });
+      });
+    }
+    if(history.length){
+      const { error: hErr } = await sb.from('ingredient_price_history').insert(history);
+      if(hErr) console.error('price history insert failed — has db/127 been run?', hErr);
+    }
+    buildIngredientLookup();
+    renderIngredientList();
+    alert(`Invoice applied: ${updates.length} price update(s) · ${addedCount} new ingredient(s) — every price carries today's date and lands in the price history for Kitchen Reports.`);
+  } catch(err){
+    alert('Invoice scan failed: ' + (err.message || err));
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
+
 async function runCustomIngredientScan(base64, mediaType, fileName){
   const overlay = document.getElementById('scanOverlay');
   const spinner = document.getElementById('scanSpinner');
