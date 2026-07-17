@@ -52,7 +52,8 @@ MERGED = [
         'subtitle_sk': 'Peniaze dnu aj von — monetizácia, automatizácie, náklady',
         'tabs': [
             ('Monetizácia', 'monetization.html'),
-            ('Automatizácie & náklady', 'automation.html'),
+            ('Automatizácie', 'automation.html'),
+            ('Náklady', 'costs.html'),
         ],
     },
     {

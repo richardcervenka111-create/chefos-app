@@ -422,57 +422,13 @@
 
   <section id="vydavky">
     <div class="section-label"><span class="n">04</span><h2 data-sk="Výdavky" data-en="Spending"></h2><div class="rule"></div></div>
-    <p class="lede" style="margin-bottom:4px;" data-sk="Self-reported, nie auditované — API výpisy sa nekontrolujú automaticky. Presné čísla vždy v Claude Platform / bankovom výpise. Čas zakladateľa sa počíta sadzbou 45 CHF/h z merača hodín (scripts/work_hours.py)." data-en="Self-reported, not audited — API statements aren't checked automatically. Exact figures always in Claude Platform / the bank statement. Founder time is valued at CHF 45/h from the hours meter (scripts/work_hours.py)."></p>
     <details class="group" open>
-      <summary><span data-sk="💳 Celkový prehľad — všetky doterajšie aj budúce náklady" data-en="💳 Overall summary — all costs to date and upcoming"></span></summary>
+      <summary><span data-sk="💳 Súhrn — plný rozpis presunutý do Biznis → Náklady" data-en="💳 Summary — full breakdown moved to Biznis → Costs"></span></summary>
       <div class="group-body">
-        <div id="spendDonutWrap" style="display:flex; flex-wrap:wrap; gap:18px; align-items:center; margin:6px 0 14px 0;">
-          <svg id="spendDonut" width="150" height="150" viewBox="0 0 120 120" style="flex:none;"></svg>
-          <div id="spendDonutLegend" class="spend-legend" style="flex:1; min-width:220px; flex-direction:column; gap:7px; align-items:flex-start; margin-bottom:0;"></div>
+        <div class="spend-total" style="border-top:none; padding-top:0;">
+          <div class="spend-what" data-sk="Hotovosť doteraz ~CHF 259 + Supabase Pro mesačne · s časom zakladateľa (83,9 h × 45 CHF) ~CHF 4 034 · plánované nákupy ~CHF 255" data-en="Cash to date ~CHF 259 + Supabase Pro monthly · incl. founder time (83.9 h × CHF 45) ~CHF 4,034 · planned purchases ~CHF 255"></div>
         </div>
-        <div class="spend-row" style="border-top:none;">
-          <div class="spend-what"><span data-sk="⏱️ Čas zakladateľa — 83,9 h × 45 CHF/h" data-en="⏱️ Founder time — 83.9 h × CHF 45/h"></span><span class="meta" data-sk="43,9 h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť." data-en="43.9 h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash."></span></div>
-          <div class="spend-amount">~CHF 3 776</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="API kredity + Claude predplatné (od začiatku projektu)" data-en="API credits + Claude subscriptions (since project start)"></span><span class="meta" data-sk="8.7.–14.7.2026, self-reported (~$45 kredity+Pro, $5 dobitie, $80 ďalšie predplatné)" data-en="Jul 8–14, 2026, self-reported (~$45 credits+Pro, $5 top-up, $80 another subscription)"></span></div>
-          <div class="spend-amount">~CHF 135</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="Nové náklady na projekt" data-en="New project costs"></span><span class="meta" data-sk="nahlásené Richardom 15.7. v noci — presné zaradenie/účel zatiaľ neupresnené" data-en="reported by Richard late on Jul 15 — exact category/purpose not yet specified"></span></div>
-          <div class="spend-amount">CHF 97.73</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="Gamma (prezentačný nástroj)" data-en="Gamma (presentation tool)"></span><span class="meta" data-sk="nahlásené Richardom 17.7." data-en="reported by Richard Jul 17"></span></div>
-          <div class="spend-amount">CHF 20.00</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="Doména chefos.ch (Hostpoint, 1. rok)" data-en="Domain chefos.ch (Hostpoint, year 1)"></span><span class="meta" data-sk="15.7.2026 — zľava na prvý rok, obnova ~CHF 15/rok od druhého roka" data-en="Jul 15, 2026 — first-year discount, renews at ~CHF 15/year from year 2"></span></div>
-          <div class="spend-amount">CHF 5.00</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="Denný ingredient agent" data-en="Daily ingredient agent"></span><span class="meta" data-sk="strop CHF 30/mesiac, denný log: docs/ingredient_agent_log.md" data-en="cap CHF 30/month, daily log: docs/ingredient_agent_log.md"></span></div>
-          <div class="spend-amount" data-sk="~CHF 1.20 (1 beh, samo-nahlásené)" data-en="~CHF 1.20 (1 run, self-reported)"></div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="🤖 AI testovanie funkcií (centrálny API kľúč)" data-en="🤖 AI feature testing (central API key)"></span><span class="meta" data-sk="z Claude Platform dashboardu 17.7.: $2.22 minutých tento mesiac, $2.79 kreditov zostáva, 388K tokenov za 7 dní. Čerpá z už zaplatených kreditov vyššie — nezapočítava sa druhýkrát. Doterajšie AI testovanie = prakticky 3 zakladateľove účty (icloud = Head Admin, gmail = iPad, protonmail = kitchen-admin) + 8 reálnych testerov; meranie per účet zatiaľ neexistuje, dá sa pridať logovaním v claude-proxy." data-en="from the Claude Platform dashboard Jul 17: $2.22 spent this month, $2.79 credits left, 388K tokens in 7 days. Draws on the already-paid credits above — not double-counted. AI testing so far = essentially the founder's 3 accounts (icloud = Head Admin, gmail = iPad, protonmail = kitchen-admin) + 8 real testers; per-account metering doesn't exist yet, can be added by logging in claude-proxy."></span></div>
-          <div class="spend-amount" data-sk="$2.22 / mes" data-en="$2.22 / mo"></div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="Supabase Pro (mesačne, beží)" data-en="Supabase Pro (monthly, ongoing)"></span><span class="meta" data-sk="potvrdené Richardom 15.7. — denné zálohy v cene; samo-nahlásené, začiatok predplatného neevidovaný" data-en="confirmed by Richard Jul 15 — daily backups included; self-reported, subscription start date not recorded"></span></div>
-          <div class="spend-amount">~USD 25/mes</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="🔜 Budúce: tlačiareň štítkov Brother QL-820NWB" data-en="🔜 Upcoming: Brother QL-820NWB label printer"></span><span class="meta" data-sk="odporúčanie hotové (docs/LABEL_PRINTER_RESEARCH.md), zatiaľ nekúpená" data-en="recommendation ready (docs/LABEL_PRINTER_RESEARCH.md), not yet purchased"></span></div>
-          <div class="spend-amount">~CHF 130</div>
-        </div>
-        <div class="spend-row">
-          <div class="spend-what"><span data-sk="🔜 Budúce: SensorPush senzor + WiFi brána (chladnička)" data-en="🔜 Upcoming: SensorPush sensor + WiFi gateway (fridge)"></span><span class="meta" data-sk="~$55 senzor + ~$100 brána, bez mesačných poplatkov — jediná budget možnosť s cloud API" data-en="~$55 sensor + ~$100 gateway, no monthly fee — the only budget option with a cloud API"></span></div>
-          <div class="spend-amount">~CHF 125</div>
-        </div>
-        <div class="spend-total">
-          <div class="spend-what" data-sk="Hotovosť doteraz ~CHF 259 + Supabase Pro mesačne · s časom zakladateľa ~CHF 4 034 · plánované nákupy ~CHF 255" data-en="Cash to date ~CHF 259 + Supabase Pro monthly · incl. founder time ~CHF 4,034 · planned purchases ~CHF 255"></div>
-        </div>
+        <p class="lede" style="margin:8px 0 0 0; font-size:12px;" data-sk="Kompletné položky, koláčový graf všetkých doterajších aj budúcich nákladov a AI spotreba per užívateľ (živé meranie od 17.7.) sú v dokumente Biznis → záložka Náklady. Živý per-účet prehľad: Admin → 📈 AI Usage v appke." data-en="Complete line items, the pie chart of all costs to date and upcoming, and per-user AI spend (metered live since Jul 17) live in the Biznis document → Costs tab. Live per-account view: Admin → 📈 AI Usage in the app."></p>
       </div>
     </details>
   </section>
@@ -512,7 +468,6 @@ window.toggleLang = function(){
   applyLangChrome();
   renderTop5();
   renderPulse();
-  renderSpendDonut();
 };
 applyLangChrome();
 
@@ -574,43 +529,8 @@ function jumpToCol(sel){
   setTimeout(()=>col.classList.remove('flash'), 2200);
 }
 
-/* ---------- Spend donut (Richard, 17.7.: "pridaj koláčový graf ktorý zobrazuje všetky tieto
-   a budúce náklady"). One place to update: SPEND_SEGS amounts in CHF. Founder time = hours
-   from the work-hours meter × 45 CHF/h (his rate) — refresh with every doc-sync. ---------- */
-const SPEND_HOURS = 83.9, SPEND_RATE = 45;
-const SPEND_SEGS = [
-  { sk:'Čas zakladateľa (83,9 h × 45 CHF)', en:'Founder time (83.9 h × CHF 45)', chf: SPEND_HOURS * SPEND_RATE, color:'#8B93FF' },
-  { sk:'API + Claude predplatné', en:'API + Claude subscriptions', chf: 135, color:'var(--accent)' },
-  { sk:'Nové náklady 15.7.', en:'New costs, Jul 15', chf: 97.73, color:'#2BB8A3' },
-  { sk:'Gamma', en:'Gamma', chf: 20, color:'#1E7F73' },
-  { sk:'Doména chefos.ch', en:'Domain chefos.ch', chf: 5, color:'#6EE7D0' },
-  { sk:'Ingredient agent', en:'Ingredient agent', chf: 1.2, color:'var(--danger)' },
-  { sk:'Budúce: tlačiareň štítkov', en:'Upcoming: label printer', chf: 130, color:'var(--gold)', future:true },
-  { sk:'Budúce: senzor chladničky', en:'Upcoming: fridge sensor', chf: 125, color:'#C9A24B', future:true },
-];
-function renderSpendDonut(){
-  const svg = document.getElementById('spendDonut');
-  if(!svg) return;
-  const total = SPEND_SEGS.reduce((s,x)=>s + x.chf, 0);
-  const R = 44, C = 2 * Math.PI * R;
-  let off = 0;
-  svg.innerHTML = SPEND_SEGS.map(s=>{
-    const frac = s.chf / total;
-    const label = _statusLang==='sk' ? s.sk : s.en;
-    const c = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="17"
-      stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
-      transform="rotate(-90 60 60)"><title>${label}: ~CHF ${s.chf.toLocaleString('de-CH',{maximumFractionDigits:0})}</title></circle>`;
-    off += frac;
-    return c;
-  }).join('') +
-    `<text x="60" y="56" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">~${Math.round(total).toLocaleString('de-CH')}</text>` +
-    `<text x="60" y="70" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${_statusLang==='sk'?'CHF spolu, vrátane času a plánu':'CHF total, incl. time and planned'}</text>`;
-  document.getElementById('spendDonutLegend').innerHTML = SPEND_SEGS.map(s=>{
-    const label = _statusLang==='sk' ? s.sk : s.en;
-    const amt = '~CHF ' + s.chf.toLocaleString('de-CH',{maximumFractionDigits: s.chf < 10 ? 2 : 0});
-    return `<span><i style="background:${s.color};"></i><span>${label} — <b style="font-family:var(--mono);">${amt}</b></span></span>`;
-  }).join('');
-}
+/* Spend details moved to costs.html (Richard, 17.7.: "náklady samostatne") — section 04 here
+   keeps only the one-line summary; keep its totals in sync with costs.html at doc-sync. */
 
 /* ---------- Top 5 tasks, by timeframe — each with a real deadline. A countdown badge only
    appears once 50 hours or fewer remain (Richard's request, 14.7.) so the page isn't cluttered
@@ -772,7 +692,6 @@ function enhanceTickets(){
 }
 enhanceTickets();
 renderPulse();
-renderSpendDonut();
 
 /* Active-section highlight in the sticky nav. */
 (function initPageNav(){
@@ -790,6 +709,6 @@ renderSpendDonut();
 </script>
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 15:10" data-en="🔄 ChefOS state as of Jul 17, 2026, 15:10">🔄 Stav ChefOS k 17. 7. 2026, 15:10</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 15:32" data-en="🔄 ChefOS state as of Jul 17, 2026, 15:32">🔄 Stav ChefOS k 17. 7. 2026, 15:32</div>
 </body>
 </html>

@@ -178,7 +178,7 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 14:03</div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 15:32</div>
 </div>
 
 <!-- Feature detail modal -->
@@ -279,6 +279,7 @@ const MODULES = [
     { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal', desc:'Osobné účty majú AI funkcie cez kreditový zostatok v CHF (prvé dobitie 70 % kreditu, ďalšie 90 %) — firemné účty majú AI v predplatnom. Účtuje sa podľa reálnej spotreby tokenov.' },
     { name:'Centrálny Anthropic API kľúč', status:'test', desc:'Všetky AI funkcie bežia cez jeden firemný kľúč v samostatnom workspace — spotreba užívateľov sa sleduje oddelene od vývojárskej. Nikto si už nemusí vkladať vlastný kľúč.' },
     { name:'AI Testing Mode', status:'test', role:'admin', desc:'Platformový vypínač pre Head Admina: kým je zapnutý, AI je pre všetkých neobmedzené (na testovanie) — kreditový systém sa obchádza.' },
+    { name:'AI Usage — spotreba per užívateľ', status:'build', role:'admin', desc:'Server (claude-proxy) od 17.7. zapisuje každé AI volanie (kto, funkcia, tokeny, cena — db/139). Živý prehľad v Admin → AI Usage: dnes / mesiac / spolu per účet, zakladateľove 3 testovacie účty označené, rozpad podľa funkcií. Claude Platform dashboard vidí len spoločný kľúč — toto je jediné miesto s rozdelením.' },
     { name:'Gate presadený aj na serveri', status:'test', desc:'Kreditová kontrola beží aj v serverovej funkcii, nielen v appke — obísť ju z prehliadača nestačí.' },
     { name:'Chef Challenge', status:'ok', desc:'Hravé AI výzvy na varenie. ⚠️ Audit odporúča vyhodiť z trial buildu — hračka bez väzby na hodnotu pre kuchyňu.' },
   ]},

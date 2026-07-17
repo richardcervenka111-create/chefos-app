@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     // using a feature they're entitled to). Company accounts are never metered/charged.
     const { data: profile, error: profileError } = await adminClient
       .from('profiles')
-      .select('account_type, ai_credit_chf')
+      .select('account_type, ai_credit_chf, kitchen_id')
       .eq('id', user.id)
       .maybeSingle();
     const isPersonal = !profileError && profile?.account_type === 'personal';
@@ -152,6 +152,33 @@ Deno.serve(async (req) => {
     });
 
     const responseText = await anthropicRes.text();
+
+    // Per-user usage log (Richard, 17.7. — db/139): one row per successful call, for EVERY
+    // account type and even in testing mode — the Claude Platform dashboard only sees the one
+    // central key, so this table is the only place "who spent what" exists. The feature label
+    // is derived server-side from the request's first tool name (scan flows) — no client
+    // cooperation needed, so it can't be spoofed away. Best-effort: a logging hiccup must
+    // never cost anyone their answer.
+    if (anthropicRes.ok) {
+      try {
+        const usage = JSON.parse(responseText)?.usage;
+        if (usage) {
+          const pricing = MODEL_PRICING_USD_PER_MILLION[requestedModel] || { input: 0, output: 0 };
+          const inTok = Number(usage.input_tokens || 0);
+          const outTok = Number(usage.output_tokens || 0);
+          const tools = parsedBody?.tools as Array<{ name?: string }> | undefined;
+          await adminClient.from('ai_usage').insert({
+            user_id: user.id,
+            kitchen_id: profile?.kitchen_id ?? null,
+            feature: (Array.isArray(tools) && tools[0]?.name) ? tools[0].name : 'chat',
+            model: requestedModel,
+            input_tokens: inTok,
+            output_tokens: outTok,
+            cost_usd: (inTok / 1_000_000) * pricing.input + (outTok / 1_000_000) * pricing.output,
+          });
+        }
+      } catch (_e) { /* logging is best-effort, never fail the actual response over it */ }
+    }
 
     // Deduct the real cost of this call from the Personal account's credit balance. Skipped
     // entirely during testing mode — nothing to meter while it's unlimited for everyone.
