@@ -7301,7 +7301,10 @@ async function chooseAccountType(type){
   currentAccountType = type;
   document.getElementById('accountTypeGateView').style.display = 'none';
   await enterApp();
-  if(type === 'company' && !currentTeamJoinSeen && !currentAdminPerms.company_admin){ showTeamJoinView(); }
+  // Skip for anyone ALREADY a real team member — Head Admin, company admin, or someone who
+  // genuinely joined via invite/code (17.7. fix: this only checked company_admin, so Richard's
+  // own Head Admin account got told to "Join your team").
+  if(type === 'company' && !currentTeamJoinSeen && !isRealTeamMember()){ showTeamJoinView(); }
 }
 /* Same choice, reachable anytime afterward from Settings instead of the one-time gate above. */
 function openAccountTypeSettings(){
@@ -7378,7 +7381,9 @@ async function applyAccountTypeSwitch(type){
   // First time ever switching to Company (bod 1): offer to link a real team via QR/code.
   // Richard: skipping is a valid outcome — an unlinked Company account just behaves like a
   // (limited) Personal one until a code is entered later from here in Settings.
-  if(type === 'company' && !currentTeamJoinSeen && !currentAdminPerms.company_admin){
+  // 17.7. fix: skip for ANY real team member (Head Admin, company admin, joined-via-invite) —
+  // this only checked company_admin, so Richard's own Head Admin account got the join screen.
+  if(type === 'company' && !currentTeamJoinSeen && !isRealTeamMember()){
     showTeamJoinView();
   }
 }
