@@ -187,7 +187,13 @@
     <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
   <div class="kicker" data-sk="Kontrolný zoznam · Kuchynský denník" data-en="Task List · Kitchen Journal"></div>
-  <h1 class="title" data-sk="Čo je hotové, čo prichádza" data-en="What's shipped, what's next"></h1>
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+    <h1 class="title" data-sk="Čo je hotové, čo prichádza" data-en="What's shipped, what's next"></h1>
+    <!-- Hide/show the hero details (Richard, 17.7.): on a phone the donut + stats + filters eat
+         the whole first screen — this rolls them up; remembered per device. -->
+    <button class="fbtn" id="heroToggle" onclick="toggleHero()" style="flex:none; margin-top:8px;"></button>
+  </div>
+  <div id="heroDetails">
   <div class="stat-row">
     <div class="pie" id="pie"><div class="pieLabel" id="pieLabel">0%</div></div>
     <div class="stat-cards">
@@ -203,6 +209,7 @@
     <button class="fbtn" id="fMe" onclick="toggleFilter('me')" data-sk="🤖 JA" data-en="🤖 ME"></button>
     <button class="fbtn f-you" id="fYou" onclick="toggleFilter('you')" data-sk="👨‍🍳 TY" data-en="👨‍🍳 YOU"></button>
   </div>
+  </div><!-- /heroDetails -->
 </header>
 
 <details class="group" open id="chartsSection">
@@ -758,10 +765,22 @@ function openDayFromChart(date){
   setTimeout(()=>row.classList.remove('flash'), 2200);
 }
 
+/* Hero hide/show (Richard, 17.7.): rolls up the donut + stats + filters so the phone screen
+   goes straight to content; remembered per device. */
+function toggleHero(force){
+  const hidden = typeof force === 'boolean' ? force : document.getElementById('heroDetails').style.display !== 'none';
+  document.getElementById('heroDetails').style.display = hidden ? 'none' : '';
+  document.getElementById('heroToggle').textContent = hidden
+    ? (_lang==='sk' ? '▸ Zobraziť prehľad' : '▸ Show overview')
+    : (_lang==='sk' ? '▾ Skryť prehľad' : '▾ Hide overview');
+  localStorage.setItem('chefos_tasklist_hero_hidden', hidden ? '1' : '0');
+}
+
 applyLang();
 renderTimeline();
 renderTasksPerDay();
 renderFeaturesOverTime();
+toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
 </script>
 
 <div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>
