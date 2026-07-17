@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rechnung 2026-4187 — Alpenfrisch Gastro AG</title>
+<style>
+  /* Test fixture for ChefOS Invoice Scan v2 (German). Fictional supplier on purpose. */
+  body{ margin:0; background:#e8e8e8; font-family:'Helvetica Neue',Arial,sans-serif; color:#1a1a1a; }
+  .sheet{ max-width:760px; margin:24px auto; background:#fff; padding:48px 56px; box-shadow:0 2px 14px rgba(0,0,0,.18); }
+  .head{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #2d6a4f; padding-bottom:18px; }
+  .logo{ font-size:22px; font-weight:800; color:#2d6a4f; letter-spacing:.02em; }
+  .logo small{ display:block; font-size:10.5px; font-weight:400; color:#555; letter-spacing:.08em; margin-top:2px; }
+  .addr{ font-size:11px; color:#444; text-align:right; line-height:1.6; }
+  .meta{ display:flex; justify-content:space-between; margin:26px 0 8px 0; font-size:12px; }
+  .meta b{ font-size:17px; display:block; margin-bottom:6px; }
+  .meta .to{ line-height:1.6; }
+  table{ width:100%; border-collapse:collapse; margin-top:18px; font-size:12px; }
+  th{ text-align:left; background:#2d6a4f; color:#fff; padding:8px 10px; font-weight:600; }
+  th.r, td.r{ text-align:right; }
+  td{ padding:7px 10px; border-bottom:1px solid #ddd; }
+  tr:nth-child(even) td{ background:#f6faf8; }
+  .totals{ margin-top:14px; margin-left:auto; width:290px; font-size:12.5px; }
+  .totals div{ display:flex; justify-content:space-between; padding:4px 10px; }
+  .totals .grand{ border-top:2px solid #2d6a4f; font-weight:800; font-size:14.5px; padding-top:8px; margin-top:4px; }
+  .foot{ margin-top:34px; font-size:10px; color:#888; border-top:1px solid #ddd; padding-top:10px; line-height:1.7; }
+  @media print{ body{ background:#fff; } .sheet{ box-shadow:none; margin:0; max-width:none; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="head">
+    <div class="logo">ALPENFRISCH GASTRO AG<small>FRISCHE FÜR PROFIKÜCHEN SEIT 1987</small></div>
+    <div class="addr">Alpenfrisch Gastro AG<br>Länggassstrasse 44<br>3012 Bern<br>Tel. 031 555 44 33<br>bestellung@alpenfrisch-muster.ch<br>CHE-000.000.000 MWST</div>
+  </div>
+
+  <div class="meta">
+    <div class="to">
+      <b>Rechnung Nr. 2026-4187</b>
+      Restaurant Lido<br>
+      Küchenchef R. Cervenka<br>
+      Marktgasse 12<br>
+      3011 Bern
+    </div>
+    <div style="text-align:right; line-height:1.8;">
+      Rechnungsdatum: <b style="display:inline; font-size:12px;">16.07.2026</b><br>
+      Lieferdatum: 16.07.2026<br>
+      Kundennummer: K-2044<br>
+      Zahlbar bis: 15.08.2026
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Pos.</th><th>Artikel</th><th class="r">Menge</th><th>Einheit</th><th class="r">Preis/Einheit</th><th class="r">Total CHF</th></tr>
+    <tr><td>1</td><td>Zwiebeln gelb</td><td class="r">10</td><td>kg</td><td class="r">2.20</td><td class="r">22.00</td></tr>
+    <tr><td>2</td><td>Knoblauch frisch</td><td class="r">2</td><td>kg</td><td class="r">9.80</td><td class="r">19.60</td></tr>
+    <tr><td>3</td><td>Rispentomaten</td><td class="r">8</td><td>kg</td><td class="r">4.90</td><td class="r">39.20</td></tr>
+    <tr><td>4</td><td>Basilikum frisch, Bund</td><td class="r">6</td><td>Stk</td><td class="r">2.60</td><td class="r">15.60</td></tr>
+    <tr><td>5</td><td>Olivenöl extra vergine 5 L</td><td class="r">2</td><td>Kanister</td><td class="r">64.00</td><td class="r">128.00</td></tr>
+    <tr><td>6</td><td>Mozzarella di Bufala 125 g</td><td class="r">24</td><td>Stk</td><td class="r">2.95</td><td class="r">70.80</td></tr>
+    <tr><td>7</td><td>Weizenmehl Typ 550</td><td class="r">25</td><td>kg</td><td class="r">1.45</td><td class="r">36.25</td></tr>
+    <tr><td>8</td><td>Meersalz grob</td><td class="r">5</td><td>kg</td><td class="r">1.90</td><td class="r">9.50</td></tr>
+    <tr><td>9</td><td>Rinderhackfleisch CH</td><td class="r">12</td><td>kg</td><td class="r">16.50</td><td class="r">198.00</td></tr>
+    <tr><td>10</td><td>Limetten</td><td class="r">4</td><td>kg</td><td class="r">5.40</td><td class="r">21.60</td></tr>
+    <tr><td>11</td><td>Koriander frisch, Bund</td><td class="r">8</td><td>Stk</td><td class="r">2.20</td><td class="r">17.60</td></tr>
+    <tr><td>12</td><td>Avocados Hass, reif</td><td class="r">30</td><td>Stk</td><td class="r">1.85</td><td class="r">55.50</td></tr>
+    <tr><td>13</td><td>Crème fraîche 35% 1 kg</td><td class="r">6</td><td>Becher</td><td class="r">8.70</td><td class="r">52.20</td></tr>
+    <tr><td>14</td><td>Schwarze Bohnen, getrocknet</td><td class="r">10</td><td>kg</td><td class="r">3.60</td><td class="r">36.00</td></tr>
+  </table>
+
+  <div class="totals">
+    <div><span>Zwischensumme</span><span>721.85</span></div>
+    <div><span>MWST 2.6 % (Lebensmittel)</span><span>18.77</span></div>
+    <div class="grand"><span>Gesamtbetrag CHF</span><span>740.62</span></div>
+  </div>
+
+  <div class="foot">
+    Alpenfrisch Gastro AG · Länggassstrasse 44 · 3012 Bern · IBAN CH00 0000 0000 0000 0000 0 · Zahlungsfrist 30 Tage netto.<br>
+    Musterdokument – nur zu Testzwecken erstellt. Frei erfundenes Unternehmen.
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fattura n. 883/2026 — Ortofrutta Dolomiti S.r.l.</title>
+<style>
+  /* Test fixture for ChefOS Invoice Scan v2 (Italian). Fictional supplier on purpose. */
+  body{ margin:0; background:#e8e8e8; font-family:Georgia,'Times New Roman',serif; color:#222; }
+  .sheet{ max-width:760px; margin:24px auto; background:#fffdf7; padding:48px 56px; box-shadow:0 2px 14px rgba(0,0,0,.18); }
+  .head{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px double #8c2f0d; padding-bottom:16px; }
+  .logo{ font-size:23px; font-weight:700; color:#8c2f0d; font-style:italic; }
+  .logo small{ display:block; font-size:10.5px; font-weight:400; font-style:normal; color:#666; letter-spacing:.1em; margin-top:3px; }
+  .addr{ font-size:11px; color:#444; text-align:right; line-height:1.6; font-family:Arial,sans-serif; }
+  .meta{ display:flex; justify-content:space-between; margin:26px 0 8px 0; font-size:12.5px; }
+  .meta b{ font-size:17px; display:block; margin-bottom:6px; }
+  .meta .to{ line-height:1.6; }
+  table{ width:100%; border-collapse:collapse; margin-top:18px; font-size:12px; font-family:Arial,sans-serif; }
+  th{ text-align:left; border-top:2px solid #8c2f0d; border-bottom:2px solid #8c2f0d; color:#8c2f0d; padding:8px 10px; font-weight:700; }
+  th.r, td.r{ text-align:right; }
+  td{ padding:7px 10px; border-bottom:1px solid #e2d9c8; }
+  .totals{ margin-top:14px; margin-left:auto; width:300px; font-size:12.5px; font-family:Arial,sans-serif; }
+  .totals div{ display:flex; justify-content:space-between; padding:4px 10px; }
+  .totals .grand{ border-top:2px solid #8c2f0d; font-weight:800; font-size:14.5px; padding-top:8px; margin-top:4px; }
+  .foot{ margin-top:34px; font-size:10px; color:#888; border-top:1px solid #e2d9c8; padding-top:10px; line-height:1.7; font-family:Arial,sans-serif; }
+  @media print{ body{ background:#fff; } .sheet{ box-shadow:none; margin:0; max-width:none; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="head">
+    <div class="logo">Ortofrutta Dolomiti S.r.l.<small>PRODOTTI FRESCHI PER LA RISTORAZIONE</small></div>
+    <div class="addr">Ortofrutta Dolomiti S.r.l.<br>Via del Mercato 27<br>39100 Bolzano (BZ), Italia<br>Tel. +39 0471 000 000<br>ordini@ortofruttadolomiti-esempio.it<br>P.IVA IT00000000000</div>
+  </div>
+
+  <div class="meta">
+    <div class="to">
+      <b>Fattura n. 883/2026</b>
+      Spett.le Restaurant Lido<br>
+      Chef R. Cervenka<br>
+      Marktgasse 12<br>
+      3011 Berna — Svizzera
+    </div>
+    <div style="text-align:right; line-height:1.8; font-family:Arial,sans-serif; font-size:12px;">
+      Data fattura: <b style="display:inline; font-size:12px;">15/07/2026</b><br>
+      Data consegna: 15/07/2026<br>
+      Codice cliente: CL-0592<br>
+      Pagamento: 30 gg d.f.
+    </div>
+  </div>
+
+  <table>
+    <tr><th>N.</th><th>Descrizione</th><th class="r">Q.tà</th><th>U.M.</th><th class="r">Prezzo unit. €</th><th class="r">Importo €</th></tr>
+    <tr><td>1</td><td>Pomodori San Marzano DOP</td><td class="r">12</td><td>kg</td><td class="r">3.80</td><td class="r">45.60</td></tr>
+    <tr><td>2</td><td>Cipolle rosse di Tropea</td><td class="r">6</td><td>kg</td><td class="r">2.90</td><td class="r">17.40</td></tr>
+    <tr><td>3</td><td>Aglio bianco</td><td class="r">2</td><td>kg</td><td class="r">7.50</td><td class="r">15.00</td></tr>
+    <tr><td>4</td><td>Basilico fresco, mazzo</td><td class="r">10</td><td>pz</td><td class="r">1.80</td><td class="r">18.00</td></tr>
+    <tr><td>5</td><td>Parmigiano Reggiano 24 mesi</td><td class="r">4</td><td>kg</td><td class="r">24.50</td><td class="r">98.00</td></tr>
+    <tr><td>6</td><td>Guanciale stagionato</td><td class="r">3</td><td>kg</td><td class="r">15.90</td><td class="r">47.70</td></tr>
+    <tr><td>7</td><td>Farina 00 W260</td><td class="r">25</td><td>kg</td><td class="r">1.15</td><td class="r">28.75</td></tr>
+    <tr><td>8</td><td>Olio extravergine d'oliva 5 L</td><td class="r">3</td><td>latta</td><td class="r">52.00</td><td class="r">156.00</td></tr>
+    <tr><td>9</td><td>Limoni di Sorrento IGP</td><td class="r">5</td><td>kg</td><td class="r">4.20</td><td class="r">21.00</td></tr>
+    <tr><td>10</td><td>Rucola selvatica</td><td class="r">3</td><td>kg</td><td class="r">8.90</td><td class="r">26.70</td></tr>
+    <tr><td>11</td><td>Burrata pugliese 250 g</td><td class="r">16</td><td>pz</td><td class="r">3.40</td><td class="r">54.40</td></tr>
+    <tr><td>12</td><td>Pepe nero in grani</td><td class="r">1</td><td>kg</td><td class="r">18.00</td><td class="r">18.00</td></tr>
+    <tr><td>13</td><td>Riso Carnaroli</td><td class="r">10</td><td>kg</td><td class="r">4.60</td><td class="r">46.00</td></tr>
+  </table>
+
+  <div class="totals">
+    <div><span>Imponibile</span><span>592.55</span></div>
+    <div><span>IVA 4 % (generi alimentari)</span><span>23.70</span></div>
+    <div class="grand"><span>Totale fattura €</span><span>616.25</span></div>
+  </div>
+
+  <div class="foot">
+    Ortofrutta Dolomiti S.r.l. · Via del Mercato 27 · 39100 Bolzano · IBAN IT00 X000 0000 0000 0000 0000 000<br>
+    Documento di esempio creato esclusivamente a scopo di test. Azienda immaginaria.
+  </div>
+</div>
+</body>
+</html>
