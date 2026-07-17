@@ -180,31 +180,31 @@
    Add a new day by pushing one object to DAYS; week/month grouping
    is computed automatically. Keep TOP3 current each session.
    ============================================================ */
-const GENERATED = '2026-07-15';
+const GENERATED = '2026-07-17';
 
 const TOP3 = {
   day: {
-    range: 'Wed 2026-07-16',
+    range: 'Fri 2026-07-17',
     items: [
-      { text: 'Run db/73 + db/77 + db/78 on production; db/74 + db/75 + db/76 on staging first', status: 'planned' },
-      { text: 'Test live: HACCP module (waves 1+2), password + Face ID login, menu-from-URL scan, background scanning', status: 'planned' },
-      { text: 'Decide the 2 borderline Asian recipes (Yuzu Cauliflower, caramelized onion) so the Michelin pass can continue', status: 'planned' },
+      { text: 'Live guided testing with Richard: comments, shelves, print, sharing — every found bug fixed same-day (db/129-138)', status: 'done' },
+      { text: 'Full security review: contracts bucket closed, cross-kitchen XSS closed, permanent auditor guards added', status: 'done' },
+      { text: 'Doc cleanup + consolidation proposal: 13 → 11 internal documents, plan to merge into 5', status: 'progress' },
     ]
   },
   week: {
     range: 'Week of 2026-07-13 – 2026-07-19',
     items: [
-      { text: 'Own domain live end-to-end (app.chefos.ch + custom SMTP) — trial email blocker removed, tested live by Richard', status: 'done' },
-      { text: 'HACCP module waves 1+2, password + Face ID, URL menu scan, background scanning, Order List data-loss fix', status: 'done' },
-      { text: 'Send Nebenerwerb request + register Einzelfirma/AHV (both revenue blockers, both Richard-only)', status: 'planned' },
+      { text: 'Community layer shipped: Public shelves (recipes + ingredients), per-item sharing publicly/with friends, cross-kitchen comments', status: 'done' },
+      { text: 'Marathon 16.7.: real data privacy, team membership, role-based admin, Kitchen Reports, central AI key', status: 'done' },
+      { text: 'Send Nebenerwerb request + register Einzelfirma/AHV (both revenue blockers, both Richard-only, deadline 20.7.)', status: 'planned' },
     ]
   },
   month: {
     range: 'July 2026',
     items: [
       { text: 'Public trial launch — 25 users, multiple restaurants, own team per kitchen (target 2026-08-01)', status: 'progress' },
-      { text: 'One honest manual test pass through the live app before letting strangers in', status: 'planned' },
-      { text: 'Visual Data Standards rollout: all 13 internal documents redesigned + moved to /visual data/', status: 'done' },
+      { text: 'Guided live-testing pass through the whole app with Richard — in progress, most core flows verified 16.-17.7.', status: 'progress' },
+      { text: 'First revenue unblocked: Nebenerwerb consent + Einzelfirma registration (deadline 20.7.)', status: 'planned' },
     ]
   }
 };
@@ -394,6 +394,31 @@ const DAYS = [
     ],
     planned: 'Run db/73+77+78 on production and db/74+75+76 on staging. Test HACCP, Face ID, URL scan and background scanning live. Decide the Asian-recipe scope question so the Michelin pass can continue. HACCP wave 3 (Staff Training + Report) when Richard confirms.'
   },
+  {
+    date: '2026-07-16',
+    headline: 'Marathon day: real data privacy, team membership, role-based admin, Kitchen Reports, central AI key — plus two live-found security bugs fixed',
+    accomplished: [
+      'Real personal/company data isolation (db/97): is_personal on recipes + ingredients enforced by RLS, not just a UI filter; team join codes + confirm dialog; Kitchen Reports with employee-consent gate (db/99); Send Feedback + admin inbox (db/98); Privacy & Data Protection consent gate (db/100)',
+      'Real team membership (db/116): Company mode locked to actual members (invite/code/admin role); burnt single-use admin invite incident fixed one-off (db/117) AND permanently (db/118 tolerant re-claim); My Profile shows Role',
+      'Role-based admin: Kitchen Admin (granular admin_perms) vs Head Admin; Admin hub with Add Admin / Directory / Access Requests / Email Contacts; super-admin lockout incident (recursive RLS + missing column grant) fixed live (db/90) + permanent auditor check',
+      'Long-press management everywhere (rename/hide/delete), custom ingredient lists with friend sharing (db/112+114), recipe shelves + custom projects with 8 colored books (db/120-123), branded print v2, always-on nav header, .xlsx scan, AI Details, central Anthropic API key + branded auth emails',
+      'Security bug found live: removing a team member always failed while the "removed" member kept full access — db/121 WITH CHECK fix, completed 17.7. by db/124 SECURITY DEFINER RPC',
+    ],
+    planned: 'Guided live-testing session with Richard: comments, print, shelves, add-to-checklist; fix whatever the tests surface.'
+  },
+  {
+    date: '2026-07-17',
+    headline: 'Community layer (Public shelves + sharing), Invoice Scan v2, per-screen tutorials, full security review with permanent guards',
+    accomplished: [
+      'Guided live testing with Richard all day — every found bug fixed same-session: cross-kitchen comments (db/129 denormalized master id + count badges), company recipes leaking onto the personal shelf (db/130), Safari print-preview icon freeze, remove-member RPC completed (db/124-125)',
+      'Public shelves: recipes (db/131-133) and ingredients (db/136) publishable to every kitchen with a confirm question; per-recipe (db/138) and per-ingredient friend sharing + Chef Friends profile view; company profiles can share NOTHING (app + DB triggers); foreign content strictly read-only',
+      'Invoice Scan v2: reads the supplier from the invoice header and stamps it on every line (new supplier field, db/137); both scans translate any language into the Scan Settings target, keeping the original name as an alias; skips dates/totals/VAT',
+      'Per-screen tutorials: every main screen teaches itself on first open + permanent ❓ in its top bar; onboarding slimmed to Welcome + Home; What\'s New heart removed as redundant',
+      'Full security review on Richard\'s request: PUBLIC contracts bucket closed (db/134 private + owner-scoped + signed URLs), cross-kitchen stored-XSS closed (data-boundary escapers), both classes now permanently blocked by the auditors; live DB health check clean (0 tables without RLS)',
+      'Email Contacts numbered + full contact detail with linked account; Feedback inbox confirmed head-admin-only; doc cleanup: features.html + old status snapshot removed, Internal Docs = exactly the 11 kept documents',
+    ],
+    planned: 'Consolidate the 11 internal documents into 5 with cross-links (Richard\'s proposal pending). Continue feature testing: RLS "Moje" privacy test from two accounts. Nebenerwerb + Einzelfirma remain the revenue blockers (deadline 20.7.).'
+  },
 ];
 
 function isoWeekLabel(dateStr){
@@ -578,6 +603,6 @@ renderTimeline();
 renderLogStats();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 03:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 03:45">🔄 Stav ChefOS k 15. 7. 2026, 03:45</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 19:30" data-en="🔄 ChefOS state as of Jul 17, 2026, 19:30">🔄 Stav ChefOS k 17. 7. 2026, 19:30</div>
 </body>
 </html>

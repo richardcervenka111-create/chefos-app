@@ -161,8 +161,17 @@
         <h3 data-sk="Denná kontrola zdravia appky" data-en="Daily feature health check"></h3>
         <span class="when" data-sk="Denne o 06:00" data-en="Daily at 06:00"></span>
         <p data-sk="Statický code-audit — nie živé testovanie (agent nemá prehliadač ani telefón). Kontroluje: zhodu tlačidiel s funkciami, tabuľky v kóde vs. migrácie, štrukturálnu integritu súborov, zastarané nespustené migrácie." data-en="Static code audit — not live testing (the agent has no browser or phone). Checks: button-to-function matches, tables referenced in code vs. migrations, file structural integrity, aging unrun migrations."></p>
-        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>app/features.html</code> (Nedostatky)</div>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>visual data/feature_status.html</code> <span data-sk="(features.html zrušený 17.7. pri konsolidácii dokumentov)" data-en="(features.html retired Jul 17 in the docs consolidation)"></span></div>
         <div class="cost" data-sk="~CHF 0.02–0.08 / beh" data-en="~CHF 0.02–0.08 / run"></div>
+      </div>
+
+      <div class="autotask">
+        <div class="icon">🛡️</div>
+        <h3 data-sk="Trvalé audítory pri každom commite" data-en="Permanent auditors on every commit"></h3>
+        <span class="when" data-sk="Pri každom commite + CI (zadarmo — žiadne AI)" data-en="Every commit + CI (free — no AI involved)"></span>
+        <p data-sk="audit_db.py + audit_app.py — strážia triedy chýb, ktoré reálne nastali: RLS rekurzia, tabuľka bez RLS/kitchen_id, deštruktívne SQL bez priznania, mŕtve tlačidlá, tajné kľúče, tiché mutácie, a od 17.7. aj verejné storage buckety (únik zmlúv) a odstránenie XSS escapera pre cudzí obsah. Commit s takou chybou jednoducho neprejde." data-en="audit_db.py + audit_app.py — guard the bug classes that actually happened: RLS recursion, tables without RLS/kitchen_id, unacknowledged destructive SQL, dead buttons, leaked secrets, silent mutations, and since Jul 17 also public storage buckets (the contract-leak class) and removal of the foreign-content XSS escaper. A commit with one of these simply fails."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><span data-sk="zablokovaný commit s presným popisom chyby" data-en="a blocked commit with the exact violation"></span></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
       </div>
 
       <div class="autotask">
@@ -272,6 +281,6 @@ window.toggleTimeline = function(){
 renderTimeline();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 03:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 03:45">🔄 Stav ChefOS k 15. 7. 2026, 03:45</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 19:30" data-en="🔄 ChefOS state as of Jul 17, 2026, 19:30">🔄 Stav ChefOS k 17. 7. 2026, 19:30</div>
 </body>
 </html>
