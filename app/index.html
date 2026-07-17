@@ -2730,6 +2730,9 @@
              Kitchen Reports can chart and project price movement. -->
         <button class="icon-btn" onclick="document.getElementById('invoiceScanFile').click()" title="Scan a supplier invoice" id="invoiceScanBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">🧾 Invoice Scan</button>
         <input type="file" id="invoiceScanFile" accept="image/*,.pdf,.xlsx" style="display:none;" onchange="handleInvoiceScanFile(this)">
+        <!-- Recipe source pin (Richard, 17.7.) — locks recipe cost/nutrition matching to THIS
+             shelf/list, so ChefOS-shelf rows can't silently win over the user's own data. -->
+        <button class="icon-btn" onclick="toggleRecipeIngredientSource()" id="recipeSourcePinBtn" title="Use this list as the source recipes pull prices & nutrition from" style="width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">📌 Recipe source</button>
         <!-- Bulk delete (bod 1, 16.7. večer) — by date added, or the whole shelf. Same
              visibility rule as adding (your own shelves; ChefOS admin-only). -->
         <button class="icon-btn" onclick="openBulkDeleteIngredients()" title="Delete ingredients" id="bulkDeleteIngredientsBtn" style="display:none;">
@@ -9542,9 +9545,48 @@ function normalizeIngredientText(name){
   return n.trim();
 }
 
+/* Recipe ingredient SOURCE (Richard, 17.7.): recipes' cost + nutrition used to match against
+   every shelf at once, so a ChefOS-shelf row could silently win over the user's own priced/
+   nutritioned copy. The 📌 pin in the Ingredients topbar locks recipes to ONE chosen shelf/
+   list; unset = all shelves (old behavior). Per device (localStorage), like other view prefs. */
+function recipeIngredientSource(){
+  try{ return JSON.parse(localStorage.getItem('chefos_recipe_ingredient_source') || 'null'); }catch(e){ return null; }
+}
+function setRecipeIngredientSource(src){
+  if(src) localStorage.setItem('chefos_recipe_ingredient_source', JSON.stringify(src));
+  else localStorage.removeItem('chefos_recipe_ingredient_source');
+  buildIngredientLookup();
+}
+function ingredientMatchesSource(ing, srcId){
+  if(srcId === 'chefos') return !ing.is_personal;
+  if(srcId === 'mine') return !!ing.is_personal && !ing.list_id;
+  return ing.list_id === srcId;
+}
+function syncRecipeSourcePin(){
+  const btn = document.getElementById('recipeSourcePinBtn');
+  if(!btn) return;
+  const src = recipeIngredientSource();
+  const isCurrent = !!src && src.id === ingredientSourceFilter;
+  btn.textContent = isCurrent ? '📌 Recipe source ✓' : '📌 Recipe source';
+  btn.style.background = isCurrent ? 'var(--copper-dim)' : 'none';
+  btn.style.borderRadius = '8px';
+}
+function toggleRecipeIngredientSource(){
+  const src = recipeIngredientSource();
+  if(src && src.id === ingredientSourceFilter){
+    setRecipeIngredientSource(null);
+    alert('Recipes now pull prices & nutrition from ALL your ingredient shelves again (the default).');
+  } else {
+    setRecipeIngredientSource({ id: ingredientSourceFilter, name: currentIngredientListName() });
+    alert(`Recipes now pull prices & nutrition ONLY from ${currentIngredientListName()}.\n\nSet per device — tap 📌 again on this list to go back to all shelves.`);
+  }
+  syncRecipeSourcePin();
+}
 function buildIngredientLookup(){
   _ingredientLookup = {};
-  _ingredients.forEach(ing=>{
+  const src = recipeIngredientSource();
+  const rows = src ? _ingredients.filter(i=>ingredientMatchesSource(i, src.id)) : _ingredients;
+  rows.forEach(ing=>{
     const keys = [ing.name, ...(ing.aliases||[])];
     keys.forEach(k=>{ _ingredientLookup[normalizeIngredientText(k)] = ing; });
   });
@@ -12150,7 +12192,7 @@ function showDetail(idx){
         <div class="value">${formatMoney(computed.costSum)}</div>
       </div>
     </div>
-    <div class="scale-note" style="margin:-14px 0 12px 0;">Based on ${computed.matched} of ${computed.total} ingredient line${computed.total===1?'':'s'} matched against your ingredient price list — not a full total until every line is priced and matched. Lines given as a piece count (e.g. "6") only match an ingredient priced per piece.</div>
+    <div class="scale-note" style="margin:-14px 0 12px 0;">Based on ${computed.matched} of ${computed.total} ingredient line${computed.total===1?'':'s'} matched against ${recipeIngredientSource() ? '📌 ' + krEsc(recipeIngredientSource().name) : 'your ingredient price list'} — not a full total until every line is priced and matched. Lines given as a piece count (e.g. "6") only match an ingredient priced per piece.</div>
     <div id="costBreakdown" class="cost-breakdown" style="display:none;">
       ${computed.lines.map(l=>`
         <div class="cost-breakdown-row">
@@ -12180,7 +12222,7 @@ function showDetail(idx){
       <div class="cost-item"><div class="label">Carbs</div><div class="value">${nutrition.carbs.toFixed(1)} g</div></div>
       <div class="cost-item"><div class="label">Fat</div><div class="value">${nutrition.fat.toFixed(1)} g</div></div>
     </div>
-    <div class="scale-note" style="margin:-14px 0 12px 0;">Whole-batch total, based on ${nutrition.matched} of ${nutrition.total} ingredient line${nutrition.total===1?'':'s'} — lines given only as a piece count (not weight/volume) can't be converted and are left out.</div>
+    <div class="scale-note" style="margin:-14px 0 12px 0;">Whole-batch total, based on ${nutrition.matched} of ${nutrition.total} ingredient line${nutrition.total===1?'':'s'}${recipeIngredientSource() ? ' from 📌 ' + krEsc(recipeIngredientSource().name) : ''} — lines given only as a piece count (not weight/volume) can't be converted and are left out.</div>
     <div id="nutritionBreakdown" class="cost-breakdown" style="display:none;">
       ${nutrition.lines.map(l=>`
         <div class="cost-breakdown-row">
@@ -12833,6 +12875,7 @@ function showIngredients(){
   if(genBtn) genBtn.style.display = ingredientSourceFilter !== 'chefos' ? 'flex' : 'none';
   const invBtn = document.getElementById('invoiceScanBtn');
   if(invBtn) invBtn.style.display = ingredientSourceFilter !== 'chefos' ? 'flex' : 'none';
+  syncRecipeSourcePin();
   const bulkBtn = document.getElementById('bulkDeleteIngredientsBtn');
   if(bulkBtn) bulkBtn.style.display = canAdd ? 'flex' : 'none';
   window.scrollTo(0,0);
