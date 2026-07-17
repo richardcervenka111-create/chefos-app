@@ -831,6 +831,7 @@
     text-overflow: ellipsis;
   }
   .recipe-row .chevron{ flex:none; color: var(--ink-dim); }
+  .row-comments{ flex:none; display:flex; align-items:center; gap:3px; color: var(--copper); font-size:12px; font-weight:800; }
   .thumb{
     flex:none;
     width:48px; height:48px;
@@ -9496,7 +9497,8 @@ async function loadAppData(){
     { data: iconRows },
     { data: catIconRows },
     { data: kitchenRow },
-    { data: settingsRow }
+    { data: settingsRow },
+    { data: commentRows }
   ] = await Promise.all([
     sb.from('recipes').select('*').order('title'),
     sb.from('favorites').select('recipe_id'),
@@ -9508,9 +9510,18 @@ async function loadAppData(){
     sb.from('station_icons').select('station, icon'),
     sb.from('recipe_category_icons').select('category, icon, shelf_scope'),
     sb.from('kitchens').select('display_currency, name').eq('id', currentKitchenId).maybeSingle(),
-    sb.from('user_settings').select('anthropic_api_key, scan_language').eq('user_id', currentUser.id).maybeSingle()
+    sb.from('user_settings').select('anthropic_api_key, scan_language').eq('user_id', currentUser.id).maybeSingle(),
+    sb.from('recipe_comments').select('recipe_id, chefos_master_id')
   ]);
   if(error){ console.error(error); setSyncStatus('offline'); return; }
+
+  // Comment counts for the list rows (Richard, 17.7.) — keyed by the ChefOS master id when
+  // there is one (comments are shared across kitchen copies, db/129), else the recipe's own id.
+  _commentCounts = {};
+  (commentRows || []).forEach(c=>{
+    const k = c.chefos_master_id || c.recipe_id;
+    _commentCounts[k] = (_commentCounts[k] || 0) + 1;
+  });
 
   _recipes = (recipeRows || []).map(dbRowToRecipe);
   _favorites = (favRows || []).map(f=>f.recipe_id);
@@ -11747,11 +11758,21 @@ async function callClaudeGenerateRecipe(title, shortDescription, context){
   return toolUse.input;
 }
 
+/* Comment counts per recipe (Richard, 17.7.) — filled by loadAppData, kept fresh by
+   refreshCommentCountBadge. Keyed by chefos_master_id when the recipe is a ChefOS copy
+   (comments are shared across kitchens, db/129), else by the recipe's own id. */
+let _commentCounts = {};
+function recipeCommentCount(r){ return _commentCounts[r.chefosMasterId || r.id] || 0; }
+function commentCountLabel(n){ return n > 9 ? '9+' : String(n); }
+
 function buildRecipeRowEl(r, idx, i){
   const fav = isFavorite(r.id);
+  const cc = recipeCommentCount(r);
   const row = document.createElement('div');
   row.className = 'recipe-row';
   row.onclick = ()=> showDetail(idx);
+  // No chevron — Richard, 17.7.: the arrow adds nothing on recipe rows. Its slot now shows a
+  // comment bubble + count instead, only when the recipe actually has comments.
   row.innerHTML = `
     <div class="idx mono">${String(i+1).padStart(2,'0')}</div>
     ${r.img ? `<img class="thumb" src="${r.img}" alt="">` : ''}
@@ -11762,7 +11783,10 @@ function buildRecipeRowEl(r, idx, i){
     <button class="fav-star${fav?' active':''}" onclick="event.stopPropagation(); toggleFavoriteFor('${r.id}').then(renderList);">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="${fav?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
     </button>
-    <div class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></div>
+    ${cc > 0 ? `<div class="row-comments" title="${cc} comment${cc===1?'':'s'}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>${commentCountLabel(cc)}</span>
+    </div>` : ''}
   `;
   return row;
 }
@@ -12265,6 +12289,8 @@ async function refreshCommentCountBadge(r){
   let q = sb.from('recipe_comments').select('id', { count:'exact', head:true });
   q = r.chefosMasterId ? q.eq('chefos_master_id', r.chefosMasterId) : q.eq('recipe_id', r.id);
   const { count } = await q;
+  // Keep the list-row bubble in sync — this is the freshest count we have for this recipe.
+  if(typeof count === 'number') _commentCounts[r.chefosMasterId || r.id] = count;
   if(count && count > 0){
     badge.textContent = count > 9 ? '9+' : String(count);
     badge.style.display = 'block';
@@ -15629,11 +15655,23 @@ async function printAllLabels(){
 
   document.body.classList.add('printing-labels');
   window.print();
+  setTimeout(_printCleanup, 1200);
 }
-window.addEventListener('afterprint', ()=>{
-  document.body.classList.remove('printing-labels');
-  document.body.classList.remove('printing-recipe-branded');
-});
+/* Shared post-print cleanup for all three print paths (labels / order list / branded recipe).
+   Safari doesn't always fire afterprint after the preview closes, and sometimes fails to
+   repaint elements that were visibility-hidden during the print snapshot (Richard, 17.7.:
+   detail-bar icons stayed invisible until a manual refresh) — so this runs BOTH from
+   afterprint AND from a timer after each window.print(), and nudges a reflow on the bars. */
+function _printCleanup(){
+  document.body.classList.remove('printing-labels', 'printing-orderlist', 'printing-recipe-branded');
+  document.querySelectorAll('.detail-bar, .topbar, .sticky-header').forEach(el=>{
+    const prev = el.style.display;
+    el.style.display = 'none';
+    void el.offsetHeight;
+    el.style.display = prev;
+  });
+}
+window.addEventListener('afterprint', _printCleanup);
 
 /* Branded recipe print (bod 6, 16.7.; reworked bod 4, 16.7. večer) — builds the letterhead
    sheet from the currently-open recipe and prints just that (visibility-swap trick, same as
@@ -15724,6 +15762,7 @@ function printRecipeBranded(){
   `;
   document.body.classList.add('printing-recipe-branded');
   window.print();
+  setTimeout(_printCleanup, 1200);
 }
 
 const TASK_STATUSES = ['todo','check','finish'];
@@ -16094,10 +16133,8 @@ function printOrderList(){
   sheet.innerHTML = html;
   document.body.classList.add('printing-orderlist');
   window.print();
+  setTimeout(_printCleanup, 1200);
 }
-window.addEventListener('afterprint', ()=>{
-  document.body.classList.remove('printing-orderlist');
-});
 
 async function removeOrderListItemQuick(id){
   setOrderListStatus('saving');
