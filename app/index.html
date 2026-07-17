@@ -2124,22 +2124,16 @@
   <div class="home-grid" id="connectionsGrid"></div>
 </div>
 
-<!-- Share QR Code — control questions (bod 6: "iba kontrolne otázky"). -->
-<div id="shareQrOverlay" class="sheet-overlay" onclick="if(event.target===this) closeShareQrChoice()">
-  <div class="sheet">
+<!-- Share My Recipe (Richard, 17.7. večer — db/143): pick ONE of your recipes, then pick WHICH
+     friends see it; they get a one-time notice on their next open. Replaces the old Share QR
+     Code 3-question chooser (Invite Friend is its own tile now). -->
+<div id="shareRecipePickerOverlay" class="sheet-overlay" onclick="if(event.target===this) closeShareRecipePicker()">
+  <div class="sheet" style="max-height:85vh; overflow-y:auto;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">📤 Share QR Code</div>
-    <p class="sheet-text">What's this for?</p>
-    <button class="sheet-option" onclick="closeShareQrChoice(); showMyFriendQr();">
-      <div><div class="sheet-option-title">1. Add friend</div><div class="sheet-option-sub">Show your personal QR — another chef scans it to connect</div></div>
-    </button>
-    <button class="sheet-option" onclick="closeShareQrChoice(); openShareMyRecipes();">
-      <div><div class="sheet-option-title">2. Share my recipes</div><div class="sheet-option-sub">Let your chef friends view recipes you created — read-only, off by default</div></div>
-    </button>
-    <button class="sheet-option" id="shareQrInviteChefBtn" onclick="closeShareQrChoice(); showTeamInvite();">
-      <div><div class="sheet-option-title">3. Invite new chef</div><div class="sheet-option-sub">Add someone to your kitchen's team</div></div>
-    </button>
-    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeShareQrChoice()">Cancel</button>
+    <div class="sheet-title" id="srpTitle">📖 Share My Recipe</div>
+    <div id="srpBody" style="margin-top:8px;"></div>
+    <div class="form-status" id="srpStatus"></div>
+    <button class="sheet-cancel" style="margin-top:12px;" onclick="closeShareRecipePicker()">Close</button>
   </div>
 </div>
 
@@ -7192,6 +7186,26 @@ async function enterApp(){
     document.getElementById('friendWelcomeOverlay').classList.add('open');
   }
 
+  // Shared-recipe notice (Richard, 17.7. večer — db/143): a one-time "X shared a recipe with
+  // you" the first open after a friend targets you with Share My Recipe. Best-effort and
+  // fire-and-forget — a notice must never block entering the app.
+  sb.from('recipe_shares').select('id, recipe_id, owner_id').eq('friend_id', currentUser.id).eq('seen', false)
+    .then(async ({ data: unseen })=>{
+      if(!unseen || !unseen.length) return;
+      try{
+        const [{ data: recs }, { data: conns }] = await Promise.all([
+          sb.from('recipes').select('id, title').in('id', unseen.map(u=>u.recipe_id)),
+          sb.rpc('get_my_connections'),
+        ]);
+        const titleOf = {}; (recs||[]).forEach(r=>titleOf[r.id] = r.title);
+        const nameOf = {}; (conns||[]).forEach(c=>nameOf[c.id] = c.full_name || c.email);
+        const lines = unseen.slice(0,5).map(u=>`• ${nameOf[u.owner_id] || 'A chef friend'} → "${titleOf[u.recipe_id] || 'a recipe'}"`);
+        alert(`📖 New recipe${unseen.length===1?'':'s'} shared with you:\n\n${lines.join('\n')}${unseen.length>5 ? `\n…and ${unseen.length-5} more` : ''}\n\nFind them in Connections → Chef Friends.`);
+        const { error: seenErr } = await sb.from('recipe_shares').update({ seen: true }).eq('friend_id', currentUser.id).eq('seen', false);
+        if(seenErr) console.error('could not mark recipe shares seen', seenErr);
+      } catch(e){ console.error('shared-recipe notice failed', e); }
+    });
+
   // ?team=CODE landing (bod 1, 16.7.) — reached via a team-invite email's magic link or a QR
   // opened by the phone's own camera app rather than in-app (handleScannedQrText already
   // covers the in-app scan path). Checked last, once the person is actually inside the app
@@ -7938,17 +7952,24 @@ async function krRenderRoot(){
     if(dirErr){
       slot.innerHTML = `<p class="lede">Could not load kitchens: ${dirErr.message} — has db/113 been run?</p>`;
     } else {
-      // Pin-to-top (Richard, 17.7.): any kitchen can be pinned above the rest — remembered per
-      // device (localStorage), tap the 📌 to pin/unpin.
+      // Pin-to-top (Richard, 17.7., restyled same evening): a tidy person-first list — the
+      // admin's name leads each row (derived from their email when no name is set), kitchen
+      // and member count underneath, and the 📌 is a small button on the right edge only.
+      // Pin choice is remembered per device (localStorage).
       const pinnedId = localStorage.getItem('chefos_kr_pinned_kitchen');
       const sorted = (dir || []).slice().sort((a,b)=> (b.kitchen_id===pinnedId ? 1 : 0) - (a.kitchen_id===pinnedId ? 1 : 0));
+      const nameFromEmail = e => (e||'').split('@')[0].replace(/[._-]+/g,' ').trim().split(' ').filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
       slot.innerHTML = krLabel('All kitchens') + sorted.map(k=>{
         const isPinned = k.kitchen_id === pinnedId;
+        const person = k.admin_name || nameFromEmail(k.admin_email) || 'No admin yet';
         return `
-        <div class="task-row" style="${isPinned ? 'border:1px solid var(--accent); border-radius:12px;' : ''}"><div class="task-row-top"><div class="info" style="flex:1;">
-          <div class="name task-text">🏢 ${krEsc(k.kitchen_name||'Unnamed')}${isPinned ? ' <span style="font-size:10px; background:var(--accent); color:#0A1A2F; border-radius:999px; padding:1px 7px; font-weight:700;">pinned</span>' : ''}</div>
-          <div class="meta">${krEsc((k.admin_name || k.admin_email) ? (k.admin_name ? k.admin_name + (k.admin_email ? ' · ' + k.admin_email : '') : k.admin_email) : 'no admin yet')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
-        </div><button class="add-row-btn" style="flex:none; padding:6px 10px; ${isPinned ? 'color:var(--accent);' : 'opacity:.55;'}" onclick="krTogglePin('${k.kitchen_id}', event)" title="${isPinned ? 'Unpin' : 'Pin to top'}">📌</button></div></div>
+        <div class="task-row" style="${isPinned ? 'border-left:3px solid var(--accent); padding-left:10px; border-radius:4px;' : 'padding-left:13px;'}"><div class="task-row-top" style="align-items:center;">
+          <div class="info" style="flex:1; min-width:0;">
+            <div class="name task-text" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">👨‍🍳 ${krEsc(person)} <span style="color:var(--ink-dim); font-weight:400;">· ${krEsc(k.kitchen_name||'Unnamed')}</span></div>
+            <div class="meta" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${krEsc(k.admin_email || 'no admin email')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
+          </div>
+          <button style="flex:none; background:none; border:none; cursor:pointer; font-size:16px; padding:6px; ${isPinned ? '' : 'opacity:.35; filter:grayscale(1);'}" onclick="krTogglePin('${k.kitchen_id}', event)" title="${isPinned ? 'Unpin' : 'Pin to top'}">📌</button>
+        </div></div>
       `;}).join('') + krLabel("Your kitchen's reports");
     }
   }
@@ -8756,13 +8777,14 @@ async function joinKitchenViaLink(kitchenId){
 }
 
 /* ============================================================
-   Connections (bod 6, 15.7. late night) — renamed + rebuilt from My Team. Same Home-styled
-   tile grid as HACCP/Settings. Three tiles: Scan QR, Share QR Code (opens the 3 control
-   questions Richard asked for), My Team (unchanged content underneath, just relocated here).
+   Connections (bod 6, 15.7.; simplified per Richard 17.7. večer) — the old "Share QR Code"
+   3-question chooser is gone: 👋 Invite Friend opens the friend QR directly, and 📖 Share My
+   Recipe is its own tile with a per-friend picker (db/143). My Team keeps the team side.
    ============================================================ */
 const CONNECTIONS_TILE_DEFS = [
   { key:'scanQr', icon:'📷', staticLabel:'Scan QR', onclick:'startQrScan()' },
-  { key:'shareQr', icon:'📤', staticLabel:'Share QR Code', onclick:'openShareQrChoice()' },
+  { key:'inviteFriend', icon:'👋', staticLabel:'Invite Friend', onclick:'showMyFriendQr()' },
+  { key:'shareRecipe', icon:'📖', staticLabel:'Share My Recipe', onclick:'openShareRecipePicker()' },
   { key:'chefFriends', icon:'👨‍🍳', staticLabel:'Chef Friends', onclick:'showChefFriends()' },
   { key:'myTeam', icon:'👥', staticLabel:'My Team', onclick:'showTeamInvite()' },
 ];
@@ -8781,14 +8803,82 @@ function showConnections(){
   window.scrollTo(0,0);
 }
 
-function openShareQrChoice(){
-  // "Invite new chef" reuses the kitchen-invite flow, which is admin-only since the bod-5
-  // lockdown (db/81) — hide the option entirely for non-admins rather than show a button that
-  // would just fail, same pattern as the Currency/Admin tiles elsewhere.
-  document.getElementById('shareQrInviteChefBtn').style.display = currentIsAdmin ? '' : 'none';
-  document.getElementById('shareQrOverlay').classList.add('open');
+/* ---------- Share My Recipe — per-friend picker (Richard, 17.7. večer — db/143) ----------
+   Step 1: your own personal recipes. Step 2: your friends as checkboxes (already-shared ones
+   pre-checked). Save syncs recipe_shares (insert new, delete unchecked); the friend sees the
+   recipe in Chef Friends → your profile and gets a one-time notice on their next app open.
+   Company profiles share nothing — same rule as every other sharing path, and the DB's RLS
+   with-check enforces it even if this gate were bypassed. */
+let _srpRecipeId = null;
+function openShareRecipePicker(){
+  if(currentAccountType !== 'personal'){
+    alert('Sharing recipes is for Personal profiles only — company recipes and the company profile never share anything. Switch to your Personal profile to share your own recipes.');
+    return;
+  }
+  _srpRecipeId = null;
+  document.getElementById('srpTitle').textContent = '📖 Share My Recipe';
+  document.getElementById('srpStatus').textContent = '';
+  const mine = allRecipes().filter(r=>r.createdBy === currentUser.id && r.isPersonal);
+  const body = document.getElementById('srpBody');
+  if(!mine.length){
+    body.innerHTML = '<div class="empty-state">No recipes of your own yet — create or scan one in Recipes first, then share it here.</div>';
+  } else {
+    body.innerHTML = '<p class="sheet-text">Pick a recipe, then choose which friends can see it.</p>' + mine.map(r=>`
+      <div class="task-row" style="cursor:pointer;" onclick="srpPickRecipe('${r.id}')">
+        <div class="task-row-top"><div class="info" style="flex:1;">
+          <div class="name task-text">${(r.title||'Untitled').replace(/</g,'&lt;')}</div>
+        </div><span style="font-size:18px;">›</span></div>
+      </div>`).join('') +
+      `<button class="add-row-btn" style="margin-top:12px;" onclick="closeShareRecipePicker(); openShareMyRecipes();">⚙️ Share ALL my recipes at once (on/off switch)</button>`;
+  }
+  document.getElementById('shareRecipePickerOverlay').classList.add('open');
 }
-function closeShareQrChoice(){ document.getElementById('shareQrOverlay').classList.remove('open'); }
+async function srpPickRecipe(recipeId){
+  _srpRecipeId = recipeId;
+  const r = allRecipes().find(x=>x.id === recipeId);
+  document.getElementById('srpTitle').textContent = '📖 ' + ((r && r.title) || 'Share recipe');
+  const body = document.getElementById('srpBody');
+  body.innerHTML = '<p class="lede">Loading your friends…</p>';
+  const [{ data: conns, error }, { data: existing }] = await Promise.all([
+    sb.rpc('get_my_connections'),
+    sb.from('recipe_shares').select('friend_id').eq('recipe_id', recipeId),
+  ]);
+  if(error){ body.innerHTML = `<p class="lede">Could not load friends: ${error.message}</p>`; return; }
+  if(!conns || !conns.length){
+    body.innerHTML = '<div class="empty-state">No chef friends yet — connect with someone first (Invite Friend / Scan QR), then share recipes with them.</div>';
+    return;
+  }
+  const shared = new Set((existing||[]).map(x=>x.friend_id));
+  body.innerHTML = '<p class="sheet-text">Who can see this recipe? They\'ll get a notice next time they open ChefOS.</p>' + conns.map(f=>`
+    <label class="task-row" style="cursor:pointer; display:block;">
+      <div class="task-row-top"><div class="info" style="flex:1;">
+        <div class="name task-text">${(f.full_name||f.email||'Unknown').replace(/</g,'&lt;')}</div>
+        <div class="meta">${(f.email||'').replace(/</g,'&lt;')}</div>
+      </div><input type="checkbox" class="srp-friend" value="${f.id}" ${shared.has(f.id)?'checked':''} style="width:20px; height:20px; accent-color:var(--accent);"></div>
+    </label>`).join('') +
+    `<button class="save-btn" style="width:100%; margin-top:12px;" onclick="srpSave()">Save sharing</button>
+     <button class="add-row-btn" style="width:100%; margin-top:8px;" onclick="openShareRecipePicker()">‹ Pick a different recipe</button>`;
+}
+async function srpSave(){
+  const statusEl = document.getElementById('srpStatus');
+  const checked = new Set([...document.querySelectorAll('.srp-friend:checked')].map(c=>c.value));
+  const all = [...document.querySelectorAll('.srp-friend')].map(c=>c.value);
+  statusEl.textContent = 'Saving…';
+  let ok = true;
+  for(const fid of all){
+    if(checked.has(fid)){
+      const { error } = await sb.from('recipe_shares').upsert(
+        { recipe_id: _srpRecipeId, owner_id: currentUser.id, friend_id: fid },
+        { onConflict: 'recipe_id,friend_id', ignoreDuplicates: true });
+      if(error && error.code !== '23505'){ statusEl.textContent = 'Could not share: ' + error.message; ok = false; break; }
+    } else {
+      const { error } = await sb.from('recipe_shares').delete().eq('recipe_id', _srpRecipeId).eq('friend_id', fid);
+      if(error){ statusEl.textContent = 'Could not unshare: ' + error.message; ok = false; break; }
+    }
+  }
+  if(ok) statusEl.textContent = `Saved — shared with ${checked.size} friend${checked.size===1?'':'s'}.`;
+}
+function closeShareRecipePicker(){ document.getElementById('shareRecipePickerOverlay').classList.remove('open'); }
 
 /* ---------- Share My Recipes (bod 6, 16.7. — db/89) ----------
    The opt-in toggle side. Off by default; state lives in profiles.recipes_shared and is read
@@ -12856,8 +12946,12 @@ function showDetail(idx){
   }
   // One tap to pull this recipe's ingredient lines into your own price database (Richard,
   // 17.7.) — the picker offers My Ingredients, any existing custom list, or a brand-new one.
+  // Rendered AT MOST ONCE per recipe (Richard, 17.7. večer: it showed under both the cost
+  // block and the nutrition block on recipes with a price but incomplete nutrition).
+  let addDbBtnShown = false;
   if(computed.total > 0){
     html += `<button class="add-row-btn" style="margin:${computed.matched>0?'-6px':'0'} 0 14px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
+    addDbBtnShown = true;
   }
 
   const nutrition = computeRecipeNutrition(r);
@@ -12887,7 +12981,10 @@ function showDetail(idx){
     // have the same fix: get the ingredients into your database, then AI fills their per-100g
     // nutrition and this block recomputes.
     if(nutrition.matched < nutrition.total){
-      html += `<button class="add-row-btn" style="margin:-6px 0 8px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
+      if(!addDbBtnShown){
+        html += `<button class="add-row-btn" style="margin:-6px 0 8px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
+        addDbBtnShown = true;
+      }
       html += `<button class="add-row-btn" style="margin:0 0 14px 0;" onclick="generateNutritionForRecipe()">✨ Generate nutrition from my database</button>`;
     }
   } else if(nutrition.total > 0){
@@ -12901,7 +12998,7 @@ function showDetail(idx){
       </div>
     </div>
     <div class="scale-note" style="margin:-14px 0 12px 0;">0 of ${nutrition.total} ingredient line${nutrition.total===1?'':'s'} matched${recipeIngredientSource() ? ' against 📌 ' + krEsc(recipeIngredientSource().name) : ''} — add the ingredients to your database, then generate their nutrition, and this block starts computing.</div>
-    <button class="add-row-btn" style="margin:-6px 0 8px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>
+    ${addDbBtnShown ? '' : '<button class="add-row-btn" style="margin:-6px 0 8px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>'}
     <button class="add-row-btn" style="margin:0 0 14px 0;" onclick="generateNutritionForRecipe()">✨ Generate nutrition from my database</button>`;
   }
 

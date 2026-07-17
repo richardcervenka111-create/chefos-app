@@ -63,6 +63,7 @@ NO_TENANT_OK = {
     'profile_private',             # per-user sensitive columns (db/69 draft), keyed by user id
     'email_contacts',              # ChefOS-operator outreach list, not per-kitchen data
     'chef_connections',            # person-to-person, not kitchen-to-kitchen (db/84)
+    'recipe_shares',               # person-to-person recipe sharing across kitchens (db/143)
     'app_config',                  # single-row global app setting (coming-soon wall), not tenant data at all (db/96)
     'recipe_comments',             # scoped transitively via recipe_id -> recipes (already kitchen/personal-scoped), db/104
 }
