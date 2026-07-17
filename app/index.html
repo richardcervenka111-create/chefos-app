@@ -1496,9 +1496,171 @@
   .order-print-sheet td{ padding:5px 0; border-bottom:1px solid #eee; font-size:13px; }
   .order-print-sheet td.qty{ text-align:right; white-space:nowrap; padding-left:10px; }
 </style>
+<style id="themeNewCss">
+/* ============================================================================
+   NOVÁ TÉMA (redesign-ui, Richard 17.7.) — "tá istá identita, vyššia liga".
+   Žije VÝHRADNE pod html.theme-new; klasická téma vyššie sa nemení ani o
+   riadok. Trik č. 1: pod triedou premapujeme klasické CSS premenné, takže
+   celá appka naraz zdedí hlbšie vrstvenie navy a hairline bordery; navrch
+   idú cielené vylepšenia hlavných komponentov. Farby aj font ostávajú
+   Richardove (navy/teal, systémový font) — mení sa spracovanie: 4 vrstvy
+   hĺbky, glow na akcentoch, 4-kový rytmus, mikrointerakcie, 44px+ ciele.
+   Prepínač: Nastavenia → Appearance, vidí ho len richard.cervenka@icloud.com.
+   ============================================================================ */
+html.theme-new{
+  /* Nové tokeny */
+  --nv-0:#081525; --nv-1:#0C1E33; --nv-2:#122845; --nv-3:#1A3458;
+  --teal:#34F7D7; --teal-deep:#1FC9AC;
+  --teal-glow:rgba(52,247,215,.28); --teal-wash:rgba(52,247,215,.07);
+  --hairline:rgba(255,255,255,.09);
+  --tn-fast:150ms cubic-bezier(.4,0,.2,1);
+  --tn-slow:280ms cubic-bezier(.22,1,.36,1);
+  --tn-glow:0 0 0 1px rgba(52,247,215,.35), 0 6px 28px rgba(52,247,215,.14);
+  /* Premapovanie klasických premenných — okamžité prehĺbenie celej appky.
+     Nový vzhľad je vždy tmavý: remap prebije aj Light data-theme. */
+  --bg:var(--nv-0); --paper:var(--nv-1); --paper-raised:var(--nv-2);
+  --rule:var(--hairline);
+  --ink:#FFFFFF; --ink-dim:rgba(255,255,255,.64); --ink-faint:rgba(255,255,255,.38);
+  color-scheme:dark;
+}
+/* ---- Celok 1 · Navigácia + Home ---- */
+html.theme-new .topbar{ background:var(--nv-0); padding:24px 18px 14px 18px; }
+html.theme-new .kicker{ color:var(--teal); letter-spacing:.22em; font-size:10px; }
+html.theme-new h1.title{ font-weight:800; letter-spacing:-.015em; }
+html.theme-new .icon-btn{
+  width:44px; height:44px; padding:0; border-radius:12px;
+  border:1px solid var(--hairline);
+  transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .icon-btn:hover{ border-color:var(--teal); color:var(--teal); background:var(--teal-wash); }
+html.theme-new .home-grid{ gap:12px; padding:12px 18px 48px 18px; }
+html.theme-new .home-tile{
+  background:var(--nv-2); border:1px solid var(--hairline); border-radius:16px;
+  position:relative; overflow:hidden; gap:8px;
+  transition:transform var(--tn-fast), border-color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .home-tile::after{
+  content:''; position:absolute; inset:auto 0 0 0; height:2px;
+  background:linear-gradient(90deg, var(--teal), transparent 70%);
+  opacity:0; transition:opacity var(--tn-fast);
+}
+html.theme-new .home-tile:hover{ background:var(--nv-3); border-color:rgba(52,247,215,.35); transform:translateY(-2px); }
+html.theme-new .home-tile:hover::after{ opacity:1; }
+html.theme-new .home-tile:active{ transform:translateY(0) scale(.97); }
+html.theme-new .home-tile-icon{ background:var(--nv-1); border:1px solid var(--hairline); border-radius:12px; }
+html.theme-new .home-tile-label,
+html.theme-new .home-tile{ font-size:12.5px; font-weight:700; letter-spacing:.01em; }
+html.theme-new .detail-bar{ background:rgba(8,21,37,.92); border-bottom:1px solid var(--hairline); }
+html.theme-new .back-btn{ color:var(--teal); border-radius:10px; min-height:44px; transition:background var(--tn-fast); }
+html.theme-new .back-btn:hover{ background:var(--teal-wash); }
+html.theme-new .sticky-header{ background:var(--nv-0); }
+html.theme-new #loginView .box{ border-radius:24px; border-color:var(--hairline); background:var(--nv-1); }
+html.theme-new ::selection{ background:var(--teal); color:#0A1A2F; }
+html.theme-new ::-webkit-scrollbar{ width:10px; height:10px; }
+html.theme-new ::-webkit-scrollbar-thumb{ background:var(--nv-3); border-radius:999px; border:2px solid var(--nv-0); }
+
+/* ---- Celok 2 · Tlačidlá, chips, formuláre, sheety ---- */
+html.theme-new .save-btn{
+  min-height:48px; padding:0 22px; border-radius:12px; font-weight:700; font-size:15px;
+  color:#06231D; background:linear-gradient(160deg, #5FF9E0, var(--teal-deep));
+  box-shadow:var(--tn-glow);
+  transition:filter var(--tn-fast), box-shadow var(--tn-fast), transform var(--tn-fast);
+}
+html.theme-new .save-btn:hover{ filter:brightness(1.06); box-shadow:0 0 0 1px rgba(52,247,215,.5), 0 8px 32px rgba(52,247,215,.24); }
+html.theme-new .save-btn:active{ transform:scale(.97); }
+html.theme-new .sheet-cancel{
+  min-height:48px; border-radius:12px; border:1px solid var(--hairline); color:var(--ink);
+  font-weight:700; background:transparent; transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .sheet-cancel:hover{ border-color:var(--teal); color:var(--teal); background:var(--teal-wash); }
+html.theme-new .add-row-btn{
+  min-height:44px; border:1px dashed var(--hairline); border-radius:12px; color:var(--teal);
+  font-weight:600; transition:border-color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .add-row-btn:hover{ border-color:rgba(52,247,215,.4); background:var(--teal-wash); }
+html.theme-new .danger-btn{
+  min-height:44px; border-radius:12px;
+  transition:background var(--tn-fast), border-color var(--tn-fast);
+}
+html.theme-new .danger-btn:hover{ background:rgba(255,122,104,.08); border-color:#FF7A68; }
+html.theme-new .task-status-btn{
+  min-height:44px; border-radius:10px; border:1px solid var(--hairline); background:var(--nv-1);
+  transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .task-status-btn:hover{ border-color:rgba(52,247,215,.35); }
+html.theme-new .task-status-btn.active{ background:var(--teal); border-color:var(--teal); color:#0A1A2F; opacity:1; }
+html.theme-new .chip{
+  min-height:44px; display:inline-flex; align-items:center; font-weight:600;
+  border:1px solid var(--hairline);
+  transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .chip:hover{ border-color:rgba(52,247,215,.35); color:var(--ink); }
+html.theme-new .chip.active{ background:var(--teal); border-color:var(--teal); color:#0A1A2F; font-weight:700; }
+html.theme-new .form-label{
+  font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  color:var(--ink-faint);
+}
+html.theme-new .form-field{
+  min-height:48px; background:var(--nv-1); border:1px solid var(--hairline); border-radius:12px;
+  transition:border-color var(--tn-fast), box-shadow var(--tn-fast);
+}
+html.theme-new .form-field:focus{ border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); outline:none; }
+html.theme-new .sheet{
+  background:var(--nv-1); border:1px solid var(--hairline); border-bottom:none;
+  border-radius:24px 24px 0 0; padding-top:12px;
+  animation:tnSheetUp var(--tn-slow);
+}
+@keyframes tnSheetUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion: reduce){ html.theme-new .sheet{ animation:none; } }
+html.theme-new .sheet-handle{ background:var(--nv-3); width:44px; }
+html.theme-new .sheet-title{ font-weight:800; letter-spacing:-.01em; }
+html.theme-new .sheet-option{
+  border-top:1px solid var(--hairline); border-radius:10px; min-height:56px;
+  transition:background var(--tn-fast);
+}
+html.theme-new .sheet-option:hover{ background:var(--teal-wash); }
+html.theme-new .form-status{ color:var(--teal); }
+html.theme-new .form-status.error{ color:#FF7A68; }
+
+/* ---- Celok 3 · Zoznamy, tabuľky, detaily, empty states ---- */
+html.theme-new .task-row{
+  border-bottom:1px solid var(--hairline); min-height:56px;
+  transition:background var(--tn-fast);
+}
+html.theme-new .task-row:hover{ background:var(--nv-1); }
+html.theme-new .task-row .name{ font-weight:700; }
+html.theme-new .task-row .meta{ color:var(--ink-faint); }
+html.theme-new .section-label{
+  font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  color:var(--ink-faint);
+}
+html.theme-new .lede{ color:var(--ink-dim); line-height:1.6; }
+html.theme-new .empty-state{
+  border:1px dashed var(--hairline); border-radius:24px; margin:16px 18px;
+  padding:56px 24px; max-width:none;
+}
+html.theme-new .stat-pill{
+  background:var(--nv-1); border:1px solid var(--hairline); min-height:36px;
+}
+html.theme-new .recipe-title{ font-weight:800; letter-spacing:-.015em; }
+html.theme-new .detail-cat{ color:var(--teal); letter-spacing:.16em; text-transform:uppercase; font-size:11px; font-weight:700; }
+html.theme-new img.hero{ border-radius:20px; border:1px solid var(--hairline); }
+html.theme-new table.ing td{ border-bottom:1px solid var(--hairline); padding-top:9px; padding-bottom:9px; }
+html.theme-new .cost-block{ background:var(--nv-1); border:1px solid var(--hairline); border-radius:16px; }
+html.theme-new .cost-item .value{ font-variant-numeric:tabular-nums; }
+html.theme-new .prep-summary-row2{ border-bottom:1px solid var(--hairline); }
+html.theme-new .sheet-text{ color:var(--ink-dim); line-height:1.6; }
+html.theme-new .login-tagline{ color:var(--ink-dim); }
+html.theme-new .block h3{ font-weight:800; letter-spacing:-.01em; }
+html.theme-new .method-list li, html.theme-new .bullet-list li{ line-height:1.65; }
+html.theme-new .modal-backdrop, html.theme-new .sheet-overlay{ background:rgba(4,10,20,.72); backdrop-filter:saturate(1.1) blur(2px); }
+</style>
 <!-- Apply the saved Appearance theme before first paint (bod 10, 16.7.) — this has to run here,
      not in the main script at the bottom of the page, or the page would flash dark-then-light
-     on every load for anyone using Light mode. Kept deliberately tiny and dependency-free. -->
+     on every load for anyone using Light mode. Kept deliberately tiny and dependency-free.
+     Extended (redesign-ui): also applies the saved UI theme (chefos_ui_theme = 'new') by adding
+     html.theme-new pre-paint — the New look is per-device and only ever enabled from Richard's
+     email-gated switch in Appearance settings. -->
 <script>
   (function(){
     var theme = localStorage.getItem('chefos_theme') === 'light' ? 'light' : 'dark';
@@ -1506,6 +1668,11 @@
     document.documentElement.style.colorScheme = theme;
     var metaTheme = document.querySelector('meta[name="theme-color"]');
     if(metaTheme && theme === 'light') metaTheme.setAttribute('content', '#F2F6FA');
+    if(localStorage.getItem('chefos_ui_theme') === 'new'){
+      document.documentElement.classList.add('theme-new');
+      document.documentElement.style.colorScheme = 'dark';
+      if(metaTheme) metaTheme.setAttribute('content', '#081525');
+    }
   })();
 </script>
 </head>
@@ -4054,6 +4221,17 @@
     <div class="sheet-row">
       <button class="task-status-btn" id="appearanceDarkBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('dark')">🌙 Dark</button>
       <button class="task-status-btn" id="appearanceLightBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('light')">☀️ Light</button>
+    </div>
+    <!-- Vzhľad aplikácie: Klasický / Nový (redesign-ui) — visible ONLY to the founder's exact
+         email (same gate as Internal Docs); per-device, localStorage chefos_ui_theme. The New
+         look is always dark, so it visually overrides the Light choice above while active. -->
+    <div id="uiThemeBlock" style="display:none; margin-top:14px; border-top:1px solid var(--rule); padding-top:12px;">
+      <label class="form-label">Vzhľad aplikácie (len tvoje zariadenie)</label>
+      <div class="sheet-row">
+        <button class="task-status-btn" id="uiThemeClassicBtn" style="flex:1; padding:16px 0;" onclick="setChefosUiTheme('classic')">🗂 Klasický</button>
+        <button class="task-status-btn" id="uiThemeNewBtn" style="flex:1; padding:16px 0;" onclick="setChefosUiTheme('new')">✨ Nový</button>
+      </div>
+      <p class="sheet-text" style="margin-top:8px; font-size:12px;">Nový = redesign v testovaní: rovnaké farby a font, hlbšie vrstvenie, glow, mikrointerakcie. Kým je zapnutý, prebíja voľbu Light. Ostatní užívatelia tento prepínač nevidia.</p>
     </div>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAppearanceSettings()">Close</button>
   </div>
@@ -7181,6 +7359,12 @@ async function enterApp(){
   subscribeToRealtimeUpdates();
   logEvent('login', { device_id: getDeviceId(), user_agent: navigator.userAgent });
   checkUnreadActivity();
+
+  // Default UI theme for the founder's account (redesign-ui): first login on a device with no
+  // stored choice → New. Everyone else stays Classic and never sees the switch.
+  if(uiThemeSwitchAllowed() && localStorage.getItem('chefos_ui_theme') === null){
+    setChefosUiTheme('new');
+  }
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
 
@@ -19709,10 +19893,43 @@ function setChefosTheme(theme){
   }
   renderSettingsGrid();
 }
+/* ---------- Vzhľad aplikácie: Klasický / Nový (redesign-ui, Richard 17.7.) ----------
+   Per-device, localStorage chefos_ui_theme; applied pre-paint by the head script and live
+   here. The switch is shown ONLY to the founder's exact email (same gate as Internal Docs) —
+   nobody else ever sees the New theme exists. Default for that account: New (set once in
+   enterApp when no choice is stored yet). */
+const UI_THEME_OWNER_EMAIL = 'richard.cervenka@icloud.com';
+function uiThemeSwitchAllowed(){
+  return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === UI_THEME_OWNER_EMAIL);
+}
+function getChefosUiTheme(){ return localStorage.getItem('chefos_ui_theme') === 'new' ? 'new' : 'classic'; }
+function setChefosUiTheme(theme){
+  theme = theme === 'new' ? 'new' : 'classic';
+  localStorage.setItem('chefos_ui_theme', theme);
+  document.documentElement.classList.toggle('theme-new', theme === 'new');
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if(metaTheme) metaTheme.setAttribute('content', theme === 'new' ? '#081525' : (getChefosTheme() === 'light' ? '#F2F6FA' : '#0A1A2F'));
+  if(theme === 'new') document.documentElement.style.colorScheme = 'dark';
+  else document.documentElement.style.colorScheme = getChefosTheme();
+  const cb = document.getElementById('uiThemeClassicBtn');
+  if(cb){
+    cb.classList.toggle('active', theme==='classic');
+    document.getElementById('uiThemeNewBtn').classList.toggle('active', theme==='new');
+  }
+}
 function openAppearanceSettings(){
   const theme = getChefosTheme();
   document.getElementById('appearanceDarkBtn').classList.toggle('active', theme==='dark');
   document.getElementById('appearanceLightBtn').classList.toggle('active', theme==='light');
+  const block = document.getElementById('uiThemeBlock');
+  if(block){
+    block.style.display = uiThemeSwitchAllowed() ? 'block' : 'none';
+    if(uiThemeSwitchAllowed()){
+      const t = getChefosUiTheme();
+      document.getElementById('uiThemeClassicBtn').classList.toggle('active', t==='classic');
+      document.getElementById('uiThemeNewBtn').classList.toggle('active', t==='new');
+    }
+  }
   document.getElementById('appearanceSettingsOverlay').classList.add('open');
 }
 function closeAppearanceSettings(){
