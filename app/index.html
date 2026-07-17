@@ -11906,7 +11906,7 @@ async function addRecipeIngredientsTo(target){
   statusEl.textContent = '';
   closeAddRecipeIngredients();
   const skipped = names.length - toAdd.length;
-  alert(`Added ${inserted.length} ingredient${inserted.length===1?'':'s'}${skipped ? ` · skipped ${skipped} already there` : ''}. Prices are empty — fill them in (or use ✨ AI Details) in Ingredients.`);
+  alert(`Added ${inserted.length} ingredient${inserted.length===1?'':'s'}${skipped ? ` · skipped ${skipped} already there` : ''}. Prices and nutrition are empty — fill them in (or use ✨ AI Details) in Ingredients, and this recipe's cost + calories start computing.`);
 }
 
 let _currentCommentsMasterId = null;
@@ -12801,10 +12801,14 @@ async function bulkDeleteIngredients(mode){
    are missing category/seasons/storage, via one tool call. Goes through callClaudeAPI, so the
    credit gate + metering apply exactly like Chef Assistant. */
 async function generateIngredientDetails(){
+  // Nutrition included since 17.7. (Richard: "toto isté urob aj s nutríciami") — the same
+  // batch fill now also completes kcal/protein/carbs/fat per 100 g, which is exactly what the
+  // recipe detail's Calories block computes from. Values are typical reference numbers per
+  // 100 g of the raw ingredient — estimates, not lab analysis, same honesty rule as prices.
   const targets = _ingredients.filter(ing=> ingredientOnCurrentShelf(ing) && !ing.hidden
-    && (!ing.category || !ing.storage_type || !(ing.seasons||[]).length)).slice(0, 25);
+    && (!ing.category || !ing.storage_type || !(ing.seasons||[]).length || ing.kcal_per_100g == null)).slice(0, 25);
   if(!targets.length){ alert('Everything on this list already has its details filled in.'); return; }
-  if(!confirm(`Generate details (category, season, storage, alternate names) for ${targets.length} ingredient${targets.length===1?'':'s'} with AI? This uses your AI credit.`)) return;
+  if(!confirm(`Generate details (category, season, storage, nutrition per 100 g, alternate names) for ${targets.length} ingredient${targets.length===1?'':'s'} with AI? This uses your AI credit.`)) return;
   setSyncStatus('saving');
   try{
     const tool = {
@@ -12815,15 +12819,19 @@ async function generateIngredientDetails(){
         category: { type:'string', description:'One of: Produce, Dairy, Meat, Seafood, Bakery, Dry Goods, Spices & Seasonings, Beverages, Other' },
         storage_type: { type:'string', description:'One of: Dry Storage, Refrigerated, Freezer, Room Temperature' },
         seasons: { type:'array', items:{ type:'string', enum:['Spring','Summer','Autumn','Winter'] }, description:'Seasons it is in season — empty array if year-round' },
+        kcal_per_100g: { type:'number', description:'Typical kilocalories per 100 g of the raw ingredient' },
+        protein_g_per_100g: { type:'number', description:'Typical protein grams per 100 g' },
+        carbs_g_per_100g: { type:'number', description:'Typical carbohydrate grams per 100 g' },
+        fat_g_per_100g: { type:'number', description:'Typical fat grams per 100 g' },
         aliases: { type:'array', items:{ type:'string' }, description:'Up to 3 common alternate names, empty if none' }
       }, required:['name'] } } }, required:['items'] }
     };
     const data = await callClaudeAPI({
       model: 'claude-sonnet-5',
-      max_tokens: 4096,
+      max_tokens: 8192,
       tools: [tool],
       tool_choice: { type:'tool', name:'fill_ingredient_details' },
-      messages: [{ role:'user', content: 'Fill in details for these professional-kitchen ingredients using the fill_ingredient_details tool. Names, exactly as they must be echoed back: ' + targets.map(t=>t.name).join('; ') }]
+      messages: [{ role:'user', content: 'Fill in details for these professional-kitchen ingredients using the fill_ingredient_details tool, including typical nutrition values per 100 g of the raw ingredient. Names, exactly as they must be echoed back: ' + targets.map(t=>t.name).join('; ') }]
     });
     const toolUse = (data.content || []).find(b=>b.type==='tool_use');
     if(!toolUse) throw new Error('No details came back — try again.');
@@ -12836,6 +12844,11 @@ async function generateIngredientDetails(){
       if(!match.storage_type && item.storage_type) payload.storage_type = item.storage_type;
       if(!(match.seasons||[]).length && (item.seasons||[]).length) payload.seasons = item.seasons;
       if(!(match.aliases||[]).length && (item.aliases||[]).length) payload.aliases = item.aliases;
+      // Nutrition: only ever fills EMPTY fields — never overwrites a value someone entered.
+      if(match.kcal_per_100g == null && typeof item.kcal_per_100g === 'number') payload.kcal_per_100g = item.kcal_per_100g;
+      if(match.protein_g_per_100g == null && typeof item.protein_g_per_100g === 'number') payload.protein_g_per_100g = item.protein_g_per_100g;
+      if(match.carbs_g_per_100g == null && typeof item.carbs_g_per_100g === 'number') payload.carbs_g_per_100g = item.carbs_g_per_100g;
+      if(match.fat_g_per_100g == null && typeof item.fat_g_per_100g === 'number') payload.fat_g_per_100g = item.fat_g_per_100g;
       if(!Object.keys(payload).length) continue;
       const { error } = await sb.from('ingredients').update(payload).eq('id', match.id);
       if(!error) updated++;
@@ -12843,7 +12856,7 @@ async function generateIngredientDetails(){
     await loadAppData();
     renderIngredientList();
     setSyncStatus('saved');
-    alert(`Details generated for ${updated} ingredient${updated===1?'':'s'}.`);
+    alert(`Details generated for ${updated} ingredient${updated===1?'':'s'} — including nutrition per 100 g where it was missing.`);
   } catch(err){
     setSyncStatus('offline');
     alert('Could not generate details: ' + (err.message || err));
