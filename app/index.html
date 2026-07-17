@@ -9016,14 +9016,19 @@ async function showFriendRecipes(friendId){
   const { data: sharedIng } = await sb.from('ingredients')
     .select('name, unit, price, category, supplier')
     .eq('created_by', friendId).eq('shared_with_friends', true).order('name');
+  // Folder, not a flat dump (Richard, 17.7. večer: "musí to byť v priečinku s názvom a až
+  // potom tento zoznam") — individually shared ingredients now sit behind ONE folder row,
+  // exactly like a shared list; tapping it opens the same items overlay.
+  _friendSharedIngRows = sharedIng || [];
   const ingHtml = (sharedIng && sharedIng.length) ? `
-    <div class="section-label" style="margin-top:16px;">🤝 Shared ingredients</div>
-    ${sharedIng.map(i=>`
-      <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
-        <div class="name task-text">${escapeHtml(i.name)}</div>
-        <div class="meta">${[i.category, i.supplier?'🏭 '+i.supplier:null, i.price!=null?formatMoney(i.price)+(i.unit?' / '+i.unit:''):null].filter(Boolean).map(escapeHtml).join(' · ') || '—'}</div>
-      </div></div></div>
-    `).join('')}` : '';
+    <div class="section-label" style="margin-top:16px;">🧂 Shared ingredients</div>
+    <div class="task-row" onclick="openFriendSharedIngredients('${(friend.full_name||friend.email||'').replace(/'/g,"\\'").replace(/</g,'&lt;')}')" style="cursor:pointer;">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;"><div class="name task-text">🤝 Shared ingredients</div>
+        <div class="meta">${sharedIng.length} item${sharedIng.length===1?'':'s'} — tap to open</div></div>
+        <span style="font-size:18px;">›</span>
+      </div>
+    </div>` : '';
   el.innerHTML = (recipesHtml + listsHtml + ingHtml) ||
     '<div class="empty-state">This chef isn’t sharing anything right now.</div>';
   document.getElementById('friendsRecipesSubtitle').textContent = 'Read-only — what this chef chose to share with friends.';
@@ -9040,6 +9045,21 @@ async function openFriendIngredientList(listId, listName){
     <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
       <div class="name task-text">${(i.name||'').replace(/</g,'&lt;')}</div>
       <div class="meta">${[i.category, i.price != null ? formatMoney(i.price) + (i.unit ? ' / ' + i.unit : '') : null].filter(Boolean).join(' · ') || '—'}</div>
+    </div></div></div>
+  `).join('');
+}
+/* Individually shared ingredients folder (Richard, 17.7. večer) — same overlay as a shared
+   list, fed from the rows already fetched for the profile view. Read-only, escaped. */
+let _friendSharedIngRows = [];
+function openFriendSharedIngredients(friendName){
+  document.getElementById('friendListItemsTitle').textContent = '🤝 ' + (friendName || 'Shared ingredients');
+  const el = document.getElementById('friendListItemsBody');
+  document.getElementById('friendListItemsOverlay').classList.add('open');
+  if(!_friendSharedIngRows.length){ el.innerHTML = '<div class="empty-state">Nothing shared right now.</div>'; return; }
+  el.innerHTML = _friendSharedIngRows.map(i=>`
+    <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+      <div class="name task-text">${escapeHtml(i.name)}</div>
+      <div class="meta">${[i.category, i.supplier?'🏭 '+i.supplier:null, i.price!=null?formatMoney(i.price)+(i.unit?' / '+i.unit:''):null].filter(Boolean).map(escapeHtml).join(' · ') || '—'}</div>
     </div></div></div>
   `).join('');
 }
