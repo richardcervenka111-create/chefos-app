@@ -133,16 +133,21 @@ def check_mutation_ratchet(s, violations):
         print(f'audit_app: unchecked-mutation count improved {baseline} → {unchecked}, ratchet tightened.')
 
 def check_recipe_xss_guard(s, violations):
-    # The cross-kitchen recipe XSS defence must stay wired: the escaper must exist AND
-    # dbRowToRecipe must actually call it. Both are cheap substring checks — this guards the
-    # guard, so nobody can quietly delete the sanitizer and reopen the hole (2026-07-17).
+    # The cross-kitchen XSS defences must stay wired: each escaper must exist AND its loader must
+    # call it. Cheap substring checks that guard the guards, so nobody can quietly delete a
+    # sanitizer and reopen a stored-XSS hole (2026-07-17).
+    # Recipes (db/131 Public shelf).
     if 'function sanitizeForeignRecipe(' not in s:
         violations.append('app/index.html: sanitizeForeignRecipe() is gone — cross-kitchen recipe XSS defence removed (db/131 Public shelf renders foreign recipe text as innerHTML).')
-        return
-    m = re.search(r'function dbRowToRecipe\(row\)\s*\{(.*?)\n\}', s, re.S)
-    body = m.group(1) if m else ''
-    if 'sanitizeForeignRecipe(' not in body:
-        violations.append('app/index.html: dbRowToRecipe no longer calls sanitizeForeignRecipe() — foreign (Public-shelf) recipes would reach innerHTML unescaped (stored XSS).')
+    else:
+        m = re.search(r'function dbRowToRecipe\(row\)\s*\{(.*?)\n\}', s, re.S)
+        if 'sanitizeForeignRecipe(' not in (m.group(1) if m else ''):
+            violations.append('app/index.html: dbRowToRecipe no longer calls sanitizeForeignRecipe() — foreign (Public-shelf) recipes would reach innerHTML unescaped (stored XSS).')
+    # Ingredients (db/136 Public shelf + friend sharing).
+    if 'function sanitizeForeignIngredient(' not in s:
+        violations.append('app/index.html: sanitizeForeignIngredient() is gone — cross-kitchen ingredient XSS defence removed (db/136 renders foreign ingredient text as innerHTML).')
+    elif 'sanitizeForeignIngredient(' not in re.sub(r'function sanitizeForeignIngredient\(ing\)\s*\{.*?\n\}', '', s, flags=re.S):
+        violations.append('app/index.html: sanitizeForeignIngredient() is defined but never called — foreign (Public-shelf) ingredients would reach innerHTML unescaped (stored XSS).')
 
 def main():
     violations = []
