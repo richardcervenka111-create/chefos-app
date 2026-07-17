@@ -433,6 +433,7 @@ const DAYS = [
       'Kitchen Reports: hlavný admin si môže pripnúť ktorúkoľvek kuchyňu navrch (📌, pamätá si zariadenie)',
       'Večer: Connections zjednodušené (Invite Friend priamo, Share My Recipe s výberom konkrétneho priateľa + upozornením — db/143); Kitchen Reports zoznam predizajnovaný; AI Usage aj pre Kitchen Adminov s koláčom per užívateľ (db/142); Náklady s klikacími časovými líniami (deň/týždeň/mesiac/rok); duplicitná ochrana Public ingrediencií; 97.73 CHF upresnené ako Claude predplatné; opravené dvojité „Add ingredients“ tlačidlo v receptoch',
       'Neskorý večer: Add Admin zlúčený do Admin Directory (rýchle presety v Edite); AI Usage demo dáta pre predvádzanie (protonmail demo režim); AI druhá kontrola duplicít ingrediencií (Haiku rozozná iný jazyk/preklep); recepty sa otvárajú vždy navrchu a návrat do zoznamu drží pozíciu; Gronda research v docs/GRONDA_RESEARCH.md',
+      '🩺 Deep health check (večer, na Richardovu žiadosť): 46 tabuliek / 0 bez RLS / 157 politík / 0 public bucketov / 0 chýb za 24 h; ai_usage už reálne zapisuje (8 volaní), recipe_shares 1 (zdieľanie po oprave funguje). NÁLEZ + oprava: notify-access-request edge funkcia nebola nasadená (žiadosti o prístup ticho neposielali email) — nasadená. Otvorené: AI Testing Mode stále ON (vypnúť pred trialom, t166) a 1 aktívna pozvánka na hlavnú kuchyňu na overenie. Odškrtnuté počas večera: xlsx sken, bulk delete, Invoice Scan v2, My Ingredients súkromie (test Tajná marináda), HACCP viditeľnosť, dlhé podržania — mapa funkcií 77/24/7. Opravené: režimová izolácia ingrediencií, priečinok zdieľaných surovín, ikony Add Project, scroll pamäť všade',
       'Noc: opravená rekurzia RLS pri per-friend zdieľaní (db/144, SECURITY DEFINER helpery); upozornenia rozšírené aj na komenty pri obľúbených public/ChefOS receptoch (cez master id aj z cudzích kuchýň); koláč nákladov s filtrom (klik v legende odráta/priráta); Gronda infograf pripnutý do Internal Docs (gronda.html)',
       '🍽️ Michelin-chef prepis KOMPLET, prestavaný efektívne (db/141): všetkých 183 receptov knižnice (173 + 10 povýšených komunitných od užívateľov) má 5 profesionálnych polí, cez title-kľúč platné vo všetkých kuchyniach naraz; ázijské výnimky doplnené. Cestou opravený incident s kódovaním schránky (skomolená diakritika) — všetko preverené: 183/183, 0 prázdnych, 0 skomolených',
     ],
@@ -655,6 +656,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 17:46" data-en="🔄 ChefOS state as of Jul 17, 2026, 17:46">🔄 Stav ChefOS k 17. 7. 2026, 17:46</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 18:39" data-en="🔄 ChefOS state as of Jul 17, 2026, 18:39">🔄 Stav ChefOS k 17. 7. 2026, 18:39</div>
 </body>
 </html>
