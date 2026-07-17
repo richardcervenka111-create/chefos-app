@@ -726,31 +726,32 @@ function renderTasksPerDay(){
 function renderFeaturesOverTime(){
   const el = document.getElementById('featuresOverTimeChart');
   if(!el) return;
+  // Stacked bars (Richard, 17.7.: "vyzobraz takýmto grafom") — one bar per day, the three
+  // statuses stacked on top of each other, total on top. Grows by one bar per recorded day.
   const SER = [
     { key:'ok', label:'Funkčné', color:'#4ADE80' },
     { key:'test', label:'Čaká na test', color:'#FB923C' },
     { key:'plan', label:'Naplánované', color:'#FF7A68' },
-    { key:'total', label:'Spolu', color:'#34F7D7' },
   ];
   const rows = FEATURE_COUNT_HISTORY.map(r=>({ ...r, total: r.ok + r.test + r.plan }));
   const max = Math.max(...rows.map(r=>r.total));
-  const BW = 20, IG = 4, GG = 26, H = 150, TOP = 18, LBL = 30;
-  const groupW = SER.length * (BW + IG) - IG;
-  const W = rows.length * (groupW + GG) + GG;
-  const bars = rows.map((r,gi)=>{
-    const gx = GG + gi * (groupW + GG);
-    const inner = SER.map((s,si)=>{
+  const BW = 40, GAP = 16, H = 170, TOP = 20, LBL = 30;
+  const W = Math.max(rows.length * (BW + GAP) + GAP, 3 * 128 + GAP);
+  const bars = rows.map((r,i)=>{
+    const x = GAP + i * (BW + GAP);
+    let yCursor = TOP + H;
+    const segs = SER.map(s=>{
       const v = r[s.key];
-      const h = Math.max(3, Math.round(v / max * H));
-      const x = gx + si * (BW + IG), y = TOP + H - h;
-      return `<g><title>${s.label}: ${v}</title>
-        <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="3" fill="${s.color}"/>
-        <text x="${x+BW/2}" y="${y-4}" text-anchor="middle" font-size="9.5" fill="var(--ink)">${v}</text></g>`;
+      const h = max ? Math.max(v > 0 ? 2 : 0, Math.round(v / max * H)) : 0;
+      yCursor -= h;
+      return `<rect x="${x}" y="${yCursor}" width="${BW}" height="${h}" fill="${s.color}"><title>${s.label}: ${v}</title></rect>`;
     }).join('');
-    return inner + `<text x="${gx+groupW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(r.date)}</text>`;
+    return `<g>${segs}
+      <text x="${x+BW/2}" y="${yCursor-6}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${r.total}</text>
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(r.date)}</text></g>`;
   }).join('');
-  const legend = SER.map((s,i)=>`<rect x="${GG + i*118}" y="${TOP+H+22}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GG + i*118 + 13}" y="${TOP+H+30}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text>`).join('');
-  el.innerHTML = `<svg width="${Math.max(W, GG + 4*118)}" height="${TOP+H+LBL+10}" viewBox="0 0 ${Math.max(W, GG + 4*118)} ${TOP+H+LBL+10}">${bars}${legend}</svg>`;
+  const legend = SER.map((s,i)=>`<rect x="${GAP + i*128}" y="${TOP+H+24}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GAP + i*128 + 13}" y="${TOP+H+32}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text>`).join('');
+  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+14}" viewBox="0 0 ${W} ${TOP+H+LBL+14}">${bars}${legend}</svg>`;
 }
 function openDayFromChart(date){
   document.querySelectorAll('.month-block, .week-block').forEach(b=>b.classList.add('open'));
