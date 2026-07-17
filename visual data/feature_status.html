@@ -64,6 +64,13 @@
   .legend-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
   .legend-item b{ color:var(--ink); font-weight:700; }
 
+  .lang-toggle{
+    background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim);
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:20px; cursor:pointer; transition:border-color .15s, color .15s;
+    font-family:inherit;
+  }
+  .lang-toggle:hover{ border-color:var(--accent-dim); color:var(--accent); }
   .donut-row{ display:flex; align-items:center; gap:26px; margin-top:24px; flex-wrap:wrap; }
   #featureDonut .seg{ cursor:pointer; transition:opacity .15s, stroke-width .15s; }
   #featureDonut .seg.off{ opacity:.22; }
@@ -133,19 +140,25 @@
   <div class="hero-inner">
     <div class="topline">
       <div class="brandmark"><span class="mark">👨‍🍳</span><span class="word">ChefOS</span></div>
-      <div class="acct-toggle" id="acctToggle">
-        <button id="acctPersonalBtn" onclick="setAcctView('personal')">👤 Personal</button>
-        <button id="acctCompanyBtn" onclick="setAcctView('company')">🏢 Company</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="acct-toggle" id="acctToggle">
+          <button id="acctPersonalBtn" onclick="setAcctView('personal')">👤 Personal</button>
+          <button id="acctCompanyBtn" onclick="setAcctView('company')">🏢 Company</button>
+        </div>
+        <!-- SK/EN toggle (Richard, 17.7.) — same shared chefos_doc_lang key as every other doc.
+             Chrome is fully bilingual; feature names/descriptions stay Slovak for now (same
+             honest boundary as monetization card bodies). -->
+        <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
       </div>
     </div>
-    <p class="kicker">Mapa funkcií</p>
-    <h1 class="title">Čo <em>ChefOS</em> vie dnes</h1>
-    <p class="lede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. <b style="color:var(--ink);">Klikni na hociktorú funkciu</b> a otvorí sa okno s vysvetlením, čo presne robí. Toggle hore prepína pohľad presne ako v appke — veci iba pre Personal alebo iba pre Company účty sa podľa toho stlmia.</p>
+    <p class="kicker" data-sk="Mapa funkcií" data-en="Feature map">Mapa funkcií</p>
+    <h1 class="title" id="pageTitle">Čo <em>ChefOS</em> vie dnes</h1>
+    <p class="lede" id="pageLede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. <b style="color:var(--ink);">Klikni na hociktorú funkciu</b> a otvorí sa okno s vysvetlením, čo presne robí. Toggle hore prepína pohľad presne ako v appke — veci iba pre Personal alebo iba pre Company účty sa podľa toho stlmia.</p>
     <div class="legend">
-      <div class="legend-item active" id="legendOk" onclick="toggleStatusFilter('ok')"><span class="legend-dot" style="background:var(--ok);"></span>Funkčné, otestované naživo — <b id="legendOkCount"></b></div>
-      <div class="legend-item active" id="legendTest" onclick="toggleStatusFilter('test')"><span class="legend-dot" style="background:var(--test);"></span>Postavené, čaká na test naživo — <b id="legendTestCount"></b></div>
-      <div class="legend-item active" id="legendPlan" onclick="toggleStatusFilter('plan')"><span class="legend-dot" style="background:var(--plan);"></span>Naplánované, ešte nepostavené — <b id="legendPlanCount"></b></div>
-      <div class="legend-item" id="legendAdmin" onclick="toggleAdminOnlyFilter()"><span class="legend-dot" style="background:var(--gold);"></span>🛡️ Iba Kitchen Admin — <b id="legendAdminCount"></b></div>
+      <div class="legend-item active" id="legendOk" onclick="toggleStatusFilter('ok')"><span class="legend-dot" style="background:var(--ok);"></span><span data-sk="Funkčné, otestované naživo — " data-en="Working, verified live — ">Funkčné, otestované naživo — </span><b id="legendOkCount"></b></div>
+      <div class="legend-item active" id="legendTest" onclick="toggleStatusFilter('test')"><span class="legend-dot" style="background:var(--test);"></span><span data-sk="Postavené, čaká na test naživo — " data-en="Built, awaiting live test — ">Postavené, čaká na test naživo — </span><b id="legendTestCount"></b></div>
+      <div class="legend-item active" id="legendPlan" onclick="toggleStatusFilter('plan')"><span class="legend-dot" style="background:var(--plan);"></span><span data-sk="Naplánované, ešte nepostavené — " data-en="Planned, not built yet — ">Naplánované, ešte nepostavené — </span><b id="legendPlanCount"></b></div>
+      <div class="legend-item" id="legendAdmin" onclick="toggleAdminOnlyFilter()"><span class="legend-dot" style="background:var(--gold);"></span><span data-sk="🛡️ Iba Kitchen Admin — " data-en="🛡️ Kitchen Admin only — ">🛡️ Iba Kitchen Admin — </span><b id="legendAdminCount"></b></div>
     </div>
     <!-- Interactive status donut (Richard, 17.7.): the same three statuses as the legend, as a
          pie — CLICK a segment to filter the list below (same toggle as the legend chips).
@@ -153,10 +166,10 @@
     <div class="donut-row">
       <svg id="featureDonut" viewBox="0 0 120 120" style="width:170px; height:170px; flex:none;"></svg>
       <div class="pulse-strip" style="flex:1; min-width:260px; margin-top:0;">
-        <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl">Funkčné</div></div>
-        <div class="pulse-cell test"><div class="num" id="pulseTest"></div><div class="lbl">Čaká na test</div></div>
-        <div class="pulse-cell plan"><div class="num" id="pulsePlan"></div><div class="lbl">Naplánované</div></div>
-        <div class="pulse-cell total"><div class="num" id="pulseTotal"></div><div class="lbl">Spolu funkcií</div></div>
+        <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl" data-sk="Funkčné" data-en="Working">Funkčné</div></div>
+        <div class="pulse-cell test"><div class="num" id="pulseTest"></div><div class="lbl" data-sk="Čaká na test" data-en="Awaiting test">Čaká na test</div></div>
+        <div class="pulse-cell plan"><div class="num" id="pulsePlan"></div><div class="lbl" data-sk="Naplánované" data-en="Planned">Naplánované</div></div>
+        <div class="pulse-cell total"><div class="num" id="pulseTotal"></div><div class="lbl" data-sk="Spolu funkcií" data-en="Features total">Spolu funkcií</div></div>
       </div>
     </div>
   </div>
@@ -176,7 +189,7 @@
     <span class="m-status" id="mStatus"></span>
     <p class="m-desc" id="mDesc"></p>
     <div class="m-tags" id="mTags"></div>
-    <button class="m-close" onclick="closeFeatureModal()">Zavrieť</button>
+    <button class="m-close" onclick="closeFeatureModal()" data-sk="Zavrieť" data-en="Close">Zavrieť</button>
   </div>
 </div>
 
@@ -368,7 +381,7 @@ function renderModules(){
         <div class="module-head">
           <div class="module-icon">${mod.icon}</div>
           <div class="module-title">${mod.title}</div>
-          <div class="module-count">${cards.length}${cards.length !== mod.items.length ? ' / ' + mod.items.length : ''} funkcií</div>
+          <div class="module-count">${cards.length}${cards.length !== mod.items.length ? ' / ' + mod.items.length : ''} ${_lang==='sk'?'funkcií':'features'}</div>
         </div>
         <div class="feature-grid">${cards.join('')}</div>
       </div>
@@ -409,7 +422,7 @@ function renderDonut(ok, test, plan){
   }).join('');
   svg.innerHTML = circles +
     `<text class="center-num" x="60" y="58" text-anchor="middle" onclick="resetStatusFilters()">${total}</text>` +
-    `<text class="center-lbl" x="60" y="72" text-anchor="middle">funkcií spolu</text>`;
+    `<text class="center-lbl" x="60" y="72" text-anchor="middle">${_lang==='sk'?'funkcií spolu':'features total'}</text>`;
 }
 function resetStatusFilters(){
   ['ok','test','plan'].forEach(s=>activeStatuses.add(s));
@@ -425,7 +438,11 @@ function setAcctView(type){
 }
 
 /* Detail modal (Richard, 17.7.) — tap a card, read what the feature actually does. */
-const STATUS_LABELS = { ok:'Funkčné, otestované naživo', test:'Postavené, čaká na test naživo', plan:'Naplánované, ešte nepostavené' };
+const STATUS_LABELS_I18N = {
+  sk: { ok:'Funkčné, otestované naživo', test:'Postavené, čaká na test naživo', plan:'Naplánované, ešte nepostavené' },
+  en: { ok:'Working, verified live', test:'Built, awaiting live test', plan:'Planned, not built yet' },
+};
+const STATUS_LABELS = new Proxy({}, { get: (_, k) => STATUS_LABELS_I18N[_lang][k] });
 function openFeatureModal(mi, ii){
   const mod = MODULES[mi], it = mod.items[ii];
   document.getElementById('mModule').textContent = mod.icon + ' ' + mod.title;
@@ -444,6 +461,31 @@ function closeFeatureModal(){
 }
 document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeFeatureModal(); });
 
+/* SK/EN toggle (Richard, 17.7.) — shared chefos_doc_lang key across every /visual data/ doc.
+   Chrome is bilingual; feature names/descs stay Slovak for now (honest boundary, noted in the
+   EN lede). */
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLang(){
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+  });
+  document.getElementById('pageTitle').innerHTML = _lang === 'sk'
+    ? 'Čo <em>ChefOS</em> vie dnes'
+    : 'What <em>ChefOS</em> can do today';
+  document.getElementById('pageLede').innerHTML = _lang === 'sk'
+    ? 'Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. <b style="color:var(--ink);">Klikni na hociktorú funkciu</b> a otvorí sa okno s vysvetlením, čo presne robí. Toggle hore prepína pohľad presne ako v appke — veci iba pre Personal alebo iba pre Company účty sa podľa toho stlmia.'
+    : 'The complete list of app features, each with its real status. <b style="color:var(--ink);">Click any feature</b> to open an explanation of exactly what it does. The toggle above switches the view like in the app — Personal-only or Company-only items dim accordingly. <i>(Feature names &amp; descriptions stay in Slovak for now.)</i>';
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _lang;
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLang();
+  renderModules();
+}
+
+applyLang();
 setAcctView('personal');
 </script>
 </body>
