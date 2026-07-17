@@ -1558,6 +1558,69 @@ html.theme-new #loginView .box{ border-radius:24px; border-color:var(--hairline)
 html.theme-new ::selection{ background:var(--teal); color:#0A1A2F; }
 html.theme-new ::-webkit-scrollbar{ width:10px; height:10px; }
 html.theme-new ::-webkit-scrollbar-thumb{ background:var(--nv-3); border-radius:999px; border:2px solid var(--nv-0); }
+
+/* ---- Celok 2 · Tlačidlá, chips, formuláre, sheety ---- */
+html.theme-new .save-btn{
+  min-height:48px; padding:0 22px; border-radius:12px; font-weight:700; font-size:15px;
+  color:#06231D; background:linear-gradient(160deg, #5FF9E0, var(--teal-deep));
+  box-shadow:var(--tn-glow);
+  transition:filter var(--tn-fast), box-shadow var(--tn-fast), transform var(--tn-fast);
+}
+html.theme-new .save-btn:hover{ filter:brightness(1.06); box-shadow:0 0 0 1px rgba(52,247,215,.5), 0 8px 32px rgba(52,247,215,.24); }
+html.theme-new .save-btn:active{ transform:scale(.97); }
+html.theme-new .sheet-cancel{
+  min-height:48px; border-radius:12px; border:1px solid var(--hairline); color:var(--ink);
+  font-weight:700; background:transparent; transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .sheet-cancel:hover{ border-color:var(--teal); color:var(--teal); background:var(--teal-wash); }
+html.theme-new .add-row-btn{
+  min-height:44px; border:1px dashed var(--hairline); border-radius:12px; color:var(--teal);
+  font-weight:600; transition:border-color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .add-row-btn:hover{ border-color:rgba(52,247,215,.4); background:var(--teal-wash); }
+html.theme-new .danger-btn{
+  min-height:44px; border-radius:12px;
+  transition:background var(--tn-fast), border-color var(--tn-fast);
+}
+html.theme-new .danger-btn:hover{ background:rgba(255,122,104,.08); border-color:#FF7A68; }
+html.theme-new .task-status-btn{
+  min-height:44px; border-radius:10px; border:1px solid var(--hairline); background:var(--nv-1);
+  transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .task-status-btn:hover{ border-color:rgba(52,247,215,.35); }
+html.theme-new .task-status-btn.active{ background:var(--teal); border-color:var(--teal); color:#0A1A2F; opacity:1; }
+html.theme-new .chip{
+  min-height:44px; display:inline-flex; align-items:center; font-weight:600;
+  border:1px solid var(--hairline);
+  transition:border-color var(--tn-fast), color var(--tn-fast), background var(--tn-fast);
+}
+html.theme-new .chip:hover{ border-color:rgba(52,247,215,.35); color:var(--ink); }
+html.theme-new .chip.active{ background:var(--teal); border-color:var(--teal); color:#0A1A2F; font-weight:700; }
+html.theme-new .form-label{
+  font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  color:var(--ink-faint);
+}
+html.theme-new .form-field{
+  min-height:48px; background:var(--nv-1); border:1px solid var(--hairline); border-radius:12px;
+  transition:border-color var(--tn-fast), box-shadow var(--tn-fast);
+}
+html.theme-new .form-field:focus{ border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-wash); outline:none; }
+html.theme-new .sheet{
+  background:var(--nv-1); border:1px solid var(--hairline); border-bottom:none;
+  border-radius:24px 24px 0 0; padding-top:12px;
+  animation:tnSheetUp var(--tn-slow);
+}
+@keyframes tnSheetUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion: reduce){ html.theme-new .sheet{ animation:none; } }
+html.theme-new .sheet-handle{ background:var(--nv-3); width:44px; }
+html.theme-new .sheet-title{ font-weight:800; letter-spacing:-.01em; }
+html.theme-new .sheet-option{
+  border-top:1px solid var(--hairline); border-radius:10px; min-height:56px;
+  transition:background var(--tn-fast);
+}
+html.theme-new .sheet-option:hover{ background:var(--teal-wash); }
+html.theme-new .form-status{ color:var(--teal); }
+html.theme-new .form-status.error{ color:#FF7A68; }
 </style>
 <!-- Apply the saved Appearance theme before first paint (bod 10, 16.7.) — this has to run here,
      not in the main script at the bottom of the page, or the page would flash dark-then-light
