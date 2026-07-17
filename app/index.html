@@ -1735,6 +1735,17 @@
   </div>
 </div>
 
+<!-- Full contact detail (Richard, 17.7.) — head admin taps a contact to see everything on them
+     plus their matching ChefOS account, if any. -->
+<div id="emailContactDetailOverlay" class="sheet-overlay" onclick="if(event.target===this) closeEmailContactDetail()">
+  <div class="sheet" style="max-height:82vh; overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="emailContactDetailTitle" style="word-break:break-all;"></div>
+    <div id="emailContactDetailBody" style="margin-top:8px;"></div>
+    <button class="sheet-cancel" style="margin-top:12px;" onclick="closeEmailContactDetail()">Close</button>
+  </div>
+</div>
+
 <!-- Generic reading log used by Goods Receiving / Core Cooking Temp / Cooling Log — same
      shape (a label, an optional numeric reading, an OK/Problem judgement, a note), so one
      screen serves all three via HACCP_MEASUREMENT_CONFIG instead of three near-identical ones.
@@ -10630,17 +10641,61 @@ async function openEmailContacts(){
   _emailContactRows = data || [];
   if(!_emailContactRows.length){ el.innerHTML = '<div class="empty-state">No emails recorded yet.</div>'; return; }
   const sourceLabel = { access_request:'requested access', invite_sent:'sent an invite', signup:'signed up' };
-  el.innerHTML = _emailContactRows.map(r=>`
-    <div class="task-row">
+  // Numbering (Richard, 17.7.): the FIRST contact sits at the bottom with #1, the newest on top
+  // with the highest number. Rows are sorted newest-first, so index 0 = highest number = N.
+  const N = _emailContactRows.length;
+  el.innerHTML = _emailContactRows.map((r,i)=>`
+    <div class="task-row" onclick="openEmailContactDetail('${r.id}')" style="cursor:pointer;">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
-          <div class="name task-text">${r.email.replace(/</g,'&lt;')}</div>
+          <div class="name task-text"><span style="color:var(--ink-faint); font-variant-numeric:tabular-nums;">#${N - i}</span> &nbsp;${r.email.replace(/</g,'&lt;')}</div>
           <div class="meta">${sourceLabel[r.source] || r.source} · ${r.status} · ${new Date(r.last_seen_at).toLocaleDateString('sk-SK')}</div>
         </div>
+        <span style="font-size:18px;">›</span>
       </div>
     </div>
   `).join('');
 }
+/* Full contact detail (Richard, 17.7.: head admin can see their whole record). Everything we
+   hold on this contact, plus — if the email belongs to a real ChefOS account — their profile
+   basics, fetched via the admin directory RPC (head-admin gated server-side). */
+async function openEmailContactDetail(id){
+  const r = _emailContactRows.find(x=>x.id===id);
+  if(!r) return;
+  const sourceLabel = { access_request:'requested access', invite_sent:'sent an invite', signup:'signed up' };
+  document.getElementById('emailContactDetailTitle').textContent = r.email;
+  const body = document.getElementById('emailContactDetailBody');
+  const line = (k,v)=> v ? `<div class="wt-settings-row"><div>${k}</div><div>${String(v).replace(/</g,'&lt;')}</div></div>` : '';
+  body.innerHTML =
+    line('Source', sourceLabel[r.source] || r.source) +
+    line('Status', r.status) +
+    line('First seen', new Date(r.first_seen_at).toLocaleString('sk-SK')) +
+    line('Last seen', new Date(r.last_seen_at).toLocaleString('sk-SK')) +
+    line('Notes', r.notes) +
+    '<div id="emailContactProfileSlot"><p class="lede" style="margin-top:10px;">Looking up their ChefOS account…</p></div>';
+  document.getElementById('emailContactDetailOverlay').classList.add('open');
+  // Look up a matching ChefOS account directly on profiles — the head admin has RLS read access
+  // to every profile (same query the Admin Directory uses), so no special RPC is needed. Only
+  // the same safe columns the directory reads (never contract/wage columns).
+  try{
+    const { data: matches } = await sb.from('profiles')
+      .select('id, email, full_name, is_admin, admin_perms, account_type, kitchen_id')
+      .ilike('email', r.email);
+    const slot = document.getElementById('emailContactProfileSlot');
+    const p = (matches || [])[0];
+    if(p){
+      const role = p.is_admin ? 'Head Admin' : ((p.admin_perms && Object.values(p.admin_perms).some(Boolean)) ? 'Kitchen Admin' : 'Member');
+      slot.innerHTML = `<div class="section-label" style="margin-top:14px;">👤 ChefOS account</div>` +
+        line('Name', p.full_name || 'no name set yet') + line('Role', role) +
+        line('Account type', p.account_type) + line('Kitchen ID', p.kitchen_id);
+    } else {
+      slot.innerHTML = `<p class="lede" style="margin-top:10px;">No ChefOS account on this email yet — outreach contact only.</p>`;
+    }
+  }catch(e){
+    document.getElementById('emailContactProfileSlot').innerHTML = `<p class="lede" style="margin-top:10px;">Couldn’t load account info (${(e.message||e)}).</p>`;
+  }
+}
+function closeEmailContactDetail(){ document.getElementById('emailContactDetailOverlay').classList.remove('open'); }
 function closeEmailContacts(){ document.getElementById('emailContactsOverlay').classList.remove('open'); }
 function copyAllEmailContacts(){
   const statusEl = document.getElementById('emailContactsCopyStatus');
