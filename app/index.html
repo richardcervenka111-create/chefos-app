@@ -13291,11 +13291,13 @@ function _contextMenuTable(t){
   if(t.type === 'ingredient') return 'ingredients';
   if(t.type === 'ingredientList') return 'ingredient_lists';
   if(t.type === 'recipeList') return 'recipe_lists';
+  if(t.type === 'project') return 'projects';
   return 'prep_dishes';
 }
 async function _contextMenuRefresh(t){
   if(t.type === 'ingredientList'){ await showIngredientsHome(); return; }
   if(t.type === 'recipeList'){ await showRecipesHome(); return; }
+  if(t.type === 'project'){ await showCheckListProjects(); return; }
   await loadAppData();
   if(t.type === 'ingredient') renderIngredientList(); else await renderActiveStationView();
 }
@@ -13322,7 +13324,9 @@ async function itemContextDelete(){
   if(!t) return;
   const warning = (t.type === 'ingredientList' || t.type === 'recipeList')
     ? `Delete the list "${t.name}" AND everything in it? This can't be undone.`
-    : `Delete "${t.name}"? This can't be undone.`;
+    : t.type === 'project'
+      ? `Delete the project "${t.name}" AND its entire check list (all dishes, items and tasks)? This can't be undone.`
+      : `Delete "${t.name}"? This can't be undone.`;
   if(!confirm(warning)) return;
   let error;
   if(t.type === 'ingredient'){
@@ -13334,6 +13338,13 @@ async function itemContextDelete(){
   } else if(t.type === 'recipeList'){
     ({ error } = await sb.from('recipes').delete().eq('list_id', t.id));
     if(!error) ({ error } = await sb.from('recipe_lists').delete().eq('id', t.id));
+  } else if(t.type === 'project'){
+    // Dishes first (their items go via prep_items' ON DELETE CASCADE), then the flat tasks,
+    // then the project row itself (delete policy: db/128).
+    ({ error } = await sb.from('prep_dishes').delete().eq('project_id', t.id));
+    if(!error) ({ error } = await sb.from('tasks').delete().eq('project_id', t.id));
+    if(!error) ({ error } = await sb.from('projects').delete().eq('id', t.id));
+    if(!error && currentProjectId === t.id) currentProjectId = null;
   } else {
     ({ error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', t.id));
   }
@@ -13733,20 +13744,35 @@ async function showCheckListProjects(){
   currentProjects = data || [];
   renderCheckListProjectsGrid();
 }
+let _showHiddenProjects = false;
 function renderCheckListProjectsGrid(){
   const el = document.getElementById('checkListProjectsGrid');
   if(!el) return;
-  el.innerHTML = currentProjects.map(p=>`
-    <button class="home-tile" onclick="openProject('${p.id}')">
-      <span class="home-tile-icon">${p.icon || '📋'}</span>
-      <span class="home-tile-label">${(p.name||'Untitled').replace(/</g,'&lt;')}</span>
-    </button>
-  `).join('') + `
-    <button class="home-tile" onclick="openAddProject()">
-      <span class="home-tile-icon">➕</span>
-      <span class="home-tile-label">Add Project</span>
-    </button>
-  `;
+  el.innerHTML = '';
+  // Long-press on a project tile = the same Rename/Hide/Delete menu dishes and ingredient
+  // lists already have (Richard, 17.7.) — needs real elements, not an HTML string.
+  currentProjects.filter(p=>_showHiddenProjects || !p.hidden).forEach(p=>{
+    const btn = document.createElement('button');
+    btn.className = 'home-tile';
+    btn.innerHTML = `<span class="home-tile-icon">${p.icon || '📋'}</span><span class="home-tile-label">${(p.name||'Untitled').replace(/</g,'&lt;')}${p.hidden ? ' <span class="meta">(hidden)</span>' : ''}</span>`;
+    btn.onclick = ()=> openProject(p.id);
+    attachLongPress(btn, ()=> openItemContextMenu('project', p.id, p.name || 'Untitled', p.hidden));
+    el.appendChild(btn);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'home-tile';
+  addBtn.innerHTML = `<span class="home-tile-icon">➕</span><span class="home-tile-label">Add Project</span>`;
+  addBtn.onclick = openAddProject;
+  el.appendChild(addBtn);
+  const hiddenCount = currentProjects.filter(p=>p.hidden).length;
+  if(hiddenCount || _showHiddenProjects){
+    const toggle = document.createElement('button');
+    toggle.className = 'add-row-btn';
+    toggle.style.cssText = 'grid-column:1/-1; margin-top:6px;';
+    toggle.textContent = _showHiddenProjects ? 'Hide the hidden projects again' : `Show ${hiddenCount} hidden project${hiddenCount===1?'':'s'}`;
+    toggle.onclick = ()=>{ _showHiddenProjects = !_showHiddenProjects; renderCheckListProjectsGrid(); };
+    el.appendChild(toggle);
+  }
 }
 async function openProject(projectId){
   currentProjectId = projectId;
