@@ -13721,6 +13721,10 @@ function renderIngredientListsGrid(){
   };
   // Fixed shelves (Richard, 17.7., same as recipe shelves): NEVER renamable/deletable, but
   // hideable via long-press (per device). Only custom lists can be renamed/deleted.
+  // Mode isolation (Richard, 17.7. večer — protonmail test): personal shelves (My Ingredients
+  // + custom lists) belong to the PERSONAL profile; in Company mode they disappear entirely,
+  // exactly like My Recipes does — same Settings override (chefos_show_personal_in_company).
+  const showPersonalInCompany = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
   const hiddenShelves = getHiddenIngredientShelves();
   const fixedTile = (key, icon, label)=>{
     const isHidden = hiddenShelves.includes(key);
@@ -13729,14 +13733,16 @@ function renderIngredientListsGrid(){
       ()=>openItemContextMenu('ingredientShelf', key, label, isHidden, false));
   };
   fixedTile('chefos', '✨', 'ChefOS');
-  fixedTile('mine', '👤', 'My Ingredients');
+  if(showPersonalInCompany) fixedTile('mine', '👤', 'My Ingredients');
   fixedTile('public', '🌍', 'Public');
-  const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
-  visibleLists.forEach(l=>{
-    addTile(l.icon || '📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
-      ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
-  });
-  addTile('➕', 'New List', ()=>openNewIngredientListPrompt());
+  if(showPersonalInCompany){
+    const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
+    visibleLists.forEach(l=>{
+      addTile(l.icon || '📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
+        ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
+    });
+    addTile('➕', 'New List', ()=>openNewIngredientListPrompt());
+  }
   const hiddenCount = _ingredientLists.filter(l=>l.hidden).length + hiddenShelves.length;
   if(hiddenCount || _showHiddenIngredientLists){
     const toggle = document.createElement('button');
@@ -13961,6 +13967,12 @@ function canManageSharedIngredients(){
   return currentIsAdmin || Object.values(currentAdminPerms || {}).some(Boolean);
 }
 function showIngredients(){
+  // Mode isolation (Richard, 17.7. večer): a Company profile never lands on a personal shelf —
+  // My Ingredients and custom lists redirect to ChefOS, same rule as the recipes screen.
+  const personalAllowed = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
+  if(!personalAllowed && ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'public'){
+    ingredientSourceFilter = 'chefos';
+  }
   logEvent('view_opened', {view:'ingredients', source:ingredientSourceFilter});
   hideAllViews();
   document.getElementById('ingredientsView').style.display = 'block';
