@@ -7928,14 +7928,27 @@ async function krRenderRoot(){
     if(dirErr){
       slot.innerHTML = `<p class="lede">Could not load kitchens: ${dirErr.message} — has db/113 been run?</p>`;
     } else {
-      slot.innerHTML = krLabel('All kitchens') + (dir || []).map(k=>`
-        <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
-          <div class="name task-text">🏢 ${krEsc(k.kitchen_name||'Unnamed')}</div>
+      // Pin-to-top (Richard, 17.7.): any kitchen can be pinned above the rest — remembered per
+      // device (localStorage), tap the 📌 to pin/unpin.
+      const pinnedId = localStorage.getItem('chefos_kr_pinned_kitchen');
+      const sorted = (dir || []).slice().sort((a,b)=> (b.kitchen_id===pinnedId ? 1 : 0) - (a.kitchen_id===pinnedId ? 1 : 0));
+      slot.innerHTML = krLabel('All kitchens') + sorted.map(k=>{
+        const isPinned = k.kitchen_id === pinnedId;
+        return `
+        <div class="task-row" style="${isPinned ? 'border:1px solid var(--accent); border-radius:12px;' : ''}"><div class="task-row-top"><div class="info" style="flex:1;">
+          <div class="name task-text">🏢 ${krEsc(k.kitchen_name||'Unnamed')}${isPinned ? ' <span style="font-size:10px; background:var(--accent); color:#0A1A2F; border-radius:999px; padding:1px 7px; font-weight:700;">pinned</span>' : ''}</div>
           <div class="meta">${krEsc((k.admin_name || k.admin_email) ? (k.admin_name ? k.admin_name + (k.admin_email ? ' · ' + k.admin_email : '') : k.admin_email) : 'no admin yet')} · ${k.member_count} member${k.member_count==1?'':'s'}</div>
-        </div></div></div>
-      `).join('') + krLabel("Your kitchen's reports");
+        </div><button class="add-row-btn" style="flex:none; padding:6px 10px; ${isPinned ? 'color:var(--accent);' : 'opacity:.55;'}" onclick="krTogglePin('${k.kitchen_id}', event)" title="${isPinned ? 'Unpin' : 'Pin to top'}">📌</button></div></div>
+      `;}).join('') + krLabel("Your kitchen's reports");
     }
   }
+}
+function krTogglePin(kitchenId, ev){
+  if(ev) ev.stopPropagation();
+  const cur = localStorage.getItem('chefos_kr_pinned_kitchen');
+  if(cur === kitchenId) localStorage.removeItem('chefos_kr_pinned_kitchen');
+  else localStorage.setItem('chefos_kr_pinned_kitchen', kitchenId);
+  krRenderRoot();
 }
 
 /* ---------- 👥 Team Members ---------- */
@@ -8555,6 +8568,28 @@ async function renderTeamGate(){
   // Approved — join the kitchen from an invite link, or (super-admin only) create a brand
   // new one from scratch.
   const { invite, legacyKitchenId } = getJoinTargetFromUrl();
+  // ?friend wins over ?invite (Richard, 17.7. PRIORITA): old dual-purpose Add Friend links
+  // (pre-17.7. personal QRs and their emails) carry BOTH params — those were always meant as
+  // friend invites, and letting the ?invite half run is exactly how Paula/Filip/Marc ended up
+  // as Richard's team members instead of his friends (repaired one-off in db/140). Any URL
+  // with ?friend now takes the friend-only path below, unconditionally; joining a team happens
+  // ONLY through real team links (team join code/QR or an admin invite, which never carry
+  // ?friend).
+  const dualFriendId = new URLSearchParams(location.search).get('friend');
+  if(dualFriendId && dualFriendId !== currentUser.id && invite){
+    el.innerHTML = `<p class="login-tagline">Welcome to ChefOS</p><p class="lede">Setting up your own kitchen…</p>`;
+    const { error: pkErr } = await sb.rpc('ensure_personal_kitchen');
+    if(pkErr){
+      logClientError('ensure_personal_kitchen failed (dual link): ' + pkErr.message);
+      el.innerHTML = `<p class="login-tagline">You're approved</p><p class="lede">Could not finish setting up automatically (${pkErr.message}) — ask whoever invited you.</p>`;
+      return;
+    }
+    const { error: connErr } = await sb.from('chef_connections').insert({ user_a: currentUser.id, user_b: dualFriendId });
+    if(connErr && connErr.code !== '23505') console.error('chef_connections insert failed', connErr);
+    history.replaceState(null, '', location.pathname);
+    await startApp();
+    return;
+  }
   let targetKitchenId = null;
   let invalidInviteReason = '';
   if(invite){
@@ -8672,6 +8707,14 @@ async function joinKitchenViaLink(kitchenId){
   const urlParams = new URLSearchParams(location.search);
   const friendId = urlParams.get('friend');
   const inviteId = urlParams.get('invite');
+  // Belt-and-braces (Richard, 17.7. PRIORITA): a URL carrying ?friend is an Add Friend link —
+  // renderTeamGate() already routes it away from here, but if this ever gets reached anyway,
+  // refuse to move the person into the inviter's kitchen (db/140 documents the incident).
+  if(friendId && friendId !== currentUser.id){
+    statusEl.textContent = 'This is a friend link, not a team invite — reopen the app and it will set up your own kitchen.';
+    logClientError('joinKitchenViaLink blocked: friend link almost joined kitchen ' + kitchenId);
+    return;
+  }
   const { error } = await sb.from('profiles').update({ kitchen_id: kitchenId, in_team: true }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not join: ' + error.message; return; }
   if(friendId && friendId !== currentUser.id){

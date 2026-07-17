@@ -427,8 +427,13 @@ const DAYS = [
       'Tutoriály per obrazovka: každá hlavná obrazovka sa sama vysvetlí pri prvom otvorení + trvalý ❓ v hornej lište; onboarding zoštíhlený na Welcome + Home; srdiečko What\'s New odstránené ako nadbytočné',
       'Plná bezpečnostná revízia na Richardovu žiadosť: uzavretý PUBLIC bucket zmlúv (db/134 private + owner-scoped + signed URLs), uzavretý cross-kitchen stored-XSS (escapery na dátovej hranici), obe triedy odteraz trvalo blokované auditormi; živý DB health check čistý (0 tabuliek bez RLS)',
       'Email Contacts očíslované + plný detail kontaktu s prepojeným účtom; Feedback inbox potvrdene len pre hlavného admina; upratanie dokumentov: features.html + starý status snapshot odstránené, Internal Docs = presne 11 ponechaných dokumentov',
+      'Popoludnie: celý Denník preložený do slovenčiny; merač odpracovaných hodín (~84 h, 43,9 h presne z gitu, sadzba 45 CHF/h); nový tab Náklady v Biznise s koláčovým grafom všetkých doterajších aj budúcich nákladov',
+      'AI Usage per užívateľ (db/139): claude-proxy zapisuje každé AI volanie (kto/funkcia/tokeny/cena), živý prehľad Admin → 📈 AI Usage — Claude Platform vidí len spoločný kľúč, toto je jediné miesto s rozdelením',
+      '🔴→✅ PRIORITA: staré dual-purpose Add Friend QR linky ťahali ľudí do Richardovho tímu (Paula, Filip, Marc — Marc ešte dnes cez stále aktívnu starú pozvánku) a 3 ďalší ostali úplne bez kuchyne. Oprava dát db/140 (6 ľudí → vlastné kuchyne + priateľstvá, staré pozvánky odvolané) + trvalá oprava: ?friend má VŽDY prednosť pred ?invite',
+      'Kitchen Reports: hlavný admin si môže pripnúť ktorúkoľvek kuchyňu navrch (📌, pamätá si zariadenie)',
+      '🍽️ Michelin-chef prepis KOMPLET, prestavaný efektívne (db/141): všetkých 183 receptov knižnice (173 + 10 povýšených komunitných od užívateľov) má 5 profesionálnych polí, cez title-kľúč platné vo všetkých kuchyniach naraz; ázijské výnimky doplnené. Cestou opravený incident s kódovaním schránky (skomolená diakritika) — všetko preverené: 183/183, 0 prázdnych, 0 skomolených',
     ],
-    planned: 'Skonsolidovať 11 interných dokumentov do 5 s prepojeniami (Richardov návrh čaká). Pokračovať v testovaní funkcií: RLS test súkromia „Moje“ z dvoch účtov. Nebenerwerb + Einzelfirma ostávajú blokátormi príjmu (deadline 20.7.).'
+    planned: 'Otestovať naživo: AI Usage po prvom AI volaní, priateľské QR s novým účtom, pripnutie v Kitchen Reports, obohatené recepty v appke. RLS test súkromia „Moje“ z dvoch účtov. Nebenerwerb + Einzelfirma ostávajú blokátormi príjmu (deadline 20.7.).'
   },
 ];
 
@@ -647,6 +652,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:53" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:53">🔄 Stav ChefOS k 17. 7. 2026, 14:53</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 16:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 16:40">🔄 Stav ChefOS k 17. 7. 2026, 16:40</div>
 </body>
 </html>
