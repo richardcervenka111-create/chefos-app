@@ -11305,11 +11305,12 @@ function recipeOnCurrentShelf(r){
   // 17.7.: "createdBy !== me" excluded the author's own company recipes, so a company admin's
   // saves silently fell into My Recipes instead of Company Recipes).
   if(recipeSourceFilter === 'company') return !!r.createdBy && !r.isPersonal;
-  // Mine = my own recipes; on a COMPANY account only the truly personal ones (the non-personal
-  // ones live on the Company shelf now). On a PERSONAL account it keeps ALL my authored
-  // recipes — including legacy rows from before db/97 existed (is_personal=false back then),
-  // which must not vanish from the only shelf a personal account has.
-  if(recipeSourceFilter === 'mine') return r.createdBy === currentUser.id && !r.listId && (currentAccountType === 'company' ? r.isPersonal : true);
+  // Mine = my own TRULY PERSONAL recipes, in BOTH modes. The old "personal mode shows all my
+  // authored rows" fallback (meant to keep pre-db/97 legacy rows visible) also leaked company
+  // saves onto the personal shelf when the same person toggles modes (Richard, 17.7.:
+  // "toto sa jednoducho nemôže stávať"). Legacy rows are fixed in the DATA instead — db/130
+  // marks authored non-personal rows personal for everyone who can't even enter company mode.
+  if(recipeSourceFilter === 'mine') return r.createdBy === currentUser.id && !r.listId && r.isPersonal;
   return r.listId === recipeSourceFilter;
 }
 /* Same shelf rule as recipeOnCurrentShelf(), expressed as Supabase query filters instead of a
@@ -11321,9 +11322,7 @@ function applyRecipeShelfQueryFilter(query){
   // regardless of author; mine = my rows, personal-only when operating as a Company account.
   if(recipeSourceFilter === 'company') return query.not('created_by', 'is', null).eq('is_personal', false);
   if(recipeSourceFilter === 'mine'){
-    let q = query.eq('created_by', currentUser.id).is('list_id', null);
-    if(currentAccountType === 'company') q = q.eq('is_personal', true);
-    return q;
+    return query.eq('created_by', currentUser.id).is('list_id', null).eq('is_personal', true);
   }
   return query.eq('list_id', recipeSourceFilter);
 }
