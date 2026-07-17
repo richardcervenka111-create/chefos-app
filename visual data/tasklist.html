@@ -222,7 +222,7 @@
     <div class="chart-card">
       <h3 class="sub" data-sk="Funkcie v čase — funkčné / čaká na test / naplánované / spolu" data-en="Features over time — working / awaiting test / planned / total"></h3>
       <div id="featuresOverTimeChart" class="chart-scroll"></div>
-      <p class="chart-note" data-sk="Celý projekt od 8. 7. 2026 po dnešok. Plné farebné stĺpce = presné denné záznamy stavov (zaznamenávané od 17. 7.). Priesvitné stĺpce pred 17. 7. = spätný odhad počtu postavených funkcií z denníka práce (~) — delenie na funkčné/čaká/naplánované sa vtedy nezaznamenávalo, preto ho pri odhade nepredstierame." data-en="The whole project, Jul 8, 2026 through today. Solid colored bars = exact daily status records (recorded since Jul 17). Translucent bars before Jul 17 = a back-estimate (~) of features built, derived from the work log — the working/awaiting/planned split wasn't recorded then, so we don't pretend to know it."></p>
+      <p class="chart-note" data-sk="Celý projekt od 8. 7. 2026 po dnešok. Plné farebné stĺpce = presné stavy z dokumentácie: 16. 7. spätne dohľadaný z git histórie feature_statusu (43/39/4), od 17. 7. denné záznamy. Priesvitné stĺpce pred 16. 7. = spätný odhad počtu postavených funkcií z denníka práce (~) — mapa funkcií so stavmi vtedy ešte neexistovala (dokumentácia sledovala shipnuté úlohy a 13 modulových dlaždíc), takže delenie stavov pre tie dni poctivo nepredstierame." data-en="The whole project, Jul 8, 2026 through today. Solid colored bars = exact statuses from the documentation: Jul 16 recovered from feature_status git history (43/39/4), daily records since Jul 17. Translucent bars before Jul 16 = a back-estimate (~) of features built from the work log — the per-feature status map didn't exist yet then (docs tracked shipped tasks and 13 module tiles), so we honestly don't fake the split for those days."></p>
     </div>
   </div>
 </details>
@@ -705,8 +705,13 @@ function toggleBlock(id, forceOpen){
 }
 /* ---------- Charts (Richard, 17.7.) ---------- */
 /* Daily feature-status snapshots — APPEND one row here whenever feature_status.html counts
-   change (part of the doc-sync routine). Started 17.7.; earlier splits weren't recorded. */
+   change (part of the doc-sync routine). Live recording since 17.7.; the 16.7. row was
+   recovered EXACTLY from git history (feature_status.html as committed 16.7. 22:16 — Richard:
+   "veď všade vedieme dokumentáciu", and indeed git remembered). Before 16.7. the per-feature
+   ok/test/plan catalog didn't exist yet (features.html tracked only 13 module tiles), so
+   earlier days stay as calibrated estimates from the work log. */
 const FEATURE_COUNT_HISTORY = [
+  { date:'2026-07-16', ok:43, test:39, plan:4 },
   { date:'2026-07-17', ok:66, test:32, plan:7 },
 ];
 function shortDay(d){ return d.slice(8,10) + '.' + String(+d.slice(5,7)) + '.'; }
@@ -798,7 +803,7 @@ function renderFeaturesOverTime(){
       <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
   }).join('');
   const legend = SER.map((s,i)=>`<g><rect x="${GAP + i*128}" y="${TOP+H+24}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GAP + i*128 + 13}" y="${TOP+H+32}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text></g>`).join('')
-    + `<g opacity="0.55"><rect x="${GAP}" y="${TOP+H+40}" width="9" height="9" rx="2" fill="var(--accent)"/><text x="${GAP + 13}" y="${TOP+H+48}" font-size="9.5" fill="var(--ink-dim)">${L('Postavené — spätný odhad (pred 17.7.)','Built — back-estimate (before Jul 17)')}</text></g>`;
+    + `<g opacity="0.55"><rect x="${GAP}" y="${TOP+H+40}" width="9" height="9" rx="2" fill="var(--accent)"/><text x="${GAP + 13}" y="${TOP+H+48}" font-size="9.5" fill="var(--ink-dim)">${L('Postavené — spätný odhad (pred 16.7.)','Built — back-estimate (before Jul 16)')}</text></g>`;
   el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+30}" viewBox="0 0 ${W} ${TOP+H+LBL+30}">${bars}${legend}</svg>`;
 }
 function openDayFromChart(date){
