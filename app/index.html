@@ -8830,23 +8830,14 @@ async function showMyFriendQr(){
   document.getElementById('friendInviteEmailField').value = '';
   document.getElementById('friendInviteEmailStatus').textContent = '';
   document.getElementById('myFriendQrOverlay').classList.add('open');
-  // Personal accounts share a PURELY social invite (Richard, 16.7. — the "Join Mr. Woof woof"
-  // report): no ?invite= at all, so a new person is never pulled into the inviter's kitchen —
-  // they get their own empty one instead (ensure_personal_kitchen, db/110). Company accounts
-  // keep the dual-purpose QR (friend + join my kitchen), which is what a team context wants.
-  const isPersonalInvite = currentAccountType === 'personal';
-  document.getElementById('friendQrDescription').textContent = isPersonalInvite
-    ? "Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code signs them up as your friend — with their own kitchen, not yours."
-    : "Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code brings them into your kitchen too.";
-  let url;
-  if(isPersonalInvite){
-    url = location.origin + location.pathname + '?friend=' + currentUser.id;
-  } else {
-    let inviteId;
-    try{ inviteId = await getOrCreateActiveInvite(); }
-    catch(err){ holder.innerHTML = `<p style="color:#333;">Could not load: ${err.message}</p>`; return; }
-    url = location.origin + location.pathname + '?invite=' + inviteId + '&friend=' + currentUser.id;
-  }
+  // Add Friend is PURELY social for EVERYONE now (Richard, 17.7. — his own Head Admin QR was
+  // still the db/95 dual-purpose kind, so "normal friend QRs" kept pulling strangers INTO his
+  // kitchen: the "Unnamed"/Filip/Paula in My Kitchen report). Deliberate reversal of the rest
+  // of db/95, logged in HEALTH_LOG.md: joining a team now happens ONLY through the real team
+  // paths (team join code/QR from Create Team, or an admin invite) — never through Add Friend.
+  document.getElementById('friendQrDescription').textContent =
+    "Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code signs them up as your friend — with their own kitchen, not yours.";
+  const url = location.origin + location.pathname + '?friend=' + currentUser.id;
   _currentFriendInviteUrl = url;
   const qr = qrcode(0, 'M');
   qr.addData(url);
@@ -8855,10 +8846,8 @@ async function showMyFriendQr(){
 }
 function closeMyFriendQr(){ document.getElementById('myFriendQrOverlay').classList.remove('open'); }
 /* Send the friend QR as a real login email (bod 4, 16.7.) — identical passwordless pattern to
-   the admin's sendInviteByEmail(), just carrying this member's own ?invite=&friend= URL, so the
-   recipient lands signed-in with BOTH the kitchen join and the friend-connect intact (exactly
-   what scanning the QR with a phone camera would have done). Available to every member — the
-   invite itself already is, since db/95. */
+   the admin's sendInviteByEmail(), carrying this member's own friend URL (?friend= only since
+   17.7. — Add Friend is purely social now; team joining goes through the real team paths). */
 async function sendFriendInviteByEmail(){
   const emailField = document.getElementById('friendInviteEmailField');
   const statusEl = document.getElementById('friendInviteEmailStatus');
@@ -10655,16 +10644,21 @@ function renderAdminDirectory(){
   if(!rows.length){ el.innerHTML = '<div class="empty-state">No one matches.</div>'; return; }
   el.innerHTML = rows.map(p=>{
     const activePerms = ADMIN_PERM_DEFS.filter(d=>!!(p.admin_perms||{})[d.key]).map(d=>d.label);
-    const tag = p.is_admin ? 'Head Admin' : (activePerms.length ? `Kitchen Admin (${activePerms.join(', ')})` : '—');
+    const tag = p.is_admin ? '🛡️ Head Admin' : (activePerms.length ? `🛡️ Kitchen Admin (${activePerms.join(', ')})` : 'Member — no admin rights');
     // Only shown when there's an actual balance (Richard, 16.7. večer) — a CHF 0.00 tag on
     // every personal row read as clutter. Full balance always visible inside Edit.
     const subTag = (p.account_type === 'personal' && Number(p.ai_credit_chf) > 0) ? ` · 💳 CHF ${Number(p.ai_credit_chf).toFixed(2)} AI credit` : '';
+    // No name yet (the profile form is skippable, db/75) — say so instead of printing the
+    // email twice, which read as "nothing filled in" (Richard, 17.7.).
+    const hasName = !!(p.full_name && p.full_name.trim());
+    const nameLine = hasName ? p.full_name : (p.email || 'Unknown');
+    const metaLine = `${hasName ? (p.email||'') : 'no name set yet'} · ${tag}${subTag}`;
     return `
     <div class="task-row">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
-          <div class="name task-text">${(p.full_name||p.email||'Unknown').replace(/</g,'&lt;')}</div>
-          <div class="meta">${(p.email||'').replace(/</g,'&lt;')} · ${tag}${subTag}</div>
+          <div class="name task-text">${nameLine.replace(/</g,'&lt;')}</div>
+          <div class="meta">${metaLine.replace(/</g,'&lt;')}</div>
         </div>
         <button class="task-status-btn" onclick="openEditAdminPerms('${p.id}')">Edit</button>
       </div>
@@ -10691,22 +10685,24 @@ function renderEditAdminPermsList(){
   const el = document.getElementById('editAdminPermsList');
   const p = _editAdminPermsTarget;
   if(!p || !el){ if(el) el.innerHTML = ''; return; }
+  // Row layout (Richard, 17.7. — "urob edit lepšie"): .chip carries white-space:nowrap, which
+  // made these long-description rows wider than a phone screen and shoved the whole centered
+  // sheet half off-screen. Explicit overrides: text wraps (white-space:normal), the text span
+  // can shrink (flex:1 + min-width:0), the ON/OFF badge never can (flex:none).
+  const permRow = (label, desc, badge, onclick, active)=>`
+    <div class="chip${active?' active':''}" style="width:100%; white-space:normal; text-align:left; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; border-radius:14px; padding:10px 14px;"${onclick ? ` onclick="${onclick}"` : ''}>
+      <span style="flex:1; min-width:0; line-height:1.35;"><strong>${label}</strong><br><span style="font-weight:400; font-size:12px; opacity:.85;">${desc}</span></span>
+      <span style="flex:none; font-weight:700;">${badge}</span>
+    </div>`;
   const permsHtml = ADMIN_PERM_DEFS.map(d=>{
     const on = !!(p.admin_perms||{})[d.key];
-    return `
-    <div class="chip${on?' active':''}" style="width:100%; text-align:left; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleAdminPerm('${d.key}')">
-      <span><strong>${d.label}</strong><br><span style="font-weight:400; font-size:12px;">${d.desc}</span></span>
-      <span>${on?'ON':'OFF'}</span>
-    </div>
-  `;}).join('');
+    return permRow(d.label, d.desc, on?'ON':'OFF', `toggleAdminPerm('${d.key}')`, on);
+  }).join('');
   const headAdminOn = !!p.is_admin;
   el.innerHTML = permsHtml + `
     ${p.account_type === 'personal' ? `
     <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">AI Credit (bod 8, 16.7. — db/102, manual until billing exists)</div>
-    <div class="chip" style="width:100%; text-align:left; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;">
-      <span><strong>Current balance</strong><br><span style="font-weight:400; font-size:12px;">Deducted automatically as they use AI features — server tracks real Anthropic cost per call.</span></span>
-      <span>CHF ${Number(p.ai_credit_chf||0).toFixed(2)}</span>
-    </div>
+    ${permRow('Current balance', 'Deducted automatically as they use AI features — server tracks real Anthropic cost per call.', 'CHF ' + Number(p.ai_credit_chf||0).toFixed(2), null, false)}
     <div class="sheet-row" style="gap:8px;">
       <input class="form-field" id="addCreditAmount" type="number" step="0.01" min="0" placeholder="Amount received (CHF)" style="flex:1;">
       <button class="save-btn" onclick="addCreditToTarget()">Add Credit</button>
@@ -10716,10 +10712,7 @@ function renderEditAdminPermsList(){
       : 'First top-up margin: 30% — e.g. 10 CHF received → 7.00 CHF credited. Every top-up after this one only takes 10%.'}</p>
     ` : ''}
     <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">Super-admin</div>
-    <div class="chip${headAdminOn?' active':''}" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="toggleHeadAdmin()">
-      <span><strong>Head Admin</strong><br><span style="font-weight:400; font-size:12px;">Full super-admin — everything Richard has. Use sparingly.</span></span>
-      <span>${headAdminOn?'ON':'OFF'}</span>
-    </div>
+    ${permRow('Head Admin', 'Full super-admin — everything Richard has. Use sparingly.', headAdminOn?'ON':'OFF', 'toggleHeadAdmin()', headAdminOn)}
   `;
 }
 async function addCreditToTarget(){
