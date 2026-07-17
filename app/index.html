@@ -3400,6 +3400,22 @@
   </div>
 </div>
 
+<!-- New ingredient list — colored-book icon picker, same pattern as New Project (Richard, 17.7.) -->
+<div id="newIngredientListOverlay" class="sheet-overlay" onclick="if(event.target===this) closeNewIngredientListPrompt()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">New Ingredient List</div>
+    <input class="form-field" id="newIngredientListName" type="text" placeholder="e.g. Supplier A price list">
+    <label class="form-label">Icon</label>
+    <div id="newIngredientListIconGrid" class="icon-choice-grid"></div>
+    <div class="sheet-status" id="newIngredientListStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="createIngredientList()">Create</button>
+      <button class="sheet-cancel" onclick="closeNewIngredientListPrompt()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete a recipe section — never deletes the recipes themselves, just recategorizes them
      to "Uncategorized" (unlike Check List's deleteStation(), a recipe is real, hard-to-recreate
      content, so this stays non-destructive by design). -->
@@ -13134,30 +13150,67 @@ function renderIngredientListsGrid(){
     if(longPress) attachLongPress(btn, longPress);
     return wrap.appendChild(btn);
   };
-  // The two fixed shelves — deliberately no long-press menu, they can never be changed.
-  addTile('✨', 'ChefOS', ()=>openIngredientShelf('chefos'));
-  addTile('👤', 'My Ingredients', ()=>openIngredientShelf('mine'));
+  // Fixed shelves (Richard, 17.7., same as recipe shelves): NEVER renamable/deletable, but
+  // hideable via long-press (per device). Only custom lists can be renamed/deleted.
+  const hiddenShelves = getHiddenIngredientShelves();
+  const fixedTile = (key, icon, label)=>{
+    const isHidden = hiddenShelves.includes(key);
+    if(isHidden && !_showHiddenIngredientLists) return;
+    addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openIngredientShelf(key),
+      ()=>openItemContextMenu('ingredientShelf', key, label, isHidden, false));
+  };
+  fixedTile('chefos', '✨', 'ChefOS');
+  fixedTile('mine', '👤', 'My Ingredients');
   const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
   visibleLists.forEach(l=>{
-    addTile('📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
+    addTile(l.icon || '📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
       ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
   });
-  addTile('➕', 'New List', ()=>createIngredientList());
-  const hiddenCount = _ingredientLists.filter(l=>l.hidden).length;
+  addTile('➕', 'New List', ()=>openNewIngredientListPrompt());
+  const hiddenCount = _ingredientLists.filter(l=>l.hidden).length + hiddenShelves.length;
   if(hiddenCount || _showHiddenIngredientLists){
     const toggle = document.createElement('button');
     toggle.className = 'add-row-btn';
     toggle.style.cssText = 'grid-column:1/-1; margin-top:6px;';
-    toggle.textContent = _showHiddenIngredientLists ? 'Hide the hidden lists again' : `Show ${hiddenCount} hidden list${hiddenCount===1?'':'s'}`;
+    toggle.textContent = _showHiddenIngredientLists ? 'Hide the hidden shelves again' : `Show ${hiddenCount} hidden shel${hiddenCount===1?'f':'ves'}`;
     toggle.onclick = ()=>{ _showHiddenIngredientLists = !_showHiddenIngredientLists; renderIngredientListsGrid(); };
     wrap.appendChild(toggle);
   }
 }
+function getHiddenIngredientShelves(){
+  try{ return JSON.parse(localStorage.getItem('chefos_hidden_ingredient_shelves') || '[]'); }
+  catch(e){ return []; }
+}
+function toggleHiddenIngredientShelf(key){
+  const list = getHiddenIngredientShelves();
+  const i = list.indexOf(key);
+  if(i > -1) list.splice(i, 1); else list.push(key);
+  localStorage.setItem('chefos_hidden_ingredient_shelves', JSON.stringify(list));
+}
+// New ingredient list — colored-book icon picker (Richard, 17.7.), same 8 books as recipe
+// projects (db/135 added the icon column).
+let _newIngredientListIcon = RECIPE_PROJECT_ICON_CHOICES[0];
+function openNewIngredientListPrompt(){
+  document.getElementById('newIngredientListName').value = '';
+  document.getElementById('newIngredientListStatus').textContent = '';
+  _newIngredientListIcon = RECIPE_PROJECT_ICON_CHOICES[0];
+  renderNewIngredientListIconGrid();
+  document.getElementById('newIngredientListOverlay').classList.add('open');
+}
+function closeNewIngredientListPrompt(){ document.getElementById('newIngredientListOverlay').classList.remove('open'); }
+function renderNewIngredientListIconGrid(){
+  document.getElementById('newIngredientListIconGrid').innerHTML = RECIPE_PROJECT_ICON_CHOICES.map(icon=>`
+    <button type="button" class="icon-choice-btn${icon===_newIngredientListIcon?' active':''}" onclick="pickNewIngredientListIcon('${icon}')">${icon}</button>
+  `).join('');
+}
+function pickNewIngredientListIcon(icon){ _newIngredientListIcon = icon; renderNewIngredientListIconGrid(); }
 async function createIngredientList(){
-  const name = prompt('Name the new ingredient list:');
-  if(!name || !name.trim()) return;
-  const { error } = await sb.from('ingredient_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim() });
-  if(error){ alert('Could not create: ' + error.message + ' — has db/112 been run?'); return; }
+  const statusEl = document.getElementById('newIngredientListStatus');
+  const name = document.getElementById('newIngredientListName').value.trim();
+  if(!name){ statusEl.textContent = 'Give the list a name.'; return; }
+  const { error } = await sb.from('ingredient_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name, icon: _newIngredientListIcon });
+  if(error){ statusEl.textContent = 'Could not create: ' + error.message + ' — has db/135 been run?'; return; }
+  closeNewIngredientListPrompt();
   await showIngredientsHome();
 }
 function openIngredientShelf(source){
@@ -13302,7 +13355,7 @@ async function generateIngredientDetails(){
     await loadAppData();
     renderIngredientList();
     setSyncStatus('saved');
-    alert(`Details generated for ${updated} ingredient${updated===1?'':'s'} — including nutrition per 100 g where it was missing.`);
+    alert(`Details generated for ${updated} ingredient${updated===1?'':'s'} — including nutrition per 100 g where it was missing.\n\nℹ️ Where these come from: they're typical reference values the AI knows for common professional-kitchen ingredients — good starting estimates, not lab measurements or a branded product's exact spec. Always editable, and only ever fills fields you left blank. We'll keep improving this over time.`);
   } catch(err){
     setSyncStatus('offline');
     alert('Could not generate details: ' + (err.message || err));
@@ -13501,9 +13554,9 @@ function openItemContextMenu(type, id, name, hidden, shared){
   _contextMenuTarget = { type, id, name, hidden: !!hidden, shared: !!shared };
   document.getElementById('itemContextMenuTitle').textContent = name;
   document.getElementById('itemContextHideBtn').textContent = hidden ? '👁️ Unhide' : '🙈 Hide';
-  // Fixed recipe shelves (Richard, 17.7.): hideable, NEVER renamable or deletable — the two
-  // buttons disappear entirely instead of failing later.
-  const isFixedShelf = type === 'recipeShelf';
+  // Fixed shelves (recipe + ingredient, Richard, 17.7.): hideable, NEVER renamable or deletable
+  // — the two buttons disappear entirely instead of failing later.
+  const isFixedShelf = type === 'recipeShelf' || type === 'ingredientShelf';
   document.getElementById('itemContextRenameBtn').style.display = isFixedShelf ? 'none' : '';
   document.getElementById('itemContextDeleteBtn').style.display = isFixedShelf ? 'none' : '';
   // Sharing (bod 4, 16.7. večer — db/114): custom ingredient lists — and the My Recipes fixed
@@ -13555,11 +13608,17 @@ async function itemContextRename(){
 async function itemContextToggleHide(){
   const t = _contextMenuTarget;
   if(!t) return;
-  // Fixed recipe shelves live in localStorage (per device), not in a table.
+  // Fixed shelves live in localStorage (per device), not in a table.
   if(t.type === 'recipeShelf'){
     toggleHiddenRecipeShelf(t.id);
     closeItemContextMenu();
     renderRecipeShelvesGrid();
+    return;
+  }
+  if(t.type === 'ingredientShelf'){
+    toggleHiddenIngredientShelf(t.id);
+    closeItemContextMenu();
+    renderIngredientListsGrid();
     return;
   }
   const { error } = await sb.from(_contextMenuTable(t)).update({ hidden: !t.hidden }).eq('id', t.id);
@@ -17919,7 +17978,7 @@ function handleCustomIngredientFileSelected(e){
 async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
   const tool = {
     name: 'record_custom_ingredients',
-    description: 'Extract every distinct ingredient/product listed in this document.',
+    description: 'Extract every distinct ingredient/product listed in this document, in ANY language.',
     input_schema: {
       type: 'object',
       properties: {
@@ -17928,10 +17987,10 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
           items: {
             type: 'object',
             properties: {
-              name: { type:'string', description:'Ingredient/product name' },
-              unit: { type:'string', description:'Unit the price is quoted in, e.g. kg, l, pc, g — omit if not stated' },
-              price: { type:'number', description:'Price if stated in the document — omit if not present' },
-              category: { type:'string', description:'A short category like Produce, Dairy, Meat, Dry Goods — only if reasonably inferable, omit otherwise' },
+              name: { type:'string', description:'Ingredient/product name, kept in the ORIGINAL language exactly as written (do NOT translate the name)' },
+              unit: { type:'string', enum:['kg','l','pc'], description:'Normalise the sale/price unit to one of exactly kg, l, or pc — REGARDLESS of the language it is written in. Map any weight unit (g, dag, dkg, kg) to "kg"; any volume (ml, cl, dl, l) to "l"; any count/piece unit to "pc" (e.g. Slovak ks/kus, Czech ks, German Stk/Stück/St, Polish szt, French pcs/pièce, Italian pz, Spanish ud/uds, English pc/pcs/each/unit). Omit only if truly not stated.' },
+              price: { type:'number', description:'Price if stated (accept comma OR dot decimals, e.g. "3,50" = 3.5) — omit if not present' },
+              category: { type:'string', enum:['Produce','Dairy','Meat','Seafood','Bakery','Dry Goods','Spices & Seasonings','Beverages','Other'], description:'Classify into exactly one of these English categories based on what the item IS, translating from the source language as needed (e.g. Slovak "mlieko"/German "Milch" → Dairy, "hovädzie"/"Rindfleisch" → Meat, "múka"/"Mehl" → Bakery or Dry Goods, "cibuľa"/"Zwiebel" → Produce). Omit only if genuinely unclear.' },
               note: { type:'string', description:'Anything else worth keeping about this item, optional' }
             },
             required: ['name']
@@ -17944,14 +18003,14 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
   };
   const data = await callClaudeAPI({
     model: 'claude-sonnet-5',
-    max_tokens: 4096,
+    max_tokens: 8192,
     tools: [tool],
     tool_choice: { type:'tool', name:'record_custom_ingredients' },
     messages: [{
       role: 'user',
       content: [
         claudeScanSourceBlock(base64, mediaType, fileName),
-        { type:'text', text:'This is a document listing ingredients or products for a professional kitchen — could be a supplier price list, a handwritten list, or a spec sheet, as a photo, PDF, or document text. Extract every distinct item using the record_custom_ingredients tool. If something is not present, leave that field empty rather than guessing.' }
+        { type:'text', text:'This is a document listing ingredients or products for a professional kitchen — a supplier price list, handwritten list, or spec sheet, as a photo, PDF, spreadsheet, or document text. IT MAY BE IN ANY LANGUAGE (Slovak, Czech, German, Polish, French, Italian, Spanish, English, …) and column headers/units may be in that language — read it regardless. Extract EVERY distinct item using the record_custom_ingredients tool: keep each name in its original language, but normalise its unit to kg/l/pc and classify its category into the English set, translating as needed. If a field is genuinely not present, leave it empty rather than guessing.' }
       ]
     }]
   });
