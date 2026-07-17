@@ -11843,14 +11843,23 @@ let _currentCommentsRecipeId = null;
    skipped (the db/112 per-list uniqueness would reject them anyway) and reported honestly.
    New rows land without prices — they're catalog entries to price later, not guesses. */
 function recipeIngredientNames(r){
-  const names = [];
+  const items = [];
   (r.sections || []).filter(s=>s.type==='table').forEach(s=>{
     (s.rows || []).forEach(row=>{
       const n = String(row[0] || '').trim();
-      if(n && !names.some(x=>x.toLowerCase() === n.toLowerCase())) names.push(n);
+      if(n && !items.some(x=>x.name.toLowerCase() === n.toLowerCase())) items.push({ name: n, qty: String(row[1] || '') });
     });
   });
-  return names;
+  return items;
+}
+/* ingredients.unit is NOT NULL ('kg' | 'l' | 'pc') — infer it from the recipe line's own
+   quantity text (300ml → l, 160g → kg, "6" → pc) instead of guessing blindly. */
+function inferIngredientUnit(qtyText){
+  const q = String(qtyText || '').toLowerCase();
+  if(/\d\s*(ml|cl|dl|l|lt|liter|litre)\b/.test(q)) return 'l';
+  if(/\d\s*(g|gr|kg|gram)\b/.test(q)) return 'kg';
+  if(/\b(pc|pcs|piece|stk|ks)\b/.test(q) || /^\s*\d+([.,]\d+)?\s*$/.test(q)) return 'pc';
+  return 'kg';
 }
 async function openAddRecipeIngredientsToDb(){
   const r = allRecipes()[window.currentDetailIdx];
@@ -11887,25 +11896,25 @@ async function addRecipeIngredientsTo(target){
   const statusEl = document.getElementById('ariStatus');
   statusEl.textContent = 'Adding…';
   const listId = target === 'mine' ? null : target;
-  const names = recipeIngredientNames(r);
+  const items = recipeIngredientNames(r);
   const existing = new Set(_ingredients
     .filter(i=>i.is_personal && (i.list_id || null) === (listId || null))
     .map(i=>String(i.name || '').toLowerCase()));
-  const toAdd = names.filter(n=>!existing.has(n.toLowerCase()));
+  const toAdd = items.filter(it=>!existing.has(it.name.toLowerCase()));
   if(!toAdd.length){
     statusEl.textContent = '';
     closeAddRecipeIngredients();
     alert('All of these ingredients are already on that list.');
     return;
   }
-  const rows = toAdd.map(n=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: n }));
+  const rows = toAdd.map(it=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: it.name, unit: inferIngredientUnit(it.qty) }));
   const { data: inserted, error } = await sb.from('ingredients').insert(rows).select();
   if(error){ statusEl.textContent = 'Could not add: ' + error.message; return; }
   (inserted || []).forEach(x=>_ingredients.push(x));
   buildIngredientLookup();
   statusEl.textContent = '';
   closeAddRecipeIngredients();
-  const skipped = names.length - toAdd.length;
+  const skipped = items.length - toAdd.length;
   alert(`Added ${inserted.length} ingredient${inserted.length===1?'':'s'}${skipped ? ` · skipped ${skipped} already there` : ''}. Prices and nutrition are empty — fill them in (or use ✨ AI Details) in Ingredients, and this recipe's cost + calories start computing.`);
 }
 
@@ -12124,6 +12133,12 @@ function showDetail(idx){
         </div>
       `).join('')}
     </div>`;
+    // Same entry point as under the cost block (Richard, 17.7.) — unmatched nutrition lines
+    // have the same fix: get the ingredients into your database, then ✨ AI Details fills
+    // their per-100g nutrition and this block recomputes.
+    if(nutrition.matched < nutrition.total){
+      html += `<button class="add-row-btn" style="margin:-6px 0 14px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
+    }
   }
 
   const hasTable = r.sections.some(s=>s.type==='table');
