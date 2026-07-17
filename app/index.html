@@ -11266,8 +11266,15 @@ let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false,
    My Recipes/Company Recipes, 16.7. neskoro večer). */
 function recipeOnCurrentShelf(r){
   if(recipeSourceFilter === 'chefos') return !r.createdBy;
-  if(recipeSourceFilter === 'company') return !!r.createdBy && r.createdBy !== currentUser.id;
-  if(recipeSourceFilter === 'mine') return r.createdBy === currentUser.id && !r.listId;
+  // Company = every authored, NON-personal recipe — including your own (Richard's bug,
+  // 17.7.: "createdBy !== me" excluded the author's own company recipes, so a company admin's
+  // saves silently fell into My Recipes instead of Company Recipes).
+  if(recipeSourceFilter === 'company') return !!r.createdBy && !r.isPersonal;
+  // Mine = my own recipes; on a COMPANY account only the truly personal ones (the non-personal
+  // ones live on the Company shelf now). On a PERSONAL account it keeps ALL my authored
+  // recipes — including legacy rows from before db/97 existed (is_personal=false back then),
+  // which must not vanish from the only shelf a personal account has.
+  if(recipeSourceFilter === 'mine') return r.createdBy === currentUser.id && !r.listId && (currentAccountType === 'company' ? r.isPersonal : true);
   return r.listId === recipeSourceFilter;
 }
 /* Same shelf rule as recipeOnCurrentShelf(), expressed as Supabase query filters instead of a
@@ -11275,8 +11282,14 @@ function recipeOnCurrentShelf(r){
    same-named section's recipes on a different shelf. */
 function applyRecipeShelfQueryFilter(query){
   if(recipeSourceFilter === 'chefos') return query.is('created_by', null);
-  if(recipeSourceFilter === 'company') return query.not('created_by', 'is', null).neq('created_by', currentUser.id);
-  if(recipeSourceFilter === 'mine') return query.eq('created_by', currentUser.id).is('list_id', null);
+  // Mirrors recipeOnCurrentShelf() exactly (17.7. fix): company = authored + non-personal
+  // regardless of author; mine = my rows, personal-only when operating as a Company account.
+  if(recipeSourceFilter === 'company') return query.not('created_by', 'is', null).eq('is_personal', false);
+  if(recipeSourceFilter === 'mine'){
+    let q = query.eq('created_by', currentUser.id).is('list_id', null);
+    if(currentAccountType === 'company') q = q.eq('is_personal', true);
+    return q;
+  }
   return query.eq('list_id', recipeSourceFilter);
 }
 function passesRecipeFilters(r, q){
