@@ -1621,6 +1621,39 @@ html.theme-new .sheet-option{
 html.theme-new .sheet-option:hover{ background:var(--teal-wash); }
 html.theme-new .form-status{ color:var(--teal); }
 html.theme-new .form-status.error{ color:#FF7A68; }
+
+/* ---- Celok 3 · Zoznamy, tabuľky, detaily, empty states ---- */
+html.theme-new .task-row{
+  border-bottom:1px solid var(--hairline); min-height:56px;
+  transition:background var(--tn-fast);
+}
+html.theme-new .task-row:hover{ background:var(--nv-1); }
+html.theme-new .task-row .name{ font-weight:700; }
+html.theme-new .task-row .meta{ color:var(--ink-faint); }
+html.theme-new .section-label{
+  font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  color:var(--ink-faint);
+}
+html.theme-new .lede{ color:var(--ink-dim); line-height:1.6; }
+html.theme-new .empty-state{
+  border:1px dashed var(--hairline); border-radius:24px; margin:16px 18px;
+  padding:56px 24px; max-width:none;
+}
+html.theme-new .stat-pill{
+  background:var(--nv-1); border:1px solid var(--hairline); min-height:36px;
+}
+html.theme-new .recipe-title{ font-weight:800; letter-spacing:-.015em; }
+html.theme-new .detail-cat{ color:var(--teal); letter-spacing:.16em; text-transform:uppercase; font-size:11px; font-weight:700; }
+html.theme-new img.hero{ border-radius:20px; border:1px solid var(--hairline); }
+html.theme-new table.ing td{ border-bottom:1px solid var(--hairline); padding-top:9px; padding-bottom:9px; }
+html.theme-new .cost-block{ background:var(--nv-1); border:1px solid var(--hairline); border-radius:16px; }
+html.theme-new .cost-item .value{ font-variant-numeric:tabular-nums; }
+html.theme-new .prep-summary-row2{ border-bottom:1px solid var(--hairline); }
+html.theme-new .sheet-text{ color:var(--ink-dim); line-height:1.6; }
+html.theme-new .login-tagline{ color:var(--ink-dim); }
+html.theme-new .block h3{ font-weight:800; letter-spacing:-.01em; }
+html.theme-new .method-list li, html.theme-new .bullet-list li{ line-height:1.65; }
+html.theme-new .modal-backdrop, html.theme-new .sheet-overlay{ background:rgba(4,10,20,.72); backdrop-filter:saturate(1.1) blur(2px); }
 </style>
 <!-- Apply the saved Appearance theme before first paint (bod 10, 16.7.) — this has to run here,
      not in the main script at the bottom of the page, or the page would flash dark-then-light
