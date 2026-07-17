@@ -20,6 +20,14 @@ Scans every db/*.sql migration and fails loudly when:
      TWICE — db/53 (2026-07-13, full-app outage) and db/86 (2026-07-16,
      locked the super-admin out of his own account) — which is why it is now
      a hard check and not a code-review memory.
+  7. a storage bucket is created/updated PUBLIC, or a storage.objects SELECT
+     policy grants a whole bucket without scoping to the owner via
+     `(storage.foldername(name))[1] = auth.uid()`. Root cause of the
+     2026-07-17 audit finding: `working-time-notes` (uploaded employment
+     contracts — wages, hours) was created public + bucket-wide-readable via
+     the dashboard UI, so NO migration and NO check ever saw it. The rule now:
+     all storage config lives in a migration (db/134 onward), and any private
+     per-user bucket must be non-public AND owner-scoped on read.
 
 Why this exists (health check 2026-07-15): ChefOS had three real RLS incidents
 in one week (db/53 recursion outage, db/62 column-grant lockout, the pre-db/34
@@ -71,6 +79,13 @@ RECURSIVE_POLICY_SUPERSEDED = {
     '86_admin_permissions_rls.sql',            # fixed by db/90 (2026-07-16 super-admin lockout)
 }
 
+# Same idea for finding 7: db/44 created working-time-notes as a public, bucket-wide-readable
+# bucket. It's an accurate record of what ran on production and is fully superseded by db/134
+# (private bucket + owner-scoped policies, 2026-07-17), so the storage checks skip exactly it.
+STORAGE_INSECURE_SUPERSEDED = {
+    '44_working_time_day_notes.sql',  # fixed by db/134 (2026-07-17 contract-leak audit)
+}
+
 create_re = re.compile(r'create\s+table\s+(?:if\s+not\s+exists\s+)?([a-z_]+)\s*\(', re.I)
 enable_rls_re = re.compile(r'alter\s+table\s+([a-z_]+)\s+enable\s+row\s+level\s+security', re.I)
 policy_re = re.compile(r'create\s+policy\s+.+?\s+on\s+([a-z_]+)', re.I)
@@ -80,6 +95,13 @@ policy_re = re.compile(r'create\s+policy\s+.+?\s+on\s+([a-z_]+)', re.I)
 policy_stmt_re = re.compile(r'create\s+policy\s+"[^"]+"\s+on\s+([a-z_]+)(.*?);', re.I | re.S)
 destructive_re = re.compile(r'\b(drop\s+table|truncate\s+table|truncate\s+[a-z_]+\s*;)', re.I)
 delete_re = re.compile(r'\bdelete\s+from\s+([a-z_]+)\s*;', re.I)  # DELETE with no WHERE before ;
+
+# Storage security (finding 7, 2026-07-17). A bucket flipped/created public, and any
+# storage.objects SELECT policy that names a bucket_id but never scopes rows to the owner.
+public_bucket_re = re.compile(r'storage\.buckets[^;]*?public[^;]*?(?:=|=>)\s*true', re.I | re.S)
+storage_select_policy_re = re.compile(
+    r'create\s+policy\s+"[^"]+"\s+on\s+storage\.objects\s+for\s+select\s+using\s*\((.*?)\)\s*;',
+    re.I | re.S)
 
 def strip_comments(sql):
     sql = re.sub(r'--[^\n]*', '', sql)
@@ -134,6 +156,23 @@ def main():
         for t in delete_re.findall(sql):
             if '-- DESTRUCTIVE:' not in raw:
                 violations.append(f'{base}: DELETE FROM {t} with no WHERE clause and no "-- DESTRUCTIVE:" acknowledgement')
+
+        # Finding 7: never make a storage bucket public (unless the file explicitly acknowledges
+        # it — e.g. a genuinely public assets bucket — with a "-- PUBLIC-BUCKET: <reason>" note).
+        if base not in STORAGE_INSECURE_SUPERSEDED:
+            if public_bucket_re.search(sql) and '-- PUBLIC-BUCKET:' not in raw:
+                violations.append(
+                    f'{base}: sets a storage bucket public=true — public buckets serve files with NO auth. '
+                    f'Keep it private (public=false) and read via signed URLs, or, if a public bucket is '
+                    f'genuinely intended, acknowledge it with a "-- PUBLIC-BUCKET: <reason>" comment. '
+                    f'(This is the working-time-notes contract-leak class, 2026-07-17.)')
+            # Any storage SELECT policy must scope rows to their owner, not hand out a whole bucket.
+            for body in storage_select_policy_re.findall(sql):
+                if 'auth.uid()' not in body:
+                    violations.append(
+                        f'{base}: a storage.objects SELECT policy grants a bucket without an owner check '
+                        f'((storage.foldername(name))[1] = auth.uid()) — every authenticated user could read '
+                        f"everyone else's files. Scope it to the owner.")
 
     for t, origin in created.items():
         if t in NO_RLS_OK:

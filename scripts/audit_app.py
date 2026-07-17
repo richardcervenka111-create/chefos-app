@@ -19,6 +19,12 @@ exact failure classes that have actually bitten this project:
      bug: Check List delete "worked" while deleting nothing). The count of such
      call sites must never grow; shrink it over time by using the checked
      patterns. Baseline lives in scripts/unchecked_mutations.baseline.
+  6. Cross-kitchen XSS guard — recipes from other kitchens (the Public shelf,
+     db/131) render as innerHTML in every viewer's session, so foreign recipe
+     text is a stored-XSS vector. The defence is a single data-boundary escaper
+     (sanitizeForeignRecipe) called from dbRowToRecipe. This check fails if
+     either the escaper or its call site disappears — so the fix can't be
+     silently removed later. (Found in the 2026-07-17 security review.)
 
 Why this exists (health check 2026-07-15): all five classes shipped to
 production at least once, each caught only by a human noticing. This script is
@@ -126,6 +132,18 @@ def check_mutation_ratchet(s, violations):
         open(BASELINE_FILE, 'w').write(str(unchecked) + '\n')
         print(f'audit_app: unchecked-mutation count improved {baseline} → {unchecked}, ratchet tightened.')
 
+def check_recipe_xss_guard(s, violations):
+    # The cross-kitchen recipe XSS defence must stay wired: the escaper must exist AND
+    # dbRowToRecipe must actually call it. Both are cheap substring checks — this guards the
+    # guard, so nobody can quietly delete the sanitizer and reopen the hole (2026-07-17).
+    if 'function sanitizeForeignRecipe(' not in s:
+        violations.append('app/index.html: sanitizeForeignRecipe() is gone — cross-kitchen recipe XSS defence removed (db/131 Public shelf renders foreign recipe text as innerHTML).')
+        return
+    m = re.search(r'function dbRowToRecipe\(row\)\s*\{(.*?)\n\}', s, re.S)
+    body = m.group(1) if m else ''
+    if 'sanitizeForeignRecipe(' not in body:
+        violations.append('app/index.html: dbRowToRecipe no longer calls sanitizeForeignRecipe() — foreign (Public-shelf) recipes would reach innerHTML unescaped (stored XSS).')
+
 def main():
     violations = []
     app_index = os.path.join(REPO, 'app', 'index.html')
@@ -143,6 +161,7 @@ def main():
     check_dead_buttons(app_index, s, violations)
     check_ghost_tables(s, violations)
     check_mutation_ratchet(s, violations)
+    check_recipe_xss_guard(s, violations)
 
     if violations:
         print(f'audit_app: {len(violations)} violation(s):')

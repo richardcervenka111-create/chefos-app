@@ -9457,8 +9457,38 @@ async function callClaudeAPI(body, opts){
   return data;
 }
 
+/* Full HTML-entity escaper — safe in BOTH text and attribute contexts (escapes < > & " ').
+   krEsc (only < ) predates this and stays for the many display-only call sites; escapeHtml is
+   the one to reach for anywhere a value lands in an HTML attribute. */
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+/* SECURITY (2026-07-17 audit): recipes are now visible ACROSS kitchens (Public shelf, db/131),
+   and the recipe detail/list/print all build innerHTML from recipe text without per-field
+   escaping. A recipe I don't own is therefore a stored-XSS vector — a stranger could publish a
+   recipe whose title is `<img src=x onerror=…>` and run script in every viewer's session.
+   Rather than escape dozens of interpolation sites by hand (the kind of thing that's one missed
+   spot away from a hole), neutralise foreign recipes ONCE here at the data boundary: any recipe
+   not created by me is display-only (Edit is blocked by RLS + UI), so pre-escaping its free-text
+   fields is safe and covers every render path at once. My own recipes stay raw so the edit form
+   round-trips them unchanged. */
+const RECIPE_TEXT_FIELDS = ['title','category','meta','yield','difficulty','productionTime','station','description','cuisine','equipment','chefNotes','storage','shelfLife','variations','scalingNotes','platingSuggestions','crossReferences','img'];
+function sanitizeForeignRecipe(rec){
+  RECIPE_TEXT_FIELDS.forEach(f=>{ if(rec[f]) rec[f] = escapeHtml(rec[f]); });
+  rec.time = { active: escapeHtml(rec.time.active), passive: escapeHtml(rec.time.passive) };
+  rec.tags = (rec.tags || []).map(escapeHtml);
+  rec.sections = (rec.sections || []).map(s=>({
+    ...s,
+    heading: s.heading ? escapeHtml(s.heading) : s.heading,
+    rows: Array.isArray(s.rows) ? s.rows.map(row=>Array.isArray(row) ? row.map(escapeHtml) : row) : s.rows,
+    items: Array.isArray(s.items) ? s.items.map(escapeHtml) : s.items
+  }));
+  return rec;
+}
 function dbRowToRecipe(row){
-  return {
+  const rec = {
     id: row.id,
     title: row.title,
     category: row.category || 'Uncategorized',
@@ -9490,6 +9520,14 @@ function dbRowToRecipe(row){
     chefosMasterId: row.chefos_master_id || null,
     listId: row.list_id || null
   };
+  // Neutralise recipes from OTHER kitchens before they ever reach innerHTML (see sanitizeForeign-
+  // Recipe). Other kitchens = the Public shelf (db/131) — the only untrusted, un-editable
+  // surface. My own kitchen's content (my recipes, teammates' company recipes, ChefOS-library
+  // copies) is left raw so edit forms round-trip it unchanged — that's the same same-kitchen
+  // trust boundary the app already relied on before Public existed. The null-guard escapes when
+  // in doubt (kitchen unknown), which is the safe direction.
+  if(!currentKitchenId || row.kitchen_id !== currentKitchenId) sanitizeForeignRecipe(rec);
+  return rec;
 }
 
 let _syncFadeTimer;
@@ -17511,10 +17549,28 @@ function closeDayDetail(){
   document.getElementById('dayDetailOverlay').classList.remove('open');
   renderWorkingTimeHistory();
 }
-function renderDayDetailPhoto(existing){
-  document.getElementById('dayDetailPhotoWrap').innerHTML = (existing && existing.photo_url)
-    ? `<img src="${existing.photo_url}" style="width:100%; border-radius:10px; border:1px solid var(--rule);">`
-    : '';
+/* working-time-notes is a PRIVATE bucket (security fix 17.7. — db/134): contracts hold wages
+   and personal terms, so files are NOT publicly served and each person can only read their own.
+   Reading therefore needs a short-lived SIGNED url, minted here at render time, not a permanent
+   public one. Handles both new rows (which store the bare storage path) and old rows (which
+   stored a full public URL back when the bucket was public) — wtNoteStoragePath() extracts the
+   path from either shape. */
+function wtNoteStoragePath(stored){
+  if(!stored) return null;
+  const marker = '/working-time-notes/';
+  const i = stored.indexOf(marker);
+  const p = i > -1 ? stored.slice(i + marker.length) : stored;
+  return p.split('?')[0];
+}
+async function renderDayDetailPhoto(existing){
+  const wrap = document.getElementById('dayDetailPhotoWrap');
+  if(!wrap) return;
+  if(!(existing && existing.photo_url)){ wrap.innerHTML = ''; return; }
+  const path = wtNoteStoragePath(existing.photo_url);
+  const { data: signed, error } = await sb.storage.from('working-time-notes').createSignedUrl(path, 3600);
+  wrap.innerHTML = (error || !signed)
+    ? `<p class="sheet-text">Could not load the photo.</p>`
+    : `<img src="${signed.signedUrl}" style="width:100%; border-radius:10px; border:1px solid var(--rule);">`;
 }
 async function saveDayDetailNote(){
   const statusEl = document.getElementById('dayDetailStatus');
@@ -17540,16 +17596,16 @@ async function uploadDayDetailPhoto(file){
   const path = `${currentUser.id}/${_dayDetailDate}.${ext}`;
   const { error: upErr } = await sb.storage.from('working-time-notes').upload(path, file, { upsert: true, contentType: file.type });
   if(upErr){ statusEl.textContent = 'Could not upload: ' + upErr.message; return; }
-  const { data: urlData } = sb.storage.from('working-time-notes').getPublicUrl(path);
-  const photoUrl = urlData.publicUrl + '?t=' + Date.now();
+  // Store the bare storage PATH, not a public URL — the bucket is private now (db/134), so the
+  // image is fetched via a signed URL minted at render time (renderDayDetailPhoto).
   const existing = _workingTimeDayNotes[_dayDetailDate];
   const { data, error } = await sb.from('working_time_day_notes').upsert({
     kitchen_id: currentKitchenId, user_id: currentUser.id, note_date: _dayDetailDate,
-    note: existing ? existing.note : null, photo_url: photoUrl, updated_at: new Date().toISOString()
+    note: existing ? existing.note : null, photo_url: path, updated_at: new Date().toISOString()
   }, { onConflict: 'user_id,note_date' }).select().single();
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   _workingTimeDayNotes[_dayDetailDate] = data;
-  renderDayDetailPhoto(data);
+  await renderDayDetailPhoto(data);
   statusEl.textContent = 'Saved.';
 }
 
