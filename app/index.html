@@ -2343,10 +2343,10 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="itemContextMenuTitle"></div>
-    <button class="task-status-btn" style="width:100%; margin-bottom:8px;" onclick="itemContextRename()">✏️ Rename</button>
+    <button class="task-status-btn" style="width:100%; margin-bottom:8px;" id="itemContextRenameBtn" onclick="itemContextRename()">✏️ Rename</button>
     <button class="task-status-btn" style="width:100%; margin-bottom:8px;" id="itemContextHideBtn" onclick="itemContextToggleHide()">🙈 Hide</button>
     <button class="task-status-btn" style="width:100%; margin-bottom:8px; display:none;" id="itemContextShareBtn" onclick="itemContextToggleShare()">🤝 Share with friends</button>
-    <button class="danger-btn" style="width:100%;" onclick="itemContextDelete()">🗑️ Delete</button>
+    <button class="danger-btn" style="width:100%;" id="itemContextDeleteBtn" onclick="itemContextDelete()">🗑️ Delete</button>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeItemContextMenu()">Cancel</button>
   </div>
 </div>
@@ -12347,6 +12347,13 @@ async function togglePublishRecipe(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r || r.createdBy !== currentUser.id) return;
   if(!r.isPublic){
+    // Company profiles can't publish AT ALL (Richard, 17.7.) — recipes created while working
+    // as a company belong to the company's kitchen, and our terms only allow sharing from a
+    // Personal profile. Unpublishing (taking something down) stays allowed for the author.
+    if(currentAccountType === 'company'){
+      alert('🔒 Publishing isn\'t available on a Company profile.\n\nOur terms don\'t allow sharing company recipes publicly. Switch to your Personal profile (Settings → Account Type) — from there you can publish your own personal recipes anytime.');
+      return;
+    }
     if(!confirm(`🌍 Publish "${r.title}"?\n\nIt will appear on the Public shelf in EVERY ChefOS kitchen — any chef can read and comment on it. It stays yours, and you can unpublish anytime with this same button.`)) return;
   } else {
     if(!confirm(`Unpublish "${r.title}"?\n\nIt disappears from everyone's Public shelf (comments are kept for if you republish).`)) return;
@@ -12984,14 +12991,24 @@ function renderRecipeShelvesGrid(){
     wrap.appendChild(btn);
   };
   const openShelf = (shelf)=>{ recipeSourceFilter = shelf; refreshCustomCategoryState(); showList(); };
+  // Fixed shelves (Richard, 17.7.): NEVER deletable, but hideable — long-press any of them for
+  // Hide/Unhide (per device, localStorage). My Recipes' long-press menu also keeps its
+  // Share-My-Recipes entry.
+  const hiddenShelves = getHiddenRecipeShelves();
+  const fixedTile = (key, icon, label, extra)=>{
+    const isHidden = hiddenShelves.includes(key);
+    if(isHidden && !_showHiddenRecipeLists) return;
+    addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openShelf(key),
+      ()=>openItemContextMenu('recipeShelf', key, label, isHidden, extra === 'share'));
+  };
   if(currentAccountType !== 'company' || showPersonalInCompany){
-    addTile('📖', 'My Recipes', ()=>openShelf('mine'), ()=>openShareMyRecipes());
+    fixedTile('mine', '📖', 'My Recipes', 'share');
   }
-  addTile('✨', 'ChefOS', ()=>openShelf('chefos'));
+  fixedTile('chefos', '✨', 'ChefOS');
   // Public shelf (db/131) — every account type sees it, like the ChefOS library.
-  addTile('🌍', 'Public', ()=>openShelf('public'));
+  fixedTile('public', '🌍', 'Public');
   if(currentAccountType === 'company'){
-    addTile('🏢', 'Company Recipes', ()=>openShelf('company'));
+    fixedTile('company', '🏢', 'Company Recipes');
   }
   // Custom recipe projects (bod 8, 16.7.) — same pattern as custom ingredient lists (db/112):
   // named, private collections owned by their creator, alongside the two fixed shelves.
@@ -13001,15 +13018,25 @@ function renderRecipeShelvesGrid(){
       ()=>openItemContextMenu('recipeList', l.id, l.name, l.hidden, false));
   });
   addTile('➕', 'Add Project', ()=>openNewRecipeProjectPrompt());
-  const hiddenCount = _recipeLists.filter(l=>l.hidden).length;
+  const hiddenCount = _recipeLists.filter(l=>l.hidden).length + hiddenShelves.length;
   if(hiddenCount || _showHiddenRecipeLists){
     const toggle = document.createElement('button');
     toggle.className = 'add-row-btn';
     toggle.style.cssText = 'grid-column:1/-1; margin-top:6px;';
-    toggle.textContent = _showHiddenRecipeLists ? 'Hide the hidden projects again' : `Show ${hiddenCount} hidden project${hiddenCount===1?'':'s'}`;
+    toggle.textContent = _showHiddenRecipeLists ? 'Hide the hidden shelves again' : `Show ${hiddenCount} hidden shel${hiddenCount===1?'f':'ves'}`;
     toggle.onclick = ()=>{ _showHiddenRecipeLists = !_showHiddenRecipeLists; renderRecipeShelvesGrid(); };
     wrap.appendChild(toggle);
   }
+}
+function getHiddenRecipeShelves(){
+  try{ return JSON.parse(localStorage.getItem('chefos_hidden_recipe_shelves') || '[]'); }
+  catch(e){ return []; }
+}
+function toggleHiddenRecipeShelf(key){
+  const list = getHiddenRecipeShelves();
+  const i = list.indexOf(key);
+  if(i > -1) list.splice(i, 1); else list.push(key);
+  localStorage.setItem('chefos_hidden_recipe_shelves', JSON.stringify(list));
 }
 // 8 colored books to choose from (Richard, 16.7. neskoro večer) — the standard Unicode "book"
 // set doubles as exactly that: 4 solid colors + 3 notebook styles + the stack.
@@ -13436,14 +13463,21 @@ function openItemContextMenu(type, id, name, hidden, shared){
   _contextMenuTarget = { type, id, name, hidden: !!hidden, shared: !!shared };
   document.getElementById('itemContextMenuTitle').textContent = name;
   document.getElementById('itemContextHideBtn').textContent = hidden ? '👁️ Unhide' : '🙈 Hide';
-  // Sharing (bod 4, 16.7. večer — db/114): custom ingredient lists only.
+  // Fixed recipe shelves (Richard, 17.7.): hideable, NEVER renamable or deletable — the two
+  // buttons disappear entirely instead of failing later.
+  const isFixedShelf = type === 'recipeShelf';
+  document.getElementById('itemContextRenameBtn').style.display = isFixedShelf ? 'none' : '';
+  document.getElementById('itemContextDeleteBtn').style.display = isFixedShelf ? 'none' : '';
+  // Sharing (bod 4, 16.7. večer — db/114): custom ingredient lists — and the My Recipes fixed
+  // shelf keeps its long-press Share-My-Recipes entry here ('shared' doubles as that flag).
   const shareBtn = document.getElementById('itemContextShareBtn');
-  shareBtn.style.display = type === 'ingredientList' ? '' : 'none';
-  shareBtn.textContent = shared ? '🤝 Sharing is ON — turn off' : '🤝 Share with friends';
+  shareBtn.style.display = (type === 'ingredientList' || (isFixedShelf && shared)) ? '' : 'none';
+  shareBtn.textContent = isFixedShelf ? '🤝 Share My Recipes…' : (shared ? '🤝 Sharing is ON — turn off' : '🤝 Share with friends');
   document.getElementById('itemContextMenuOverlay').classList.add('open');
 }
 async function itemContextToggleShare(){
   const t = _contextMenuTarget;
+  if(t && t.type === 'recipeShelf'){ closeItemContextMenu(); openShareMyRecipes(); return; }
   if(!t || t.type !== 'ingredientList') return;
   const next = !t.shared;
   if(next && !confirm(`Share "${t.name}" with your chef friends? They'll see the list and its items, read-only. You can turn it off anytime.`)) return;
@@ -13483,6 +13517,13 @@ async function itemContextRename(){
 async function itemContextToggleHide(){
   const t = _contextMenuTarget;
   if(!t) return;
+  // Fixed recipe shelves live in localStorage (per device), not in a table.
+  if(t.type === 'recipeShelf'){
+    toggleHiddenRecipeShelf(t.id);
+    closeItemContextMenu();
+    renderRecipeShelvesGrid();
+    return;
+  }
   const { error } = await sb.from(_contextMenuTable(t)).update({ hidden: !t.hidden }).eq('id', t.id);
   if(error){ alert('Could not update: ' + error.message); return; }
   closeItemContextMenu();
