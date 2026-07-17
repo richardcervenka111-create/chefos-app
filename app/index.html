@@ -306,6 +306,7 @@
   .wt-bar-track{ width:100%; height:110px; background: var(--paper); border-radius:4px; display:flex; align-items:flex-end; overflow:hidden; border:1px solid var(--rule); }
   .wt-bar{ width:100%; border-radius:3px 3px 0 0; min-height:2px; }
   .wt-bar-actual{ background: var(--copper); }
+  .wt-bar-overtime{ background:#FF7A68; } /* hours beyond 8/day — stacked on top of the teal bar (17.7.) */
   .wt-bar-forecast{ background: var(--sage); opacity:0.6; }
   .wt-bar-absence{ background: var(--rule); }
   .wt-bar-none{ background-image: repeating-linear-gradient(45deg, var(--rule) 0, var(--rule) 2px, transparent 2px, transparent 5px); }
@@ -16153,6 +16154,18 @@ function wtDemoAll(){
 function wtDemoBetween(startIso, endIso){
   return wtDemoAll().filter(e=>e.check_in >= startIso && e.check_in < endIso);
 }
+/* Demo orders/labels for one day — ONE shared generator, so the month bars, the day-detail
+   donut and the KPI pills all show the same numbers for the same day (17.7.). Zero on days
+   with no demo shift. */
+function wtDemoOrdersLabelsForDay(dayStr){
+  const dayStart = new Date(dayStr + 'T00:00:00');
+  const worked = wtDemoBetween(dayStart.toISOString(), new Date(dayStart.getTime() + 86400000).toISOString()).length > 0;
+  if(!worked) return { orders: 0, labels: 0 };
+  const rnd = _wtDemoRand('wt-ol-' + dayStr);
+  const orders = rnd() < 0.35 ? 0 : Math.floor(rnd() * 9) + 1;
+  const labels = rnd() < 0.25 ? 0 : Math.floor(rnd() * 15) + 1;
+  return { orders, labels };
+}
 function toggleWtDemo(){
   _wtDemoMode = !_wtDemoMode;
   const btn = document.getElementById('wtDemoToggle');
@@ -16502,11 +16515,20 @@ function renderWorkingTimeChart(){
     const pct = hours != null ? Math.max(4, Math.min(100, (hours/maxH)*100)) : 0;
     const barClass = kind==='actual' ? 'wt-bar-actual' : kind==='forecast' ? 'wt-bar-forecast' : kind==='absence' ? 'wt-bar-absence' : 'wt-bar-none';
     const barStyle = kind === 'none' ? 'height:100%;' : `height:${kind==='absence' ? 6 : pct}%;`;
-    const title = kind==='none' ? `${dayStr}: no data` : kind==='absence' ? `${dayStr}: day off` : `${dayStr}: ${formatHoursSK(hours)} h`;
+    // Overtime split (Richard, 17.7.): a worked day beyond 8 h shows the excess as a RED
+    // segment stacked on top of the teal regular hours — history reads at a glance.
+    const ot = (kind==='actual' && hours > 8) ? hours - 8 : 0;
+    const title = kind==='none' ? `${dayStr}: no data` : kind==='absence' ? `${dayStr}: day off` : `${dayStr}: ${formatHoursSK(hours)} h${ot ? ` (OT ${formatHoursSK(ot)} h)` : ''}`;
+    const barInner = ot > 0
+      ? `<div style="width:100%; height:${pct}%; display:flex; flex-direction:column;">
+           <div class="wt-bar wt-bar-overtime" style="height:${(ot/hours*100).toFixed(1)}%;"></div>
+           <div class="wt-bar wt-bar-actual" style="flex:1;"></div>
+         </div>`
+      : `<div class="wt-bar ${barClass}" style="${barStyle}"></div>`;
     bars += `
       <div class="wt-bar-col${dayStr===todayStr ? ' wt-bar-today' : ''}" style="cursor:pointer;" onclick="openDayDetail('${dayStr}')">
         <div class="wt-bar-track" title="${title}">
-          <div class="wt-bar ${barClass}" style="${barStyle}"></div>
+          ${barInner}
         </div>
         <div class="wt-bar-weekday">${WEEKDAY_INITIALS_SK[dateObj.getDay()]}</div>
         <div class="wt-bar-label">${d}</div>
@@ -16518,6 +16540,7 @@ function renderWorkingTimeChart(){
     <div class="section-label">This month — worked &amp; scheduled</div>
     <div class="wt-chart-legend">
       <span><i class="wt-dot wt-dot-actual"></i>Worked</span>
+      <span><i class="wt-dot" style="background:#FF7A68;"></i>Overtime (&gt;8h)</span>
       <span><i class="wt-dot wt-dot-forecast"></i>Scheduled</span>
       <span><i class="wt-dot wt-dot-absence"></i>Day off</span>
       <span><i class="wt-dot wt-dot-none"></i>No data</span>
@@ -16628,12 +16651,20 @@ async function openMonthDayBars(monthIndex){
     const dayStr = dateObj.toLocaleDateString('en-CA');
     const hours = dayHours[dayStr];
     const pct = hours != null ? Math.max(4, Math.min(100, (hours/12)*100)) : 0;
-    const barClass = hours != null ? 'wt-bar-actual' : 'wt-bar-none';
-    const title = hours != null ? `${dayStr}: ${formatHoursSK(hours)} h` : `${dayStr}: no data`;
+    const ot = (hours != null && hours > 8) ? hours - 8 : 0; // red overtime segment (17.7.)
+    const title = hours != null ? `${dayStr}: ${formatHoursSK(hours)} h${ot ? ` (OT ${formatHoursSK(ot)} h)` : ''}` : `${dayStr}: no data`;
+    const barInner = hours == null
+      ? `<div class="wt-bar wt-bar-none" style="height:100%;"></div>`
+      : ot > 0
+        ? `<div style="width:100%; height:${pct}%; display:flex; flex-direction:column;">
+             <div class="wt-bar wt-bar-overtime" style="height:${(ot/hours*100).toFixed(1)}%;"></div>
+             <div class="wt-bar wt-bar-actual" style="flex:1;"></div>
+           </div>`
+        : `<div class="wt-bar wt-bar-actual" style="height:${pct}%;"></div>`;
     bars += `
       <div class="wt-bar-col" style="cursor:pointer;" onclick="closeMonthDayBars(); openDayDetail('${dayStr}');">
         <div class="wt-bar-track" title="${title}">
-          <div class="wt-bar ${barClass}" style="height:${hours != null ? pct : 100}%;"></div>
+          ${barInner}
         </div>
         <div class="wt-bar-weekday">${WEEKDAY_INITIALS_SK[dateObj.getDay()]}</div>
         <div class="wt-bar-label">${d}</div>
@@ -16660,11 +16691,10 @@ async function renderMonthOrdersLabels(monthIndex, dayHours){
   if(_wtDemoMode){
     const stations = ['Hot Line','SKY','Garde Manger','Desserts'];
     Object.keys(dayHours).forEach(ds=>{
-      const rnd = _wtDemoRand('wt-ol-' + ds);
-      const o = rnd() < 0.35 ? 0 : Math.floor(rnd() * 9) + 1;
-      const l = rnd() < 0.25 ? 0 : Math.floor(rnd() * 15) + 1;
-      if(o){ ordersByDay[ds] = o; ordersByStation[stations[Math.floor(rnd()*4)]] = (ordersByStation[stations[Math.floor(rnd()*4)]] || 0) + o; }
-      if(l){ labelsByDay[ds] = l; labelsByStation[stations[Math.floor(rnd()*4)]] = (labelsByStation[stations[Math.floor(rnd()*4)]] || 0) + l; }
+      const { orders: o, labels: l } = wtDemoOrdersLabelsForDay(ds); // shared with the day-detail donut
+      const rnd = _wtDemoRand('wt-ol-st-' + ds);
+      if(o){ ordersByDay[ds] = o; const st = stations[Math.floor(rnd()*4)]; ordersByStation[st] = (ordersByStation[st] || 0) + o; }
+      if(l){ labelsByDay[ds] = l; const st = stations[Math.floor(rnd()*4)]; labelsByStation[st] = (labelsByStation[st] || 0) + l; }
     });
   } else {
     const [{ data: labelRows }, { data: orderRows }] = await Promise.all([
@@ -17019,13 +17049,33 @@ async function openDayDetail(dayStr){
 async function renderDayDetailActivity(dayStart, dayEnd){
   const el = document.getElementById('dayDetailActivity');
   el.innerHTML = `<p class="sheet-text">Loading…</p>`;
+  // Donut of the day (Richard, 17.7.): ordered items vs printed labels, same chart language
+  // as Kitchen Reports. In demo mode the numbers come from the SAME generator as the month
+  // view, so drilling from the month bars into a day never contradicts itself.
+  if(_wtDemoMode){
+    // _dayDetailDate is the LOCAL date string the day was opened with — slicing the UTC ISO
+    // dayStart would shift to the previous day for any timezone east of UTC (Bern is UTC+2).
+    const { orders: o, labels: l } = wtDemoOrdersLabelsForDay(_dayDetailDate);
+    el.innerHTML = (o + l > 0
+      ? `<label class="form-label" style="margin-top:14px;">🛒🏷️ Orders & labels this day</label>` +
+        krDonut([{ label:'🛒 Ordered items', value: o }, { label:'🏷️ Labels printed', value: l }])
+      : `<p class="sheet-text" style="margin-top:10px;">No orders or labels this day.</p>`) +
+      `<div class="sheet-text" style="opacity:.65;">🎭 Illustration data — invented numbers, for demo purposes only.</div>`;
+    return;
+  }
   const [{ data: orders }, { data: labels }] = await Promise.all([
     sb.from('order_list_items').select('station, quantity, unit, ingredient_id')
       .eq('created_by', currentUser.id).gte('updated_at', dayStart).lt('updated_at', dayEnd),
     sb.from('print_label_log').select('name, qty, station')
       .eq('printed_by', currentUser.id).gte('printed_at', dayStart).lt('printed_at', dayEnd)
   ]);
+  const orderCount = (orders || []).length;
+  const labelCount = (labels || []).reduce((s,l)=>s + (Number(l.qty) || 1), 0);
   let html = '';
+  if(orderCount + labelCount > 0){
+    html += `<label class="form-label" style="margin-top:14px;">🛒🏷️ Orders & labels this day</label>`;
+    html += krDonut([{ label:'🛒 Ordered items', value: orderCount }, { label:'🏷️ Labels printed', value: labelCount }]);
+  }
   if(orders && orders.length){
     html += `<label class="form-label" style="margin-top:14px;">🛒 Order List touched this day</label>`;
     html += orders.map(o=>{
