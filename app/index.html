@@ -3441,7 +3441,7 @@
     <div class="sheet-handle"></div>
     <div class="sheet-title">Share this recipe</div>
     <button class="task-status-btn" id="recipeShareChoicePublicBtn" style="width:100%; text-align:left; margin-bottom:8px;" onclick="recipeShareChoicePublic()">🌍 Share publicly</button>
-    <button class="task-status-btn" style="width:100%; text-align:left;" onclick="recipeShareChoiceFriends()">🤝 Share with friends (all my recipes, on/off)</button>
+    <button class="task-status-btn" id="recipeShareChoiceFriendsBtn" style="width:100%; text-align:left;" onclick="recipeShareChoiceFriends()">🤝 Share with friends (this recipe)</button>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeRecipeShareChoice()">Cancel</button>
   </div>
 </div>
@@ -9596,6 +9596,7 @@ function dbRowToRecipe(row){
     createdBy: row.created_by || null,
     isPersonal: !!row.is_personal,
     isPublic: !!row.is_public,
+    sharedWithFriends: !!row.shared_with_friends,
     kitchenId: row.kitchen_id || null,
     chefosMasterId: row.chefos_master_id || null,
     listId: row.list_id || null
@@ -12547,11 +12548,26 @@ function openRecipeShareChoice(){
     return;
   }
   document.getElementById('recipeShareChoicePublicBtn').textContent = r.isPublic ? '🌍 Published publicly — tap to unpublish' : '🌍 Share publicly (this recipe, every kitchen)';
+  document.getElementById('recipeShareChoiceFriendsBtn').textContent = r.sharedWithFriends ? '🤝 Shared with friends — tap to stop' : '🤝 Share with friends (this recipe)';
   document.getElementById('recipeShareChoiceOverlay').classList.add('open');
 }
 function closeRecipeShareChoice(){ document.getElementById('recipeShareChoiceOverlay').classList.remove('open'); }
 function recipeShareChoicePublic(){ closeRecipeShareChoice(); togglePublishRecipe(); }
-function recipeShareChoiceFriends(){ closeRecipeShareChoice(); openShareMyRecipes(); }
+/* Per-recipe friend sharing (Richard, 17.7. — db/138), mirroring ingredients: this recipe
+   becomes visible to your connected chefs, not an all-or-nothing toggle. */
+async function recipeShareChoiceFriends(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r || r.createdBy !== currentUser.id){ closeRecipeShareChoice(); return; }
+  if(currentAccountType === 'company'){ closeRecipeShareChoice(); alert('🔒 Sharing isn\'t available on a Company profile.'); return; }
+  const next = !r.sharedWithFriends;
+  if(next && !confirm(`🤝 Share "${r.title}" with your chef friends? They'll see it read-only in Chef Friends → your profile. Turn it off anytime here.`)){ return; }
+  if(!next && !confirm(`Stop sharing "${r.title}" with friends?`)){ return; }
+  const { error } = await sb.from('recipes').update({ shared_with_friends: next }).eq('id', r.id);
+  if(error){ alert('Could not update: ' + error.message + ' — has db/138 been run?'); return; }
+  r.sharedWithFriends = next;
+  closeRecipeShareChoice();
+  setSyncStatus('saved');
+}
 async function togglePublishRecipe(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r || r.createdBy !== currentUser.id) return;
