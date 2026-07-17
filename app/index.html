@@ -8980,7 +8980,7 @@ async function showFriendRecipes(friendId){
   document.getElementById('friendsRecipesSubtitle').textContent = 'Read-only — recipes this chef created and chose to share.';
   const el = document.getElementById('friendsRecipesList');
   el.innerHTML = '<p class="lede">Loading…</p>';
-  window.scrollTo(0,0);
+  window.scrollTo(0,0); // opening a friend's profile always starts at its top
   const { data, error } = await sb.from('recipes').select('*').eq('created_by', friendId).order('title');
   if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   _friendRecipeRows = data || [];
@@ -9086,14 +9086,17 @@ function openFriendRecipeDetail(recipeId){
   if(r.chefNotes) html += `<div class="block"><h3>Chef's Notes</h3><div class="plain-text">${r.chefNotes}</div></div>`;
   if(r.platingSuggestions) html += `<div class="block"><h3>Plating</h3><div class="plain-text">${r.platingSuggestions}</div></div>`;
   document.getElementById('friendRecipeDetailContent').innerHTML = html;
+  rememberScrollIfVisible('friendsRecipesView');
   hideAllViews();
   document.getElementById('friendRecipeDetailView').style.display = 'block';
   window.scrollTo(0,0);
+  requestAnimationFrame(()=>window.scrollTo(0,0));
 }
 function closeFriendRecipeDetail(){
   hideAllViews();
   document.getElementById('friendsRecipesView').style.display = 'block';
-  window.scrollTo(0,0);
+  // Same scroll behaviour as recipes: back lands where you left the friend's list.
+  restoreScrollOnce('friendsRecipesView');
 }
 
 /* Add Friend (bod 6, extended 16.7.) — my own personal QR, now dual-purpose per Richard's
@@ -13207,6 +13210,21 @@ function showDetail(idx){
 }
 
 let _recipeListScrollY = 0;
+/* Generic list↔detail scroll memory (Richard, 17.7. večer: "nech je to skrolovanie tak ako
+   v receptoch") — the same pattern as the recipes fix, reusable for every other full-page
+   list→detail pair: detail always opens at ITS top, going back restores the exact list spot.
+   Memory is one-shot: restore consumes it, so a fresh entry from Home starts at the top. */
+const _viewScrollMemory = {};
+function rememberScrollIfVisible(viewId){
+  const el = document.getElementById(viewId);
+  if(el && el.style.display === 'block') _viewScrollMemory[viewId] = window.scrollY;
+}
+function restoreScrollOnce(viewId){
+  const y = _viewScrollMemory[viewId] || 0;
+  delete _viewScrollMemory[viewId];
+  window.scrollTo(0, y);
+  requestAnimationFrame(()=>window.scrollTo(0, y));
+}
 function showList(){
   logEvent('view_opened', {view:'recipes'});
   hideAllViews();
@@ -13972,7 +13990,9 @@ function showIngredients(){
   syncRecipeSourcePin();
   const bulkBtn = document.getElementById('bulkDeleteIngredientsBtn');
   if(bulkBtn) bulkBtn.style.display = canAdd ? 'flex' : 'none';
-  window.scrollTo(0,0);
+  // Same scroll behaviour as recipes (Richard, 17.7. večer): coming back from the ingredient
+  // form lands exactly where the list was; a fresh entry (empty memory) starts at the top.
+  restoreScrollOnce('ingredientsView');
 }
 
 /* ---------- Bulk delete (bod 1, 16.7. večer) — current shelf only, by date added or all. ---------- */
@@ -14568,8 +14588,11 @@ function renderIngredientForm(data){
     <input class="form-field" id="i_notes" type="text" placeholder="e.g. priced as fresh, not frozen" value="${(data.notes||'').replace(/"/g,'&quot;')}">
   `;
 
+  rememberScrollIfVisible('ingredientsView');
   hideAllViews();
   document.getElementById('ingredientFormView').style.display = 'block';
+  window.scrollTo(0,0);
+  requestAnimationFrame(()=>window.scrollTo(0,0));
   const scanBtn = document.getElementById('ingredientScanFormBtn');
   if(scanBtn) scanBtn.style.display = (ingredientSourceFilter === 'mine' || canManageSharedIngredients()) ? '' : 'none';
   if(ingredientEditingId){
@@ -14770,11 +14793,13 @@ async function showCheckListProjects(){
   maybeShowViewTutorial('checkList');
   const el = document.getElementById('checkListProjectsGrid');
   el.innerHTML = '<p class="lede">Loading…</p>';
-  window.scrollTo(0,0);
   const { data, error } = await sb.from('projects').select('*').eq('kitchen_id', currentKitchenId).order('created_at');
   if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   currentProjects = data || [];
   renderCheckListProjectsGrid();
+  // Same scroll behaviour as recipes: back from a project's check list lands on the project
+  // you came from; a fresh entry from Home starts at the top.
+  restoreScrollOnce('checkListProjectsView');
 }
 let _showHiddenProjects = false;
 function renderCheckListProjectsGrid(){
@@ -14833,6 +14858,7 @@ async function saveAddProject(){
 async function showTasks(){
   if(!currentProjectId){ await showCheckListProjects(); return; }
   logEvent('view_opened', {view:'check_list'});
+  rememberScrollIfVisible('checkListProjectsView');
   hideAllViews();
   document.getElementById('tasksView').style.display = 'block';
   // Always reload fresh before showing counts — opening straight from Home was sometimes
