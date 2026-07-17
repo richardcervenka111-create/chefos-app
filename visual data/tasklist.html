@@ -388,6 +388,10 @@ function toggleLang(){
   localStorage.setItem('chefos_doc_lang', _lang);
   applyLang();
   renderTimeline();
+  // Charts carry language in their legends/labels — re-render them too (17.7. fix).
+  if(typeof renderTasksPerDay === 'function') renderTasksPerDay();
+  if(typeof renderFeaturesOverTime === 'function') renderFeaturesOverTime();
+  if(typeof toggleHero === 'function') toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
 }
 function L(sk, en){ return _lang === 'sk' ? sk : en; }
 
