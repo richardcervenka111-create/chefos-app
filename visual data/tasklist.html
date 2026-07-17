@@ -215,8 +215,11 @@
 <details class="group" open id="chartsSection">
   <summary><span data-sk="📊 Grafy" data-en="📊 Charts"></span><span class="count" data-sk="tempo deň po dni + stav funkcií v čase" data-en="day-by-day pace + feature status over time"></span></summary>
   <div class="group-body">
+    <!-- Work-hours meter (Richard, 17.7.) — real hours from git commit sessions (scripts/
+         work_hours.py), pre-git days as flagged estimates. Updated with every doc-sync. -->
+    <div class="chart-card" id="workHoursCard"></div>
     <div class="chart-card">
-      <h3 class="sub" data-sk="Hotové tásky za deň — klikni na stĺpec a otvorí sa ten deň v časovej osi" data-en="Tasks shipped per day — click a bar to open that day in the timeline"></h3>
+      <h3 class="sub" data-sk="Hotové tásky za deň (+ odpracované hodiny) — klikni na stĺpec a otvorí sa ten deň v časovej osi" data-en="Tasks shipped per day (+ hours worked) — click a bar to open that day in the timeline"></h3>
       <div id="tasksPerDayChart" class="chart-scroll"></div>
     </div>
     <div class="chart-card">
@@ -389,6 +392,7 @@ function toggleLang(){
   applyLang();
   renderTimeline();
   // Charts carry language in their legends/labels — re-render them too (17.7. fix).
+  if(typeof renderWorkHours === 'function') renderWorkHours();
   if(typeof renderTasksPerDay === 'function') renderTasksPerDay();
   if(typeof renderFeaturesOverTime === 'function') renderFeaturesOverTime();
   if(typeof toggleHero === 'function') toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
@@ -714,6 +718,36 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-16', ok:43, test:39, plan:4 },
   { date:'2026-07-17', ok:66, test:32, plan:7 },
 ];
+/* Hours worked per day (Richard, 17.7.) — measured from git commit sessions by
+   scripts/work_hours.py (run it and paste its output here on every doc-sync). Days before
+   13.7. predate git, so they're documented-day-log ESTIMATES, always shown with ~. */
+const WORK_HOURS = {
+  '2026-07-08': 8.0,
+  '2026-07-09': 8.0,
+  '2026-07-10': 8.0,
+  '2026-07-11': 8.0,
+  '2026-07-12': 8.0,
+  '2026-07-13': 7.7,
+  '2026-07-14': 7.4,
+  '2026-07-15': 11.6,
+  '2026-07-16': 14.8,
+  '2026-07-17': 2.4,
+};
+const WORK_HOURS_MEASURED_FROM = '2026-07-13';
+function isEstimatedHours(d){ return d < WORK_HOURS_MEASURED_FROM; }
+function renderWorkHours(){
+  const el = document.getElementById('workHoursCard');
+  if(!el) return;
+  let measured = 0, est = 0;
+  Object.entries(WORK_HOURS).forEach(([d,h])=>{ if(isEstimatedHours(d)) est += h; else measured += h; });
+  const total = measured + est;
+  el.innerHTML = `<div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;">
+    <span style="font-size:26px; font-weight:800; color:var(--accent); font-family:'SF Mono',Menlo,monospace;">⏱️ ~${total.toFixed(1).replace('.',',')} h</span>
+    <span style="font-size:12.5px; color:var(--ink-dim);">${L(
+      `odpracovaných na ChefOS spolu — ${measured.toFixed(1).replace('.',',')} h presne z git histórie (od 13. 7.) + ~${est.toFixed(0)} h odhad za 8.–12. 7. (pred gitom). Meria scripts/work_hours.py, aktualizuje sa denne.`,
+      `worked on ChefOS in total — ${measured.toFixed(1)} h measured from git history (since Jul 13) + ~${est.toFixed(0)} h estimated for Jul 8–12 (pre-git). Measured by scripts/work_hours.py, updated daily.`)}</span>
+  </div>`;
+}
 function shortDay(d){ return d.slice(8,10) + '.' + String(+d.slice(5,7)) + '.'; }
 /* Both charts ALWAYS span project day 1 (2026-07-08) through TODAY in Bern time (Richard,
    17.7.) — days without a log entry show as zero, never disappear. */
@@ -744,12 +778,15 @@ function renderTasksPerDay(){
     const v = byDate[d] || 0;
     const h = v ? Math.max(3, Math.round(v / max * H)) : 2;
     const x = GAP + i * (BW + GAP), y = TOP + H - h;
-    return `<g class="bar" onclick="openDayFromChart('${d}')"><title>${d} — ${v}</title>
+    const hrs = WORK_HOURS[d];
+    const hrsLbl = hrs != null ? `${isEstimatedHours(d) ? '~' : ''}${String(hrs).replace('.',',')} h` : '';
+    return `<g class="bar" onclick="openDayFromChart('${d}')"><title>${d} — ${v}${hrs != null ? ' · ' + hrsLbl : ''}</title>
       <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="4" fill="${v ? 'var(--accent)' : 'var(--rule)'}"/>
       <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="11" fill="${v ? 'var(--ink)' : 'var(--ink-faint)'}">${v}</text>
-      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text>
+      <text x="${x+BW/2}" y="${TOP+H+28}" text-anchor="middle" font-size="8.5" fill="var(--ink-faint)">${hrsLbl}</text></g>`;
   }).join('');
-  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL}" viewBox="0 0 ${W} ${TOP+H+LBL}">${bars}</svg>`;
+  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+12}" viewBox="0 0 ${W} ${TOP+H+LBL+12}">${bars}</svg>`;
 }
 function renderFeaturesOverTime(){
   const el = document.getElementById('featuresOverTimeChart');
@@ -832,11 +869,12 @@ function toggleHero(force){
 
 applyLang();
 renderTimeline();
+renderWorkHours();
 renderTasksPerDay();
 renderFeaturesOverTime();
 toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:15" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:15">🔄 Stav ChefOS k 17. 7. 2026, 14:15</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:53" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:53">🔄 Stav ChefOS k 17. 7. 2026, 14:53</div>
 </body>
 </html>
