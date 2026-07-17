@@ -2328,6 +2328,12 @@
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Edit — <span id="editAdminPermsName"></span></div>
+    <!-- Quick presets (Richard, 17.7.: Add Admin merged into the Directory — these two buttons
+         are everything the old tile did). -->
+    <div style="display:flex; gap:8px; margin:6px 0 10px 0;">
+      <button class="add-row-btn" style="flex:1; margin:0;" onclick="grantPresetFromEditor('kitchen')">⚡ Kitchen Admin preset</button>
+      <button class="add-row-btn" style="flex:1; margin:0;" onclick="grantPresetFromEditor('head')">🛡️ Head Admin</button>
+    </div>
     <div id="editAdminPermsList"></div>
     <div class="form-status" id="editAdminPermsStatus"></div>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeEditAdminPerms()">Close</button>
@@ -10866,18 +10872,56 @@ function closeEmailContacts(){ document.getElementById('emailContactsOverlay').c
 const FOUNDER_TEST_EMAILS = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'];
 const AI_USD_TO_CHF = 0.87;
 let _aiUsageRows = [], _aiUsageWho = {};
+/* Demo dataset for AI Usage (Richard, 17.7. večer) — same illustration mode as Kitchen
+   Reports (chefos@protonmail.com only, toggled there): believable varied numbers for showing
+   the screen to a prospect without exposing anyone's real usage. Deterministic, no DB. */
+function aiUsageDemoData(){
+  const people = [
+    { id:'demo-1', email:'marco.berger@demo.chefos.ch', full_name:'Marco Berger' },
+    { id:'demo-2', email:'ayla.demir@demo.chefos.ch', full_name:'Ayla Demir' },
+    { id:'demo-3', email:'jonas.frei@demo.chefos.ch', full_name:'Jonas Frei' },
+    { id:'demo-4', email:'petra.kovac@demo.chefos.ch', full_name:'Petra Kováč' },
+    { id:'demo-5', email:'luca.moretti@demo.chefos.ch', full_name:'Luca Moretti' },
+  ];
+  const FEATURES = ['recipe_scan','menu_scan','invoice_scan','chat_assistant','prep_sheet_scan','ai_details'];
+  // per user: [calls, weight profile over features] — hand-tuned so each pie looks different
+  const PROFILE = { 'demo-1':[34,[8,2,10,6,4,4]], 'demo-2':[26,[12,4,1,6,2,1]], 'demo-3':[19,[2,1,3,9,3,1]], 'demo-4':[11,[3,0,5,1,1,1]], 'demo-5':[6,[1,1,0,3,1,0]] };
+  const rows = [];
+  const now = Date.now();
+  people.forEach(p=>{
+    const [calls, w] = PROFILE[p.id];
+    const totalW = w.reduce((a,b)=>a+b,0);
+    for(let i=0;i<calls;i++){
+      let pick = (i * 7 + p.id.charCodeAt(5) * 3) % totalW, fi = 0;
+      while(pick >= w[fi]){ pick -= w[fi]; fi++; }
+      const inTok = 900 + ((i*331) % 2600), outTok = 250 + ((i*173) % 900);
+      rows.push({ user_id: p.id, feature: FEATURES[fi], model:'claude-sonnet-5',
+        input_tokens: inTok, output_tokens: outTok,
+        cost_usd: (inTok/1e6)*3 + (outTok/1e6)*15,
+        created_at: new Date(now - ((i*5 + p.id.charCodeAt(5)) % 7) * 86400000 - (i%20)*3600000).toISOString() });
+    }
+  });
+  return { rows, people };
+}
 async function openAiUsage(){
   const body = document.getElementById('aiUsageBody');
   body.innerHTML = '<p class="lede">Loading…</p>';
   document.getElementById('aiUsageOverlay').classList.add('open');
   // Kitchen Admins are scoped server-side by RLS (db/142) to their own kitchen's rows —
   // the same query simply returns less for them; the subtitle says whose numbers they see.
-  const [{ data: rows, error }, { data: people }] = await Promise.all([
-    sb.from('ai_usage').select('user_id, feature, model, input_tokens, output_tokens, cost_usd, created_at'),
-    sb.from('profiles').select('id, email, full_name'),
-  ]);
+  let rows, people, error = null;
+  if(krDemoActive()){
+    ({ rows, people } = aiUsageDemoData());
+  } else {
+    const [r1, r2] = await Promise.all([
+      sb.from('ai_usage').select('user_id, feature, model, input_tokens, output_tokens, cost_usd, created_at'),
+      sb.from('profiles').select('id, email, full_name'),
+    ]);
+    rows = r1.data; error = r1.error; people = r2.data;
+  }
   if(error){ body.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
-  const scopeNote = currentIsAdmin ? '' : `<p class="lede" style="margin:0 0 8px 0;">Showing your team only.</p>`;
+  const scopeNote = (krDemoActive() ? `<p class="lede" style="margin:0 0 8px 0;">🎭 Demo mode — illustrative numbers (toggle in Kitchen Reports).</p>` : '')
+    + (currentIsAdmin ? '' : `<p class="lede" style="margin:0 0 8px 0;">Showing your team only.</p>`);
   if(!rows || !rows.length){
     body.innerHTML = scopeNote + '<div class="empty-state">No AI calls logged yet — tracking started Jul 17, 2026. The next AI feature anyone uses will appear here.</div>';
     return;
@@ -10997,7 +11041,8 @@ const ADMIN_PERM_DEFS = [
   { key:'assistant', label:'Assistant', desc:"Designated by their kitchen's Company Admin — helper role within their own kitchen" },
 ];
 const ADMIN_TILE_DEFS = [
-  { key:'addAdmin', icon:'➕', staticLabel:'Add Admin', onclick:'openAddAdmin()', adminOnly:()=>currentIsAdmin },
+  /* Add Admin merged into Admin Directory (Richard, 17.7. večer): tap a person → Edit →
+     quick presets. One tile fewer; the old Add Admin overlays stay in the file unused. */
   { key:'adminDirectory', icon:'📋', staticLabel:'Admin Directory', onclick:'showAdminDirectory()', adminOnly:()=>currentIsAdmin },
   { key:'teamMembers', icon:'👥', staticLabel:'Team Members', onclick:'showAdminTeamMembers()', adminOnly:()=> currentIsAdmin || !!currentAdminPerms.company_admin || hasAdminPerm('manage_team') },
   { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
@@ -11188,6 +11233,27 @@ function renderAdminDirectory(){
 /* ---------- Edit one person's admin_perms + is_admin (on/off per Richard's wording — each
    toggle saves itself immediately, no separate Save button). ---------- */
 let _editAdminPermsTarget = null;
+/* Quick presets inside the editor (Richard, 17.7.: Add Admin tile merged into the Directory). */
+async function grantPresetFromEditor(kind){
+  const t = _editAdminPermsTarget;
+  if(!t) return;
+  const statusEl = document.getElementById('editAdminPermsStatus');
+  const name = t.full_name || t.email || 'This person';
+  if(kind === 'head'){
+    if(!confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
+    const { error } = await sb.from('profiles').update({ is_admin: true }).eq('id', t.id);
+    if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+    t.is_admin = true;
+  } else {
+    const perms = { ...(t.admin_perms || {}), manage_invites:true, manage_team:true, language_audit:true };
+    const { error } = await sb.from('profiles').update({ admin_perms: perms }).eq('id', t.id);
+    if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+    t.admin_perms = perms;
+  }
+  statusEl.textContent = kind === 'head' ? `${name} is now a Head Admin.` : `${name} is now a Kitchen Admin (invites + team + language audit).`;
+  renderEditAdminPermsList();
+  renderAdminDirectory();
+}
 function openEditAdminPerms(userId){
   _editAdminPermsTarget = _adminDirectoryRows.find(p=>p.id===userId) || null;
   if(!_editAdminPermsTarget) return;
@@ -12873,6 +12939,13 @@ async function refreshCommentCountBadge(r){
   }
 }
 function showDetail(idx){
+  // Remember where the recipe list was scrolled (Richard, 17.7. večer): opening a recipe
+  // always lands at ITS top, and going back to All Recipes returns to exactly this spot.
+  // Only captured when actually coming FROM the list — recipe→recipe jumps (cross-references)
+  // keep the original list position intact.
+  if(document.getElementById('listView').style.display === 'block'){
+    _recipeListScrollY = window.scrollY;
+  }
   window.currentDetailIdx = idx;
   const r = allRecipes()[idx];
   refreshCommentCountBadge(r);
@@ -13100,9 +13173,13 @@ function showDetail(idx){
 
   hideAllViews();
   document.getElementById('detailView').style.display = 'block';
+  // Twice on purpose: once now, once after layout settles (hero image slot etc.), so a
+  // recipe ALWAYS opens at its very top regardless of how far the previous view was scrolled.
   window.scrollTo(0,0);
+  requestAnimationFrame(()=>window.scrollTo(0,0));
 }
 
+let _recipeListScrollY = 0;
 function showList(){
   logEvent('view_opened', {view:'recipes'});
   hideAllViews();
@@ -13122,7 +13199,12 @@ function showList(){
   // detail view, delete, save, and back navigation, same as every other shelf-based screen.
   renderRecipeSummaryBar();
   renderList();
-  window.scrollTo(0,0);
+  // Coming back from a recipe detail returns to the exact spot you left the list at
+  // (Richard, 17.7. večer); a fresh entry from the shelf picker starts at the top because
+  // showRecipesHome() resets the saved position.
+  const y = _recipeListScrollY;
+  window.scrollTo(0, y);
+  requestAnimationFrame(()=>window.scrollTo(0, y));
 }
 
 async function deleteCurrentRecipe(){
@@ -13465,6 +13547,7 @@ let _showHiddenRecipeLists = false;
 async function showRecipesHome(){
   logEvent('view_opened', {view:'recipes_home'});
   hideAllViews();
+  _recipeListScrollY = 0; // fresh entry from the shelf picker starts the list at the top
   document.getElementById('recipesHomeView').style.display = 'block';
   maybeShowViewTutorial('recipes');
   window.scrollTo(0,0);
@@ -13711,6 +13794,49 @@ function findPublicDuplicate(ing){
   }
   return null;
 }
+/* AI second pass (Richard, 17.7. večer): when the cheap normalized check finds nothing, a
+   short Haiku call judges whether the new name is the SAME ingredient as a close existing one
+   in another language ("Karfiol" vs "Cauliflower") — the case string matching can't catch.
+   Candidates are shortlisted client-side (token overlap / prefix) so the prompt stays tiny.
+   Fails OPEN like every gate in this file: an AI error never blocks publishing. */
+function ingredientDupCandidates(ing){
+  const t = normIngName(ing.name);
+  if(!t) return [];
+  const toks = new Set(t.split(' '));
+  const out = [];
+  for(const other of _ingredients){
+    if(other.id === ing.id) continue;
+    const isLibrary = !other.is_personal && !other.list_id && !other._foreign;
+    if(!isLibrary && !other.is_public) continue;
+    let best = 0;
+    for(const n of [other.name, ...(other.aliases||[])]){
+      const nt = normIngName(n); if(!nt) continue;
+      const ntoks = new Set(nt.split(' '));
+      const inter = [...toks].filter(x=>ntoks.has(x)).length;
+      const overlap = inter / Math.max(1, Math.min(toks.size, ntoks.size));
+      const pre = (nt.slice(0,4) === t.slice(0,4)) ? 0.4 : 0;
+      best = Math.max(best, overlap + pre);
+    }
+    if(best >= 0.4) out.push(other.name);
+  }
+  return [...new Set(out)].slice(0, 15);
+}
+async function aiIngredientDupCheck(ing){
+  const cands = ingredientDupCandidates(ing);
+  if(!cands.length) return null;
+  try{
+    const res = await callClaudeAPI({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 120,
+      messages: [{ role:'user', content:
+        `A chef is publishing an ingredient called "${ing.name}" to a shared price book. Existing entries with similar names: ${cands.map(c=>`"${c}"`).join(', ')}. Is the new one the SAME ingredient as one of them (translation to another language, spelling variant, or typo — NOT merely related/similar products)? Reply with ONLY JSON: {"duplicate": true|false, "match": "<existing name or null>"}` }],
+    });
+    const text = (res.content||[]).map(c=>c.text||'').join('');
+    const parsed = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}')+1));
+    if(parsed && parsed.duplicate && parsed.match) return String(parsed.match);
+  } catch(e){ console.error('aiIngredientDupCheck failed (publishing anyway)', e); }
+  return null;
+}
 async function toggleIngredientShare(id, mode){
   const ing = _ingredients.find(i=>i.id===id);
   if(!ing) return;
@@ -13721,6 +13847,13 @@ async function toggleIngredientShare(id, mode){
     if(dup){
       document.getElementById('ingredientShareStatus').textContent =
         `Not published — "${ing.name}" already exists ${dup.is_public ? 'on the Public shelf' : 'in the ChefOS price book'} as "${dup.name}". The existing item stays the one everyone sees.`;
+      return;
+    }
+    document.getElementById('ingredientShareStatus').textContent = 'Checking for duplicates…';
+    const aiMatch = await aiIngredientDupCheck(ing);
+    if(aiMatch){
+      document.getElementById('ingredientShareStatus').textContent =
+        `Not published — AI recognized "${ing.name}" as the same ingredient as "${aiMatch}" (different language or spelling). The existing item stays the one everyone sees.`;
       return;
     }
   }

@@ -178,7 +178,7 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 17:12</div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 17:35</div>
 </div>
 
 <!-- Feature detail modal -->
@@ -203,6 +203,7 @@ const MODULES = [
     { name:'Police: My Recipes / ChefOS / Company', status:'ok', desc:'Recepty sú rozdelené na police podľa autora — tvoje vlastné, spoločná ChefOS knižnica a firemné od kolegov. Polica sa vyberá veľkými dlaždicami pri otvorení Receptov. Opravy 16.–17.7.: polica sa sama neprepína, firemný recept od teba sa ukazuje v Company, a firemný recept sa už NIKDY neukáže na osobnej polici My Recipes ani po prepnutí režimu (db/130). Odškrtnuté 17.7.' },
     { name:'Vlastné projekty (Add Project)', status:'ok', desc:'Vedľa pevných políc si vieš vytvoriť vlastné pomenované zbierky receptov — napr. "Svadobné menu 2026" — s výberom z 8 farebných kníh ako ikonou. Dlhé podržanie dlaždice = premenovať / skryť / vymazať. Naživo overené 17.7. („funkčné, som spokojný").' },
     { name:'Sekcie per polica (každá vlastné)', status:'ok', desc:'Každá polica aj projekt má vlastný, nezávislý zoznam sekcií (Polievky, Dezerty…) — nová polica začína čistá, len Favorites + All, a sekcie si buduje sama cez "+ New Section". Naživo overené 17.7. („presne ako má byť").' },
+    { name:'Ochrana proti duplicitám pri zverejnení 🧠', status:'build', desc:'Pri zverejnení ingrediencie na Public policu prebehnú dve kontroly: rýchla normalizácia názvu (veľké/malé písmená, diakritika, medzery) proti celému ChefOS cenníku aj aliasom zo skenov — a keď nič nenájde, krátka AI kontrola (Haiku) rozpozná aj rovnakú surovinu v inom jazyku („Karfiol“ vs „Cauliflower“) či preklep. Duplikát sa nezverejní, existujúca knižničná položka ostáva tá jedna pravá. AI kontrola pri chybe púšťa ďalej (nikdy neblokuje omylom).' },
     { name:'Verejná polica Public + publikovanie 🌍', status:'ok', desc:'Nová dlaždica Public hneď vedľa ChefOS — vidí ju každý účet v každej kuchyni. Vlastný recept zverejníš glóbusom 🌍 v detaile (s kontrolnou otázkou; rovnakým tlačidlom sa dá aj stiahnuť späť). Recept ostáva jeden — tvoj — a všetci ho čítajú, favoritujú a komentujú priamo (db/131). Cudzie verejné recepty (aj recepty priateľov) sú striktne READ-ONLY — Edit tlačidlo sa vôbec neukáže, dá sa len škálovať, komentovať a pridať suroviny do vlastnej databázy (17.7.). Naživo overené 17.7. naprieč 3 účtami; komentovanie cudzích verejných receptov opravené hneď v teste (db/132). Pravidlá 17.7. popoludní: pevné dlaždice (My Recipes/ChefOS/Public/Company) sa NEDAJÚ vymazať, len skryť (dlhé podržanie); z Company profilu sa publikovať nedá vôbec — appka vypíše podmienky a databázový trigger (db/133) to poistí aj technicky. Publikovať smie každý len vlastné osobné recepty z Personal profilu.' },
     { name:'Skutočné súkromie "Moje" (RLS)', status:'test', acct:'personal', desc:'Osobné recepty sú súkromné priamo na úrovni databázy — nevidí ich ani admin kuchyne. Nie je to len filter v appke, ale bezpečnostné pravidlo servera.' },
     { name:'Zdieľanie s priateľmi (opt-in)', status:'ok', desc:'Ak si to zapneš v nastaveniach, tvoji chef-priatelia (Connections) vidia tvoje vlastné recepty — len na čítanie. Vypnuteľné kedykoľvek.' },
