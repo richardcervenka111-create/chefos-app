@@ -1619,6 +1619,31 @@
   <div class="home-grid" id="haccpGrid"></div>
 </div>
 
+<!-- Working Time hub (Richard, 17.7.) — COMPANY accounts land here first: My Working Time
+     (the personal attendance screen) or Schedule (build the team's roster). Personal accounts
+     skip the hub and open Working Time directly, exactly as before. -->
+<div id="workingTimeHubView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Team &amp; Attendance</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">⏱️ Working Time</h1>
+  </div>
+  <div class="home-grid">
+    <button class="home-tile" onclick="showWorkingTime()">
+      <span class="home-tile-icon">⏱️</span>
+      <span class="home-tile-label">My Working Time</span>
+    </button>
+    <button class="home-tile" onclick="showSchedule()">
+      <span class="home-tile-icon">📅</span>
+      <span class="home-tile-label">Schedule</span>
+    </button>
+  </div>
+</div>
+
 <!-- Settings hub (Richard, 15.7., bod 5) — same tile design as Home/HACCP. Everything here
      reuses an existing opener; only the language picker and the install guide are new. -->
 <div id="settingsView" style="display:none;">
@@ -2515,9 +2540,10 @@
 <div id="workingTimeView" style="display:none;">
   <div class="wt-sticky-top">
     <div class="detail-bar no-print" style="position:static; border-bottom:none;">
-      <button class="back-btn" onclick="showHome()">
+      <!-- Back goes to the Working Time hub on company accounts, Home on personal (17.7.). -->
+      <button class="back-btn" onclick="wtBack()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-        Home
+        Back
       </button>
       <div class="bar-spacer"></div>
       <!-- Illustration-data switch (Richard, 17.7.) — Head Admin only. Pure DISPLAY mode:
@@ -3017,9 +3043,10 @@
 <div id="scheduleView" style="display:none;">
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
-      <button class="back-btn" onclick="showHome()" style="padding:0;">
+      <!-- Back goes to the Working Time hub on company accounts, Home on personal (17.7.). -->
+      <button class="back-btn" onclick="wtBack()" style="padding:0;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
-        Home
+        Back
       </button>
       <span class="sync-status saved" id="scheduleSyncStatus"></span>
     </div>
@@ -10178,14 +10205,14 @@ function refreshCustomCategoryState(){
   CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
 }
 
-const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','adminTeamMembersView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView'];
+const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','adminTeamMembersView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView','workingTimeHubView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
    phone. Rendered from a JS list rather than static HTML so the order (and the admin-only
    tile's visibility) can change at runtime. ---------- */
 const HOME_TILE_DEFS = [
-  { key:'workingTime', icon:'⏱️', staticLabel:'Working Time', onclick:'showWorkingTime()' },
+  { key:'workingTime', icon:'⏱️', staticLabel:'Working Time', onclick:'openWorkingTimeEntry()' },
   { key:'recipes', icon:'📖', labelKey:'recipes', staticLabel:'Recipes', onclick:'showRecipesHome()' },
   { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredientsHome()' },
   { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showCheckListProjects()' },
@@ -10872,6 +10899,7 @@ const VIEW_REOPENERS = {
   adminView: ()=>showAdmin(),
   adminDirectoryView: ()=>showAdminDirectory(),
   adminTeamMembersView: ()=>showAdminTeamMembers(),
+  workingTimeHubView: ()=>showWorkingTimeHub(),
   adminRequestsView: ()=>showAdminRequests(),
   friendsRecipesView: ()=>showChefFriends(),
   teamInviteView: ()=>showTeamInvite(),
@@ -16216,6 +16244,23 @@ let _workingTimeProfile = null;
 let _workingTimeTicker = null;
 let _scheduleForecast = [];
 let _workingTimeDayNotes = {};
+
+/* Working Time entry point (Richard, 17.7.): COMPANY accounts get a hub first — My Working
+   Time vs Schedule (build the team's roster). Personal accounts open Working Time directly,
+   as before. Back buttons inside both screens return to wherever the person came from. */
+function openWorkingTimeEntry(){
+  if(currentAccountType === 'company') showWorkingTimeHub();
+  else showWorkingTime();
+}
+function showWorkingTimeHub(){
+  logEvent('view_opened', {view:'working_time_hub'});
+  hideAllViews();
+  document.getElementById('workingTimeHubView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+function wtBack(){
+  if(currentAccountType === 'company') showWorkingTimeHub(); else showHome();
+}
 
 /* ============================================================
    Working Time demo/illustration mode (Richard, 17.7.) — Head Admin only. When ON, every
