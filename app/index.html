@@ -10590,7 +10590,12 @@ const HOME_TILE_DEFS = [
      rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
   /* Company accounts + Head Admin only for now (Richard, 16.7. večer) — may return to
      personal accounts later. */
-  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()', adminOnly:()=> currentIsAdmin || currentAccountType !== 'personal' },
+  /* HACCP visibility (Richard, 17.7. večer): hidden on Personal profiles, ALWAYS present in
+     Company mode — and Company mode itself is locked to real team members (db/116), so every
+     company-team member is guaranteed to have it. Tightened from `!== 'personal'` to
+     `=== 'company'` so accounts that skipped the profile-type gate (account_type NULL) don't
+     see it either. Head Admin sees it everywhere. */
+  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()', adminOnly:()=> currentIsAdmin || currentAccountType === 'company' },
   /* Settings hub (Richard, 15.7., bod 5) — one place for every setting; topbar icons stay
      for muscle memory until Richard says to slim them. */
   { key:'settings', icon:'⚙️', staticLabel:'Settings', onclick:'showSettings()' },
@@ -10674,6 +10679,8 @@ const HACCP_TILE_DEFS = [
   { key:'haccpReport', icon:'📊', staticLabel:'Report', onclick:"openPausedFeature('📊 HACCP Report', 'Coming soon — one summary screen across everything here, for inspections.')" }
 ];
 function showHACCP(){
+  // Same gate as the Home tile — belt-and-braces for any stray entry path.
+  if(!(currentIsAdmin || currentAccountType === 'company')){ showHome(); return; }
   hideAllViews();
   document.getElementById('haccpView').style.display = 'block';
   maybeShowViewTutorial('haccp');
