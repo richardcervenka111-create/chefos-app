@@ -3728,6 +3728,19 @@
   </div>
 </div>
 
+<!-- Add all of a recipe's ingredient lines to the user's own database (Richard, 17.7.) —
+     picker offers My Ingredients, existing custom lists, or creating a new one. -->
+<div id="addRecipeIngredientsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAddRecipeIngredients()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🧂 Add ingredients to…</div>
+    <p class="sheet-text" id="ariCount"></p>
+    <div id="ariOptions"></div>
+    <div class="sheet-status" id="ariStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAddRecipeIngredients()">Cancel</button>
+  </div>
+</div>
+
 <!-- Station picker for "Add to Check List" (bod 7, 16.7.) — no more silent "Extra". -->
 <div id="recipeStationPickOverlay" class="sheet-overlay" onclick="if(event.target===this) closeRecipeStationPick()">
   <div class="sheet">
@@ -11824,6 +11837,78 @@ async function confirmAddRecipeToStation(station){
 }
 /* ---------- Recipe Comments (bod 2, 16.7. — db/104) ---------- */
 let _currentCommentsRecipeId = null;
+/* ---------- Add all recipe ingredients to the user's own database (Richard, 17.7.) ----------
+   Pulls every ingredient LINE of the open recipe into a personal shelf: My Ingredients, an
+   existing custom list, or a brand-new list. Duplicates already on the chosen shelf are
+   skipped (the db/112 per-list uniqueness would reject them anyway) and reported honestly.
+   New rows land without prices — they're catalog entries to price later, not guesses. */
+function recipeIngredientNames(r){
+  const names = [];
+  (r.sections || []).filter(s=>s.type==='table').forEach(s=>{
+    (s.rows || []).forEach(row=>{
+      const n = String(row[0] || '').trim();
+      if(n && !names.some(x=>x.toLowerCase() === n.toLowerCase())) names.push(n);
+    });
+  });
+  return names;
+}
+async function openAddRecipeIngredientsToDb(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  const names = recipeIngredientNames(r);
+  if(!names.length){ alert('This recipe has no ingredient lines.'); return; }
+  document.getElementById('ariCount').textContent = `${names.length} ingredient line${names.length===1?'':'s'} from "${r.title}".`;
+  document.getElementById('ariStatus').textContent = '';
+  const wrap = document.getElementById('ariOptions');
+  wrap.innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('addRecipeIngredientsOverlay').classList.add('open');
+  const { data: lists } = await sb.from('ingredient_lists').select('*').order('created_at');
+  const mk = (icon, label, onclick)=>`<button class="sheet-option" style="display:block; width:100%; text-align:left;" onclick="${onclick}"><div class="sheet-option-title">${icon} ${krEsc(label)}</div></button>`;
+  wrap.innerHTML =
+    mk('👤', 'My Ingredients', "addRecipeIngredientsTo('mine')") +
+    (lists || []).filter(l=>!l.hidden).map(l=>mk('📋', l.name, `addRecipeIngredientsTo('${l.id}')`)).join('') +
+    mk('➕', 'New list…', 'addRecipeIngredientsToNewList()');
+}
+function closeAddRecipeIngredients(){
+  document.getElementById('addRecipeIngredientsOverlay').classList.remove('open');
+}
+async function addRecipeIngredientsToNewList(){
+  const name = prompt('Name the new ingredient list:');
+  if(!name || !name.trim()) return;
+  const { data: list, error } = await sb.from('ingredient_lists')
+    .insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim() })
+    .select().single();
+  if(error){ document.getElementById('ariStatus').textContent = 'Could not create the list: ' + error.message; return; }
+  await addRecipeIngredientsTo(list.id);
+}
+async function addRecipeIngredientsTo(target){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  const statusEl = document.getElementById('ariStatus');
+  statusEl.textContent = 'Adding…';
+  const listId = target === 'mine' ? null : target;
+  const names = recipeIngredientNames(r);
+  const existing = new Set(_ingredients
+    .filter(i=>i.is_personal && (i.list_id || null) === (listId || null))
+    .map(i=>String(i.name || '').toLowerCase()));
+  const toAdd = names.filter(n=>!existing.has(n.toLowerCase()));
+  if(!toAdd.length){
+    statusEl.textContent = '';
+    closeAddRecipeIngredients();
+    alert('All of these ingredients are already on that list.');
+    return;
+  }
+  const rows = toAdd.map(n=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: n }));
+  const { data: inserted, error } = await sb.from('ingredients').insert(rows).select();
+  if(error){ statusEl.textContent = 'Could not add: ' + error.message; return; }
+  (inserted || []).forEach(x=>_ingredients.push(x));
+  buildIngredientLookup();
+  statusEl.textContent = '';
+  closeAddRecipeIngredients();
+  const skipped = names.length - toAdd.length;
+  alert(`Added ${inserted.length} ingredient${inserted.length===1?'':'s'}${skipped ? ` · skipped ${skipped} already there` : ''}. Prices are empty — fill them in (or use ✨ AI Details) in Ingredients.`);
+}
+
 let _currentCommentsMasterId = null;
 async function openRecipeComments(){
   const r = allRecipes()[window.currentDetailIdx];
@@ -12009,6 +12094,11 @@ function showDetail(idx){
         </div>
       `).join('')}
     </div>`;
+  }
+  // One tap to pull this recipe's ingredient lines into your own price database (Richard,
+  // 17.7.) — the picker offers My Ingredients, any existing custom list, or a brand-new one.
+  if(computed.total > 0){
+    html += `<button class="add-row-btn" style="margin:${computed.matched>0?'-6px':'0'} 0 14px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
   }
 
   const nutrition = computeRecipeNutrition(r);
