@@ -90,7 +90,7 @@
   </div>
 
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 17:12" data-en="🔄 ChefOS state as of Jul 17, 2026, 17:12"></div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 17:46" data-en="🔄 ChefOS state as of Jul 17, 2026, 17:46"></div>
 <script>
 /* Shared doc-language key — same as every other visual data document. */
 let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
@@ -205,16 +205,26 @@ function renderSpendRows(){
     </div>`;
 }
 
-/* ---------- Donut ---------- */
+/* ---------- Donut with include/exclude filter (Richard, 17.7. večer: "kliknutím na položku
+   ju odrátať/prirátať k tomu koláču — celkové náklady s filtrom"). Legend click toggles the
+   item in/out of the pie and the centre total recomputes; excluded items go dim with a
+   strikethrough (filter-visibility standard: never opacity-only — they also lose their color
+   chip to a hollow outline). Donut arcs and the section-02 rows still open the timeline. */
+let _spendExcluded = new Set();
+function toggleSpendFilter(key){
+  if(_spendExcluded.has(key)) _spendExcluded.delete(key); else _spendExcluded.add(key);
+  renderSpendDonut();
+}
 function renderSpendDonut(){
   const svg = document.getElementById('spendDonut');
   const valOf = s => s.future ? parseFloat(s.amount.replace(/[^0-9.]/g,'')) : s.events.reduce((a,e)=>a+e.chf,0);
-  const total = SPEND_ITEMS.reduce((s,x)=>s + valOf(x), 0);
+  const included = SPEND_ITEMS.filter(s=>!_spendExcluded.has(s.key));
+  const total = included.reduce((s,x)=>s + valOf(x), 0);
   const R = 44, C = 2 * Math.PI * R;
   let off = 0;
-  svg.innerHTML = SPEND_ITEMS.map(s=>{
+  svg.innerHTML = included.map(s=>{
     const val = valOf(s);
-    const frac = val / total;
+    const frac = total ? val / total : 0;
     const label = L(s.sk, s.en);
     const c = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="17" style="cursor:pointer;"
       stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
@@ -223,12 +233,17 @@ function renderSpendDonut(){
     return c;
   }).join('') +
     `<text x="60" y="56" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">~${Math.round(total).toLocaleString('de-CH')}</text>` +
-    `<text x="60" y="70" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${L('CHF spolu, vrátane času a plánu','CHF total, incl. time and planned')}</text>`;
+    `<text x="60" y="70" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${_spendExcluded.size
+      ? L(`CHF s filtrom (${included.length}/${SPEND_ITEMS.length} položiek)`, `CHF filtered (${included.length}/${SPEND_ITEMS.length} items)`)
+      : L('CHF spolu, vrátane času a plánu','CHF total, incl. time and planned')}</text>`;
   document.getElementById('spendDonutLegend').innerHTML = SPEND_ITEMS.map(s=>{
     const val = valOf(s);
+    const excluded = _spendExcluded.has(s.key);
     const amt = '~CHF ' + val.toLocaleString('de-CH',{maximumFractionDigits: val < 10 ? 2 : 0});
-    return `<span class="item" onclick="openSpendTimeline('${s.key}')"><i style="background:${s.color};"></i><span>${L(s.sk,s.en)} — <b style="font-family:var(--mono);">${amt}</b></span></span>`;
-  }).join('');
+    return `<span class="item" onclick="toggleSpendFilter('${s.key}')" title="${L('Klik = odrátať/prirátať ku koláču','Click = subtract/add to the pie')}" style="${excluded ? 'opacity:.45; text-decoration:line-through;' : ''}">
+      <i style="${excluded ? `background:none; border:1.5px solid ${s.color};` : `background:${s.color};`}"></i>
+      <span>${L(s.sk,s.en)} — <b style="font-family:var(--mono);">${amt}</b></span></span>`;
+  }).join('') + `<span style="font-size:11px; color:var(--ink-dim); margin-top:4px;">${L('Klik v legende = filter koláča · klik na výsek alebo riadok nižšie = časová línia','Legend click = pie filter · arc or row below = timeline')}</span>`;
 }
 
 /* ---------- Timeline with day/week/month/year granularity (Richard, 17.7.) ---------- */

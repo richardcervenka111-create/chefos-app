@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Gronda research</title>
+<style>
+  /* ChefOS visual identity (standing rule): dark navy + teal. Slovak-first per Richard's
+     explicit ask ("v slovenčine"); EN available via the standard top-right toggle. */
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper2:#0E2138; --ink:#FFFFFF; --ink-dim:#9C949E;
+    --rule:#223d57; --accent:#34F7D7; --gold:#E8C468; --danger:#FF7A68; --ok:#4ADE80;
+    --mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,monospace;
+  }
+  *{ box-sizing:border-box; min-width:0; }
+  html,body{ overflow-x:hidden; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; padding:24px 16px 80px 16px; line-height:1.5; }
+  .wrap{ max-width:900px; margin:0 auto; }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+  h1{ font-size:26px; margin:0 0 6px 0; }
+  .lede{ font-size:13.5px; color:var(--ink-dim); margin:0 0 20px 0; max-width:70ch; }
+  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
+  .section-label{ display:flex; align-items:center; gap:10px; margin:26px 0 12px 0; }
+  .section-label .n{ font-family:var(--mono); font-size:11px; color:var(--accent); }
+  .section-label h2{ font-size:15px; margin:0; }
+  .section-label .rule{ flex:1; height:1px; background:var(--rule); }
+  .stat-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+  .stat{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px; }
+  .stat .num{ font-family:var(--mono); font-size:21px; font-weight:700; color:var(--accent); }
+  .stat .lbl{ font-size:11px; color:var(--ink-dim); margin-top:4px; line-height:1.45; }
+  .card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px; }
+  .vs{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width:640px){ .vs{ grid-template-columns:1fr; } }
+  .vs .card h3{ margin:0 0 8px 0; font-size:14px; }
+  .vs .card ul{ margin:0; padding-left:18px; font-size:12.5px; color:var(--ink-dim); }
+  .vs .card li{ margin:5px 0; }
+  .insp{ border-left:3px solid var(--accent); padding:10px 14px; background:var(--paper); border-radius:0 12px 12px 0; margin:8px 0; }
+  .insp b{ display:block; font-size:13px; margin-bottom:2px; }
+  .insp span{ font-size:12.5px; color:var(--ink-dim); }
+  .verdict{ display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--rule); font-size:12.5px; }
+  .verdict:first-child{ border-top:none; }
+  .verdict .ico{ flex:none; font-size:16px; }
+  .verdict b{ color:var(--ink); }
+  .verdict span{ color:var(--ink-dim); }
+  .src{ font-size:11px; color:var(--ink-dim); line-height:1.7; }
+  .src a{ color:var(--accent); text-decoration:none; }
+  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
+</style>
+</head>
+<body>
+<button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
+<div class="wrap">
+
+  <div class="kicker" data-sk="Konkurenčný research · 17. 7. 2026" data-en="Competitive research · Jul 17, 2026"></div>
+  <h1>🥘 Gronda × ChefOS</h1>
+  <p class="lede" data-sk="Kto je Gronda, z čoho žije, čím sa inšpirovať a triezvy pohľad na partnerstvo či exit. Zdroj: webový prieskum 17. 7. 2026 — tržby Gronda nezverejňuje, všetko pri peniazoch je preto verejné financovanie alebo poctivo označený odhad. Plný text: docs/GRONDA_RESEARCH.md." data-en="Who Gronda is, what it lives on, what to borrow, and a sober look at partnership or exit. Source: web research Jul 17, 2026 — Gronda doesn't publish revenue, so every money figure is public funding data or an honestly flagged estimate. Full text: docs/GRONDA_RESEARCH.md."></p>
+
+  <div class="section-label"><span class="n">01</span><h2 data-sk="Kto je Gronda — kľúčové čísla" data-en="Who Gronda is — key numbers"></h2><div class="rule"></div></div>
+  <div class="stat-grid">
+    <div class="stat"><div class="num">2016</div><div class="lbl" data-sk="založená v Innsbrucku (Tobias Zetzsche, Valentin Schuetz)" data-en="founded in Innsbruck (Tobias Zetzsche, Valentin Schuetz)"></div></div>
+    <div class="stat"><div class="num">~$2,16M</div><div class="lbl" data-sk="celkové financovanie — Series A $1,66M (feb 2020, Speedinvest, karriere.at, HOWZAT); odvtedy žiadne známe kolo" data-en="total funding — Series A $1.66M (Feb 2020, Speedinvest, karriere.at, HOWZAT); no known round since"></div></div>
+    <div class="stat"><div class="num">1–2M+</div><div class="lbl" data-sk="kuchárov v komunite (ich vlastné čísla)" data-en="chefs in the community (their own claim)"></div></div>
+    <div class="stat"><div class="num">50 000+</div><div class="lbl" data-sk="receptov od top šéfkuchárov · 60+ masterclassov (Ana Roš…)" data-en="recipes from top chefs · 60+ masterclasses (Ana Roš…)"></div></div>
+    <div class="stat"><div class="num">~47</div><div class="lbl" data-sk="zamestnancov" data-en="employees"></div></div>
+    <div class="stat"><div class="num">?</div><div class="lbl" data-sk="tržby neverejné — 10 rokov content biznisu bez ďalšieho kapitálu" data-en="revenue undisclosed — 10 years of content business, no further capital"></div></div>
+  </div>
+
+  <div class="section-label"><span class="n">02</span><h2 data-sk="Oni vs. my — neprekrývame sa v jadre" data-en="Them vs. us — cores don't overlap"></h2><div class="rule"></div></div>
+  <div class="vs">
+    <div class="card">
+      <h3>🥘 Gronda — <span style="color:var(--gold);" data-sk="inšpirácia" data-en="inspiration"></span></h3>
+      <ul>
+        <li data-sk="Gronda PRO predplatné: exkluzívne recepty, techniky, masterclassy („Netflix pre kuchárov“)" data-en="Gronda PRO subscription: exclusive recipes, techniques, masterclasses (“Netflix for chefs”)"></li>
+        <li data-sk="Creator Program — kuchári zarábajú na receptoch a značke (revenue-share, podiely neverejné)" data-en="Creator Program — chefs earn from recipes and brand (revenue share, split undisclosed)"></li>
+        <li data-sk="PRO for Teams / PRO for Schools segmenty" data-en="PRO for Teams / PRO for Schools segments"></li>
+        <li data-sk="AI len plytko: generátor variácií receptov" data-en="AI only shallow: recipe-variation generator"></li>
+        <li data-sk="Predáva jednotlivému kuchárovi" data-en="Sells to the individual chef"></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🍳 ChefOS — <span style="color:var(--accent);" data-sk="prevádzka" data-en="operations"></span></h3>
+      <ul>
+        <li data-sk="Nástroj, ktorý kuchyňa používa každý deň: Check List, food cost, HACCP, tím, štítky" data-en="A tool the kitchen uses daily: Check List, food cost, HACCP, team, labels"></li>
+        <li data-sk="Predáva kuchyni ako firme (Restaurant tier) + jednotlivcovi (Chef Pro)" data-en="Sells to the kitchen as a business (Restaurant tier) + the individual (Chef Pro)"></li>
+        <li data-sk="AI v prevádzke: skeny faktúr/receptov/menu, asistent, ceny surovín" data-en="AI in operations: invoice/recipe/menu scans, assistant, ingredient prices"></li>
+        <li data-sk="Šetrí merateľné peniaze (food cost, pokuty, čas) — ľahšie sa predáva než obsah" data-en="Saves measurable money (food cost, fines, time) — easier to sell than content"></li>
+        <li data-sk="Rovnaké publikum ako Gronda — kuchári" data-en="Same audience as Gronda — chefs"></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-label"><span class="n">03</span><h2 data-sk="Čím sa inšpirovať (konkrétne)" data-en="What to borrow (concretely)"></h2><div class="rule"></div></div>
+  <div class="insp"><b data-sk="1 · Creator ekonomika na recepty" data-en="1 · Creator economy on recipes"></b><span data-sk="Nechať najlepších kuchárov na recepte zarábať (platený prístup, podiel autorovi). Naša Public polica + per-friend zdieľanie je prvý krok — architektúra (master id, is_public) je pripravená. Reálne po triali." data-en="Let the best chefs earn from a recipe (paid access, author share). Our Public shelf + per-friend sharing is step one — the architecture (master id, is_public) is ready. Realistic after the trial."></span></div>
+  <div class="insp"><b data-sk="2 · Sociálny dôkaz na pricing stránke" data-en="2 · Social proof on the pricing page"></b><span data-sk="Gronda: „93 % members say PRO is essential“. My si po pilote vypýtame rovnakú vetu od pilotných kuchárov do founding-member ponuky." data-en="Gronda: “93% of members say PRO is essential”. After the pilot, get the same line from pilot chefs into the founding-member offer."></span></div>
+  <div class="insp"><b data-sk="3 · Hviezdni ambasádori, lokálna verzia" data-en="3 · Star ambassadors, local version"></b><span data-sk="Gronda stojí na menách (Ana Roš). Pre ChefOS: 2–3 rešpektovaní bernskí šéfkuchári ako referencie s menom a fotkou." data-en="Gronda leans on names (Ana Roš). For ChefOS: 2–3 respected Bern chefs as named references with photos."></span></div>
+  <div class="insp"><b data-sk="4 · Teams / Schools segmentácia" data-en="4 · Teams / Schools segmentation"></b><span data-sk="Zrkadlí náš Chef Pro vs. Restaurant model — potvrdenie, že dvojvrstvové ceny v gastre fungujú. „Schools“ je zaujímavý tretí segment (súvisí so zaparkovaným nápadom študentskej práce)." data-en="Mirrors our Chef Pro vs. Restaurant model — confirmation that two-tier gastro pricing works. “Schools” is an interesting third segment (ties to the parked student-thesis idea)."></span></div>
+  <div class="insp" style="border-left-color:var(--danger);"><b data-sk="5 · Čo NEROBIŤ podľa Gronda" data-en="5 · What NOT to do, per Gronda"></b><span data-sk="10 rokov, ~$2M kapitálu, tržby neverejné — obsah sa monetizuje ťažko a pomaly. Potvrdzuje našu stávku: predávať nástroj, ktorý denne šetrí peniaze, nie obsah." data-en="10 years, ~$2M capital, revenue undisclosed — content monetizes slowly and hard. Confirms our bet: sell a tool that saves money daily, not content."></span></div>
+
+  <div class="section-label"><span class="n">04</span><h2 data-sk="Partnerstvo / exit — triezvo" data-en="Partnership / exit — soberly"></h2><div class="rule"></div></div>
+  <div class="card">
+    <div class="verdict"><div class="ico">🤝</div><div><b data-sk="Partnerstvo: áno, po triali." data-en="Partnership: yes, after the trial."></b> <span data-sk="Ich 1M+ kuchárov je presne náš user; im chýba prevádzkový nástroj, nám distribúcia. Formy: cross-promo, Gronda recepty ako prémiová polica v ChefOS, ChefOS ako „kitchen ops“ partner ich Teams ponuky." data-en="Their 1M+ chefs are exactly our user; they lack an ops tool, we lack distribution. Forms: cross-promo, Gronda recipes as a premium shelf in ChefOS, ChefOS as the “kitchen ops” partner of their Teams offer."></span></div></div>
+    <div class="verdict"><div class="ico">💰</div><div><b data-sk="Exit: teraz nie." data-en="Exit: not now."></b> <span data-sk="ChefOS má 9 dní, 0 tržieb a zatiaľ ani právnu entitu. A Gronda s ~$2,16M celkového financovania pravdepodobne nemá hotovosť na akvizície — realistickejší je obchodný deal než odkup. Vrátiť sa k tomu po triali s retenciou, prvých founding platbách a založení Einzelfirmy." data-en="ChefOS is 9 days old, revenue 0, and no legal entity yet. And Gronda, with ~$2.16M total funding, likely has no cash for acquisitions — a commercial deal is more realistic than a buyout. Revisit after the trial (retention), first founding payments, and the Einzelfirma."></span></div></div>
+    <div class="verdict"><div class="ico">⚠️</div><div><b data-sk="Riziko pri rokovaniach." data-en="Negotiation risk."></b> <span data-sk="Funkčné detaily (HACCP engine, food cost, AI skeny) neukazovať do hĺbky bez NDA — 47-členný tím by vedel funkcie dostavať." data-en="Don't show feature depth (HACCP engine, food cost, AI scans) without an NDA — a 47-person team could build the features out."></span></div></div>
+  </div>
+
+  <div class="section-label"><span class="n">05</span><h2 data-sk="Zdroje" data-en="Sources"></h2><div class="rule"></div></div>
+  <p class="src">
+    <a href="https://gronda.com/creator/creator-program" target="_blank" rel="noopener">gronda.com/creator</a> ·
+    <a href="https://gronda.com/plans?hl=en" target="_blank" rel="noopener">gronda.com/plans</a> ·
+    <a href="https://www.crunchbase.com/organization/gronda-gmbh" target="_blank" rel="noopener">Crunchbase</a> ·
+    <a href="https://app.dealroom.co/companies/gronda" target="_blank" rel="noopener">Dealroom</a> ·
+    <a href="https://apps.apple.com/us/app/gronda-recipes-for-chefs/id1164423781" target="_blank" rel="noopener">App Store</a> ·
+    <a href="https://play.google.com/store/apps/details?id=com.gronda.app&hl=en_US" target="_blank" rel="noopener">Google Play</a>
+    <span data-sk=" — prieskum 17. 7. 2026; história job-platformovej vetvy (2022–23) je z môjho staršieho poznania a pred rokovaniami si ju treba overiť." data-en=" — researched Jul 17, 2026; the jobs-platform chapter (2022–23) comes from older knowledge and should be verified before any talks."></span>
+  </p>
+
+</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 17:46" data-en="🔄 ChefOS state as of Jul 17, 2026, 17:46"></div>
+<script>
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLang(){
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    const val = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
+    if(val === null) return;
+    if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+  });
+  const btn = document.getElementById('langBtn');
+  if(btn) btn.textContent = _lang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _lang;
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLang();
+}
+applyLang();
+</script>
+</body>
+</html>

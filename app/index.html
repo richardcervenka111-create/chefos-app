@@ -11105,7 +11105,8 @@ function renderAdminGrid(){
 const INTERNAL_DOCS = [
   { name:'📱 Produkt (mapa funkcií + história)', file:'produkt.html' },
   { name:'🗺️ Plán (teraz + denník + roadmapa)', file:'plan.html' },
-  { name:'💰 Biznis (monetizácia + automatizácie)', file:'biznis.html' },
+  { name:'💰 Biznis (monetizácia + automatizácie + náklady)', file:'biznis.html' },
+  { name:'🥘 Gronda research (konkurencia + inšpirácie)', file:'gronda.html' },
   { name:'🎨 Značka & vízia (deck + manifest + guide)', file:'znacka.html' },
   { name:'🔍 Critical Review (najnovší)', file:'CRITICAL_REVIEW/latest.html' },
 ];
@@ -12796,47 +12797,73 @@ async function deleteRecipeComment(id){
   await renderRecipeComments();
 }
 
-/* ---------- Activity feed (bod 2, 16.7. — db/104) — comments on recipes YOU created. ---------- */
+/* ---------- Activity feed (bod 2, 16.7. — db/104; extended 17.7. večer) — comments on
+   recipes YOU created AND on recipes you FAVORITED (Richard: "ak niekto komentuje
+   public/chefos recept a ja ho mám vo favorite tak ma to upozorní"). Favorited ChefOS/public
+   recipes are matched by chefos_master_id too, so a comment written in ANOTHER kitchen on the
+   same underlying ChefOS recipe (db/129) still triggers the dot. ---------- */
+function activityWatchTargets(){
+  const ids = [], masters = [];
+  allRecipes().forEach(r=>{
+    if(r.createdBy === currentUser.id || isFavorite(r.id)){
+      ids.push(r.id);
+      if(r.chefosMasterId) masters.push(r.chefosMasterId);
+    }
+  });
+  return { ids: [...new Set(ids)], masters: [...new Set(masters)] };
+}
+async function fetchWatchedComments(sinceOrNull, limit){
+  const { ids, masters } = activityWatchTargets();
+  if(!ids.length && !masters.length) return { rows: [] };
+  const build = () => {
+    let q = sb.from('recipe_comments')
+      .select('id, recipe_id, chefos_master_id, message, created_at, created_by, profiles:created_by(full_name, email)')
+      .neq('created_by', currentUser.id)
+      .order('created_at', { ascending:false })
+      .limit(limit);
+    if(sinceOrNull) q = q.gt('created_at', sinceOrNull);
+    return q;
+  };
+  const [byId, byMaster] = await Promise.all([
+    ids.length ? build().in('recipe_id', ids) : Promise.resolve({ data: [] }),
+    masters.length ? build().in('chefos_master_id', masters) : Promise.resolve({ data: [] }),
+  ]);
+  if(byId.error || byMaster.error) return { error: (byId.error || byMaster.error) };
+  const seen = new Set(), rows = [];
+  [...(byId.data||[]), ...(byMaster.data||[])].forEach(c=>{ if(!seen.has(c.id)){ seen.add(c.id); rows.push(c); } });
+  rows.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+  return { rows: rows.slice(0, limit) };
+}
 async function checkUnreadActivity(){
   const dot = document.getElementById('activityUnreadDot');
   if(!dot) return;
   const { data: profileRow } = await sb.from('profiles').select('activity_last_seen_at').eq('id', currentUser.id).maybeSingle();
   const since = (profileRow && profileRow.activity_last_seen_at) || '1970-01-01';
-  const myRecipeIds = allRecipes().filter(r=>r.createdBy === currentUser.id).map(r=>r.id);
-  if(!myRecipeIds.length){ dot.style.display = 'none'; return; }
-  const { count } = await sb.from('recipe_comments').select('id', { count:'exact', head:true })
-    .in('recipe_id', myRecipeIds).gt('created_at', since).neq('created_by', currentUser.id);
-  dot.style.display = (count && count > 0) ? 'block' : 'none';
+  const { rows, error } = await fetchWatchedComments(since, 1);
+  dot.style.display = (!error && rows && rows.length) ? 'block' : 'none';
 }
 async function openActivityFeed(){
   document.getElementById('activityFeedList').innerHTML = '<p class="lede">Loading…</p>';
   document.getElementById('activityFeedOverlay').classList.add('open');
-  const myRecipeIds = allRecipes().filter(r=>r.createdBy === currentUser.id).map(r=>r.id);
   const el = document.getElementById('activityFeedList');
-  if(!myRecipeIds.length){ el.innerHTML = '<div class="empty-state">Comment activity on your own recipes shows up here.</div>'; }
+  const { rows, error } = await fetchWatchedComments(null, 50);
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; }
+  else if(!rows || !rows.length){ el.innerHTML = '<div class="empty-state">Comments on your own recipes and on recipes you favorited show up here.</div>'; }
   else {
-    const { data, error } = await sb.from('recipe_comments')
-      .select('id, recipe_id, message, created_at, created_by, profiles:created_by(full_name, email)')
-      .in('recipe_id', myRecipeIds)
-      .neq('created_by', currentUser.id)
-      .order('created_at', { ascending:false })
-      .limit(50);
-    if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; }
-    else if(!data || !data.length){ el.innerHTML = '<div class="empty-state">Comment activity on your own recipes shows up here.</div>'; }
-    else {
-      el.innerHTML = data.map(c=>{
-        const r = allRecipes().find(rr=>rr.id === c.recipe_id);
-        return `
-        <div class="task-row" onclick="closeActivityFeed(); jumpToRecipeById('${c.recipe_id}');" style="cursor:pointer;">
-          <div class="task-row-top">
-            <div class="info" style="flex:1;">
-              <div class="name task-text">${((c.profiles && (c.profiles.full_name || c.profiles.email)) || 'Someone').replace(/</g,'&lt;')} commented on ${r ? r.title.replace(/</g,'&lt;') : 'your recipe'}</div>
-              <div class="meta">"${(c.message||'').replace(/</g,'&lt;')}" · ${new Date(c.created_at).toLocaleString()}</div>
-            </div>
+    el.innerHTML = rows.map(c=>{
+      const r = allRecipes().find(rr=>rr.id === c.recipe_id)
+        || (c.chefos_master_id ? allRecipes().find(rr=>rr.chefosMasterId === c.chefos_master_id) : null);
+      const yours = r && r.createdBy === currentUser.id;
+      return `
+      <div class="task-row" onclick="closeActivityFeed(); jumpToRecipeById('${r ? r.id : c.recipe_id}');" style="cursor:pointer;">
+        <div class="task-row-top">
+          <div class="info" style="flex:1;">
+            <div class="name task-text">${((c.profiles && (c.profiles.full_name || c.profiles.email)) || 'Someone').replace(/</g,'&lt;')} commented on ${r ? r.title.replace(/</g,'&lt;') : 'a recipe'}${yours ? '' : ' ⭐'}</div>
+            <div class="meta">"${(c.message||'').replace(/</g,'&lt;')}" · ${new Date(c.created_at).toLocaleString()}</div>
           </div>
         </div>
-      `;}).join('');
-    }
+      </div>
+    `;}).join('');
   }
   const { error: seenErr } = await sb.from('profiles').update({ activity_last_seen_at: new Date().toISOString() }).eq('id', currentUser.id);
   if(seenErr) logClientError('activity_last_seen_at update failed: ' + seenErr.message);
