@@ -225,7 +225,7 @@
     <div class="chart-card">
       <h3 class="sub" data-sk="Funkcie v čase — funkčné / čaká na test / naplánované / spolu" data-en="Features over time — working / awaiting test / planned / total"></h3>
       <div id="featuresOverTimeChart" class="chart-scroll"></div>
-      <p class="chart-note" data-sk="Celý projekt od 8. 7. 2026 po dnešok. Plné farebné stĺpce = presné stavy z dokumentácie: 16. 7. spätne dohľadaný z git histórie feature_statusu (43/39/4), od 17. 7. denné záznamy. Priesvitné stĺpce pred 16. 7. = spätný odhad počtu postavených funkcií z denníka práce (~) — mapa funkcií so stavmi vtedy ešte neexistovala (dokumentácia sledovala shipnuté úlohy a 13 modulových dlaždíc), takže delenie stavov pre tie dni poctivo nepredstierame." data-en="The whole project, Jul 8, 2026 through today. Solid colored bars = exact statuses from the documentation: Jul 16 recovered from feature_status git history (43/39/4), daily records since Jul 17. Translucent bars before Jul 16 = a back-estimate (~) of features built from the work log — the per-feature status map didn't exist yet then (docs tracked shipped tasks and 13 module tiles), so we honestly don't fake the split for those days."></p>
+      <p class="chart-note" data-sk="Reálne zaznamenané dáta od 16. 7. 2026 (16. 7. spätne dohľadaný z git histórie, od 17. 7. denné záznamy) — stĺpce pred 16. 7. sú odhad z denníka práce." data-en="Real recorded data since Jul 16, 2026 (Jul 16 recovered from git history, daily records since Jul 17) — bars before Jul 16 are an estimate from the work log."></p>
     </div>
   </div>
 </details>
@@ -792,10 +792,11 @@ function renderFeaturesOverTime(){
   const el = document.getElementById('featuresOverTimeChart');
   if(!el) return;
   // Stacked bars over the WHOLE project (8.7. → today, Richard 17.7.). Days with a recorded
-  // snapshot (FEATURE_COUNT_HISTORY, daily since 17.7.) show the full ok/test/plan stack.
-  // Days BEFORE recording started show a single dimmed "built so far" bar — an honest
-  // back-estimate: the cumulative share of shipped tasks from the day log, scaled to the
-  // first recorded built-count. Estimate and record are visually distinct on purpose.
+  // snapshot (FEATURE_COUNT_HISTORY, daily since 17.7.) show the exact ok/test/plan stack.
+  // Days BEFORE recording started get the same full-color stack, back-estimated (cumulative
+  // shipped-task share from the day log scaled to the first recorded total, split by the
+  // first recorded day's status ratio) — per Richard 17.7. the only estimate marker is the
+  // note under the chart saying from when the data is real.
   const SER = [
     { key:'ok', label: L('Funkčné','Working'), color:'#4ADE80' },
     { key:'test', label: L('Čaká na test','Awaiting test'), color:'#FB923C' },
@@ -804,7 +805,7 @@ function renderFeaturesOverTime(){
   const recorded = {};
   FEATURE_COUNT_HISTORY.forEach(r=>{ recorded[r.date] = { ...r, total: r.ok + r.test + r.plan }; });
   const firstRecordedDate = FEATURE_COUNT_HISTORY.map(r=>r.date).sort()[0];
-  const firstBuilt = recorded[firstRecordedDate].ok + recorded[firstRecordedDate].test;
+  const first = recorded[firstRecordedDate];
   // Cumulative shipped-task counts from the day log, up to the first recorded day.
   const byDate = {};
   DAYS.forEach(d=>{ byDate[d.date] = (byDate[d.date] || 0) + d.accomplished.length; });
@@ -812,36 +813,35 @@ function renderFeaturesOverTime(){
   let cum = 0, cumAtFirstRecorded = 0;
   const cumByDate = {};
   dates.forEach(d=>{ cum += (byDate[d] || 0); cumByDate[d] = cum; if(d <= firstRecordedDate) cumAtFirstRecorded = cum; });
-  const estBuilt = d => Math.max(1, Math.round(cumByDate[d] / (cumAtFirstRecorded || 1) * firstBuilt));
-  const maxTotal = Math.max(...dates.map(d => recorded[d] ? recorded[d].total : estBuilt(d)));
+  // Estimated day = first recorded day's stack scaled by cumulative shipped-task share,
+  // status split kept at the first recorded day's ratio.
+  const estDay = d => {
+    const total = Math.max(1, Math.round(cumByDate[d] / (cumAtFirstRecorded || 1) * first.total));
+    const ok = Math.round(total * first.ok / first.total);
+    const test = Math.round(total * first.test / first.total);
+    return { ok, test, plan: Math.max(0, total - ok - test), total };
+  };
+  const maxTotal = Math.max(...dates.map(d => (recorded[d] || estDay(d)).total));
   const BW = 40, GAP = 16, H = 170, TOP = 20, LBL = 30;
   const W = Math.max(dates.length * (BW + GAP) + GAP, 4 * 128 + GAP);
   const bars = dates.map((d,i)=>{
     const x = GAP + i * (BW + GAP);
-    if(recorded[d]){
-      const r = recorded[d];
-      let yCursor = TOP + H;
-      const segs = SER.map(s=>{
-        const v = r[s.key];
-        const h = maxTotal ? Math.max(v > 0 ? 2 : 0, Math.round(v / maxTotal * H)) : 0;
-        yCursor -= h;
-        return `<rect x="${x}" y="${yCursor}" width="${BW}" height="${h}" fill="${s.color}"><title>${s.label}: ${v}</title></rect>`;
-      }).join('');
-      return `<g>${segs}
-        <text x="${x+BW/2}" y="${yCursor-6}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${r.total}</text>
-        <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
-    }
-    const v = estBuilt(d);
-    const h = Math.max(3, Math.round(v / maxTotal * H));
-    const y = TOP + H - h;
-    return `<g opacity="0.5"><title>${L('Postavené — spätný odhad','Built — back-estimate')}: ~${v}</title>
-      <rect x="${x}" y="${y}" width="${BW}" height="${h}" fill="var(--accent)"/>
-      <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="10" fill="var(--ink-dim)">~${v}</text>
+    const isEst = !recorded[d];
+    const r = recorded[d] || estDay(d);
+    let yCursor = TOP + H;
+    const segs = SER.map(s=>{
+      const v = r[s.key];
+      const h = maxTotal ? Math.max(v > 0 ? 2 : 0, Math.round(v / maxTotal * H)) : 0;
+      yCursor -= h;
+      const tip = isEst ? `${s.label} (${L('odhad','estimate')}): ${v}` : `${s.label}: ${v}`;
+      return `<rect x="${x}" y="${yCursor}" width="${BW}" height="${h}" fill="${s.color}"><title>${tip}</title></rect>`;
+    }).join('');
+    return `<g>${segs}
+      <text x="${x+BW/2}" y="${yCursor-6}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${r.total}</text>
       <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
   }).join('');
-  const legend = SER.map((s,i)=>`<g><rect x="${GAP + i*128}" y="${TOP+H+24}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GAP + i*128 + 13}" y="${TOP+H+32}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text></g>`).join('')
-    + `<g opacity="0.55"><rect x="${GAP}" y="${TOP+H+40}" width="9" height="9" rx="2" fill="var(--accent)"/><text x="${GAP + 13}" y="${TOP+H+48}" font-size="9.5" fill="var(--ink-dim)">${L('Postavené — spätný odhad (pred 16.7.)','Built — back-estimate (before Jul 16)')}</text></g>`;
-  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+30}" viewBox="0 0 ${W} ${TOP+H+LBL+30}">${bars}${legend}</svg>`;
+  const legend = SER.map((s,i)=>`<g><rect x="${GAP + i*128}" y="${TOP+H+24}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GAP + i*128 + 13}" y="${TOP+H+32}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text></g>`).join('');
+  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+16}" viewBox="0 0 ${W} ${TOP+H+LBL+16}">${bars}${legend}</svg>`;
 }
 function openDayFromChart(date){
   document.querySelectorAll('.month-block, .week-block').forEach(b=>b.classList.add('open'));
@@ -875,6 +875,6 @@ renderFeaturesOverTime();
 toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:53" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:53">🔄 Stav ChefOS k 17. 7. 2026, 14:53</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 15:06" data-en="🔄 ChefOS state as of Jul 17, 2026, 15:06">🔄 Stav ChefOS k 17. 7. 2026, 15:06</div>
 </body>
 </html>
