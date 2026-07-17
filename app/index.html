@@ -2960,6 +2960,8 @@
     <div class="sheet-title">➕ Add Project</div>
     <p class="sheet-text">Name it after the restaurant or project it's for — you'll get the same Check List system, starting empty.</p>
     <input class="form-field" id="addProjectName" type="text" placeholder="e.g. Burrito Bandito">
+    <label class="form-label">Icon</label>
+    <div id="addProjectIconGrid" class="icon-choice-grid"></div>
     <div class="form-status" id="addProjectStatus"></div>
     <div class="sheet-row">
       <button class="save-btn" onclick="saveAddProject()">Create</button>
@@ -14848,9 +14850,23 @@ async function openProject(projectId){
   taskActiveStation = 'All';
   await showTasks();
 }
+/* Icon picker for new Check List projects (Richard, 17.7. večer: "skontroluj či môžu všetky
+   profily generovať ikony nových projektov a ak nie tak ich tam pridaj") — the projects.icon
+   column existed since db/94 and the grid already rendered it, but the create sheet never
+   offered a choice, for ANY profile. Same 8 colored books as recipe projects and ingredient
+   lists, available to everyone who can create a project. */
+let _newProjectIcon = RECIPE_PROJECT_ICON_CHOICES[0];
+function renderAddProjectIconGrid(){
+  document.getElementById('addProjectIconGrid').innerHTML = RECIPE_PROJECT_ICON_CHOICES.map(icon=>`
+    <button class="icon-choice${icon===_newProjectIcon?' active':''}" onclick="pickAddProjectIcon('${icon}')">${icon}</button>
+  `).join('');
+}
+function pickAddProjectIcon(icon){ _newProjectIcon = icon; renderAddProjectIconGrid(); }
 function openAddProject(){
   document.getElementById('addProjectName').value = '';
   document.getElementById('addProjectStatus').textContent = '';
+  _newProjectIcon = RECIPE_PROJECT_ICON_CHOICES[0];
+  renderAddProjectIconGrid();
   document.getElementById('addProjectOverlay').classList.add('open');
 }
 function closeAddProject(){ document.getElementById('addProjectOverlay').classList.remove('open'); }
@@ -14859,7 +14875,7 @@ async function saveAddProject(){
   const name = document.getElementById('addProjectName').value.trim();
   if(!name){ statusEl.textContent = 'Give it a name first.'; return; }
   statusEl.textContent = 'Saving…';
-  const { data, error } = await sb.from('projects').insert({ kitchen_id: currentKitchenId, name, created_by: currentUser.id }).select().single();
+  const { data, error } = await sb.from('projects').insert({ kitchen_id: currentKitchenId, name, icon: _newProjectIcon, created_by: currentUser.id }).select().single();
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   closeAddProject();
   currentProjects.push(data);
