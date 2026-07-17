@@ -1758,6 +1758,16 @@
   </div>
 </div>
 
+<!-- Per-user AI detail (Richard, 17.7. bod 2) — pie of this profile's AI-feature usage. -->
+<div id="aiUsageUserOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAiUsageUser()">
+  <div class="sheet" style="max-height:82vh; overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="aiUsageUserTitle" style="word-break:break-all;"></div>
+    <div id="aiUsageUserBody" style="margin-top:8px;"></div>
+    <button class="sheet-cancel" style="margin-top:12px;" onclick="closeAiUsageUser()">Close</button>
+  </div>
+</div>
+
 <!-- Generic reading log used by Goods Receiving / Core Cooking Temp / Cooling Log — same
      shape (a label, an optional numeric reading, an OK/Problem judgement, a note), so one
      screen serves all three via HACCP_MEASUREMENT_CONFIG instead of three near-identical ones.
@@ -10765,22 +10775,26 @@ function closeEmailContacts(){ document.getElementById('emailContactsOverlay').c
    this is the split it can never show (it only sees the one central key). ---------- */
 const FOUNDER_TEST_EMAILS = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'];
 const AI_USD_TO_CHF = 0.87;
+let _aiUsageRows = [], _aiUsageWho = {};
 async function openAiUsage(){
   const body = document.getElementById('aiUsageBody');
   body.innerHTML = '<p class="lede">Loading…</p>';
   document.getElementById('aiUsageOverlay').classList.add('open');
+  // Kitchen Admins are scoped server-side by RLS (db/142) to their own kitchen's rows —
+  // the same query simply returns less for them; the subtitle says whose numbers they see.
   const [{ data: rows, error }, { data: people }] = await Promise.all([
     sb.from('ai_usage').select('user_id, feature, model, input_tokens, output_tokens, cost_usd, created_at'),
     sb.from('profiles').select('id, email, full_name'),
   ]);
   if(error){ body.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  const scopeNote = currentIsAdmin ? '' : `<p class="lede" style="margin:0 0 8px 0;">Showing your team only.</p>`;
   if(!rows || !rows.length){
-    body.innerHTML = '<div class="empty-state">No AI calls logged yet — tracking started Jul 17, 2026. The next AI feature anyone uses will appear here.</div>';
+    body.innerHTML = scopeNote + '<div class="empty-state">No AI calls logged yet — tracking started Jul 17, 2026. The next AI feature anyone uses will appear here.</div>';
     return;
   }
-  const emailOf = {}; (people||[]).forEach(p=>{ emailOf[p.id] = { email: p.email || '', name: p.full_name || '' }; });
-  const now = new Date();
-  const todayKey = now.toLocaleDateString('en-CA', { timeZone:'Europe/Zurich' });
+  _aiUsageRows = rows;
+  _aiUsageWho = {}; (people||[]).forEach(p=>{ _aiUsageWho[p.id] = { email: p.email || '', name: p.full_name || '' }; });
+  const todayKey = new Date().toLocaleDateString('en-CA', { timeZone:'Europe/Zurich' });
   const monthKey = todayKey.slice(0,7);
   const perUser = {}, perFeature = {};
   rows.forEach(r=>{
@@ -10796,20 +10810,72 @@ async function openAiUsage(){
   const money = v => '$' + v.toFixed(v < 0.1 ? 4 : 2);
   const totalUsd = Object.values(perUser).reduce((s,u)=>s+u.usd, 0);
   const userRows = Object.entries(perUser).sort((a,b)=>b[1].usd - a[1].usd).map(([id,u])=>{
-    const who = emailOf[id] || { email:'(deleted account)', name:'' };
+    const who = _aiUsageWho[id] || { email:'(deleted account)', name:'' };
     const isTest = FOUNDER_TEST_EMAILS.includes((who.email||'').toLowerCase());
-    return `<div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+    return `<div class="task-row" style="cursor:pointer;" onclick="openAiUsageUser('${id}')"><div class="task-row-top"><div class="info" style="flex:1;">
       <div class="name task-text">${(who.email || id).replace(/</g,'&lt;')} ${isTest ? '<span style="font-size:10px; background:var(--accent); color:#0A1A2F; border-radius:999px; padding:1px 7px; font-weight:700;">founder test</span>' : ''}</div>
       <div class="meta">${u.calls} calls · ${u.tokens.toLocaleString('de-CH')} tokens · today ${money(u.todayUsd)} · this month ${money(u.monthUsd)} · total <b>${money(u.usd)}</b> (~CHF ${(u.usd*AI_USD_TO_CHF).toFixed(2)})</div>
-    </div></div></div>`;
+    </div><span style="font-size:18px;">›</span></div></div>`;
   }).join('');
   const featRows = Object.entries(perFeature).sort((a,b)=>b[1].usd - a[1].usd).slice(0,8).map(([f,v])=>
     `<div class="wt-settings-row"><div>${f.replace(/</g,'&lt;')}</div><div>${v.calls} calls · ${money(v.usd)}</div></div>`).join('');
-  body.innerHTML =
-    `<div class="section-label">👥 Per account — total ${money(totalUsd)} (~CHF ${(totalUsd*AI_USD_TO_CHF).toFixed(2)})</div>` + userRows +
+  body.innerHTML = scopeNote +
+    `<div class="section-label">👥 Per account — total ${money(totalUsd)} (~CHF ${(totalUsd*AI_USD_TO_CHF).toFixed(2)}) — tap for detail</div>` + userRows +
     `<div class="section-label" style="margin-top:14px;">🧩 By feature</div>` + featRows;
 }
 function closeAiUsage(){ document.getElementById('aiUsageOverlay').classList.remove('open'); }
+/* Per-user AI detail (Richard, 17.7. bod 2): pie of every AI feature split by THIS profile's
+   usage — visible to whoever could see the row (Head Admin, or the user's Kitchen Admin). */
+const AI_PIE_COLORS = ['#34F7D7','#F7C948','#FF7A68','#4ADE80','#7FB3FF','#C792EA','#8B93FF','#9C949E'];
+function openAiUsageUser(userId){
+  const who = _aiUsageWho[userId] || { email:'(deleted account)', name:'' };
+  const rows = _aiUsageRows.filter(r=>r.user_id === userId);
+  document.getElementById('aiUsageUserTitle').textContent = who.email || userId;
+  const body = document.getElementById('aiUsageUserBody');
+  if(!rows.length){ body.innerHTML = '<div class="empty-state">No AI calls from this account yet.</div>'; }
+  else{
+    const perFeature = {};
+    let totalUsd = 0, totalTokens = 0;
+    rows.forEach(r=>{
+      const f = perFeature[r.feature || 'chat'] || (perFeature[r.feature || 'chat'] = { calls:0, usd:0 });
+      const usd = Number(r.cost_usd || 0);
+      f.calls++; f.usd += usd; totalUsd += usd;
+      totalTokens += Number(r.input_tokens||0) + Number(r.output_tokens||0);
+    });
+    const segs = Object.entries(perFeature).sort((a,b)=>b[1].usd - a[1].usd);
+    const byCost = totalUsd > 0;               // fall back to call-count shares while costs are ~$0
+    const valOf = v => byCost ? v.usd : v.calls;
+    const total = segs.reduce((s,[,v])=>s + valOf(v), 0);
+    const R = 40, C = 2 * Math.PI * R;
+    let off = 0;
+    const circles = segs.map(([f,v],i)=>{
+      const frac = total ? valOf(v) / total : 0;
+      const c = `<circle cx="50" cy="50" r="${R}" fill="none" stroke="${AI_PIE_COLORS[i % AI_PIE_COLORS.length]}" stroke-width="16"
+        stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
+        transform="rotate(-90 50 50)"><title>${f.replace(/</g,'&lt;')}: ${v.calls} calls · $${v.usd.toFixed(4)}</title></circle>`;
+      off += frac;
+      return c;
+    }).join('');
+    const legend = segs.map(([f,v],i)=>`
+      <div style="display:flex; align-items:center; gap:7px; font-size:12px; margin:3px 0;">
+        <span style="width:10px; height:10px; border-radius:3px; background:${AI_PIE_COLORS[i % AI_PIE_COLORS.length]}; flex:none;"></span>
+        <span style="flex:1; color:var(--ink-dim); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${f.replace(/</g,'&lt;')}</span>
+        <b style="font-variant-numeric:tabular-nums;">${v.calls}×</b>
+        <span style="color:var(--ink-dim); width:64px; text-align:right; font-variant-numeric:tabular-nums;">$${v.usd.toFixed(v.usd < 0.1 ? 4 : 2)}</span>
+      </div>`).join('');
+    body.innerHTML = `
+      <div style="display:flex; gap:16px; align-items:center; margin:8px 0; flex-wrap:wrap;">
+        <svg viewBox="0 0 100 100" style="width:120px; height:120px; flex:none;">${circles}
+          <text x="50" y="47" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="700">$${totalUsd.toFixed(totalUsd < 0.1 ? 3 : 2)}</text>
+          <text x="50" y="61" text-anchor="middle" fill="var(--ink-dim)" font-size="7">${rows.length} calls total</text>
+        </svg>
+        <div style="flex:1; min-width:180px;">${legend}</div>
+      </div>
+      <p class="sheet-text" style="margin-top:4px;">${rows.length} calls · ${totalTokens.toLocaleString('de-CH')} tokens · $${totalUsd.toFixed(4)} (~CHF ${(totalUsd*AI_USD_TO_CHF).toFixed(2)})${byCost ? '' : ' — shares by call count while costs round to $0'}</p>`;
+  }
+  document.getElementById('aiUsageUserOverlay').classList.add('open');
+}
+function closeAiUsageUser(){ document.getElementById('aiUsageUserOverlay').classList.remove('open'); }
 
 function copyAllEmailContacts(){
   const statusEl = document.getElementById('emailContactsCopyStatus');
@@ -10861,8 +10927,10 @@ const ADMIN_TILE_DEFS = [
      ON, every device gets unlimited AI regardless of account type/credit (same as everyone
      already being topped up). While OFF, normal credit gating applies exactly as before. */
   { key:'aiTestingMode', icon:'🧪', staticLabel:'AI Testing Mode', onclick:'openAiTestingMode()', adminOnly:()=>currentIsAdmin },
-  /* AI Usage (Richard, 17.7. — db/139) — live per-user AI spend split, Head Admin only. */
-  { key:'aiUsage', icon:'📈', staticLabel:'AI Usage', onclick:'openAiUsage()', adminOnly:()=>currentIsAdmin },
+  /* AI Usage (Richard, 17.7. — db/139+142) — live per-user AI spend split. Head Admin sees
+     every kitchen; a kitchen's main admin (company_admin) sees their own team only (RLS-scoped
+     server-side, not just filtered in the UI). */
+  { key:'aiUsage', icon:'📈', staticLabel:'AI Usage', onclick:'openAiUsage()', adminOnly:()=> currentIsAdmin || !!currentAdminPerms.company_admin },
   /* Kitchen Reports (bod 2, 16.7. — db/99) — same 📊 icon as Head Admin's Internal Docs, but
      scoped to THIS kitchen only and available to any Kitchen Admin with the perm, not just
      Richard. Named employee data only ever shows for people who opted in (Settings). */
@@ -13521,11 +13589,44 @@ function renderIngredientShareList(){
       <button class="chip${ing.shared_with_friends?' active':''}" style="flex:none;" title="Share with friends" onclick="toggleIngredientShare('${ing.id}','friends')">🤝</button>
     </div>`).join('');
 }
+/* Duplicate guard on publish (Richard, 17.7. bod 5): the Public shelf must not fill up with
+   items that already exist in the ChefOS price book under another spelling. Before an item
+   goes public, its name is normalized (case/diacritics/spacing) and checked against every
+   ChefOS-book name AND alias already loaded — a match blocks the publish and names the
+   existing item, so the library entry stays the one canonical version. This catches exact
+   names, alias translations (aliases carry the scans' original-language names) and simple
+   spelling variants; it can't catch a completely different word for the same thing in a
+   language nobody has scanned yet — those get cleaned up by hand when spotted. */
+function normIngName(s){
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function findPublicDuplicate(ing){
+  const target = normIngName(ing.name);
+  if(!target) return null;
+  for(const other of _ingredients){
+    if(other.id === ing.id) continue;
+    const isLibrary = !other.is_personal && !other.list_id && !other._foreign;
+    const isAlreadyPublic = !!other.is_public;
+    if(!isLibrary && !isAlreadyPublic) continue;
+    if(normIngName(other.name) === target) return other;
+    for(const a of (other.aliases || [])){ if(normIngName(a) === target) return other; }
+    for(const a of (ing.aliases || [])){ if(normIngName(a) === normIngName(other.name)) return other; }
+  }
+  return null;
+}
 async function toggleIngredientShare(id, mode){
   const ing = _ingredients.find(i=>i.id===id);
   if(!ing) return;
   const col = mode==='public' ? 'is_public' : 'shared_with_friends';
   const next = !ing[col];
+  if(mode==='public' && next){
+    const dup = findPublicDuplicate(ing);
+    if(dup){
+      document.getElementById('ingredientShareStatus').textContent =
+        `Not published — "${ing.name}" already exists ${dup.is_public ? 'on the Public shelf' : 'in the ChefOS price book'} as "${dup.name}". The existing item stays the one everyone sees.`;
+      return;
+    }
+  }
   const patch = { [col]: next };
   if(mode==='public') patch.published_at = next ? new Date().toISOString() : null;
   const { error } = await sb.from('ingredients').update(patch).eq('id', id);
@@ -13540,17 +13641,20 @@ async function ingredientShareAll(mode){
   const statusEl = document.getElementById('ingredientShareStatus');
   if(mode !== 'none' && !confirm(`${mode==='public'?'Publish':'Share with friends'} all ${rows.length} ingredient${rows.length===1?'':'s'} on this list?`)) return;
   statusEl.textContent = 'Saving…';
-  let done = 0;
+  let done = 0, skippedDup = 0;
   for(const ing of rows){
     let patch;
-    if(mode==='public') patch = { is_public:true, published_at:new Date().toISOString() };
+    if(mode==='public'){
+      if(!ing.is_public && findPublicDuplicate(ing)){ skippedDup++; continue; }
+      patch = { is_public:true, published_at:new Date().toISOString() };
+    }
     else if(mode==='friends') patch = { shared_with_friends:true };
     else patch = { is_public:false, published_at:null, shared_with_friends:false };
     const { error } = await sb.from('ingredients').update(patch).eq('id', ing.id);
     if(!error){ Object.assign(ing, patch); done++; }
     else { statusEl.textContent = 'Could not update: ' + error.message; break; }
   }
-  statusEl.textContent = `Saved (${done}/${rows.length}).`;
+  statusEl.textContent = `Saved (${done}/${rows.length})${skippedDup ? ` — ${skippedDup} skipped as duplicates of existing ChefOS/Public items` : ''}.`;
   renderIngredientShareList();
 }
 function closeIngredientShareSheet(){

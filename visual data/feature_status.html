@@ -178,7 +178,7 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 16:40</div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 16:58</div>
 </div>
 
 <!-- Feature detail modal -->
@@ -216,7 +216,7 @@ const MODULES = [
     { name:'Obľúbené, poznámky, škálovanie, alergény', status:'ok', desc:'Hviezdička na obľúbené, vlastné poznámky ku každému receptu, prepočet množstiev podľa porcií alebo jednej suroviny, automatická detekcia alergénov a diét z názvov surovín.' },
   ]},
   { icon:'🧂', title:'Ingrediencie', items:[
-    { name:'Zdieľaný cenník (2 083 položiek)', status:'ok', desc:'Cenová databáza surovín tvojej kuchyne — z nej sa automaticky počíta food cost každého receptu (živý stav k 17.7.: 2 083 unikátnych surovín). Pozor: väčšina cien je zatiaľ AI odhad, nie overená faktúra — reálne ceny pribúdajú cez Invoice Scan.' },
+    { name:'Zdieľaný cenník (2 005 položiek v ChefOS cenníku)', status:'ok', desc:'Cenová databáza surovín tvojej kuchyne — z nej sa automaticky počíta food cost každého receptu (živý stav k 17.7.: 2 005 položiek ChefOS cenníka (2 058 riadkov s osobnými a zoznamami; public sa počíta zvlášť)). Pozor: väčšina cien je zatiaľ AI odhad, nie overená faktúra — reálne ceny pribúdajú cez Invoice Scan.' },
     { name:'My Ingredients (súkromné)', status:'test', acct:'personal', desc:'Tvoja vlastná polica surovín, oddelená od spoločného cenníka — súkromná na úrovni databázy, rovnako ako osobné recepty.' },
     { name:'Vlastné zoznamy + farebné knihy', status:'test', desc:'Vytvoríš si ďalšie pomenované zoznamy surovín (napr. "Ázijská špajza") s výberom z 8 farebných kníh ako ikonou (17.7.). Dlhé podržanie vlastného zoznamu = premenovať / skryť / vymazať / zdieľať. Pevné police (ChefOS, My Ingredients, Public) sa dajú len SKRYŤ, nikdy nie premenovať/vymazať — rovnako ako pri receptoch.' },
     { name:'Verejná polica + zdieľanie surovín 🌍🤝', status:'test', desc:'Nová dlaždica Public (naprieč kuchyňami, len na čítanie) + tlačidlo Share v My Ingredients: zoznam tvojich surovín, pri každej badge 🌍 public / 🤝 friends, plus „všetko naraz" a jednotlivo (db/136). Public = vidí každá kuchyňa, Friends = len tvoji chef-priatelia. Z Company profilu sa nedá zdieľať nič (appka + databázový trigger). Cudzie verejné suroviny sú bezpečne escapované, read-only a nikdy nevstupujú do tvojho cenníka receptov. Rovnaká voľba (public/friends) pribudla aj na publish tlačidlo receptov.' },
@@ -279,7 +279,7 @@ const MODULES = [
     { name:'AI kredit systém pre Personal účty', status:'test', acct:'personal', desc:'Osobné účty majú AI funkcie cez kreditový zostatok v CHF (prvé dobitie 70 % kreditu, ďalšie 90 %) — firemné účty majú AI v predplatnom. Účtuje sa podľa reálnej spotreby tokenov.' },
     { name:'Centrálny Anthropic API kľúč', status:'test', desc:'Všetky AI funkcie bežia cez jeden firemný kľúč v samostatnom workspace — spotreba užívateľov sa sleduje oddelene od vývojárskej. Nikto si už nemusí vkladať vlastný kľúč.' },
     { name:'AI Testing Mode', status:'test', role:'admin', desc:'Platformový vypínač pre Head Admina: kým je zapnutý, AI je pre všetkých neobmedzené (na testovanie) — kreditový systém sa obchádza.' },
-    { name:'AI Usage — spotreba per užívateľ', status:'build', role:'admin', desc:'Server (claude-proxy) od 17.7. zapisuje každé AI volanie (kto, funkcia, tokeny, cena — db/139). Živý prehľad v Admin → AI Usage: dnes / mesiac / spolu per účet, zakladateľove 3 testovacie účty označené, rozpad podľa funkcií. Claude Platform dashboard vidí len spoločný kľúč — toto je jediné miesto s rozdelením.' },
+    { name:'AI Usage — spotreba per užívateľ', status:'build', role:'admin', desc:'Server (claude-proxy) od 17.7. zapisuje každé AI volanie (kto, funkcia, tokeny, cena — db/139). Živý prehľad v Admin → AI Usage: Head Admin vidí všetkých, Kitchen Admin svoj tím (RLS db/142); rozklik na užívateľa otvorí koláčový graf jeho AI funkcií. Zakladateľove 3 testovacie účty označené. Claude Platform dashboard vidí len spoločný kľúč — toto je jediné miesto s rozdelením.' },
     { name:'Gate presadený aj na serveri', status:'test', desc:'Kreditová kontrola beží aj v serverovej funkcii, nielen v appke — obísť ju z prehliadača nestačí.' },
     { name:'Chef Challenge', status:'ok', desc:'Hravé AI výzvy na varenie. ⚠️ Audit odporúča vyhodiť z trial buildu — hračka bez väzby na hodnotu pre kuchyňu.' },
   ]},

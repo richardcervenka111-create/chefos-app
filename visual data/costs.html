@@ -11,7 +11,8 @@
     --ink-faint:#5E6B7A; --rule:#223d57; --accent:#34F7D7; --gold:#E8C468; --danger:#FF7A68;
     --mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,monospace;
   }
-  *{ box-sizing:border-box; }
+  *{ box-sizing:border-box; min-width:0; }
+  html,body{ overflow-x:hidden; }
   body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; padding:20px 16px 80px 16px; }
   .wrap{ max-width:860px; margin:0 auto; }
   h1{ font-size:24px; margin:0 0 4px 0; }
@@ -23,14 +24,26 @@
   .section-label .rule{ flex:1; height:1px; background:var(--rule); }
   .card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px; }
   .spend-legend{ display:flex; flex-direction:column; gap:7px; font-size:12px; color:var(--ink-dim); }
-  .spend-legend span{ display:inline-flex; align-items:center; gap:8px; }
+  .spend-legend span.item{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; border-radius:8px; padding:2px 6px; margin:-2px -6px; }
+  .spend-legend span.item:hover{ background:var(--paper2); }
   .spend-legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; flex:none; }
-  .spend-row{ display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid var(--rule); gap:12px; }
+  .spend-row{ display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; border-top:1px solid var(--rule); gap:12px; flex-wrap:wrap; cursor:pointer; }
   .spend-row:first-child{ border-top:none; }
-  .spend-what{ font-size:13px; color:var(--ink); }
+  .spend-row:hover{ background:var(--paper2); border-radius:8px; }
+  .spend-row.active{ outline:1px solid var(--accent); border-radius:10px; padding-left:8px; padding-right:8px; }
+  .spend-what{ font-size:13px; color:var(--ink); flex:1 1 240px; }
   .spend-what .meta{ display:block; font-size:11px; color:var(--ink-dim); margin-top:2px; line-height:1.5; }
   .spend-amount{ font-family:var(--mono); font-size:13.5px; font-weight:700; color:var(--ink); flex:none; font-variant-numeric:tabular-nums; }
   .spend-total{ display:flex; justify-content:space-between; padding:12px 0 0 0; border-top:2px solid var(--accent); margin-top:6px; font-weight:700; font-size:13px; gap:12px; flex-wrap:wrap; }
+  .gran-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .gran-chips button{ background:var(--paper2); border:1px solid var(--rule); color:var(--ink-dim); font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:999px; cursor:pointer; font-family:inherit; }
+  .gran-chips button.active{ background:var(--accent); border-color:var(--accent); color:#0A1A2F; }
+  .tl-scroll{ overflow-x:auto; margin-top:10px; -webkit-overflow-scrolling:touch; }
+  .tl-note{ font-size:11px; color:var(--ink-dim); margin:8px 0 0 0; line-height:1.5; }
+  #timelineCard{ display:none; border-color:var(--accent); }
+  .tl-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
+  .tl-title{ font-size:13.5px; font-weight:700; }
+  .tl-close{ background:none; border:none; color:var(--ink-dim); font-size:16px; cursor:pointer; padding:2px 6px; }
   .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
   @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
 </style>
@@ -40,89 +53,44 @@
 <div class="wrap">
 
   <h1 data-sk="💸 Náklady" data-en="💸 Costs"></h1>
-  <p class="lede" data-sk="Všetky peniaze a čas, ktoré ChefOS doteraz stál, aj to, čo je naplánované. Self-reported, nie auditované — presné čísla vždy v Claude Platform / bankovom výpise. Čas zakladateľa sa počíta sadzbou 45 CHF/h z merača hodín (scripts/work_hours.py). AI spotreba per užívateľ sa od 17. 7. meria naživo — Admin → AI Usage v appke." data-en="All the money and time ChefOS has cost so far, plus what's planned. Self-reported, not audited — exact figures always in Claude Platform / the bank statement. Founder time is valued at CHF 45/h from the hours meter (scripts/work_hours.py). Per-user AI spend is metered live since Jul 17 — Admin → AI Usage in the app."></p>
+  <p class="lede" data-sk="Všetky peniaze a čas, ktoré ChefOS doteraz stál, aj to, čo je naplánované. Klikni na ktorúkoľvek položku (v koláči, legende alebo zozname) a otvorí sa jej časová línia od začiatku projektu — s prepínačom deň / týždeň / mesiac / rok. Self-reported, nie auditované; čas zakladateľa = 45 CHF/h z merača hodín." data-en="All the money and time ChefOS has cost so far, plus what's planned. Click any item (pie, legend or list) to open its timeline since project start — with a day / week / month / year toggle. Self-reported, not audited; founder time = CHF 45/h from the hours meter."></p>
 
   <div class="section-label"><span class="n">01</span><h2 data-sk="Koláč — všetky doterajšie aj budúce náklady" data-en="Pie — all costs to date and upcoming"></h2><div class="rule"></div></div>
   <div class="card" style="display:flex; flex-wrap:wrap; gap:20px; align-items:center;">
     <svg id="spendDonut" width="170" height="170" viewBox="0 0 120 120" style="flex:none;"></svg>
-    <div id="spendDonutLegend" class="spend-legend" style="flex:1; min-width:230px;"></div>
+    <div id="spendDonutLegend" class="spend-legend" style="flex:1 1 230px;"></div>
   </div>
 
-  <div class="section-label"><span class="n">02</span><h2 data-sk="Položky" data-en="Line items"></h2><div class="rule"></div></div>
-  <div class="card">
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="⏱️ Čas zakladateľa — 83,9 h × 45 CHF/h" data-en="⏱️ Founder time — 83.9 h × CHF 45/h"></span><span class="meta" data-sk="43,9 h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť." data-en="43.9 h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash."></span></div>
-      <div class="spend-amount">~CHF 3 776</div>
+  <div class="card" id="timelineCard" style="margin-top:12px;">
+    <div class="tl-head">
+      <div class="tl-title" id="tlTitle"></div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div class="gran-chips" id="granChips"></div>
+        <button class="tl-close" onclick="closeSpendTimeline()" title="Close">✕</button>
+      </div>
     </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="API kredity + Claude predplatné (od začiatku projektu)" data-en="API credits + Claude subscriptions (since project start)"></span><span class="meta" data-sk="8.7.–14.7.2026, self-reported (~$45 kredity+Pro, $5 dobitie, $80 ďalšie predplatné)" data-en="Jul 8–14, 2026, self-reported (~$45 credits+Pro, $5 top-up, $80 another subscription)"></span></div>
-      <div class="spend-amount">~CHF 135</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="Nové náklady na projekt" data-en="New project costs"></span><span class="meta" data-sk="nahlásené Richardom 15.7. v noci — presné zaradenie/účel zatiaľ neupresnené" data-en="reported by Richard late on Jul 15 — exact category/purpose not yet specified"></span></div>
-      <div class="spend-amount">CHF 97.73</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="Gamma (prezentačný nástroj)" data-en="Gamma (presentation tool)"></span><span class="meta" data-sk="nahlásené Richardom 17.7." data-en="reported by Richard Jul 17"></span></div>
-      <div class="spend-amount">CHF 20.00</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="Doména chefos.ch (Hostpoint, 1. rok)" data-en="Domain chefos.ch (Hostpoint, year 1)"></span><span class="meta" data-sk="15.7.2026 — zľava na prvý rok, obnova ~CHF 15/rok od druhého roka" data-en="Jul 15, 2026 — first-year discount, renews at ~CHF 15/year from year 2"></span></div>
-      <div class="spend-amount">CHF 5.00</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="Denný ingredient agent" data-en="Daily ingredient agent"></span><span class="meta" data-sk="strop CHF 30/mesiac, denný log: docs/ingredient_agent_log.md" data-en="cap CHF 30/month, daily log: docs/ingredient_agent_log.md"></span></div>
-      <div class="spend-amount" data-sk="~CHF 1.20 (1 beh, samo-nahlásené)" data-en="~CHF 1.20 (1 run, self-reported)"></div>
-    </div>
-    <div class="spend-total">
-      <div data-sk="Hotovosť doteraz" data-en="Cash to date"></div>
-      <div class="spend-amount" data-sk="~CHF 259 + Supabase Pro mesačne" data-en="~CHF 259 + Supabase Pro monthly"></div>
-    </div>
-    <div class="spend-total" style="border-top:1px solid var(--rule);">
-      <div data-sk="S časom zakladateľa" data-en="Incl. founder time"></div>
-      <div class="spend-amount">~CHF 4 034</div>
-    </div>
+    <div class="tl-scroll"><div id="tlChart"></div></div>
+    <p class="tl-note" id="tlNote"></p>
   </div>
+
+  <div class="section-label"><span class="n">02</span><h2 data-sk="Položky — klikni pre časovú líniu" data-en="Line items — click for the timeline"></h2><div class="rule"></div></div>
+  <div class="card" id="spendRows"></div>
 
   <div class="section-label"><span class="n">03</span><h2 data-sk="AI spotreba — kto koľko minie" data-en="AI spend — who spends what"></h2><div class="rule"></div></div>
   <div class="card">
-    <p class="lede" style="margin:0 0 10px 0;" data-sk="Claude Platform dashboard vidí len jeden spoločný ChefOS kľúč — rozdelenie per užívateľ nikdy ukázať nevie. Preto od 17. 7. 2026 server (claude-proxy) zapisuje každé AI volanie: kto, ktorá funkcia, koľko tokenov a vypočítaná cena. Živý prehľad: Admin → 📈 AI Usage v appke (len Head Admin) — zakladateľove 3 testovacie účty sú tam označené. Do tohto dokumentu sa súhrn prenáša pri každom doc-synce." data-en="The Claude Platform dashboard only sees ChefOS's one shared key — it can never show a per-user split. So since Jul 17, 2026 the server (claude-proxy) logs every AI call: who, which feature, token counts and computed cost. Live view: Admin → 📈 AI Usage in the app (Head Admin only) — the founder's 3 test accounts are flagged there. A summary lands in this document with every doc-sync."></p>
-    <div class="spend-row">
+    <p class="lede" style="margin:0 0 10px 0;" data-sk="Claude Platform dashboard vidí len jeden spoločný ChefOS kľúč — rozdelenie per užívateľ nikdy ukázať nevie. Preto od 17. 7. 2026 server (claude-proxy) zapisuje každé AI volanie: kto, ktorá funkcia, koľko tokenov a vypočítaná cena. Živý prehľad: Admin → 📈 AI Usage v appke — Head Admin vidí všetkých, Kitchen Admin svoj tím; rozklik na užívateľa ukáže koláč jeho AI funkcií. Do tohto dokumentu sa súhrn prenáša pri každom doc-synce." data-en="The Claude Platform dashboard only sees ChefOS's one shared key — it can never show a per-user split. So since Jul 17, 2026 the server (claude-proxy) logs every AI call: who, which feature, token counts and computed cost. Live view: Admin → 📈 AI Usage in the app — Head Admin sees everyone, a Kitchen Admin their own team; tapping a user opens a pie of their AI functions. A summary lands in this document with every doc-sync."></p>
+    <div class="spend-row" style="cursor:default;">
       <div class="spend-what"><span data-sk="Celkové AI výdavky tento mesiac (celá organizácia)" data-en="Total AI spend this month (whole org)"></span><span class="meta" data-sk="z Claude Platform dashboardu 17.7.: $2.22 minutých, $2.79 kreditov zostáva, 388K tokenov za 7 dní. Čerpá z už zaplatených kreditov v položkách vyššie — nezapočítava sa druhýkrát." data-en="from the Claude Platform dashboard Jul 17: $2.22 spent, $2.79 credits left, 388K tokens in 7 days. Draws on the already-paid credits above — not double-counted."></span></div>
       <div class="spend-amount">$2.22</div>
     </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="Per užívateľ (z ai_usage tabuľky)" data-en="Per user (from the ai_usage table)"></span><span class="meta" id="aiUsageSyncNote" data-sk="meranie beží od 17. 7. 15:28 — zatiaľ žiadne zaznamenané volania; prvé sa objavia pri najbližšom použití AI funkcie" data-en="metering live since Jul 17, 15:28 — no calls logged yet; the first will appear the next time anyone uses an AI feature"></span></div>
+    <div class="spend-row" style="cursor:default;">
+      <div class="spend-what"><span data-sk="Per užívateľ (z ai_usage tabuľky)" data-en="Per user (from the ai_usage table)"></span><span class="meta" data-sk="meranie beží od 17. 7. — prvé volania sa objavia pri najbližšom použití AI funkcie" data-en="metering live since Jul 17 — the first calls will appear the next time anyone uses an AI feature"></span></div>
       <div class="spend-amount">—</div>
     </div>
   </div>
 
-  <div class="section-label"><span class="n">04</span><h2 data-sk="Budúce a opakované" data-en="Upcoming and recurring"></h2><div class="rule"></div></div>
-  <div class="card">
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="🔜 Tlačiareň štítkov Brother QL-820NWB" data-en="🔜 Brother QL-820NWB label printer"></span><span class="meta" data-sk="odporúčanie hotové (docs/LABEL_PRINTER_RESEARCH.md), zatiaľ nekúpená" data-en="recommendation ready (docs/LABEL_PRINTER_RESEARCH.md), not yet purchased"></span></div>
-      <div class="spend-amount">~CHF 130</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="🔜 SensorPush senzor + WiFi brána (chladnička)" data-en="🔜 SensorPush sensor + WiFi gateway (fridge)"></span><span class="meta" data-sk="~$55 senzor + ~$100 brána, bez mesačných poplatkov — jediná budget možnosť s cloud API" data-en="~$55 sensor + ~$100 gateway, no monthly fee — the only budget option with a cloud API"></span></div>
-      <div class="spend-amount">~CHF 125</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="🔁 Supabase Pro (mesačne, beží)" data-en="🔁 Supabase Pro (monthly, ongoing)"></span><span class="meta" data-sk="potvrdené Richardom 15.7. — denné zálohy v cene; samo-nahlásené, začiatok predplatného neevidovaný" data-en="confirmed by Richard Jul 15 — daily backups included; self-reported, subscription start date not recorded"></span></div>
-      <div class="spend-amount">~USD 25/mes</div>
-    </div>
-    <div class="spend-row">
-      <div class="spend-what"><span data-sk="🔁 Doména chefos.ch — obnova" data-en="🔁 Domain chefos.ch — renewal"></span><span class="meta" data-sk="od druhého roka" data-en="from year 2"></span></div>
-      <div class="spend-amount">~CHF 15/rok</div>
-    </div>
-    <div class="spend-total">
-      <div data-sk="Plánované jednorazové nákupy" data-en="Planned one-off purchases"></div>
-      <div class="spend-amount">~CHF 255</div>
-    </div>
-  </div>
-
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 16:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 16:40"></div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 16:58" data-en="🔄 ChefOS state as of Jul 17, 2026, 16:58"></div>
 <script>
 /* Shared doc-language key — same as every other visual data document. */
 let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
@@ -136,52 +104,209 @@ function applyLang(){
   if(btn) btn.textContent = _lang === 'sk' ? 'EN' : 'SK';
   document.documentElement.lang = _lang;
 }
+function L(sk,en){ return _lang==='sk' ? sk : en; }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
   localStorage.setItem('chefos_doc_lang', _lang);
   applyLang();
   renderSpendDonut();
+  renderSpendRows();
+  if(_tlKey) renderSpendTimeline();
 }
 
-/* Spend donut (Richard, 17.7.: "koláčový graf ktorý zobrazuje všetky tieto a budúce
-   náklady"). One place to update: SPEND_SEGS amounts in CHF. Founder time = hours from
-   the work-hours meter × 45 CHF/h — refresh SPEND_HOURS with every doc-sync. */
-const SPEND_HOURS = 83.9, SPEND_RATE = 45;
-const SPEND_SEGS = [
-  { sk:'Čas zakladateľa (83,9 h × 45 CHF)', en:'Founder time (83.9 h × CHF 45)', chf: SPEND_HOURS * SPEND_RATE, color:'#8B93FF' },
-  { sk:'API + Claude predplatné', en:'API + Claude subscriptions', chf: 135, color:'var(--accent)' },
-  { sk:'Nové náklady 15.7.', en:'New costs, Jul 15', chf: 97.73, color:'#2BB8A3' },
-  { sk:'Gamma', en:'Gamma', chf: 20, color:'#1E7F73' },
-  { sk:'Doména chefos.ch', en:'Domain chefos.ch', chf: 5, color:'#6EE7D0' },
-  { sk:'Ingredient agent', en:'Ingredient agent', chf: 1.2, color:'var(--danger)' },
-  { sk:'Budúce: tlačiareň štítkov', en:'Upcoming: label printer', chf: 130, color:'var(--gold)', future:true },
-  { sk:'Budúce: senzor chladničky', en:'Upcoming: fridge sensor', chf: 125, color:'#C9A24B', future:true },
+/* ---------- Data (Richard, 17.7.: every item clickable → timeline since project start).
+   One place to update: SPEND_ITEMS. Founder time events come from the work-hours meter
+   (WORK_HOURS × 45 CHF/h) — refresh with every doc-sync. Payment dates for the early
+   API/subscription spends were reported as a running total, not itemized — those event
+   dates are honest estimates and say so in the item note. ---------- */
+const PROJECT_START = '2026-07-08';
+const SPEND_RATE = 45;
+const WORK_HOURS = { '2026-07-08':8.0,'2026-07-09':8.0,'2026-07-10':8.0,'2026-07-11':8.0,'2026-07-12':8.0,'2026-07-13':7.7,'2026-07-14':7.4,'2026-07-15':11.6,'2026-07-16':14.8,'2026-07-17':2.4 };
+const SPEND_ITEMS = [
+  { key:'time', color:'#8B93FF',
+    sk:'⏱️ Čas zakladateľa — 83,9 h × 45 CHF/h', en:'⏱️ Founder time — 83.9 h × CHF 45/h',
+    meta_sk:'43,9 h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť.',
+    meta_en:'43.9 h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash.',
+    amount:'~CHF 3 776',
+    events: Object.entries(WORK_HOURS).map(([d,h])=>({ date:d, chf: h*SPEND_RATE })),
+    note_sk:'Denné hodiny × 45 CHF. Dni 8.–12.7. sú odhad ~8 h/deň (pred gitom), od 13.7. presne z git histórie.',
+    note_en:'Daily hours × CHF 45. Jul 8–12 are ~8 h/day estimates (pre-git); measured from git history since Jul 13.' },
+  { key:'api', color:'var(--accent)',
+    sk:'API kredity + Claude predplatné', en:'API credits + Claude subscriptions',
+    meta_sk:'8.7.–14.7.2026, self-reported (~$45 kredity+Pro, $5 dobitie, $80 ďalšie predplatné)',
+    meta_en:'Jul 8–14, 2026, self-reported (~$45 credits+Pro, $5 top-up, $80 another subscription)',
+    amount:'~CHF 135',
+    events:[ { date:'2026-07-08', chf:45 }, { date:'2026-07-10', chf:5 }, { date:'2026-07-12', chf:85 } ],
+    note_sk:'Nahlásené súhrnne, presné dátumy jednotlivých platieb sa neevidovali — rozloženie na 8./10./12.7. je poctivý odhad, súčet ~135 CHF sedí.',
+    note_en:'Reported as a running total; exact payment dates were not recorded — the 8/10/12 Jul split is an honest estimate, the ~CHF 135 total is right.' },
+  { key:'new15', color:'#2BB8A3',
+    sk:'Nové náklady na projekt', en:'New project costs',
+    meta_sk:'nahlásené Richardom 15.7. v noci — presné zaradenie/účel zatiaľ neupresnené',
+    meta_en:'reported by Richard late on Jul 15 — exact category/purpose not yet specified',
+    amount:'CHF 97.73',
+    events:[ { date:'2026-07-15', chf:97.73 } ],
+    note_sk:'Jednorazovo, 15.7.2026.', note_en:'One-off, Jul 15, 2026.' },
+  { key:'gamma', color:'#1E7F73',
+    sk:'Gamma (prezentačný nástroj)', en:'Gamma (presentation tool)',
+    meta_sk:'nahlásené Richardom 17.7.', meta_en:'reported by Richard Jul 17',
+    amount:'CHF 20.00',
+    events:[ { date:'2026-07-17', chf:20 } ],
+    note_sk:'Jednorazovo, 17.7.2026.', note_en:'One-off, Jul 17, 2026.' },
+  { key:'domain', color:'#6EE7D0',
+    sk:'Doména chefos.ch (Hostpoint, 1. rok)', en:'Domain chefos.ch (Hostpoint, year 1)',
+    meta_sk:'15.7.2026 — zľava na prvý rok, obnova ~CHF 15/rok od druhého roka',
+    meta_en:'Jul 15, 2026 — first-year discount, renews at ~CHF 15/year from year 2',
+    amount:'CHF 5.00',
+    events:[ { date:'2026-07-15', chf:5 } ],
+    note_sk:'Jednorazovo 15.7.2026; ďalší výdavok príde pri obnove (~15 CHF/rok).',
+    note_en:'One-off Jul 15, 2026; next spend at renewal (~CHF 15/year).' },
+  { key:'agent', color:'var(--danger)',
+    sk:'Denný ingredient agent', en:'Daily ingredient agent',
+    meta_sk:'strop CHF 30/mesiac, denný log: docs/ingredient_agent_log.md',
+    meta_en:'cap CHF 30/month, daily log: docs/ingredient_agent_log.md',
+    amount:'~CHF 1.20',
+    events:[ { date:'2026-07-14', chf:1.2 } ],
+    note_sk:'Zatiaľ 1 zaznamenaný beh (14.7., samo-nahlásené). Denné behy sa budú pripisovať sem.',
+    note_en:'1 recorded run so far (Jul 14, self-reported). Daily runs will accrue here.' },
+  { key:'printer', color:'var(--gold)', future:true,
+    sk:'🔜 Tlačiareň štítkov Brother QL-820NWB', en:'🔜 Brother QL-820NWB label printer',
+    meta_sk:'odporúčanie hotové (docs/LABEL_PRINTER_RESEARCH.md), zatiaľ nekúpená',
+    meta_en:'recommendation ready (docs/LABEL_PRINTER_RESEARCH.md), not yet purchased',
+    amount:'~CHF 130',
+    events:[],
+    note_sk:'Plánovaný nákup — zatiaľ žiadne výdavky; časová línia sa naplní po kúpe.',
+    note_en:'Planned purchase — no spend yet; the timeline fills in after buying.' },
+  { key:'sensor', color:'#C9A24B', future:true,
+    sk:'🔜 SensorPush senzor + WiFi brána', en:'🔜 SensorPush sensor + WiFi gateway',
+    meta_sk:'~$55 senzor + ~$100 brána, bez mesačných poplatkov — jediná budget možnosť s cloud API',
+    meta_en:'~$55 sensor + ~$100 gateway, no monthly fee — the only budget option with a cloud API',
+    amount:'~CHF 125',
+    events:[],
+    note_sk:'Plánovaný nákup — zatiaľ žiadne výdavky.', note_en:'Planned purchase — no spend yet.' },
+  { key:'supabase', color:'#7FB3FF', recurring:true,
+    sk:'🔁 Supabase Pro (mesačne, beží)', en:'🔁 Supabase Pro (monthly, ongoing)',
+    meta_sk:'potvrdené Richardom 15.7. — denné zálohy v cene; začiatok predplatného neevidovaný',
+    meta_en:'confirmed by Richard Jul 15 — daily backups included; subscription start not recorded',
+    amount:'~USD 25/mes',
+    events:[ { date:'2026-07-13', chf:22 } ],
+    note_sk:'Mesačné predplatné ~25 USD (~22 CHF); prvá platba priradená k 13.7. (upgrade na Pro), presný fakturačný deň neevidovaný.',
+    note_en:'Monthly ~USD 25 (~CHF 22); first charge shown on Jul 13 (Pro upgrade), exact billing day not recorded.' },
 ];
+
+function renderSpendRows(){
+  const el = document.getElementById('spendRows');
+  el.innerHTML = SPEND_ITEMS.map(it=>`
+    <div class="spend-row" id="row_${it.key}" onclick="openSpendTimeline('${it.key}')">
+      <div class="spend-what"><span>${L(it.sk, it.en)}</span><span class="meta">${L(it.meta_sk, it.meta_en)} · <b style="color:var(--accent);">${L('📈 časová línia','📈 timeline')}</b></span></div>
+      <div class="spend-amount">${it.amount}</div>
+    </div>`).join('') + `
+    <div class="spend-total">
+      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 281 (vrátane 1. mesiaca Supabase) · s časom zakladateľa ~CHF 4 056 · plánované nákupy ~CHF 255','Cash to date ~CHF 281 (incl. first Supabase month) · incl. founder time ~CHF 4,056 · planned purchases ~CHF 255')}</div>
+    </div>`;
+}
+
+/* ---------- Donut ---------- */
 function renderSpendDonut(){
   const svg = document.getElementById('spendDonut');
-  if(!svg) return;
-  const total = SPEND_SEGS.reduce((s,x)=>s + x.chf, 0);
+  const valOf = s => s.future ? parseFloat(s.amount.replace(/[^0-9.]/g,'')) : s.events.reduce((a,e)=>a+e.chf,0);
+  const total = SPEND_ITEMS.reduce((s,x)=>s + valOf(x), 0);
   const R = 44, C = 2 * Math.PI * R;
   let off = 0;
-  svg.innerHTML = SPEND_SEGS.map(s=>{
-    const frac = s.chf / total;
-    const label = _lang==='sk' ? s.sk : s.en;
-    const c = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="17"
+  svg.innerHTML = SPEND_ITEMS.map(s=>{
+    const val = valOf(s);
+    const frac = val / total;
+    const label = L(s.sk, s.en);
+    const c = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="17" style="cursor:pointer;"
       stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
-      transform="rotate(-90 60 60)"><title>${label}: ~CHF ${s.chf.toLocaleString('de-CH',{maximumFractionDigits:0})}</title></circle>`;
+      transform="rotate(-90 60 60)" onclick="openSpendTimeline('${s.key}')"><title>${label}: ~CHF ${Math.round(val).toLocaleString('de-CH')}</title></circle>`;
     off += frac;
     return c;
   }).join('') +
     `<text x="60" y="56" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">~${Math.round(total).toLocaleString('de-CH')}</text>` +
-    `<text x="60" y="70" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${_lang==='sk'?'CHF spolu, vrátane času a plánu':'CHF total, incl. time and planned'}</text>`;
-  document.getElementById('spendDonutLegend').innerHTML = SPEND_SEGS.map(s=>{
-    const label = _lang==='sk' ? s.sk : s.en;
-    const amt = '~CHF ' + s.chf.toLocaleString('de-CH',{maximumFractionDigits: s.chf < 10 ? 2 : 0});
-    return `<span><i style="background:${s.color};"></i><span>${label} — <b style="font-family:var(--mono);">${amt}</b></span></span>`;
+    `<text x="60" y="70" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${L('CHF spolu, vrátane času a plánu','CHF total, incl. time and planned')}</text>`;
+  document.getElementById('spendDonutLegend').innerHTML = SPEND_ITEMS.map(s=>{
+    const val = valOf(s);
+    const amt = '~CHF ' + val.toLocaleString('de-CH',{maximumFractionDigits: val < 10 ? 2 : 0});
+    return `<span class="item" onclick="openSpendTimeline('${s.key}')"><i style="background:${s.color};"></i><span>${L(s.sk,s.en)} — <b style="font-family:var(--mono);">${amt}</b></span></span>`;
   }).join('');
 }
+
+/* ---------- Timeline with day/week/month/year granularity (Richard, 17.7.) ---------- */
+let _tlKey = null, _tlGran = 'day';
+const GRANS = [ ['day','Deň','Day'], ['week','Týždeň','Week'], ['month','Mesiac','Month'], ['year','Rok','Year'] ];
+function bernToday(){ return new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(new Date()); }
+function dateRange(){
+  const out = []; const end = bernToday();
+  let d = new Date(PROJECT_START + 'T12:00:00');
+  while(true){
+    const s = d.toISOString().slice(0,10);
+    out.push(s);
+    if(s >= end) break;
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+function bucketOf(dateStr, gran){
+  if(gran === 'day') return dateStr;
+  const d = new Date(dateStr + 'T12:00:00');
+  if(gran === 'year') return dateStr.slice(0,4);
+  if(gran === 'month') return dateStr.slice(0,7);
+  const day = (d.getDay()+6)%7; const mon = new Date(d); mon.setDate(d.getDate()-day);
+  return mon.toISOString().slice(0,10);
+}
+function bucketLabel(b, gran){
+  if(gran === 'day'){ const p = b.split('-'); return String(Number(p[2])) + '.' + String(Number(p[1])) + '.'; }
+  if(gran === 'week'){ const p = b.split('-'); return L('týž. od ','wk of ') + String(Number(p[2])) + '.' + String(Number(p[1])) + '.'; }
+  if(gran === 'month'){ const m = Number(b.split('-')[1]); return (_lang==='sk' ? ['jan','feb','mar','apr','máj','jún','júl','aug','sep','okt','nov','dec'] : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])[m-1] + ' ' + b.slice(0,4); }
+  return b;
+}
+function setGran(g){ _tlGran = g; renderSpendTimeline(); }
+function openSpendTimeline(key){
+  _tlKey = key;
+  document.querySelectorAll('.spend-row').forEach(r=>r.classList.remove('active'));
+  const row = document.getElementById('row_' + key);
+  if(row) row.classList.add('active');
+  document.getElementById('timelineCard').style.display = 'block';
+  renderSpendTimeline();
+  document.getElementById('timelineCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function closeSpendTimeline(){
+  _tlKey = null;
+  document.getElementById('timelineCard').style.display = 'none';
+  document.querySelectorAll('.spend-row').forEach(r=>r.classList.remove('active'));
+}
+function renderSpendTimeline(){
+  const it = SPEND_ITEMS.find(x=>x.key === _tlKey);
+  if(!it) return;
+  document.getElementById('tlTitle').textContent = L(it.sk, it.en) + ' — ' + L('od začiatku projektu (8.7.2026)','since project start (Jul 8, 2026)');
+  document.getElementById('granChips').innerHTML = GRANS.map(([g,sk,en])=>
+    `<button class="${_tlGran===g?'active':''}" onclick="setGran('${g}')">${L(sk,en)}</button>`).join('');
+  document.getElementById('tlNote').textContent = L(it.note_sk, it.note_en);
+  // zero-filled buckets over the whole project range, events summed into their bucket
+  const buckets = [];
+  const seen = {};
+  dateRange().forEach(d=>{ const b = bucketOf(d, _tlGran); if(!seen[b]){ seen[b] = { label: bucketLabel(b, _tlGran), chf: 0 }; buckets.push(seen[b]); } });
+  it.events.forEach(e=>{ const b = bucketOf(e.date, _tlGran); if(seen[b]) seen[b].chf += e.chf; });
+  const max = Math.max(1, ...buckets.map(b=>b.chf));
+  let cum = 0;
+  const BW = 44, GAP = 14, H = 150, TOP = 24, LBL = 34;
+  const W = Math.max(buckets.length * (BW + GAP) + GAP, 300);
+  const bars = buckets.map((b,i)=>{
+    cum += b.chf;
+    const h = b.chf > 0 ? Math.max(3, Math.round(b.chf / max * H)) : 0;
+    const y = TOP + H - h;
+    const x = GAP + i * (BW + GAP);
+    return `<g>${h ? `<rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="3" fill="${it.color}"><title>${b.label}: CHF ${b.chf.toFixed(2)} · ${L('spolu dovtedy','running total')} CHF ${cum.toFixed(2)}</title></rect>
+      <text x="${x+BW/2}" y="${y-6}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${b.chf < 10 ? b.chf.toFixed(1) : Math.round(b.chf)}</text>` : `<rect x="${x}" y="${TOP+H-1}" width="${BW}" height="1" fill="var(--rule)"/>`}
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9" fill="var(--ink-dim)">${b.label}</text></g>`;
+  }).join('');
+  const totalLine = `<text x="${GAP}" y="14" font-size="10.5" fill="var(--ink-dim)">${L('Spolu doteraz','Total to date')}: <tspan font-weight="700" fill="var(--ink)">CHF ${cum.toLocaleString('de-CH',{maximumFractionDigits:2})}</tspan>${it.future ? ' · ' + L('plánované','planned') + ': ' + it.amount : ''}</text>`;
+  document.getElementById('tlChart').innerHTML = `<svg width="${W}" height="${TOP+H+LBL}" viewBox="0 0 ${W} ${TOP+H+LBL}">${totalLine}${bars}</svg>`;
+}
+
 applyLang();
 renderSpendDonut();
+renderSpendRows();
 </script>
 </body>
 </html>
