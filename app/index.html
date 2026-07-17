@@ -1578,12 +1578,6 @@
         <button class="icon-btn" onclick="openTutorial()" title="How this works">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
-        <!-- What's New (bod 1, 16.7.) — a small notification + mini-tour whenever a feature is
-             shipped, separate from the full onboarding Tutorial above. -->
-        <button class="icon-btn" onclick="openWhatsNew()" title="What's new" id="whatsNewBtn" style="position:relative;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
-          <span id="whatsNewDot" style="display:none; position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--copper);"></span>
-        </button>
         <button class="icon-btn" onclick="openMyProfileSettings()" title="My Profile">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         </button>
@@ -1618,9 +1612,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Food Safety &amp; Compliance</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('haccp')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">🧼 HACCP</h1>
   </div>
@@ -1634,9 +1633,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Team &amp; Attendance</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('workingTime')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">⏱️ Working Time</h1>
   </div>
@@ -1659,6 +1663,9 @@
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Settings</p>
       <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('settings')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
         <button class="icon-btn" onclick="openSettingsReorder()" title="Reorder icons">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
         </button>
@@ -2070,9 +2077,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Connections</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('connections')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">🔗 Connections</h1>
   </div>
@@ -2227,9 +2239,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Admin</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('admin')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">🛡️ Admin</h1>
   </div>
@@ -2558,6 +2575,9 @@
            generated demo entries replace what the screens SHOW, nothing is ever written to
            time_entries (the 16.7. "Add sample data" incident is exactly why). -->
       <button class="task-status-btn" id="wtDemoToggle" style="display:none;" onclick="toggleWtDemo()">🎭 Demo: OFF</button>
+      <button class="icon-btn" onclick="openViewTutorial('workingTime')" title="How this works">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
     </div>
     <div id="workingTimeSummaryCard" class="wt-card" style="margin:0 18px 12px 18px;"></div>
   </div>
@@ -2601,6 +2621,10 @@
     <button class="back-btn" onclick="showHome()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
       Home
+    </button>
+    <div class="bar-spacer"></div>
+    <button class="icon-btn" onclick="openViewTutorial('printLabels')" title="How this works">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>
   </div>
   <h1 class="title display no-print" style="padding: 4px 18px 0 18px;">Print Labels</h1>
@@ -2717,9 +2741,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Recipes</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('recipes')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">📖 Recipes</h1>
   </div>
@@ -2730,9 +2759,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Ingredients</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('ingredients')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">🧂 Ingredients</h1>
   </div>
@@ -2860,9 +2894,14 @@
   <div class="topbar">
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Check List</p>
-      <button class="icon-btn" onclick="showHome()" title="Back to Home">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="icon-btn" onclick="openViewTutorial('checkList')" title="How this works">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="icon-btn" onclick="showHome()" title="Back to Home">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
     </div>
     <h1 class="title display">📋 Check List</h1>
   </div>
@@ -3016,6 +3055,9 @@
     </button>
     <div class="bar-spacer"></div>
     <span class="sync-status saved" id="orderListSyncStatus"></span>
+    <button class="icon-btn" onclick="openViewTutorial('orderList')" title="How this works">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
     <button class="save-btn" id="orderListSaveBtn" onclick="saveOrderListAndReturnToSummary()" style="display:none;">Save</button>
   </div>
   <h1 class="title display" style="padding: 4px 18px 0 18px;">Order List</h1>
@@ -3057,6 +3099,9 @@
       <button class="back-btn" onclick="wtBack()" style="padding:0;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
         Back
+      </button>
+      <button class="icon-btn" onclick="openViewTutorial('schedule')" title="How this works">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
       <span class="sync-status saved" id="scheduleSyncStatus"></span>
     </div>
@@ -3157,6 +3202,9 @@
       <button class="back-btn" onclick="showHome()" style="padding:0;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
         Home
+      </button>
+      <button class="icon-btn" onclick="openViewTutorial('chefAssistant')" title="How this works">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
     </div>
     <h1 class="title display">Chef's Assistant</h1>
@@ -3902,20 +3950,6 @@
       <button class="save-btn" id="tutorialNextBtn" onclick="tutorialStep(1)">Next</button>
     </div>
     <button class="sheet-cancel" style="margin-top:8px;" onclick="closeTutorial()">Skip</button>
-  </div>
-</div>
-
-<!-- What's New (bod 1, 16.7.) — same carousel pattern as the onboarding Tutorial, but a growing
-     feed of one-slide-per-shipped-feature announcements instead of a fixed screen-by-screen tour. -->
-<div id="whatsNewOverlay" class="sheet-overlay" onclick="if(event.target===this) closeWhatsNew()">
-  <div class="sheet" style="max-height:82vh;">
-    <div class="sheet-handle"></div>
-    <div id="whatsNewBody"></div>
-    <div class="sheet-row" style="margin-top:10px;">
-      <button class="sheet-cancel" id="whatsNewBackBtn" onclick="whatsNewStep(-1)">Back</button>
-      <button class="save-btn" id="whatsNewNextBtn" onclick="whatsNewStep(1)">Next</button>
-    </div>
-    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeWhatsNew()">Close</button>
   </div>
 </div>
 
@@ -7056,7 +7090,6 @@ async function enterApp(){
   subscribeToRealtimeUpdates();
   logEvent('login', { device_id: getDeviceId(), user_agent: navigator.userAgent });
   checkUnreadActivity();
-  updateWhatsNewBadge();
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
 
@@ -8605,6 +8638,7 @@ function showConnections(){
   logEvent('view_opened', {view:'connections'});
   hideAllViews();
   document.getElementById('connectionsView').style.display = 'block';
+  maybeShowViewTutorial('connections');
   const wrap = document.getElementById('connectionsGrid');
   wrap.innerHTML = CONNECTIONS_TILE_DEFS.map(tile => `
     <button class="home-tile" onclick="${tile.onclick}">
@@ -10321,6 +10355,7 @@ const HACCP_TILE_DEFS = [
 function showHACCP(){
   hideAllViews();
   document.getElementById('haccpView').style.display = 'block';
+  maybeShowViewTutorial('haccp');
   renderHaccpGrid();
   window.scrollTo(0,0);
 }
@@ -10383,6 +10418,7 @@ function showSettings(){
   logEvent('view_opened', {view:'settings'});
   hideAllViews();
   document.getElementById('settingsView').style.display = 'block';
+  maybeShowViewTutorial('settings');
   renderSettingsGrid();
   window.scrollTo(0,0);
 }
@@ -10532,6 +10568,7 @@ function showAdmin(){
   logEvent('view_opened', {view:'admin_hub'});
   hideAllViews();
   document.getElementById('adminView').style.display = 'block';
+  maybeShowViewTutorial('admin');
   renderAdminGrid();
   window.scrollTo(0,0);
 }
@@ -12882,6 +12919,7 @@ async function showRecipesHome(){
   logEvent('view_opened', {view:'recipes_home'});
   hideAllViews();
   document.getElementById('recipesHomeView').style.display = 'block';
+  maybeShowViewTutorial('recipes');
   window.scrollTo(0,0);
   const { data, error } = await sb.from('recipe_lists').select('*').order('created_at');
   if(error && !/does not exist/i.test(error.message)) console.error('recipe_lists load failed', error);
@@ -12965,6 +13003,7 @@ async function showIngredientsHome(){
   logEvent('view_opened', {view:'ingredients_home'});
   hideAllViews();
   document.getElementById('ingredientsHomeView').style.display = 'block';
+  maybeShowViewTutorial('ingredients');
   window.scrollTo(0,0);
   const { data, error } = await sb.from('ingredient_lists').select('*').order('created_at');
   if(error && !/does not exist/i.test(error.message)) console.error('ingredient_lists load failed', error);
@@ -13819,6 +13858,7 @@ async function showCheckListProjects(){
   logEvent('view_opened', {view:'check_list_projects'});
   hideAllViews();
   document.getElementById('checkListProjectsView').style.display = 'block';
+  maybeShowViewTutorial('checkList');
   const el = document.getElementById('checkListProjectsGrid');
   el.innerHTML = '<p class="lede">Loading…</p>';
   window.scrollTo(0,0);
@@ -15425,6 +15465,7 @@ function showPrintLabels(){
   logEvent('view_opened', {view:'print_labels'});
   hideAllViews();
   document.getElementById('printLabelsView').style.display = 'block';
+  maybeShowViewTutorial('printLabels');
   printLabelsSelectMode = false;
   _printQueueSelectedIds.clear();
   loadPrintQueue();
@@ -15927,6 +15968,7 @@ function showOrderList(){
   logEvent('view_opened', {view:'order_list'});
   hideAllViews();
   document.getElementById('orderListView').style.display = 'block';
+  maybeShowViewTutorial('orderList');
   orderListSelectMode = false;
   _orderListSelectedIds.clear();
   showOrderListSummary();
@@ -16361,6 +16403,7 @@ let _workingTimeDayNotes = {};
 function openWorkingTimeEntry(){
   if(currentAccountType === 'company') showWorkingTimeHub();
   else showWorkingTime();
+  maybeShowViewTutorial('workingTime');
 }
 function showWorkingTimeHub(){
   logEvent('view_opened', {view:'working_time_hub'});
@@ -18403,86 +18446,22 @@ async function submitFeedbackReport(){
 /* Richard: the first version read as one dense paragraph per slide — too much to read at a
    glance mid-shift. Each slide is now 3-4 short one-line bullets, each with its own icon, so
    it can be scanned rather than read. */
+/* Slimmed to just the Home tour (Richard, 17.7.) — every feature now teaches itself with its
+   own detailed tutorial the first time its screen opens (VIEW_TUTORIALS below), so the big
+   10-screen walkthrough here became redundant. */
 const TUTORIAL_SLIDES = [
   { icon:'👋', title:'Welcome to ChefOS', bullets:[
     { icon:'📓', text:'One shared notebook for the whole kitchen.' },
     { icon:'📱', text:'Recipes, prep, ingredient prices, schedule — all live on everyone\'s phone.' },
-    { icon:'⏱️', text:'~10 short screens, a minute each. Skip anytime.' },
-    { icon:'❓', text:'Reopen this tour anytime from the ❓ on Home.' }
+    { icon:'🎓', text:'Each feature explains itself the first time you open it — and every screen has a ❓ in its top bar to replay its guide anytime.' }
   ]},
   { icon:'🏠', title:'Home', bullets:[
-    { icon:'🔲', text:'Every feature is one of these icons.' },
-    { icon:'↕️', text:'Tap the reorder icon to rearrange them.' },
+    { icon:'🔲', text:'Every feature is one of these icons — tap one to open it.' },
+    { icon:'↕️', text:'Tap the reorder icon (top right) to rearrange them.' },
     { icon:'🔒', text:'That order is just for your phone, not shared.' },
-    { icon:'🛡️', text:'Admin & Currency only show up if you\'re the kitchen\'s admin.', adminOnly:true }
-  ]},
-  { icon:'📋', title:'Check List', bullets:[
-    { icon:'📁', text:'Opens on your projects — one restaurant/kitchen, one tile.' },
-    { icon:'🧑‍🍳', text:'Inside a project: the daily prep sheet, by station.' },
-    { icon:'👆', text:'Tap an item: done, flagged, or a note.' },
-    { icon:'🔄', text:'Every change syncs live to every phone, instantly.' },
-    { icon:'📷', text:'Scan a photo or PDF to build the whole sheet automatically.' }
-  ]},
-  { icon:'📖', title:'Recipes', bullets:[
-    { icon:'🔍', text:'Browse by category, or search.' },
-    { icon:'⌨️', text:'Add one by typing it in.' },
-    { icon:'📷', text:'Or scan a photo/PDF — one recipe, or a whole menu at once.' },
-    { icon:'✨', text:'No idea what to cook? Ask Chef\'s Assistant to suggest one.' },
-    { icon:'📚', text:'Shelves depend on your account type (Settings): Personal sees Moje + ChefOS, Company sees ChefOS + Firemné.' }
-  ]},
-  { icon:'🧂', title:'Ingredients', bullets:[
-    { icon:'💰', text:'Your kitchen\'s own price book.' },
-    { icon:'🔎', text:'Search or filter by category, season, storage, price.' },
-    { icon:'🧮', text:'Recipe food-cost is calculated from these prices automatically.' },
-    { icon:'🌱', text:'The default view leads with what\'s actually in season right now.' }
-  ]},
-  { icon:'🛒', title:'Order List', bullets:[
-    { icon:'👆', text:'Tap 🛒 on any Check List item or ingredient.' },
-    { icon:'📝', text:'It lands here — one list.' },
-    { icon:'📦', text:'Ready to send to your supplier.' },
-    { icon:'☑️', text:'Select multiple items to bulk-print or clear at once.' }
-  ]},
-  { icon:'🎩', title:'Chef\'s Assistant', bullets:[
-    { icon:'💬', text:'Ask cooking questions, get technique tips.' },
-    { icon:'🔁', text:'Get ingredient substitutions.' },
-    { icon:'✨', text:'Or generate brand-new recipe ideas.' },
-    { icon:'🔑', text:'Runs on your own Anthropic API key, added once in settings.' }
-  ]},
-  { icon:'🏷️', title:'Print Labels', bullets:[
-    { icon:'🖨️', text:'Tap 🖨️ on a Check List item to queue a label.' },
-    { icon:'⌨️', text:'Or add one by hand — type 3+ letters for suggestions.' },
-    { icon:'⚡', text:'Print them all at once.' },
-    { icon:'📅', text:'Shelf-life labels get their "use by" date calculated automatically.' }
-  ]},
-  { icon:'⏱️', title:'Working Time', bullets:[
-    { icon:'🟢', text:'Check in when your shift starts.' },
-    { icon:'🔴', text:'Check out when it ends.' },
-    { icon:'📊', text:'See your hours, overtime, days off.' },
-    { icon:'📄', text:'Upload your contract for an AI note on your hours, vacation, and pay terms.' }
-  ]},
-  { icon:'🧼', title:'HACCP', bullets:[
-    { icon:'🌡️', text:'Fridge temps, goods receiving, core cooking temp, cooling log.' },
-    { icon:'🧽', text:'Cleaning and personal hygiene checklists.' },
-    { icon:'🏷️', text:'Label Expiry — see what\'s past date, due today, or fine, in one place.' },
-    { icon:'📴', text:'Fryer oil, pests, staff training, and the report tile are still "coming soon".' }
-  ]},
-  { icon:'🔗', title:'Connections', bullets:[
-    { icon:'📷', text:'Scan QR — connect with another chef, or join a kitchen.' },
-    { icon:'📤', text:'Share your own QR: it works as both at once — add a friend, or invite them in.' },
-    { icon:'👨‍🍳', text:'Chef Friends — see who you\'re connected with, and their shared recipes if they\'ve turned that on.' },
-    { icon:'👥', text:'My Team — everyone in your own kitchen.' }
-  ]},
-  /* adminOnly (bod 2, 16.7.): non-admins never see this slide at all — not even a mention. */
-  { icon:'🛡️', title:'Admin (admins only)', adminOnly:true, bullets:[
-    { icon:'➕', text:'Add Admin — make someone a Kitchen Admin (their own kitchen only) or Head Admin (everything).' },
-    { icon:'📋', text:'Admin Directory — search anyone, toggle exactly what they can do.' },
-    { icon:'📨', text:'Access Requests and 📧 Email Contacts live here too now.' }
-  ]},
-  { icon:'💬', title:'Feedback & bugs', bullets:[
-    { icon:'💬', text:'Something feels off, or you have an idea?' },
-    { icon:'🐛', text:'Report a bug — one tap, on Home.' },
-    { icon:'🎉', text:'That\'s the tour — you\'re ready to go.' },
-    { icon:'🔒', text:'Your reports go straight to the team — never shown to other teammates.' }
+    { icon:'💬', text:'Feedback or a bug? One tap on the Feedback icon — reports go straight to the team, never to your teammates.' },
+    { icon:'🛡️', text:'Admin & Currency only show up if you\'re the kitchen\'s admin.', adminOnly:true },
+    { icon:'❓', text:'Reopen this intro anytime from the ❓ up here on Home.' }
   ]}
 ];
 let _tutorialIdx = 0;
@@ -18493,18 +18472,26 @@ let _tutorialSlides = [];
 function isAnyKindOfAdmin(){
   return currentIsAdmin || Object.values(currentAdminPerms || {}).some(Boolean);
 }
-function openTutorial(){
+/* One shared carousel overlay, two kinds of content: the Home intro (openTutorial) and the
+   per-screen guides (openViewTutorial below). _tutorialSeenKey decides which localStorage
+   flag closing marks as "seen". */
+let _tutorialSeenKey = 'chefos_tutorial_seen';
+function _openTutorialWith(slides, seenKey){
   _tutorialIdx = 0;
+  _tutorialSeenKey = seenKey;
   const showAdminContent = isAnyKindOfAdmin();
-  _tutorialSlides = TUTORIAL_SLIDES
+  _tutorialSlides = slides
     .filter(s=>!s.adminOnly || showAdminContent)
     .map(s=>({ ...s, bullets: s.bullets.filter(b=>!b.adminOnly || showAdminContent) }));
   renderTutorialSlide();
   document.getElementById('tutorialOverlay').classList.add('open');
 }
+function openTutorial(){
+  _openTutorialWith(TUTORIAL_SLIDES, 'chefos_tutorial_seen');
+}
 function closeTutorial(){
   document.getElementById('tutorialOverlay').classList.remove('open');
-  localStorage.setItem('chefos_tutorial_seen', '1');
+  localStorage.setItem(_tutorialSeenKey, '1');
 }
 function tutorialStep(delta){
   _tutorialIdx += delta;
@@ -18526,71 +18513,143 @@ function renderTutorialSlide(){
   document.getElementById('tutorialBackBtn').style.visibility = _tutorialIdx === 0 ? 'hidden' : 'visible';
   document.getElementById('tutorialNextBtn').textContent = _tutorialIdx === _tutorialSlides.length - 1 ? 'Done' : 'Next';
 }
-/* What's New feed (bod 1, 16.7.) — one slide per shipped feature, newest last. Whenever a new
-   feature ships, Richard is asked whether it should get an entry here before one is added —
-   this is the mechanism that ask feeds into, not an automatic log of every commit. */
-const WHATS_NEW = [
-  { date:'2026-07-16', icon:'✋', title:'Hold to manage', bullets:[
-    { icon:'👆', text:'Press and hold any ingredient, dish, or list.' },
-    { icon:'✏️', text:'Rename, hide, or delete it right there — no separate menu.' }
+/* Per-screen tutorials (Richard, 17.7.) — replaced the separate What's New feed (the ❤️ on
+   Home, removed as redundant). Every major screen gets a detailed guide: it opens by itself
+   the FIRST time that screen is opened on this device, and each screen's top bar carries a
+   permanent ❓ to replay it. Reuses the same carousel overlay as the Home intro. */
+const VIEW_TUTORIALS = {
+  checkList: { slides:[
+    { icon:'📋', title:'Check List — projects', bullets:[
+      { icon:'📁', text:'One restaurant or kitchen = one project tile. Tap ➕ to create another.' },
+      { icon:'✋', text:'Press and hold a project tile to rename, hide, or delete it.' },
+      { icon:'🧑‍🍳', text:'Inside a project: the daily prep sheet, grouped by station/section.' },
+      { icon:'📷', text:'Scan a photo or PDF of a real prep sheet to build the whole thing automatically.' }
+    ]},
+    { icon:'👆', title:'Working with items', bullets:[
+      { icon:'🔁', text:'Tap an item to cycle its status: to-do → check → finished.' },
+      { icon:'🛒', text:'Tap 🛒 on an item to add it to the Order List.' },
+      { icon:'🖨️', text:'Tap 🖨️ to queue a label for it in Print Labels.' },
+      { icon:'📖', text:'Recipes can land here too — "Add to Check List" on any recipe, into an existing section or a brand-new one.' },
+      { icon:'🔄', text:'Every change syncs live to every phone, instantly.' }
+    ]}
   ]},
-  { date:'2026-07-16', icon:'🗂️', title:'Custom lists & projects', bullets:[
-    { icon:'🧂', text:'Ingredients: make extra named lists beyond ChefOS / My Ingredients.' },
-    { icon:'📖', text:'Recipes: same idea — tap ➕ Add Project on the Recipes screen.' },
-    { icon:'🤝', text:'Ingredient lists can be shared read-only with your chef friends.' }
+  recipes: { slides:[
+    { icon:'📖', title:'Recipes — shelves', bullets:[
+      { icon:'🔒', text:'My Recipes — yours only. Private at the database level; not even an admin can see them.' },
+      { icon:'✨', text:'ChefOS — the built-in library every kitchen gets.' },
+      { icon:'🏢', text:'Company Recipes — authored by your team (Company accounts).' },
+      { icon:'🗂️', text:'➕ Add Project makes your own named collection (e.g. "Summer menu").' },
+      { icon:'✋', text:'Press and hold tiles for extra options (e.g. sharing My Recipes with chef friends).' }
+    ]},
+    { icon:'🍳', title:'Inside a recipe', bullets:[
+      { icon:'💰', text:'Food-cost and nutrition are calculated live from your Ingredients price book.' },
+      { icon:'⚖️', text:'Scale the whole recipe up or down; allergens are detected automatically.' },
+      { icon:'💬', text:'Comments on ChefOS recipes are shared — every kitchen sees them (count bubble in the list).' },
+      { icon:'🖨️', text:'Print — a branded recipe card with a composition chart.' },
+      { icon:'📷', text:'Add recipes by typing, scanning a photo/PDF, or asking Chef\'s Assistant.' }
+    ]}
   ]},
-  { date:'2026-07-16', icon:'💬', title:'Recipe comments, properly shared', bullets:[
-    { icon:'✨', text:'Comments on a ChefOS-shelf recipe are now visible to every kitchen using it.' },
-    { icon:'♾️', text:'Works the same for any new ChefOS recipe added later, automatically.' }
+  ingredients: { slides:[
+    { icon:'🧂', title:'Ingredients — your price book', bullets:[
+      { icon:'✨', text:'ChefOS — the shared kitchen catalog (admins edit it; everyone uses it).' },
+      { icon:'🔒', text:'My Ingredients — your private list. Custom lists via ➕ New List.' },
+      { icon:'🌱', text:'The default view leads with what\'s in season right now; filters for category, season, storage, price.' },
+      { icon:'📌', text:'The pin on recipes chooses WHICH list recipe costs are calculated from.' }
+    ]},
+    { icon:'🤖', title:'Smart helpers', bullets:[
+      { icon:'🧠', text:'AI Details fills missing categories, seasons, storage and nutrition — never overwrites what you typed.' },
+      { icon:'🧾', text:'Invoice Scan reads a supplier invoice: updates prices of items you have, adds the ones you don\'t.' },
+      { icon:'📈', text:'Every price change is remembered — Kitchen Reports shows how prices move.' },
+      { icon:'🧮', text:'These prices drive recipe food-cost automatically.' }
+    ]}
   ]},
-  { date:'2026-07-16', icon:'🖨️', title:'Print, reworked', bullets:[
-    { icon:'📄', text:'One branded print button now (the plain one is gone).' },
-    { icon:'🔗', text:'Shows "Used In" again — which other recipes use this one as an ingredient.' }
+  orderList: { slides:[
+    { icon:'🛒', title:'Order List', bullets:[
+      { icon:'👆', text:'Tap 🛒 on any Check List item or ingredient — it lands here, one list for the kitchen.' },
+      { icon:'➕', text:'Duplicates add up (2 kg + 3 kg = 5 kg) and the admin sees who ordered what.' },
+      { icon:'⌨️', text:'You can also add items by hand, with quantity and a note.' },
+      { icon:'☑️', text:'Select several items to bulk-print or clear at once.' },
+      { icon:'📦', text:'Send to Supplier is coming after the trial — for now, print or show the list.' }
+    ]}
   ]},
-  { date:'2026-07-16', icon:'👥', title:'Real team membership', bullets:[
-    { icon:'🔒', text:'Switching to a Company account now needs a real invite, code, or admin role.' },
-    { icon:'📷', text:'Scanning a team QR asks you to confirm before joining.' },
-    { icon:'🏷️', text:'My Profile now shows your Role (Admin, Assistant, Member…).' }
+  printLabels: { slides:[
+    { icon:'🏷️', title:'Print Labels', bullets:[
+      { icon:'🖨️', text:'Tap 🖨️ on a Check List item to queue its label here.' },
+      { icon:'⌨️', text:'Or add one by hand — type 3+ letters and ChefOS suggests names.' },
+      { icon:'📅', text:'"Use by" dates are calculated automatically from each product\'s shelf life.' },
+      { icon:'⚡', text:'Print everything queued in one go.' },
+      { icon:'🧼', text:'Every printed label is logged — HACCP\'s Label Expiry screen watches the dates for you.' }
+    ]}
+  ]},
+  workingTime: { slides:[
+    { icon:'⏱️', title:'Working Time', bullets:[
+      { icon:'🟢', text:'Check in when your shift starts, check out when it ends.' },
+      { icon:'📊', text:'History by month — red bar segments are overtime (over 8 h).' },
+      { icon:'📅', text:'Tap any day for details: hours, plus what was ordered and how many labels were printed that day.' },
+      { icon:'📄', text:'Upload your contract for an AI note on your hours, vacation and pay terms.' },
+      { icon:'🔒', text:'Your data is yours — admins only see named reports if you gave consent.' }
+    ]}
+  ]},
+  schedule: { slides:[
+    { icon:'🗓️', title:'Schedule', bullets:[
+      { icon:'👥', text:'The weekly rota for your team — who works when.' },
+      { icon:'✏️', text:'Tap a day to add or edit shifts for each person.' },
+      { icon:'📱', text:'Everyone sees the current schedule on their own phone, always up to date.' }
+    ]}
+  ]},
+  haccp: { slides:[
+    { icon:'🧼', title:'HACCP', bullets:[
+      { icon:'🌡️', text:'Fridge temps, goods receiving, core cooking temp, cooling log — tap, record, done.' },
+      { icon:'🧽', text:'Cleaning and personal hygiene checklists.' },
+      { icon:'🏷️', text:'Label Expiry — what\'s past date, due today, or fine, in one place (fed by Print Labels).' },
+      { icon:'📴', text:'Fryer oil, pests, staff training and reports are still "coming soon".' }
+    ]}
+  ]},
+  chefAssistant: { slides:[
+    { icon:'🎩', title:'Chef\'s Assistant', bullets:[
+      { icon:'💬', text:'Ask cooking questions, get technique tips and ingredient substitutions.' },
+      { icon:'✨', text:'Generate brand-new recipe ideas — and save them straight to your shelf.' },
+      { icon:'🧠', text:'It knows your kitchen\'s recipes and ingredients, so answers fit YOUR mise en place.' }
+    ]}
+  ]},
+  connections: { slides:[
+    { icon:'🔗', title:'Connections', bullets:[
+      { icon:'📷', text:'Scan QR — connect with another chef as a friend.' },
+      { icon:'📤', text:'Share your own QR — it adds friends only, it never pulls anyone into your kitchen.' },
+      { icon:'👨‍🍳', text:'Chef Friends — see their shared recipes, if they\'ve turned sharing on.' },
+      { icon:'👥', text:'My Team — everyone in your kitchen. Joining a team happens via team code or invite, not the friend QR.' }
+    ]}
+  ]},
+  admin: { slides:[
+    { icon:'🛡️', title:'Admin', bullets:[
+      { icon:'➕', text:'Add Admin — make someone a Kitchen Admin (their kitchen only) or Head Admin (everything).' },
+      { icon:'📋', text:'Admin Directory — search anyone, toggle exactly what they can do.' },
+      { icon:'👥', text:'Team Members — assistants and removals live here.' },
+      { icon:'📨', text:'Access Requests, 📧 Email Contacts, 📊 Kitchen Reports and 📚 Internal Docs too.' }
+    ]}
+  ]},
+  settings: { slides:[
+    { icon:'⚙️', title:'Settings', bullets:[
+      { icon:'👤', text:'Account Type — Personal (your recipes + ChefOS) or Company (your team\'s shared kitchen).' },
+      { icon:'🌓', text:'Appearance — light or dark, per device.' },
+      { icon:'🌍', text:'Currency and scan language.' },
+      { icon:'❓', text:'The Tutorial tile replays the Home intro anytime.' }
+    ]}
   ]}
-];
-let _whatsNewIdx = 0;
-function unseenWhatsNewCount(){
-  const seen = parseInt(localStorage.getItem('chefos_whats_new_seen') || '0', 10);
-  return Math.max(0, WHATS_NEW.length - seen);
+};
+function openViewTutorial(key){
+  const cfg = VIEW_TUTORIALS[key];
+  if(!cfg) return;
+  _openTutorialWith(cfg.slides, 'chefos_vtut_' + key);
 }
-function updateWhatsNewBadge(){
-  const dot = document.getElementById('whatsNewDot');
-  if(dot) dot.style.display = unseenWhatsNewCount() > 0 ? 'block' : 'none';
-}
-function openWhatsNew(){
-  _whatsNewIdx = Math.max(0, WHATS_NEW.length - unseenWhatsNewCount());
-  renderWhatsNewSlide();
-  document.getElementById('whatsNewOverlay').classList.add('open');
-}
-function closeWhatsNew(){
-  document.getElementById('whatsNewOverlay').classList.remove('open');
-  localStorage.setItem('chefos_whats_new_seen', String(WHATS_NEW.length));
-  updateWhatsNewBadge();
-}
-function whatsNewStep(delta){
-  _whatsNewIdx += delta;
-  if(_whatsNewIdx >= WHATS_NEW.length){ closeWhatsNew(); return; }
-  if(_whatsNewIdx < 0) _whatsNewIdx = 0;
-  renderWhatsNewSlide();
-}
-function renderWhatsNewSlide(){
-  const s = WHATS_NEW[_whatsNewIdx];
-  if(!s) return;
-  document.getElementById('whatsNewBody').innerHTML = `
-    <div style="text-align:center; padding:6px 4px 2px 4px;">
-      <div style="font-size:40px; line-height:1;">${s.icon}</div>
-      <div class="sheet-title" style="margin:10px 0 10px 0;">${s.title}</div>
-      <div style="text-align:left;">${s.bullets.map(b=>`<div style="display:flex; align-items:flex-start; gap:9px; margin:8px 0;"><span style="font-size:18px; line-height:1.4;">${b.icon}</span><span class="sheet-text" style="margin:0; line-height:1.4;">${b.text}</span></div>`).join('')}</div>
-      <div style="margin-top:12px;">${WHATS_NEW.map((_,i)=>`<span style="display:inline-block; width:6px; height:6px; border-radius:50%; margin:0 3px; background:${i===_whatsNewIdx?'var(--copper)':'var(--rule)'};"></span>`).join('')}</div>
-    </div>
-  `;
-  document.getElementById('whatsNewBackBtn').style.visibility = _whatsNewIdx === 0 ? 'hidden' : 'visible';
-  document.getElementById('whatsNewNextBtn').textContent = _whatsNewIdx === WHATS_NEW.length - 1 ? 'Done' : 'Next';
+/* Auto-open on the FIRST visit of a screen (per device). Called by each screen's show
+   function; the ❓ in that screen's top bar replays it forever after. */
+function maybeShowViewTutorial(key){
+  if(localStorage.getItem('chefos_vtut_' + key)) return;
+  // Never stack on top of the Home intro on a brand-new device — the screen's guide will
+  // simply appear on the next visit instead.
+  if(document.getElementById('tutorialOverlay').classList.contains('open')) return;
+  openViewTutorial(key);
 }
 /* Appearance / Light-Dark mode (bod 10, 16.7.) — per-device, localStorage, applied as early as
    possible (see the inline <script> right after this file's <style> block) to avoid a flash of
@@ -19629,6 +19688,7 @@ function showChefAssistant(){
   logEvent('view_opened', {view:'chef_assistant'});
   hideAllViews();
   document.getElementById('chefAssistantView').style.display = 'flex';
+  maybeShowViewTutorial('chefAssistant');
   renderChefChatMessages();
   window.scrollTo(0,0);
 }
@@ -19795,6 +19855,7 @@ async function showSchedule(){
   if(!scheduleWeekStart) scheduleWeekStart = isoDate(mondayOf(new Date()));
   hideAllViews();
   document.getElementById('scheduleView').style.display = 'block';
+  maybeShowViewTutorial('schedule');
   await loadScheduleData();
   window.scrollTo(0,0);
 }
