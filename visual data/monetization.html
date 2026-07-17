@@ -119,6 +119,20 @@
   .rc-fill{ height:100%; background:var(--accent); }
   .rc-stars{ flex:none; font-size:11px; color:var(--accent); letter-spacing:1.5px; min-width:64px; text-align:right; }
   @media(max-width:640px){ .rc-name{ flex-basis:130px; } }
+  /* Mobile alignment fix (Richard, 17.7.): the fit badges had white-space:nowrap and overflowed
+     the phone screen — on narrow widths they wrap instead, rows keep their edges, and nothing
+     can push the page into horizontal scroll. */
+  @media(max-width:640px){
+    body{ overflow-x:hidden; }
+    .fit-badge{ white-space:normal; text-align:right; line-height:1.35; }
+    .mx-row{ min-width:0; }
+    .mx-name{ min-width:0; }
+    .mx-side{ max-width:46%; }
+    .m-head{ flex-wrap:wrap; }
+    .fit{ flex-direction:row; align-items:center; gap:8px; width:100%; justify-content:flex-start; }
+    .fit .fit-badge{ text-align:left; }
+    .r-when{ white-space:normal; text-align:right; }
+  }
 
   /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
      carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
@@ -498,7 +512,7 @@
 })();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 13:18" data-en="🔄 ChefOS state as of Jul 17, 2026, 13:18">🔄 Stav ChefOS k 17. 7. 2026, 13:18</div>
 <button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
 
 <script>
