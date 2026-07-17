@@ -10784,20 +10784,16 @@ function renderAdminGrid(){
 /* Deployed path lives ONLY here (.github/workflows/deploy-pages.yml copies visual data/ to
    this exact subpath) — deliberately not written down anywhere else, and this whole tile is
    gated to Richard's exact email regardless of who else ever becomes an admin. */
+/* Consolidated 17.7. (Richard: 11 → 5): each entry is a merged, tabbed document GENERATED
+   from the original 11 sources by scripts/build_docs.py — the sources stay the editable
+   truth, the merged files regenerate on every commit (pre-commit hook enforces freshness).
+   Critical Review stays standalone: latest.html is refreshed by every /audit run. */
 const INTERNAL_DOCS = [
-  { name:'Feature Status', file:'feature_status.html' },
-  { name:'Backlog', file:'backlog.html' },
-  { name:'Status', file:'status.html' },
-  { name:'Planning', file:'planning.html' },
-  { name:'Tasklist', file:'tasklist.html' },
-  { name:'Automation', file:'automation.html' },
-  { name:'Monetization', file:'monetization.html' },
-  { name:'Investor Deck', file:'presentation.html' },
-  { name:'Visual Guide', file:'VISUAL_GUIDE.html' },
-  { name:'Manifesto', file:'ChefOS_Manifesto.html' },
-  /* Reports live in visual data/CRITICAL_REVIEW/; latest.html is a copy of the newest one,
-     refreshed by every /audit run — so this link never needs touching again (Richard, 17.7.). */
-  { name:'Critical Review (najnovší)', file:'CRITICAL_REVIEW/latest.html' },
+  { name:'📱 Produkt (mapa funkcií + história)', file:'produkt.html' },
+  { name:'🗺️ Plán (teraz + denník + roadmapa)', file:'plan.html' },
+  { name:'💰 Biznis (monetizácia + automatizácie)', file:'biznis.html' },
+  { name:'🎨 Značka & vízia (deck + manifest + guide)', file:'znacka.html' },
+  { name:'🔍 Critical Review (najnovší)', file:'CRITICAL_REVIEW/latest.html' },
 ];
 function openInternalDocs(){
   const base = location.origin + '/x7n2k9/';

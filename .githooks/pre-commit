@@ -7,4 +7,8 @@ set -e
 echo "pre-commit: running ChefOS auditors…"
 python3 scripts/audit_db.py
 python3 scripts/audit_app.py
+# Merged internal docs (produkt/plan/biznis/znacka) are GENERATED from the 11 source
+# documents — regenerate them here so they can never go stale (17.7. consolidation).
+python3 scripts/build_docs.py
+git add "visual data/produkt.html" "visual data/plan.html" "visual data/biznis.html" "visual data/znacka.html" 2>/dev/null || true
 echo "pre-commit: clean."
