@@ -12429,7 +12429,11 @@ async function saveFormBody(){
   // when they first used an AI helper, don't ask again — otherwise ask now (plain sharing
   // question, no free-AI wording, since no AI was used).
   if(!formEditingId && _recipeAiShare === null){
-    _recipeAiShare = confirm('Share this recipe with the ChefOS library?\n\nOK — share it (helps every ChefOS kitchen)\nCancel — keep it private');
+    _recipeAiShare = confirm(
+      "👨‍🍳 The best recipes get passed on.\n\n" +
+      "Add this one to the ChefOS library? Your copy stays yours — kitchens across ChefOS get to cook it too.\n\n" +
+      "OK — share it · Cancel — keep it private"
+    );
   }
   // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
   // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
@@ -18417,10 +18421,13 @@ function openMenuScanRecipeForm(i){
 let _recipeAiShare = null;
 function maybeAskRecipeAiShare(){
   if(_recipeAiShare !== null) return _recipeAiShare;
+  // Wording (Richard, 17.7., sales-psych pass): identity ("great recipes get passed on"),
+  // zero-loss ("your copy stays yours") and reciprocity ("AI is on the house") — short,
+  // honest, no pressure.
   _recipeAiShare = confirm(
-    "✨ A Michelin-star AI chef can fill this in for you.\n\n" +
-    "Share the finished recipe with the ChefOS library and ALL AI help on this recipe is free.\n\n" +
-    "OK — share it with ChefOS (AI free)\nCancel — keep it private (AI uses your credit)"
+    "👨‍🍳 The best recipes get passed on.\n\n" +
+    "Share this one with the ChefOS library — your copy stays yours, and all AI help on it is on the house.\n\n" +
+    "OK — share it (AI free) · Cancel — keep it private"
   );
   return _recipeAiShare;
 }
