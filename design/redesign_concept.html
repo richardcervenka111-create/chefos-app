@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — koncept „Professional Kitchen Luxury"</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..700,50&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   ChefOS · NOVÁ TÉMA · dizajnové tokeny — "Professional Kitchen Luxury"
+   Toto je presný tokenový blok, ktorý pôjde do appky pod body.theme-new.
+   ============================================================================ */
+:root{
+  /* Ground — teplý charcoal, vrstvený ako liatina */
+  --ch-0:#0F0E0C;   /* podklad stránky */
+  --ch-1:#161412;   /* zdvihnutá plocha (topbar, sheety) */
+  --ch-2:#1E1B17;   /* karta / dlaždica */
+  --ch-3:#28241E;   /* hover / aktívna plocha */
+  /* Copper — drahý akcent (CTA, aktívne stavy, linky) */
+  --cu:#C97E48; --cu-bright:#E29A63; --cu-deep:#8F5426;
+  --cu-glow:rgba(201,126,72,.30); --cu-wash:rgba(201,126,72,.08);
+  /* Sage — tichý druhý hlas (sekundárne akcie, potvrdenia) */
+  --sg:#9BA88D; --sg-dim:rgba(155,168,141,.55); --sg-wash:rgba(155,168,141,.07);
+  /* Ink — krémová na tmavej, nikdy čisto biela */
+  --ink:#F1EAE0; --ink-dim:rgba(241,234,224,.62); --ink-faint:rgba(241,234,224,.36);
+  --hairline:rgba(241,234,224,.09);
+  /* Stavy — stlmené, kuchynské */
+  --ok:#8FB98B; --warn:#D9B36A; --danger:#C96B5A;
+  /* Typografia */
+  --font-display:'Fraunces',Georgia,serif;
+  --font-ui:'Instrument Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'SF Mono',ui-monospace,Menlo,monospace;
+  /* Spacing — 4-kový rytmus, veľkorysý */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
+  --r-s:10px; --r-m:16px; --r-l:24px;
+  /* Pohyb — len CSS, 60 fps */
+  --t-fast:150ms cubic-bezier(.4,0,.2,1);
+  --t-slow:280ms cubic-bezier(.22,1,.36,1);
+  --glow-cu:0 0 0 1px rgba(201,126,72,.35), 0 6px 28px rgba(201,126,72,.16);
+}
+*{ box-sizing:border-box; min-width:0; }
+html,body{ overflow-x:hidden; }
+body{ margin:0; background:var(--ch-0); color:var(--ink); font-family:var(--font-ui); font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased; }
+.wrap{ max-width:980px; margin:0 auto; padding:var(--s7) var(--s5) var(--s9) var(--s5); }
+
+/* — koncept-only chrome — */
+.concept-tag{ font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--cu); margin-bottom:var(--s3); }
+h1.concept{ font-family:var(--font-display); font-weight:420; font-size:44px; line-height:1.08; margin:0 0 var(--s3) 0; font-variation-settings:'SOFT' 50, 'opsz' 60; }
+h1.concept em{ font-style:italic; color:var(--cu-bright); }
+.concept-lede{ color:var(--ink-dim); max-width:64ch; margin:0 0 var(--s7) 0; font-size:16px; }
+.sec{ display:flex; align-items:baseline; gap:var(--s4); margin:var(--s8) 0 var(--s5) 0; }
+.sec .n{ font-family:var(--font-mono); font-size:12px; color:var(--cu); }
+.sec h2{ font-family:var(--font-display); font-weight:480; font-size:24px; margin:0; }
+.sec .rule{ flex:1; height:1px; background:var(--hairline); }
+
+/* — 01 palette — */
+.swatches{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:var(--s3); }
+.sw{ border-radius:var(--r-s); padding:var(--s4); height:110px; display:flex; flex-direction:column; justify-content:flex-end; border:1px solid var(--hairline); }
+.sw b{ font-size:12px; font-weight:600; }
+.sw span{ font-family:var(--font-mono); font-size:10.5px; color:var(--ink-dim); }
+.sw.light b, .sw.light span{ color:#1E1B17; }
+
+/* — 02 typografia — */
+.type-row{ border-top:1px solid var(--hairline); padding:var(--s5) 0; display:grid; grid-template-columns:150px 1fr; gap:var(--s5); align-items:baseline; }
+.type-row .meta{ font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); line-height:1.7; }
+.t-display{ font-family:var(--font-display); font-weight:400; font-size:38px; line-height:1.1; font-variation-settings:'SOFT' 50; }
+.t-h2{ font-family:var(--font-display); font-weight:500; font-size:24px; }
+.t-body{ font-size:17px; }
+.t-meta{ font-size:14px; color:var(--ink-dim); }
+.t-label{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; }
+.t-num{ font-family:var(--font-mono); font-size:22px; font-variant-numeric:tabular-nums; color:var(--cu-bright); }
+
+/* — 03 komponenty (živá vzorka) — */
+.sample-topbar{ background:var(--ch-1); border:1px solid var(--hairline); border-radius:var(--r-m); padding:var(--s4) var(--s5); display:flex; justify-content:space-between; align-items:center; }
+.brand{ display:flex; flex-direction:column; gap:2px; }
+.brand .kicker{ font-family:var(--font-mono); font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--sg); }
+.brand .word{ font-family:var(--font-display); font-style:italic; font-weight:500; font-size:22px; color:var(--ink); }
+.topbar-icons{ display:flex; gap:var(--s2); }
+.icon-b{ width:44px; height:44px; border-radius:12px; background:transparent; border:1px solid var(--hairline); color:var(--ink-dim); font-size:16px; cursor:pointer; transition:all var(--t-fast); display:flex; align-items:center; justify-content:center; }
+.icon-b:hover{ border-color:var(--cu); color:var(--cu-bright); background:var(--cu-wash); }
+
+.tile-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:var(--s3); margin-top:var(--s4); }
+.tile{ background:var(--ch-2); border:1px solid var(--hairline); border-radius:var(--r-m); padding:var(--s5) var(--s4); min-height:110px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; transition:transform var(--t-fast), border-color var(--t-fast), background var(--t-fast); position:relative; overflow:hidden; }
+.tile::after{ content:''; position:absolute; inset:auto 0 0 0; height:2px; background:linear-gradient(90deg, var(--cu), transparent 70%); opacity:0; transition:opacity var(--t-fast); }
+.tile:hover{ background:var(--ch-3); border-color:rgba(201,126,72,.35); transform:translateY(-2px); }
+.tile:hover::after{ opacity:1; }
+.tile:active{ transform:translateY(0) scale(.985); }
+.tile .ico{ font-size:26px; }
+.tile .lbl{ font-size:15px; font-weight:600; letter-spacing:.01em; }
+.tile .sub{ font-size:12px; color:var(--ink-faint); }
+
+.btn-row{ display:flex; gap:var(--s3); flex-wrap:wrap; margin-top:var(--s5); align-items:center; }
+.btn-cu{ min-height:48px; padding:0 var(--s5); border-radius:12px; border:none; cursor:pointer; font-family:var(--font-ui); font-size:15px; font-weight:600; color:#16110B; background:linear-gradient(160deg, var(--cu-bright), var(--cu)); box-shadow:var(--glow-cu); transition:all var(--t-fast); }
+.btn-cu:hover{ filter:brightness(1.07); box-shadow:0 0 0 1px rgba(201,126,72,.5), 0 8px 32px rgba(201,126,72,.28); }
+.btn-cu:active{ transform:scale(.97); }
+.btn-ghost{ min-height:48px; padding:0 var(--s5); border-radius:12px; cursor:pointer; font-family:var(--font-ui); font-size:15px; font-weight:600; color:var(--ink); background:transparent; border:1px solid var(--hairline); transition:all var(--t-fast); }
+.btn-ghost:hover{ border-color:var(--sg); color:var(--sg); background:var(--sg-wash); }
+.chip{ min-height:44px; display:inline-flex; align-items:center; padding:0 var(--s4); border-radius:999px; font-size:14px; font-weight:600; border:1px solid var(--hairline); background:transparent; color:var(--ink-dim); cursor:pointer; transition:all var(--t-fast); }
+.chip.active{ background:var(--cu); border-color:var(--cu); color:#16110B; }
+
+.field-wrap{ margin-top:var(--s5); max-width:420px; }
+.field-wrap label{ display:block; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; margin-bottom:var(--s2); }
+.field{ width:100%; min-height:48px; background:var(--ch-1); border:1px solid var(--hairline); border-radius:12px; color:var(--ink); font-family:var(--font-ui); font-size:16px; padding:0 var(--s4); transition:all var(--t-fast); outline:none; }
+.field:focus{ border-color:var(--cu); box-shadow:0 0 0 3px var(--cu-wash); }
+
+.trow{ display:flex; justify-content:space-between; align-items:center; padding:var(--s4) var(--s2); border-top:1px solid var(--hairline); transition:background var(--t-fast); min-height:56px; }
+.trow:hover{ background:var(--ch-2); border-radius:var(--r-s); }
+.trow .nm{ font-weight:600; font-size:16px; }
+.trow .mt{ font-size:13px; color:var(--ink-faint); }
+.trow .val{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; color:var(--cu-bright); }
+
+.empty{ text-align:center; padding:var(--s8) var(--s5); border:1px dashed var(--hairline); border-radius:var(--r-l); margin-top:var(--s5); }
+.empty .pict{ font-family:var(--font-display); font-style:italic; font-size:30px; color:var(--sg); margin-bottom:var(--s3); }
+.empty p{ color:var(--ink-dim); margin:0 0 var(--s4) 0; font-size:15px; }
+
+.note{ font-size:13px; color:var(--ink-faint); border-left:2px solid var(--sg); padding:var(--s2) var(--s4); margin-top:var(--s6); line-height:1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="concept-tag">Koncept na schválenie · vetva redesign-ui · nič nie je nasadené</div>
+  <h1 class="concept">Professional <em>Kitchen Luxury</em></h1>
+  <p class="concept-lede">Editoriálny tmavý dizajn ako degustačné menu od grafického štúdia: teplý charcoal namiesto modrej, meď namiesto neónu, šalvia ako tichý druhý hlas. Fraunces na nadpisy (fine-dining serif s charakterom), Instrument Sans na dáta a ovládanie. Všetko nižšie je živé — prejdi myšou/prstom po dlaždiciach, tlačidlách a poli.</p>
+
+  <div class="sec"><span class="n">01</span><h2>Farebné tokeny</h2><div class="rule"></div></div>
+  <div class="swatches">
+    <div class="sw" style="background:var(--ch-0);"><b>ch-0 podklad</b><span>#0F0E0C</span></div>
+    <div class="sw" style="background:var(--ch-1);"><b>ch-1 plocha</b><span>#161412</span></div>
+    <div class="sw" style="background:var(--ch-2);"><b>ch-2 karta</b><span>#1E1B17</span></div>
+    <div class="sw" style="background:var(--ch-3);"><b>ch-3 hover</b><span>#28241E</span></div>
+    <div class="sw light" style="background:var(--cu);"><b>copper</b><span>#C97E48</span></div>
+    <div class="sw light" style="background:var(--cu-bright);"><b>copper bright</b><span>#E29A63</span></div>
+    <div class="sw light" style="background:var(--sg);"><b>sage</b><span>#9BA88D</span></div>
+    <div class="sw light" style="background:var(--ink);"><b>ink krémová</b><span>#F1EAE0</span></div>
+  </div>
+
+  <div class="sec"><span class="n">02</span><h2>Typografia</h2><div class="rule"></div></div>
+  <div>
+    <div class="type-row"><div class="meta">Fraunces 400<br>38 px · display</div><div class="t-display">Bránzírovanie je rytmus, nie náhoda.</div></div>
+    <div class="type-row"><div class="meta">Fraunces 500<br>24 px · sekcia</div><div class="t-h2">Dnešná mise en place</div></div>
+    <div class="type-row"><div class="meta">Instrument Sans 400<br>17 px · telo (čitateľné z ~1 m)</div><div class="t-body">Rispentomaten 8 kg dorazili o 6:40, faktúra naskenovaná a ceny aktualizované.</div></div>
+    <div class="type-row"><div class="meta">14 px meta · 12 px label</div><div><div class="t-meta">samo-nahlásené · nie auditované</div><div class="t-label" style="margin-top:6px;">Food cost · Júl</div></div></div>
+    <div class="type-row"><div class="meta">Mono tabular<br>čísla &amp; ceny</div><div class="t-num">CHF 740.62</div></div>
+  </div>
+
+  <div class="sec"><span class="n">03</span><h2>Komponenty naživo</h2><div class="rule"></div></div>
+
+  <div class="sample-topbar">
+    <div class="brand"><span class="kicker">Kitchen Notebook</span><span class="word">ChefOS</span></div>
+    <div class="topbar-icons"><button class="icon-b">🌐</button><button class="icon-b">❓</button><button class="icon-b">👤</button><button class="icon-b">🔔</button></div>
+  </div>
+
+  <div class="tile-grid">
+    <div class="tile"><span class="ico">⏱️</span><div><div class="lbl">Working Time</div><div class="sub">7,4 h dnes</div></div></div>
+    <div class="tile"><span class="ico">📖</span><div><div class="lbl">Recipes</div><div class="sub">183 v knižnici</div></div></div>
+    <div class="tile"><span class="ico">🧂</span><div><div class="lbl">Ingredients</div><div class="sub">2 005 položiek</div></div></div>
+    <div class="tile"><span class="ico">📋</span><div><div class="lbl">Check List</div><div class="sub">12 otvorených</div></div></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-cu">Uložiť recept</button>
+    <button class="btn-ghost">Zrušiť</button>
+    <button class="chip active">Favorites</button>
+    <button class="chip">All</button>
+    <button class="chip">Newest</button>
+  </div>
+
+  <div class="field-wrap">
+    <label>Názov suroviny</label>
+    <input class="field" placeholder="napr. Rispentomaten" value="">
+  </div>
+
+  <div style="margin-top:var(--s6);">
+    <div class="trow" style="border-top:none;"><div><div class="nm">Rinderhackfleisch CH</div><div class="mt">Mäso · 🏭 Alpenfrisch Gastro</div></div><div class="val">16.50 / kg</div></div>
+    <div class="trow"><div><div class="nm">Olivenöl extra vergine</div><div class="mt">Oleje · 5 L kanister</div></div><div class="val">64.00 / ks</div></div>
+    <div class="trow"><div><div class="nm">Mozzarella di Bufala</div><div class="mt">Mliečne · 125 g</div></div><div class="val">2.95 / ks</div></div>
+  </div>
+
+  <div class="empty">
+    <div class="pict">— pult je pripravený —</div>
+    <p>Žiadne recepty v tomto projekte. Prvý pridáš skenom alebo rukou.</p>
+    <button class="btn-cu">＋ Pridať recept</button>
+  </div>
+
+  <div class="note">
+    <b>Technické oddelenie tém:</b> celá nová téma žije výhradne pod selektorom <code>body.theme-new</code> v samostatnom CSS bloku na konci súboru — klasické CSS sa nemení ani o riadok. Prepínač „Vzhľad aplikácie" v Nastaveniach uvidí len richard.cervenka@icloud.com (rovnaký email-gate ako Internal Docs); voľba v localStorage (<code>chefos_ui_theme</code>), aplikovaná pred prvým vykreslením, default pre teba = Nový. Fonty: Google Fonts (Fraunces + Instrument Sans) s plným systémovým fallbackom — keby nenaskočili, appka je stále čitateľná. Touch targety min. 44 px, animácie len CSS transform/opacity.
+  </div>
+
+</div>
+</body>
+</html>
