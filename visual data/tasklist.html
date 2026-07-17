@@ -222,7 +222,7 @@
     <div class="chart-card">
       <h3 class="sub" data-sk="Funkcie v čase — funkčné / čaká na test / naplánované / spolu" data-en="Features over time — working / awaiting test / planned / total"></h3>
       <div id="featuresOverTimeChart" class="chart-scroll"></div>
-      <p class="chart-note" data-sk="Denné zaznamenávanie stavov začalo 17. 7. 2026 — graf rastie každým dňom o jeden stĺpec. Staršie delenie stavov sa spätne nezaznamenávalo, takže ho poctivo neukazujeme namiesto odhadovania." data-en="Daily status recording started Jul 17, 2026 — the chart grows by one column each day. The historical split wasn't recorded, so we honestly don't show it rather than guess."></p>
+      <p class="chart-note" data-sk="Celý projekt od 8. 7. 2026 po dnešok. Plné farebné stĺpce = presné denné záznamy stavov (zaznamenávané od 17. 7.). Priesvitné stĺpce pred 17. 7. = spätný odhad počtu postavených funkcií z denníka práce (~) — delenie na funkčné/čaká/naplánované sa vtedy nezaznamenávalo, preto ho pri odhade nepredstierame." data-en="The whole project, Jul 8, 2026 through today. Solid colored bars = exact daily status records (recorded since Jul 17). Translucent bars before Jul 17 = a back-estimate (~) of features built, derived from the work log — the working/awaiting/planned split wasn't recorded then, so we don't pretend to know it."></p>
     </div>
   </div>
 </details>
@@ -320,47 +320,47 @@
 
 <details class="group" open><summary><span data-sk="🔥 Priorita 1 · Práve teraz" data-en="🔥 Priority 1 · In progress now"></span></summary><div class="group-body">
 <h3 class="sub">Check List</h3>
-<div class='task'><input id='t1' type='checkbox'><label for='t1'>Merge duplicate prep tasks across dishes in one section (×N badge, one tick updates all)</label><span class="tag me">JA</span></div>
-<div class='task'><input id='t4' type='checkbox'><label for='t4'>Sticky header collapses to a compact icon+name+status bar on scroll</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t1' type='checkbox'><label for='t1'><span data-sk="Zlúčiť duplicitné prep úlohy naprieč jedlami v jednej sekcii (×N odznak, jedno odškrtnutie aktualizuje všetky)" data-en="Merge duplicate prep tasks across dishes in one section (×N badge, one tick updates all)"></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t4' type='checkbox'><label for='t4'><span data-sk="Prilepená hlavička sa pri scrollovaní zbalí na kompaktný pás ikona+názov+stav" data-en="Sticky header collapses to a compact icon+name+status bar on scroll"></span></label><span class="tag me">JA</span></div>
 
 <h3 class="sub">Recipes</h3>
-<div class='task'><input id='t13' type='checkbox'><label for='t13'>AI ingredient info ("i" → flavor/origin/season + Wikipedia link)</label><span class="tag me">JA</span></div>
-<div class='task'><input id='t15' type='checkbox'><label for='t15'>Recipe category reorder (cold → Asia/sushi → soups → sauces → meat → desserts → oils) + sort by newest</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t13' type='checkbox'><label for='t13'><span data-sk="AI info o surovine („i“ → chuť/pôvod/sezóna + odkaz na Wikipédiu)" data-en='AI ingredient info ("i" → flavor/origin/season + Wikipedia link)'></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t15' type='checkbox'><label for='t15'><span data-sk="Preusporiadanie kategórií receptov (studená → Ázia/sushi → polievky → omáčky → mäso → dezerty → oleje) + triedenie od najnovších" data-en="Recipe category reorder (cold → Asia/sushi → soups → sauces → meat → desserts → oils) + sort by newest"></span></label><span class="tag me">JA</span></div>
 
 <h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
-<div class='task'><input id='t10' type='checkbox'><label for='t10'>Print Labels hub — queue + native print dialog (uses your phone/iPad's own print sheet)</label><span class="tag me">JA</span></div>
-<div class='task you-row'><input id='tsql' type='checkbox'><label for='tsql'>Run pending SQL files in Supabase<span class="note">Updated 15.7.: current queue is db/73+77+78 (safe straight to production) and db/74+75+76 (staging first)</span></label><span class="tag you">TY</span></div>
-<div class='task you-row'><input id='temail' type='checkbox' checked><label for='temail'>Fix email login for non-Richard addresses — verify a Resend domain, or switch to Supabase's built-in mailer<span class="note">✅ Resolved 15.7.: chefos.ch verified, custom SMTP live, tested end-to-end by Richard (see s55)</span></label><span class="tag you">TY</span></div>
-<div class='task you-row'><input id='tsketch' type='checkbox'><label for='tsketch'>Send the Check List row-layout sketch (max-3-lines font reference)</label><span class="tag you">TY</span></div>
+<div class='task'><input id='t10' type='checkbox'><label for='t10'><span data-sk="Print Labels hub — fronta + natívny tlačový dialóg (používa vlastné tlačové okno telefónu/iPadu)" data-en="Print Labels hub — queue + native print dialog (uses your phone/iPad's own print sheet)"></span></label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='tsql' type='checkbox'><label for='tsql'><span data-sk="Spustiť čakajúce SQL súbory v Supabase" data-en="Run pending SQL files in Supabase"></span><span class="note" data-sk="Aktualizované 15.7.: aktuálny front je db/73+77+78 (bezpečné rovno na produkciu) a db/74+75+76 (najprv staging)" data-en="Updated 15.7.: current queue is db/73+77+78 (safe straight to production) and db/74+75+76 (staging first)"></span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='temail' type='checkbox' checked><label for='temail'><span data-sk="Opraviť email prihlásenie pre cudzie adresy — overiť Resend doménu alebo prepnúť na vstavaný Supabase mailer" data-en="Fix email login for non-Richard addresses — verify a Resend domain, or switch to Supabase's built-in mailer"></span><span class="note" data-sk="✅ Vyriešené 15.7.: chefos.ch overená, custom SMTP naživo, otestované end-to-end Richardom (pozri s55)" data-en="✅ Resolved 15.7.: chefos.ch verified, custom SMTP live, tested end-to-end by Richard (see s55)"></span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='tsketch' type='checkbox'><label for='tsketch'><span data-sk="Poslať náčrt rozloženia riadku Check Listu (referencia písma max 3 riadky)" data-en="Send the Check List row-layout sketch (max-3-lines font reference)"></span></label><span class="tag you">TY</span></div>
 </div></details>
 
 <details class="group"><summary><span data-sk="🚀 Priorita 2 · Profesionálne" data-en="🚀 Priority 2 · Professional"></span></summary><div class="group-body">
 <h3 class="sub">Recipes</h3>
-<div class='task'><input id='t14' type='checkbox'><label for='t14'>Recipe folders/layers — custom-named groups, show/hide from Home</label><span class="tag me">JA</span></div>
+<div class='task'><input id='t14' type='checkbox' checked><label for='t14'><span data-sk="Priečinky/vrstvy receptov — vlastné pomenované skupiny, zobraziť/skryť" data-en="Recipe folders/layers — custom-named groups, show/hide"></span><span class="note" data-sk="✅ Vyriešené 16.–17.7.: Add Project (vlastné zbierky s 8 knihami) + skrývanie políc dlhým podržaním" data-en="✅ Resolved Jul 16–17: Add Project (custom collections, 8 book icons) + long-press shelf hiding"></span></label><span class="tag me">JA</span></div>
 
 <h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
-<div class='task you-row'><input id='t9' type='checkbox'><label for='t9'>Bluetooth/WiFi label printing (real printer driver, not just the native dialog)<span class="note">Researched 2026-07-13: no small printer has a true zero-install web print API — recommendation is Brother QL-820NWB (~CHF 130) via the existing print-dialog flow, no code changes needed. Full report: docs/LABEL_PRINTER_RESEARCH.md</span></label><span class="tag you">TY</span></div>
-<div class='task you-row'><input id='tnooch' type='checkbox'><label for='tnooch'>Approach Nooch Asian Kitchen (FWG group) as first post-pilot expansion target — 3 locations already in canton Bern<span class="note">Named goal, 2026-07-13 — no contact made yet</span></label><span class="tag you">TY</span></div>
-<div class='task'><input id='tlogo' type='checkbox' checked><label for='tlogo'>ChefOS logo for the QR-code center design<span class="note">Auto-designed a minimalist placeholder mark, already live on the My Team QR — swap it for your own if you want something different</span></label><span class="tag me">JA</span></div>
-<div class='task you-row'><input id='ttag' type='checkbox'><label for='ttag'>Decide "team worker" vs "friend" invite tags — what they mean, how they change access</label><span class="tag you">TY</span></div>
-<div class='task'><input id='t17' type='checkbox'><label for='t17'>Team chat + notifications icon</label><span class="tag me">JA</span></div>
-<div class='task'><input id='t19' type='checkbox'><label for='t19'>Fridge Temp via per-fridge QR scan (HACCP)<span class="note">Researched 2026-07-13: iOS Safari can't read Bluetooth/NFC sensors directly, so this needs a WiFi/cloud-API sensor — SensorPush is the recommended budget pick (~CHF 150/fridge, free API)</span></label><span class="tag me">JA</span></div>
-<div class='task'><input id='t12' type='checkbox'><label for='t12'>Order List visual rebuild to match Check List's icon-tile style</label><span class="tag me">JA</span></div>
-<div class='task'><input id='t11' type='checkbox'><label for='t11'>Master/admin device-level permissions (distinct from user roles)</label><span class="tag me">JA</span></div>
-<div class='task'><input id='t23' type='checkbox'><label for='t23'>Bars &amp; cocktails — recipes + check list</label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t9' type='checkbox'><label for='t9'><span data-sk="Bluetooth/WiFi tlač štítkov (skutočný ovládač tlačiarne, nie len natívny dialóg)" data-en="Bluetooth/WiFi label printing (real printer driver, not just the native dialog)"></span><span class="note" data-sk="Preskúmané 13.7.2026: žiadna malá tlačiareň nemá skutočné zero-install web print API — odporúčanie je Brother QL-820NWB (~130 CHF) cez existujúci tlačový dialóg, bez zmien kódu. Celý report: docs/LABEL_PRINTER_RESEARCH.md" data-en="Researched 2026-07-13: no small printer has a true zero-install web print API — recommendation is Brother QL-820NWB (~CHF 130) via the existing print-dialog flow, no code changes needed. Full report: docs/LABEL_PRINTER_RESEARCH.md"></span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='tnooch' type='checkbox'><label for='tnooch'><span data-sk="Osloviť Nooch Asian Kitchen (skupina FWG) ako prvý expanzný cieľ po pilote — 3 prevádzky v kantóne Bern" data-en="Approach Nooch Asian Kitchen (FWG group) as first post-pilot expansion target — 3 locations already in canton Bern"></span><span class="note" data-sk="Pomenovaný cieľ 13.7.2026 — zatiaľ bez kontaktu" data-en="Named goal, 2026-07-13 — no contact made yet"></span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='tlogo' type='checkbox' checked><label for='tlogo'><span data-sk="ChefOS logo do stredu QR kódu" data-en="ChefOS logo for the QR-code center design"></span><span class="note" data-sk="Automaticky navrhnutá minimalistická značka, už naživo na My Team QR — vymeň za vlastnú, ak chceš inú" data-en="Auto-designed a minimalist placeholder mark, already live on the My Team QR — swap it for your own if you want something different"></span></label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='ttag' type='checkbox' checked><label for='ttag'><span data-sk="Rozhodnúť štítky pozvánok „člen tímu“ vs „priateľ“ — čo znamenajú a ako menia prístup" data-en='Decide "team worker" vs "friend" invite tags — what they mean, how they change access'></span><span class="note" data-sk="✅ Vyriešené 16.–17.7.: Add Friend je čisto sociálny (nikdy nevťahuje do kuchyne), do tímu sa vstupuje výhradne kódom/pozvánkou/Add Company" data-en="✅ Resolved Jul 16–17: Add Friend is purely social (never pulls into a kitchen); teams are joined only via code/invite/Add Company"></span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='t17' type='checkbox'><label for='t17'><span data-sk="Tímový chat + ikona notifikácií" data-en="Team chat + notifications icon"></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t19' type='checkbox'><label for='t19'><span data-sk="Teplota chladničiek cez QR sken per chladnička (HACCP)" data-en="Fridge Temp via per-fridge QR scan (HACCP)"></span><span class="note" data-sk="Preskúmané 13.7.2026: iOS Safari nevie čítať Bluetooth/NFC senzory priamo, treba WiFi/cloud-API senzor — odporúčaný budget výber je SensorPush (~150 CHF/chladnička, API zdarma)" data-en="Researched 2026-07-13: iOS Safari can't read Bluetooth/NFC sensors directly, so this needs a WiFi/cloud-API sensor — SensorPush is the recommended budget pick (~CHF 150/fridge, free API)"></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t12' type='checkbox'><label for='t12'><span data-sk="Vizuálna prestavba Order Listu do štýlu ikonových dlaždíc Check Listu" data-en="Order List visual rebuild to match Check List's icon-tile style"></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t11' type='checkbox'><label for='t11'><span data-sk="Master/admin oprávnenia na úrovni zariadenia (odlišné od rolí užívateľov)" data-en="Master/admin device-level permissions (distinct from user roles)"></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t23' type='checkbox'><label for='t23'><span data-sk="Bary &amp; koktaily — recepty + check list" data-en="Bars &amp; cocktails — recipes + check list"></span></label><span class="tag me">JA</span></div>
 </div></details>
 
 <details class="group"><summary><span data-sk="🧠 Priorita 3 · Budúcnosť / Odložené" data-en="🧠 Priority 3 · Future / Parked"></span></summary><div class="group-body">
 <h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
-<div class='task you-row'><input id='t24' type='checkbox'><label for='t24'>Waste tracking<span class="note">Design not settled — needs a real conversation first</span></label><span class="tag you">TY</span></div>
-<div class='task'><input id='t25' type='checkbox'><label for='t25'>Monthly Chef's Assistant report (5 good / 5 bad + suggestions)</label><span class="tag me">JA</span></div>
-<div class='task you-row'><input id='t26' type='checkbox'><label for='t26'>Productivity-based staff bonuses</label><span class="tag you">TY</span></div>
-<div class='task you-row'><input id='t27' type='checkbox'><label for='t27'>Referral rewards for new venue contracts</label><span class="tag you">TY</span></div>
-<div class='task'><input id='t28' type='checkbox'><label for='t28'>Pass-station camera + AI plate-quality check</label><span class="tag me">JA</span></div>
-<div class='task you-row'><input id='t22' type='checkbox'><label for='t22'>Payment system<span class="note">Needs a processor decision first</span></label><span class="tag you">TY</span></div>
-<div class='task'><input id='t20' type='checkbox'><label for='t20'>Check-in / check-out</label><span class="tag me">JA</span></div>
-<div class='task you-row'><input id='t21' type='checkbox'><label for='t21'>GPS + breaks + overtime + contract legal review<span class="note">Real labor-law/privacy implications — needs legal review before any code. Update 14.7.: a scoped, low-risk version (one-time location snapshot at check-in/out only, not continuous tracking) shipped instead — see Working Time.</span></label><span class="tag you">TY</span></div>
-<div class='task you-row'><input id='t29' type='checkbox'><label for='t29'>Community/social edition<span class="note">Your own flag: launching without a security check could sink us</span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='t24' type='checkbox'><label for='t24'><span data-sk="Sledovanie odpadu" data-en="Waste tracking"></span><span class="note" data-sk="Dizajn nie je dohodnutý — najprv treba reálny rozhovor" data-en="Design not settled — needs a real conversation first"></span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='t25' type='checkbox'><label for='t25'><span data-sk="Mesačný report Chef's Assistanta (5 dobrých / 5 zlých + návrhy)" data-en="Monthly Chef's Assistant report (5 good / 5 bad + suggestions)"></span></label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t26' type='checkbox'><label for='t26'><span data-sk="Bonusy pre personál podľa produktivity" data-en="Productivity-based staff bonuses"></span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='t27' type='checkbox'><label for='t27'><span data-sk="Odmeny za odporúčanie nových prevádzok" data-en="Referral rewards for new venue contracts"></span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='t28' type='checkbox'><label for='t28'><span data-sk="Kamera na výdaji + AI kontrola kvality tanierov" data-en="Pass-station camera + AI plate-quality check"></span></label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t22' type='checkbox'><label for='t22'><span data-sk="Platobný systém" data-en="Payment system"></span><span class="note" data-sk="Najprv treba rozhodnúť o procesore platieb" data-en="Needs a processor decision first"></span></label><span class="tag you">TY</span></div>
+<div class='task'><input id='t20' type='checkbox' checked><label for='t20'><span data-sk="Check-in / check-out" data-en="Check-in / check-out"></span><span class="note" data-sk="✅ Naživo od 11.–12.7. ako Working Time (check-in/out, hodiny, nadčasy, GPS snímka)" data-en="✅ Live since Jul 11–12 as Working Time (check-in/out, hours, overtime, GPS snapshot)"></span></label><span class="tag me">JA</span></div>
+<div class='task you-row'><input id='t21' type='checkbox'><label for='t21'><span data-sk="GPS + prestávky + nadčasy + právna kontrola zmlúv" data-en="GPS + breaks + overtime + contract legal review"></span><span class="note" data-sk="Reálne pracovnoprávne/privacy dôsledky — pred kódom treba právnu kontrolu. Aktualizácia 14.7.: namiesto toho nasadená obmedzená, nízkoriziková verzia (jednorazová snímka polohy len pri check-in/out, žiadne priebežné sledovanie) — pozri Working Time." data-en="Real labor-law/privacy implications — needs legal review before any code. Update 14.7.: a scoped, low-risk version (one-time location snapshot at check-in/out only, not continuous tracking) shipped instead — see Working Time."></span></label><span class="tag you">TY</span></div>
+<div class='task you-row'><input id='t29' type='checkbox'><label for='t29'><span data-sk="Community/sociálna edícia" data-en="Community/social edition"></span><span class="note" data-sk="Tvoje vlastné varovanie: spustenie bez bezpečnostnej kontroly by nás mohlo potopiť. Aktualizácia 17.7.: prvá community vrstva (Public police, zdieľanie, komentáre naprieč kuchyňami) nasadená PO plnej bezpečnostnej kontrole s trvalými poistkami." data-en="Your own flag: launching without a security check could sink us. Update Jul 17: the first community layer (Public shelves, sharing, cross-kitchen comments) shipped AFTER a full security review with permanent guards."></span></label><span class="tag you">TY</span></div>
 </div></details>
 
 <footer class="foot" data-sk="ChefOS — interný kontrolný zoznam · aktualizuje sa priebežne · Slovenčina je predvolená, prepni na EN hore vpravo" data-en="ChefOS — internal task list · updated continuously · English shown, switch to SK top-right"></footer>
@@ -706,52 +706,96 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-17', ok:66, test:32, plan:7 },
 ];
 function shortDay(d){ return d.slice(8,10) + '.' + String(+d.slice(5,7)) + '.'; }
+/* Both charts ALWAYS span project day 1 (2026-07-08) through TODAY in Bern time (Richard,
+   17.7.) — days without a log entry show as zero, never disappear. */
+const PROJECT_START = '2026-07-08';
+function bernToday(){ return new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(new Date()); }
+function fullDateRange(){
+  const out = [];
+  const end = bernToday();
+  let d = new Date(PROJECT_START + 'T12:00:00Z');
+  for(let i = 0; i < 366; i++){
+    const iso = d.toISOString().slice(0,10);
+    out.push(iso);
+    if(iso >= end) break;
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return out;
+}
 function renderTasksPerDay(){
   const el = document.getElementById('tasksPerDayChart');
   if(!el) return;
-  const days = DAYS.slice().sort((a,b)=>a.date.localeCompare(b.date));
-  const max = Math.max(...days.map(d=>d.accomplished.length));
+  const byDate = {};
+  DAYS.forEach(d=>{ byDate[d.date] = (byDate[d.date] || 0) + d.accomplished.length; });
+  const dates = fullDateRange();
+  const max = Math.max(1, ...dates.map(d=>byDate[d] || 0));
   const BW = 34, GAP = 14, H = 150, TOP = 18, LBL = 30;
-  const W = days.length * (BW + GAP) + GAP;
-  const bars = days.map((d,i)=>{
-    const h = Math.max(3, Math.round(d.accomplished.length / max * H));
+  const W = dates.length * (BW + GAP) + GAP;
+  const bars = dates.map((d,i)=>{
+    const v = byDate[d] || 0;
+    const h = v ? Math.max(3, Math.round(v / max * H)) : 2;
     const x = GAP + i * (BW + GAP), y = TOP + H - h;
-    return `<g class="bar" onclick="openDayFromChart('${d.date}')"><title>${d.date} — ${d.accomplished.length}</title>
-      <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="4" fill="var(--accent)"/>
-      <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="11" fill="var(--ink)">${d.accomplished.length}</text>
-      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d.date)}</text></g>`;
+    return `<g class="bar" onclick="openDayFromChart('${d}')"><title>${d} — ${v}</title>
+      <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="4" fill="${v ? 'var(--accent)' : 'var(--rule)'}"/>
+      <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="11" fill="${v ? 'var(--ink)' : 'var(--ink-faint)'}">${v}</text>
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
   }).join('');
   el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL}" viewBox="0 0 ${W} ${TOP+H+LBL}">${bars}</svg>`;
 }
 function renderFeaturesOverTime(){
   const el = document.getElementById('featuresOverTimeChart');
   if(!el) return;
-  // Stacked bars (Richard, 17.7.: "vyzobraz takýmto grafom") — one bar per day, the three
-  // statuses stacked on top of each other, total on top. Grows by one bar per recorded day.
+  // Stacked bars over the WHOLE project (8.7. → today, Richard 17.7.). Days with a recorded
+  // snapshot (FEATURE_COUNT_HISTORY, daily since 17.7.) show the full ok/test/plan stack.
+  // Days BEFORE recording started show a single dimmed "built so far" bar — an honest
+  // back-estimate: the cumulative share of shipped tasks from the day log, scaled to the
+  // first recorded built-count. Estimate and record are visually distinct on purpose.
   const SER = [
-    { key:'ok', label:'Funkčné', color:'#4ADE80' },
-    { key:'test', label:'Čaká na test', color:'#FB923C' },
-    { key:'plan', label:'Naplánované', color:'#FF7A68' },
+    { key:'ok', label: L('Funkčné','Working'), color:'#4ADE80' },
+    { key:'test', label: L('Čaká na test','Awaiting test'), color:'#FB923C' },
+    { key:'plan', label: L('Naplánované','Planned'), color:'#FF7A68' },
   ];
-  const rows = FEATURE_COUNT_HISTORY.map(r=>({ ...r, total: r.ok + r.test + r.plan }));
-  const max = Math.max(...rows.map(r=>r.total));
+  const recorded = {};
+  FEATURE_COUNT_HISTORY.forEach(r=>{ recorded[r.date] = { ...r, total: r.ok + r.test + r.plan }; });
+  const firstRecordedDate = FEATURE_COUNT_HISTORY.map(r=>r.date).sort()[0];
+  const firstBuilt = recorded[firstRecordedDate].ok + recorded[firstRecordedDate].test;
+  // Cumulative shipped-task counts from the day log, up to the first recorded day.
+  const byDate = {};
+  DAYS.forEach(d=>{ byDate[d.date] = (byDate[d.date] || 0) + d.accomplished.length; });
+  const dates = fullDateRange();
+  let cum = 0, cumAtFirstRecorded = 0;
+  const cumByDate = {};
+  dates.forEach(d=>{ cum += (byDate[d] || 0); cumByDate[d] = cum; if(d <= firstRecordedDate) cumAtFirstRecorded = cum; });
+  const estBuilt = d => Math.max(1, Math.round(cumByDate[d] / (cumAtFirstRecorded || 1) * firstBuilt));
+  const maxTotal = Math.max(...dates.map(d => recorded[d] ? recorded[d].total : estBuilt(d)));
   const BW = 40, GAP = 16, H = 170, TOP = 20, LBL = 30;
-  const W = Math.max(rows.length * (BW + GAP) + GAP, 3 * 128 + GAP);
-  const bars = rows.map((r,i)=>{
+  const W = Math.max(dates.length * (BW + GAP) + GAP, 4 * 128 + GAP);
+  const bars = dates.map((d,i)=>{
     const x = GAP + i * (BW + GAP);
-    let yCursor = TOP + H;
-    const segs = SER.map(s=>{
-      const v = r[s.key];
-      const h = max ? Math.max(v > 0 ? 2 : 0, Math.round(v / max * H)) : 0;
-      yCursor -= h;
-      return `<rect x="${x}" y="${yCursor}" width="${BW}" height="${h}" fill="${s.color}"><title>${s.label}: ${v}</title></rect>`;
-    }).join('');
-    return `<g>${segs}
-      <text x="${x+BW/2}" y="${yCursor-6}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${r.total}</text>
-      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(r.date)}</text></g>`;
+    if(recorded[d]){
+      const r = recorded[d];
+      let yCursor = TOP + H;
+      const segs = SER.map(s=>{
+        const v = r[s.key];
+        const h = maxTotal ? Math.max(v > 0 ? 2 : 0, Math.round(v / maxTotal * H)) : 0;
+        yCursor -= h;
+        return `<rect x="${x}" y="${yCursor}" width="${BW}" height="${h}" fill="${s.color}"><title>${s.label}: ${v}</title></rect>`;
+      }).join('');
+      return `<g>${segs}
+        <text x="${x+BW/2}" y="${yCursor-6}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${r.total}</text>
+        <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
+    }
+    const v = estBuilt(d);
+    const h = Math.max(3, Math.round(v / maxTotal * H));
+    const y = TOP + H - h;
+    return `<g opacity="0.5"><title>${L('Postavené — spätný odhad','Built — back-estimate')}: ~${v}</title>
+      <rect x="${x}" y="${y}" width="${BW}" height="${h}" fill="var(--accent)"/>
+      <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="10" fill="var(--ink-dim)">~${v}</text>
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d)}</text></g>`;
   }).join('');
-  const legend = SER.map((s,i)=>`<rect x="${GAP + i*128}" y="${TOP+H+24}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GAP + i*128 + 13}" y="${TOP+H+32}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text>`).join('');
-  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+14}" viewBox="0 0 ${W} ${TOP+H+LBL+14}">${bars}${legend}</svg>`;
+  const legend = SER.map((s,i)=>`<g><rect x="${GAP + i*128}" y="${TOP+H+24}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GAP + i*128 + 13}" y="${TOP+H+32}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text></g>`).join('')
+    + `<g opacity="0.55"><rect x="${GAP}" y="${TOP+H+40}" width="9" height="9" rx="2" fill="var(--accent)"/><text x="${GAP + 13}" y="${TOP+H+48}" font-size="9.5" fill="var(--ink-dim)">${L('Postavené — spätný odhad (pred 17.7.)','Built — back-estimate (before Jul 17)')}</text></g>`;
+  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL+30}" viewBox="0 0 ${W} ${TOP+H+LBL+30}">${bars}${legend}</svg>`;
 }
 function openDayFromChart(date){
   document.querySelectorAll('.month-block, .week-block').forEach(b=>b.classList.add('open'));
@@ -784,6 +828,6 @@ renderFeaturesOverTime();
 toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:03" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:03">🔄 Stav ChefOS k 17. 7. 2026, 14:03</div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 14:15" data-en="🔄 ChefOS state as of Jul 17, 2026, 14:15">🔄 Stav ChefOS k 17. 7. 2026, 14:15</div>
 </body>
 </html>
