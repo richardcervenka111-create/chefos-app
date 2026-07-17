@@ -1467,6 +1467,13 @@
   .rpb-steps li::before{ content:counter(rpbstep); flex:none; width:22px; height:22px; border:2px solid #1a7e6f; background:#34F7D7; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; color:#0A1A2F; }
   .rpb-notes{ margin-top:20px; border-left:4px solid #34F7D7; padding:2px 0 2px 14px; }
   .rpb-notes p{ font-style:italic; font-size:13px; color:#0A1A2F; margin:0; line-height:1.55; }
+  /* Composition donut on the printed card (Richard, 17.7.) — inline SVG strokes, because
+     browsers strip CSS backgrounds when printing but always render SVG fills/strokes. */
+  .rpb-comp{ margin-top:18px; }
+  .rpb-comp-flex{ display:flex; gap:20px; align-items:center; }
+  .rpb-comp-legend{ flex:1; font-family:-apple-system,Arial,sans-serif; font-size:11.5px; color:#0A1A2F; }
+  .rpb-comp-legend div{ display:flex; align-items:center; gap:7px; margin:3px 0; }
+  .rpb-comp-legend i{ width:10px; height:10px; border-radius:3px; flex:none; display:inline-block; }
   .rpb-used-in{ margin-top:16px; }
   .rpb-used-in ul{ margin:0; padding-left:18px; font-family:-apple-system,Arial,sans-serif; font-size:12px; color:#0A1A2F; }
   .rpb-used-in li{ margin-bottom:3px; }
@@ -2676,8 +2683,10 @@
     <button class="icon-btn" onclick="printRecipeBranded()" title="Print">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/><path d="M9 17h6M9 20h4"/></svg>
     </button>
-    <button class="icon-btn" onclick="openRecipeComments()" title="Comments">
+    <button class="icon-btn" onclick="openRecipeComments()" title="Comments" style="position:relative;">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <!-- Comment count (Richard, 17.7.) — caps at "9+". Hidden when the recipe has none. -->
+      <span id="commentCountBadge" style="display:none; position:absolute; top:2px; right:2px; min-width:15px; height:15px; padding:0 3px; border-radius:8px; background:var(--copper); color:#0A1A2F; font-size:10px; font-weight:800; line-height:15px; text-align:center;"></span>
     </button>
   </div>
   <div class="detail-content" id="detailContent"></div>
@@ -11948,8 +11957,16 @@ async function pickRecipeProject(projectId){
   document.getElementById('recipeStationPickTitle').textContent = `Add "${r.title}" to which station?`;
   document.getElementById('recipeStationPickList').innerHTML = stations.map(st=>`
     <button class="chip${st===suggested?' active':''}" style="width:100%; text-align:left; margin-bottom:8px;" onclick="confirmAddRecipeToStation('${st.replace(/'/g,"\\'")}')">${st}${st===suggested ? ' · suggested' : ''}</button>
-  `).join('');
+  `).join('') + `
+    <button class="chip" style="width:100%; text-align:left; border-style:dashed;" onclick="addRecipeToNewStation()">➕ New section…</button>`;
   document.getElementById('recipeStationPickOverlay').classList.add('open');
+}
+/* New section straight from the picker (Richard's live test, 17.7.) — confirmAddRecipeToStation
+   already handles any station name and registers it, so this is just a named prompt. */
+function addRecipeToNewStation(){
+  const name = prompt('Name the new section/station:');
+  if(!name || !name.trim()) return;
+  confirmAddRecipeToStation(name.trim());
 }
 function closeRecipeStationPick(){ document.getElementById('recipeStationPickOverlay').classList.remove('open'); }
 async function confirmAddRecipeToStation(station){
@@ -12143,19 +12160,16 @@ function closeRecipeComments(){
 }
 async function renderRecipeComments(){
   const el = document.getElementById('recipeCommentsList');
-  // ChefOS-shelf recipes exist as one physical copy per kitchen (db/87) — a comment thread is
-  // shared across every kitchen's copy of "the same" recipe via chefos_master_id (db/119), so
-  // fetch every sibling row's id first rather than filtering on just this kitchen's own row.
-  let recipeIds = [_currentCommentsRecipeId];
-  if(_currentCommentsMasterId){
-    const { data: siblings } = await sb.from('recipes').select('id').eq('chefos_master_id', _currentCommentsMasterId);
-    if(siblings && siblings.length) recipeIds = siblings.map(s=>s.id);
-  }
-  const { data, error } = await sb.from('recipe_comments')
+  // Comments carry chefos_master_id themselves (db/129) — one indexed equality finds the whole
+  // cross-kitchen thread. The old sibling-id lookup could only ever see MY kitchen's copy
+  // (recipes RLS), which is exactly why other people's comments never showed up (Richard's
+  // live test, 17.7.).
+  let q = sb.from('recipe_comments')
     .select('id, message, created_at, created_by, profiles:created_by(full_name, email)')
-    .in('recipe_id', recipeIds)
     .order('created_at', { ascending:true });
-  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message} — has db/104/db/119 been run?</p>`; return; }
+  q = _currentCommentsMasterId ? q.eq('chefos_master_id', _currentCommentsMasterId) : q.eq('recipe_id', _currentCommentsRecipeId);
+  const { data, error } = await q;
+  if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message} — has db/129 been run?</p>`; return; }
   if(!data || !data.length){ el.innerHTML = '<div class="empty-state">No comments yet — be the first.</div>'; return; }
   el.innerHTML = data.map(c=>`
     <div class="task-row">
@@ -12175,11 +12189,13 @@ async function postRecipeComment(){
   const message = input.value.trim();
   if(!message){ statusEl.textContent = 'Write something first.'; return; }
   statusEl.textContent = 'Posting…';
-  const { error } = await sb.from('recipe_comments').insert({ recipe_id: _currentCommentsRecipeId, created_by: currentUser.id, message });
+  const { error } = await sb.from('recipe_comments').insert({ recipe_id: _currentCommentsRecipeId, created_by: currentUser.id, message, chefos_master_id: _currentCommentsMasterId });
   if(error){ statusEl.textContent = 'Could not post: ' + error.message; return; }
   input.value = '';
   statusEl.textContent = '';
   await renderRecipeComments();
+  const r = allRecipes()[window.currentDetailIdx];
+  if(r) refreshCommentCountBadge(r);
 }
 async function deleteRecipeComment(id){
   if(!confirm('Delete this comment?')) return;
@@ -12240,9 +12256,25 @@ function jumpToRecipeById(recipeId){
   if(idx > -1) showDetail(idx);
 }
 
+/* Comment-count badge on the detail bar (Richard, 17.7.) — one head-only count query per
+   detail open, capped visually at "9+". Uses the comment's own chefos_master_id (db/129), so
+   the count covers the whole cross-kitchen thread. */
+async function refreshCommentCountBadge(r){
+  const badge = document.getElementById('commentCountBadge');
+  if(!badge) return;
+  badge.style.display = 'none';
+  let q = sb.from('recipe_comments').select('id', { count:'exact', head:true });
+  q = r.chefosMasterId ? q.eq('chefos_master_id', r.chefosMasterId) : q.eq('recipe_id', r.id);
+  const { count } = await q;
+  if(count && count > 0){
+    badge.textContent = count > 9 ? '9+' : String(count);
+    badge.style.display = 'block';
+  }
+}
 function showDetail(idx){
   window.currentDetailIdx = idx;
   const r = allRecipes()[idx];
+  refreshCommentCountBadge(r);
   const el = document.getElementById('detailContent');
   let html = '';
   if(r.img){
@@ -15625,6 +15657,49 @@ function printRecipeBranded(){
   if(r.station) metaParts.push({ label:'Station', value:r.station });
   if(r.category) metaParts.push({ label:'Section', value:r.category });
   const kn = _rpbKitchenName.replace(/</g,'&lt;');
+  // Composition donut (Richard, 17.7.): share of each ingredient by weight/volume, from the
+  // recipe's own quantities. Only lines convertible to grams/ml count; piece-count lines are
+  // left out (same rule as the nutrition math). SVG strokes so it actually PRINTS — browsers
+  // strip CSS backgrounds on paper, but never SVG.
+  let compositionHtml = '';
+  {
+    const comp = [];
+    (r.sections || []).filter(s=>s.type==='table').forEach(s=>{
+      (s.rows || []).forEach(row=>{
+        const parsed = parseQtyUnit(row[1]);
+        if(!parsed) return;
+        let grams = null;
+        if(parsed.unit === 'g' || parsed.unit === 'ml') grams = parsed.amount;
+        else if(parsed.unit === 'kg' || parsed.unit === 'l') grams = parsed.amount * 1000;
+        if(grams > 0) comp.push({ name: String(row[0]||'').trim(), grams });
+      });
+    });
+    if(comp.length >= 2){
+      comp.sort((a,b)=>b.grams - a.grams);
+      const top = comp.slice(0, 8);
+      const rest = comp.slice(8).reduce((s,x)=>s + x.grams, 0);
+      if(rest > 0) top.push({ name:'Other ingredients', grams: rest });
+      const total = top.reduce((s,x)=>s + x.grams, 0);
+      const PRINT_COLORS = ['#0A1A2F','#3D5A80','#12A08C','#8C6FB0','#E0A458','#C94F4F','#7A93B5','#66D3C4','#B7C6DB'];
+      const R2 = 40, C2 = 2 * Math.PI * R2;
+      let off = 0;
+      const circles = top.map((seg, i)=>{
+        const frac = seg.grams / total;
+        const c = `<circle cx="50" cy="50" r="${R2}" fill="none" stroke="${PRINT_COLORS[i % PRINT_COLORS.length]}" stroke-width="17" stroke-dasharray="${(frac*C2).toFixed(2)} ${(C2-frac*C2).toFixed(2)}" stroke-dashoffset="${(-off*C2).toFixed(2)}" transform="rotate(-90 50 50)"/>`;
+        off += frac;
+        return c;
+      }).join('');
+      compositionHtml = `<div class="rpb-comp">
+        <div class="rpb-section-label">Composition</div>
+        <div class="rpb-comp-flex">
+          <svg viewBox="0 0 100 100" style="width:120px; height:120px; flex:none;">${circles}</svg>
+          <div class="rpb-comp-legend">
+            ${top.map((seg,i)=>`<div><i style="background:${PRINT_COLORS[i % PRINT_COLORS.length]};"></i>${seg.name.replace(/</g,'&lt;')} — ${Math.round(seg.grams/total*100)}%</div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    }
+  }
   const usedIn = findUsedIn(r, window.currentDetailIdx);
   const usedInHtml = usedIn.length ? `<div class="rpb-used-in"><div class="rpb-section-label">Used In</div><ul>${usedIn.map(i=>`<li>${(allRecipes()[i].title||'').replace(/</g,'&lt;')}</li>`).join('')}</ul></div>` : '';
   document.getElementById('recipePrintBrandedSheet').innerHTML = `
@@ -15643,6 +15718,7 @@ function printRecipeBranded(){
       ${ingredientsHtml ? `<div class="rpb-col-ing"><div class="rpb-section-label">Ingredients</div><table class="rpb-ing-table">${ingredientsHtml}</table></div>` : ''}
       ${stepsHtml ? `<div class="rpb-col-steps"><div class="rpb-section-label">Method</div>${stepsHtml}</div>` : ''}
     </div>
+    ${compositionHtml}
     ${r.chefNotes ? `<div class="rpb-notes"><div class="rpb-section-label">Chef's Notes</div><p>${r.chefNotes.replace(/</g,'&lt;')}</p></div>` : ''}
     ${usedInHtml}
     <div class="rpb-footer"><span>${kn} · Confidential — for kitchen use only</span><span>Printed ${new Date().toLocaleDateString()}</span></div>
