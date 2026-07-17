@@ -92,6 +92,16 @@
   .st-future{ background:rgba(156,148,158,0.07); color:var(--ink-faint); }
   .st-red{ background:rgba(255,122,104,0.18); color:var(--danger); }
   /* Per-phase progress (injected by JS) */
+  /* Phase overview chart (17.7.) */
+  .phase-overview{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px 18px 10px 18px; margin:26px 0 6px 0; }
+  .po-title{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); font-weight:700; margin-bottom:12px; }
+  .po-row{ display:flex; align-items:center; gap:10px; padding:5px 0; cursor:pointer; }
+  .po-row:hover .po-name{ color:var(--accent); }
+  .po-name{ flex:0 0 210px; min-width:0; font-size:12px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .po-bar{ flex:1; height:12px; background:var(--rule); border-radius:99px; overflow:hidden; display:flex; }
+  .po-fill{ height:100%; background:var(--accent); }
+  .po-count{ flex:none; font-family:var(--mono); font-size:10.5px; color:var(--ink-dim); min-width:52px; text-align:right; }
+  @media (max-width:640px){ .po-name{ flex-basis:130px; } }
   .phase-progress{ display:flex; align-items:center; gap:8px; flex:none; width:100%; margin-top:6px; }
   .phase-progress .pbar{ flex:1; height:4px; background:var(--rule); border-radius:99px; overflow:hidden; }
   .phase-progress .pfill{ height:100%; background:var(--accent); border-radius:99px; }
@@ -206,6 +216,9 @@
 </header>
 
 <div class="wrap">
+
+  <!-- Phase overview chart (Richard, 17.7.): done vs open per phase — click a row to jump. -->
+  <div class="phase-overview" id="phaseOverview"></div>
 
   <!-- FOUNDER RISKS -->
   <div class="phase-head">
@@ -570,7 +583,32 @@ function applyFilters(){
   const filtering = q || _filters.open || _filters.crit || _filters.v2;
   hits.textContent = filtering ? ('🔍 ' + shown + '/' + total) : '';
 }
+/* Phase overview chart (Richard, 17.7.) — done vs open per phase, click jumps to the phase. */
+function renderPhaseOverview(){
+  const wrap = document.getElementById('phaseOverview');
+  if(!wrap) return;
+  const rows = [];
+  document.querySelectorAll('.phase-head').forEach((head, idx)=>{
+    let list = head.nextElementSibling;
+    while(list && !list.classList.contains('tasklist')) list = list.nextElementSibling;
+    if(!list) return;
+    const checks = [...list.querySelectorAll('.task-check')];
+    if(!checks.length) return;
+    const done = checks.filter(c=>c.checked).length;
+    const name = (head.querySelector('.phase-num')?.textContent || '') + ' ' + (head.querySelector('h2')?.textContent || '');
+    head.id = head.id || ('phaseHead' + idx);
+    rows.push({ name: name.trim(), done, total: checks.length, id: head.id });
+  });
+  wrap.innerHTML = '<div class="po-title">' + (_lang==='sk' ? 'Prehľad fáz — hotové vs. otvorené (klikni pre skok)' : 'Phase overview — done vs. open (click to jump)') + '</div>' +
+    rows.map(r=>`
+      <div class="po-row" onclick="document.getElementById('${r.id}').scrollIntoView({behavior:'smooth', block:'start'})">
+        <span class="po-name" title="${r.name.replace(/"/g,'&quot;')}">${r.name}</span>
+        <span class="po-bar"><span class="po-fill" style="width:${r.total ? Math.round(r.done/r.total*100) : 0}%"></span></span>
+        <span class="po-count">${r.done}/${r.total}</span>
+      </div>`).join('');
+}
 applyLang();
+renderPhaseOverview();
 </script>
 
 <div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>

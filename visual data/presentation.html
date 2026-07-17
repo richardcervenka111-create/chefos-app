@@ -84,6 +84,12 @@
   .group-label:first-child{ margin-top:0; }
 
   /* ---------- KPI cards ---------- */
+  .maturity-row{ display:flex; align-items:center; gap:26px; margin-top:22px; flex-wrap:wrap; background:var(--paper); border:1px solid var(--rule); border-radius:16px; padding:16px 20px; }
+  .maturity-legend{ display:flex; flex-direction:column; gap:8px; }
+  .maturity-legend .mrow{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--ink-dim); }
+  .maturity-legend .mdot{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .maturity-legend b{ color:var(--ink); font-family:var(--mono); }
+  #maturityDonut text{ fill:var(--ink); font-family:var(--mono); }
   .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
   @media (max-width:820px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
   .kpi-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:18px 16px; transition:border-color 0.15s ease, transform 0.15s ease; }
@@ -268,6 +274,12 @@
     <h2 class="section-title" data-sk="Kde sme dnes" data-en="Where we are today">Kde sme dnes</h2>
     <p class="section-desc" data-sk="Skutočné počty zo živého systému, nie projekcie — zoskupené podľa toho, čo dokazujú." data-en="Real counts from the live system, not projections — grouped by what they prove."></p>
     <div id="kpiGroups"></div>
+    <!-- Product-maturity donut (Richard, 17.7.): the live feature map's own counts — working /
+         awaiting live test / planned. Update MATURITY below whenever feature_status changes. -->
+    <div class="maturity-row">
+      <svg id="maturityDonut" viewBox="0 0 120 120" style="width:150px; height:150px; flex:none;"></svg>
+      <div class="maturity-legend" id="maturityLegend"></div>
+    </div>
   </section>
 
   <section id="market">
@@ -496,6 +508,35 @@ function renderKPIGroups(){
   `).join('');
 }
 
+/* Product-maturity donut (17.7.) — counts mirror visual data/feature_status.html; update this
+   MATURITY constant as part of the doc-sync routine whenever those counts move. */
+const MATURITY = { working: 66, testing: 32, planned: 7 };
+function renderMaturity(){
+  const svg = document.getElementById('maturityDonut');
+  const legend = document.getElementById('maturityLegend');
+  if(!svg || !legend) return;
+  const SEGS = [
+    { key:'working', label:'Working, verified live', color:'#4ADE80' },
+    { key:'testing', label:'Built, awaiting live test', color:'#FB923C' },
+    { key:'planned', label:'Planned, not built yet', color:'#FF7A68' },
+  ];
+  const total = SEGS.reduce((s,x)=>s + MATURITY[x.key], 0);
+  const R = 44, C = 2 * Math.PI * R;
+  let off = 0;
+  svg.innerHTML = SEGS.map(s=>{
+    const frac = MATURITY[s.key] / total;
+    const c = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="16"
+      stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
+      transform="rotate(-90 60 60)"><title>${s.label}: ${MATURITY[s.key]}</title></circle>`;
+    off += frac;
+    return c;
+  }).join('') +
+    `<text x="60" y="58" text-anchor="middle" font-size="24" font-weight="700">${total}</text>` +
+    `<text x="60" y="72" text-anchor="middle" font-size="6.5" fill="var(--ink-dim)">FEATURES TOTAL</text>`;
+  legend.innerHTML = SEGS.map(s=>`<div class="mrow"><span class="mdot" style="background:${s.color};"></span>${s.label} — <b>${MATURITY[s.key]}</b></div>`).join('') +
+    `<div class="mrow" style="font-size:11px; color:var(--ink-faint);">Live counts from the internal feature map (feature_status), not estimates.</div>`;
+}
+
 function renderProcess(){
   document.getElementById('processTrack').innerHTML = `<div class="process-track">${
     PROCESS.map((b,i)=>`
@@ -635,6 +676,7 @@ document.getElementById('footNote').innerHTML = `ChefOS · generated ${GENERATED
 renderHeadlineStats();
 renderMarket();
 renderKPIGroups();
+renderMaturity();
 renderProcess();
 renderGantt();
 renderRevenueChart();

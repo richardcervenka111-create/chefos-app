@@ -104,6 +104,12 @@
   .log-stat{ background:var(--paper); padding:14px 16px; }
   .log-stat .v{ font-family:"SF Mono",Menlo,monospace; font-size:22px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; line-height:1; }
   .log-stat .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-dim); margin-top:6px; }
+  .chart-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px 18px 12px 18px; margin-bottom:16px; }
+  .chart-scroll{ overflow-x:auto; scrollbar-width:thin; }
+  .chart-scroll svg text{ font-family:"SF Mono",Menlo,monospace; }
+  .chart-scroll .bar{ cursor:pointer; }
+  .chart-scroll .bar:hover{ opacity:.8; }
+  .day-row.flash > .day-head{ background:rgba(52,247,215,0.12); border-radius:8px; }
   .tl-controls{ display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
   #logSearch{
     flex:1; min-width:150px; background:var(--paper); border:1px solid var(--rule); border-radius:20px;
@@ -163,6 +169,11 @@
   <section id="timeline">
     <h2 class="section-title" data-sk="Denník deň po dni" data-en="Day-by-day log"></h2>
     <p class="section-desc" data-sk="Klikni na mesiac, potom na týždeň, potom na deň — uvidíš presne, čo sa vtedy dorobilo." data-en="Click a month, then a week, then a day to see exactly what shipped."></p>
+    <!-- Pace chart (Richard, 17.7.): accomplishments per day — click a bar to open that day. -->
+    <div class="chart-card">
+      <h3 style="margin:0 0 12px 0; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-dim);" data-sk="Úspechy za deň — klikni na stĺpec" data-en="Accomplishments per day — click a bar"></h3>
+      <div id="paceChart" class="chart-scroll"></div>
+    </div>
     <div class="tl-controls">
       <input id="logSearch" type="search" placeholder="Hľadať v denníku…" oninput="searchLog()">
       <button class="fbtn" onclick="expandAllLog(true)" data-sk="Rozbaliť všetko" data-en="Expand all"></button>
@@ -597,10 +608,43 @@ function searchLog(){
   });
 }
 
+/* Pace chart (Richard, 17.7.) — accomplishments per day; a bar click opens that day. */
+function renderPaceChart(){
+  const el = document.getElementById('paceChart');
+  if(!el) return;
+  const days = DAYS.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const max = Math.max(...days.map(d=>d.accomplished.length));
+  const BW = 34, GAP = 14, H = 150, TOP = 18, LBL = 30;
+  const W = days.length * (BW + GAP) + GAP;
+  const bars = days.map((d,i)=>{
+    const h = Math.max(3, Math.round(d.accomplished.length / max * H));
+    const x = GAP + i * (BW + GAP), y = TOP + H - h;
+    const short = d.date.slice(8,10) + '.' + String(+d.date.slice(5,7)) + '.';
+    return `<g class="bar" onclick="openDayFromChart('${d.date}')"><title>${d.date} — ${d.accomplished.length}</title>
+      <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="4" fill="var(--accent)"/>
+      <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="11" fill="var(--ink)">${d.accomplished.length}</text>
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${short}</text></g>`;
+  }).join('');
+  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL}" viewBox="0 0 ${W} ${TOP+H+LBL}">${bars}</svg>`;
+}
+function openDayFromChart(date){
+  expandAllLog(true);
+  const row = [...document.querySelectorAll('#timelineRoot .day-row')].find(r=>{
+    const d = r.querySelector('.day-date');
+    return d && d.textContent.includes(date);
+  });
+  if(!row) return;
+  row.classList.add('open');
+  row.scrollIntoView({ behavior:'smooth', block:'center' });
+  row.classList.add('flash');
+  setTimeout(()=>row.classList.remove('flash'), 2200);
+}
+
 applyLang();
 renderTop3();
 renderTimeline();
 renderLogStats();
+renderPaceChart();
 </script>
 
 <div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>

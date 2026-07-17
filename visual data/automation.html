@@ -79,6 +79,15 @@
   .spend-total{ display:flex; justify-content:space-between; align-items:baseline; padding:14px 0 2px 0; margin-top:6px; border-top:1px solid var(--rule); }
   .spend-total .spend-amount{ color:var(--accent); font-size:17px; }
   .log-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:6px 18px 4px 18px; }
+  /* Spend chart (17.7.) */
+  .spend-chart{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px 18px 10px 18px; }
+  .sc-title{ font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-dim); font-weight:700; margin-bottom:10px; }
+  .sc-row{ display:flex; align-items:center; gap:10px; padding:5px 0; }
+  .sc-name{ flex:0 0 240px; min-width:0; font-size:12px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sc-bar{ flex:1; height:12px; background:var(--paper-raised); border:1px solid var(--rule); border-radius:99px; overflow:hidden; display:flex; }
+  .sc-fill{ height:100%; background:var(--gold); }
+  .sc-amount{ flex:none; font-family:"SF Mono",Menlo,monospace; font-size:11px; font-weight:700; color:var(--gold); min-width:78px; text-align:right; }
+  @media(max-width:640px){ .sc-name{ flex-basis:130px; } }
 
   .callout{ border:1px solid var(--rule); background:var(--paper); border-radius:10px; padding:16px 18px; margin-top:16px; }
   .callout .k{ font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-dim); font-weight:700; margin-bottom:7px; }
@@ -205,6 +214,8 @@
 
   <section>
     <div class="section-label"><span class="n">03</span><h2 data-sk="Náklady — posledné záznamy" data-en="Costs — recent entries"></h2><div class="rule"></div></div>
+    <!-- Spend chart (Richard, 17.7.): same entries as the timeline, visually proportional. -->
+    <div class="spend-chart" id="spendChart" style="margin-bottom:14px;"></div>
     <div class="log-card">
       <div class="spend-row">
         <div class="spend-what"><span data-sk="Zatiaľ žiadny automatický beh" data-en="No automated run yet"></span><span class="meta" data-sk="Prvý beh denného ingredient agenta: 15.7.2026 ráno. Plný priebežný záznam: docs/automation_cost_log.md" data-en="First daily ingredient-agent run: morning of Jul 15, 2026. Full running log: docs/automation_cost_log.md"></span></div>
@@ -279,6 +290,23 @@ window.toggleTimeline = function(){
   renderTimeline();
 };
 renderTimeline();
+
+/* Spend chart (Richard, 17.7.) — the same SPEND_TIMELINE entries as horizontal bars, so the
+   proportions are visible at a glance (log scale would hide the story; linear tells it:
+   the first build week dwarfs the daily agent runs). */
+(function(){
+  const el = document.getElementById('spendChart');
+  if(!el) return;
+  const rows = SPEND_TIMELINE.map(r=>({ ...r, val: parseFloat(String(r.amount).replace(/[^0-9.]/g,'')) || 0 }));
+  const max = Math.max(...rows.map(r=>r.val));
+  el.innerHTML = '<div class="sc-title">' + (_autoLang==='sk' ? 'Výdavky podľa záznamov — vizuálne porovnanie' : 'Spend entries — visual comparison') + '</div>' +
+    rows.map(r=>`
+      <div class="sc-row">
+        <span class="sc-name" title="${(_autoLang==='sk'?r.sk:r.en).replace(/"/g,'&quot;')}">${_autoLang==='sk'?r.sk:r.en}</span>
+        <span class="sc-bar"><span class="sc-fill" style="width:${max ? Math.max(1.5, r.val/max*100) : 0}%"></span></span>
+        <span class="sc-amount">${r.amount}</span>
+      </div>`).join('');
+})();
 </script>
 
 <div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>

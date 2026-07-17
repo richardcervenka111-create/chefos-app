@@ -64,6 +64,13 @@
   .legend-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
   .legend-item b{ color:var(--ink); font-weight:700; }
 
+  .donut-row{ display:flex; align-items:center; gap:26px; margin-top:24px; flex-wrap:wrap; }
+  #featureDonut .seg{ cursor:pointer; transition:opacity .15s, stroke-width .15s; }
+  #featureDonut .seg.off{ opacity:.22; }
+  #featureDonut .seg:hover{ stroke-width:20; }
+  #featureDonut text{ fill:var(--ink); font-family:var(--mono); }
+  #featureDonut .center-num{ font-size:26px; font-weight:700; cursor:pointer; }
+  #featureDonut .center-lbl{ font-size:6.5px; fill:var(--ink-dim); text-transform:uppercase; letter-spacing:.08em; }
   .pulse-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:24px; background:var(--rule); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
   @media (max-width:680px){ .pulse-strip{ grid-template-columns:repeat(2,1fr); } }
   .pulse-cell{ background:var(--paper); padding:16px 18px 14px 18px; }
@@ -140,11 +147,17 @@
       <div class="legend-item active" id="legendPlan" onclick="toggleStatusFilter('plan')"><span class="legend-dot" style="background:var(--plan);"></span>Naplánované, ešte nepostavené — <b id="legendPlanCount"></b></div>
       <div class="legend-item" id="legendAdmin" onclick="toggleAdminOnlyFilter()"><span class="legend-dot" style="background:var(--gold);"></span>🛡️ Iba Kitchen Admin — <b id="legendAdminCount"></b></div>
     </div>
-    <div class="pulse-strip">
-      <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl">Funkčné</div></div>
-      <div class="pulse-cell test"><div class="num" id="pulseTest"></div><div class="lbl">Čaká na test</div></div>
-      <div class="pulse-cell plan"><div class="num" id="pulsePlan"></div><div class="lbl">Naplánované</div></div>
-      <div class="pulse-cell total"><div class="num" id="pulseTotal"></div><div class="lbl">Spolu funkcií</div></div>
+    <!-- Interactive status donut (Richard, 17.7.): the same three statuses as the legend, as a
+         pie — CLICK a segment to filter the list below (same toggle as the legend chips).
+         Center shows the overall total; clicking it brings every status back. -->
+    <div class="donut-row">
+      <svg id="featureDonut" viewBox="0 0 120 120" style="width:170px; height:170px; flex:none;"></svg>
+      <div class="pulse-strip" style="flex:1; min-width:260px; margin-top:0;">
+        <div class="pulse-cell ok"><div class="num" id="pulseOk"></div><div class="lbl">Funkčné</div></div>
+        <div class="pulse-cell test"><div class="num" id="pulseTest"></div><div class="lbl">Čaká na test</div></div>
+        <div class="pulse-cell plan"><div class="num" id="pulsePlan"></div><div class="lbl">Naplánované</div></div>
+        <div class="pulse-cell total"><div class="num" id="pulseTotal"></div><div class="lbl">Spolu funkcií</div></div>
+      </div>
     </div>
   </div>
 </header>
@@ -369,6 +382,41 @@ function renderModules(){
   document.getElementById('legendTestCount').textContent = test;
   document.getElementById('legendPlanCount').textContent = plan;
   document.getElementById('legendAdminCount').textContent = adminTotal;
+  renderDonut(ok, test, plan);
+}
+/* Interactive donut (Richard, 17.7.) — same data as the pulse strip, same toggles as the
+   legend: clicking a segment filters the list, clicking the center total resets all three. */
+function renderDonut(ok, test, plan){
+  const svg = document.getElementById('featureDonut');
+  if(!svg) return;
+  const total = ok + test + plan;
+  const R = 44, C = 2 * Math.PI * R;
+  const segs = [
+    { key:'ok',   val:ok,   color:'var(--ok)' },
+    { key:'test', val:test, color:'var(--test)' },
+    { key:'plan', val:plan, color:'var(--plan)' },
+  ];
+  let off = 0;
+  const circles = segs.map(s=>{
+    const frac = total ? s.val / total : 0;
+    const c = `<circle class="seg${activeStatuses.has(s.key) ? '' : ' off'}" cx="60" cy="60" r="${R}"
+      fill="none" stroke="${s.color}" stroke-width="17"
+      stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}"
+      stroke-dashoffset="${(-off*C).toFixed(2)}" transform="rotate(-90 60 60)"
+      onclick="toggleStatusFilter('${s.key}')"><title>${s.val} funkcií — klikni pre filter</title></circle>`;
+    off += frac;
+    return c;
+  }).join('');
+  svg.innerHTML = circles +
+    `<text class="center-num" x="60" y="58" text-anchor="middle" onclick="resetStatusFilters()">${total}</text>` +
+    `<text class="center-lbl" x="60" y="72" text-anchor="middle">funkcií spolu</text>`;
+}
+function resetStatusFilters(){
+  ['ok','test','plan'].forEach(s=>activeStatuses.add(s));
+  document.getElementById('legendOk').classList.add('active');
+  document.getElementById('legendTest').classList.add('active');
+  document.getElementById('legendPlan').classList.add('active');
+  renderModules();
 }
 function setAcctView(type){
   document.getElementById('acctPersonalBtn').classList.toggle('active', type==='personal');

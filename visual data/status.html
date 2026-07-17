@@ -52,6 +52,11 @@
 
   /* Pulse strip — the board's own column counts, computed live, so the top of the page
      answers "how are we doing" before any scrolling. */
+  .pulse-row{ display:flex; align-items:center; gap:24px; margin-top:26px; flex-wrap:wrap; }
+  #kanbanDonut .seg{ cursor:pointer; transition:stroke-width .15s; }
+  #kanbanDonut .seg:hover{ stroke-width:20; }
+  #kanbanDonut text{ fill:var(--ink); font-family:"SF Mono",Menlo,monospace; }
+  .col.flash{ outline:2px solid var(--accent); outline-offset:3px; border-radius:14px; }
   .pulse-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:26px; background:var(--rule); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
   @media (max-width:680px){ .pulse-strip{ grid-template-columns:repeat(2,1fr); } }
   .pulse-cell{ background:var(--paper); padding:16px 18px 14px 18px; }
@@ -246,7 +251,12 @@
     <div class="kicker" data-sk="Stavový lístok · Kuchynský denník" data-en="Status Ticket · Kitchen Journal"></div>
     <h1 class="title" data-sk='Kde presne stojí <em>ChefOS</em> dnes' data-en='Exactly where <em>ChefOS</em> stands today'></h1>
     <p class="lede" data-sk="Prehľad na základe ROADMAP.md, MVP_DEFINITION.md, ARCHITECTURE.md a FEATURE_ROADMAP.md. Pilotná kuchyňa už reálne beží — otázka nie je „kedy začať&quot;, ale „kedy je to bezpečné pustiť k cudzím ľuďom a k peniazom&quot;." data-en="Overview based on ROADMAP.md, MVP_DEFINITION.md, ARCHITECTURE.md and FEATURE_ROADMAP.md. The pilot kitchen is already live — the question isn't &quot;when to start&quot;, it's &quot;when is it safe to open up to strangers and money&quot;."></p>
-    <div class="pulse-strip" id="pulseStrip"></div>
+    <!-- Kanban donut (Richard, 17.7.): the four columns as a pie — click a segment to jump
+         straight to that column on the board. -->
+    <div class="pulse-row">
+      <svg id="kanbanDonut" viewBox="0 0 120 120" style="width:160px; height:160px; flex:none;"></svg>
+      <div class="pulse-strip" id="pulseStrip" style="flex:1; min-width:260px; margin-top:0;"></div>
+    </div>
     <div class="meta-row">
       <div class="meta-card"><div class="meta-label" data-sk="Fáza podľa plánu" data-en="Phase per plan"></div><div class="meta-value">1 / 7</div></div>
       <div class="meta-card"><div class="meta-label" data-sk="Reálny rozsah práce" data-en="Real scope of work"></div><div class="meta-value" data-sk="Zasahuje do fáz 1–3" data-en="Spans phases 1–3"></div></div>
@@ -520,6 +530,40 @@ function renderPulse(){
     const badge = col.querySelector('.col-head .count');
     if(badge) badge.textContent = col.querySelectorAll('.ticket').length;
   });
+  renderKanbanDonut(counts);
+}
+/* Kanban donut (Richard, 17.7.) — click a segment to jump to that column on the board. */
+function renderKanbanDonut(counts){
+  const svg = document.getElementById('kanbanDonut');
+  if(!svg) return;
+  const SEGS = [
+    { key:'done', color:'var(--accent)', cls:'.col-done' },
+    { key:'prog', color:'var(--gold)', cls:'.col-prog' },
+    { key:'block', color:'var(--danger)', cls:'.col-block' },
+    { key:'wait', color:'var(--ink-dim)', cls:'.col-wait' },
+  ];
+  const total = SEGS.reduce((s,x)=>s + counts[x.key], 0);
+  const R = 44, C = 2 * Math.PI * R;
+  let off = 0;
+  const circles = SEGS.map(s=>{
+    const frac = total ? counts[s.key] / total : 0;
+    const label = _statusLang==='sk' ? PULSE_LABELS[s.key].sk : PULSE_LABELS[s.key].en;
+    const c = `<circle class="seg" cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="17"
+      stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
+      transform="rotate(-90 60 60)" onclick="jumpToCol('${s.cls}')"><title>${label}: ${counts[s.key]}</title></circle>`;
+    off += frac;
+    return c;
+  }).join('');
+  svg.innerHTML = circles +
+    `<text x="60" y="58" text-anchor="middle" font-size="24" font-weight="700">${total}</text>` +
+    `<text x="60" y="72" text-anchor="middle" font-size="7" fill="var(--ink-dim)">${_statusLang==='sk'?'tiketov spolu':'tickets total'}</text>`;
+}
+function jumpToCol(sel){
+  const col = document.querySelector(sel);
+  if(!col) return;
+  col.scrollIntoView({ behavior:'smooth', block:'start' });
+  col.classList.add('flash');
+  setTimeout(()=>col.classList.remove('flash'), 2200);
 }
 
 /* ---------- Top 5 tasks, by timeframe — each with a real deadline. A countdown badge only

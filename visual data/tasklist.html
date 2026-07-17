@@ -122,6 +122,16 @@
 
   footer.foot{ text-align:center; font-size:11px; color:var(--ink-faint); padding:36px 0 10px 0; }
 
+  /* ---------- Charts (Richard, 17.7.: pace + feature status over time) ---------- */
+  .chart-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px 18px 14px 18px; margin-bottom:14px; }
+  .chart-card h3.sub{ margin:0 0 12px 0; }
+  .chart-scroll{ overflow-x:auto; scrollbar-width:thin; }
+  .chart-note{ font-size:11.5px; color:var(--ink-faint); margin:10px 0 0 0; line-height:1.5; }
+  .chart-scroll svg text{ font-family:"SF Mono",Menlo,monospace; }
+  .chart-scroll .bar{ cursor:pointer; }
+  .chart-scroll .bar:hover{ opacity:.8; }
+  .day-row.flash > .day-head{ background:rgba(52,247,215,0.12); border-radius:8px; }
+
   /* ---------- Search + filters (2026-07-15 Visual Data Standards redesign) ---------- */
   .controls{ display:flex; align-items:center; gap:8px; margin-top:12px; flex-wrap:wrap; }
   #taskSearch{
@@ -194,6 +204,21 @@
     <button class="fbtn f-you" id="fYou" onclick="toggleFilter('you')" data-sk="👨‍🍳 TY" data-en="👨‍🍳 YOU"></button>
   </div>
 </header>
+
+<details class="group" open id="chartsSection">
+  <summary><span data-sk="📊 Grafy" data-en="📊 Charts"></span><span class="count" data-sk="tempo deň po dni + stav funkcií v čase" data-en="day-by-day pace + feature status over time"></span></summary>
+  <div class="group-body">
+    <div class="chart-card">
+      <h3 class="sub" data-sk="Hotové tásky za deň — klikni na stĺpec a otvorí sa ten deň v časovej osi" data-en="Tasks shipped per day — click a bar to open that day in the timeline"></h3>
+      <div id="tasksPerDayChart" class="chart-scroll"></div>
+    </div>
+    <div class="chart-card">
+      <h3 class="sub" data-sk="Funkcie v čase — funkčné / čaká na test / naplánované / spolu" data-en="Features over time — working / awaiting test / planned / total"></h3>
+      <div id="featuresOverTimeChart" class="chart-scroll"></div>
+      <p class="chart-note" data-sk="Denné zaznamenávanie stavov začalo 17. 7. 2026 — graf rastie každým dňom o jeden stĺpec. Staršie delenie stavov sa spätne nezaznamenávalo, takže ho poctivo neukazujeme namiesto odhadovania." data-en="Daily status recording started Jul 17, 2026 — the chart grows by one column each day. The historical split wasn't recorded, so we honestly don't show it rather than guess."></p>
+    </div>
+  </div>
+</details>
 
 <details class="group" open id="timelineSection">
   <summary><span data-sk="🗓️ Časová os" data-en="🗓️ Timeline"></span><span class="count" data-sk="čo bolo hotové, v ktorý deň" data-en="what shipped, on which day"></span></summary>
@@ -568,6 +593,23 @@ const DAYS=[
     'Nové kuchyne dedia ingrediencie (db/74), profil plne voliteľný so "Skip for now" (db/75) — obe staging first',
     '🎨 Visual Data Standards: všetkých 13 dokumentov prerobených a presunutých do /visual data/, automatizácie preukazované na nové cesty',
     'Mentálne zdravie/kamera: mechanizmus odmietnutý (EU AI Act, Art. 328 OR, nDSG), legitímna alternatíva zapísaná a odložená na Richardovu žiadosť'
+  ]},
+  { date:'2026-07-16', headline:'Maratón: skutočné súkromie dát, reálne členstvo v tíme, rolový admin, Kitchen Reports, centrálny AI kľúč + 2 bezpečnostné incidenty opravené naživo', accomplished:[
+    '🔐 Skutočná izolácia osobných/firemných dát (db/97): is_personal vynútené v RLS, nie len UI filter; tímové join kódy + potvrdenie; Privacy consent brána (db/100)',
+    '👥 Reálne členstvo v tíme (db/116): Company režim len pre skutočných členov; spálená admin pozvánka opravená jednorazovo (db/117) AJ trvalo (db/118); My Profile ukazuje rolu',
+    '🛡️ Rolový admin: Kitchen Admin (granulárne práva) vs Head Admin; Admin hub (Add Admin / Directory / Access Requests / Email Contacts)',
+    '🔴→✅ Super-admin lockout (rekurzívna RLS + chýbajúci grant) opravený naživo (db/90) + trvalý strážca v auditore',
+    '🔴→✅ Remove člena zlyhával, "odstránený" si držal plný prístup — db/121 WITH CHECK (dokončené 17.7. cez db/124 RPC)',
+    '✋ Dlhé podržanie všade, vlastné zoznamy ingrediencií so zdieľaním (db/112+114), police receptov + projekty s 8 knihami (db/120–123)',
+    '🖨️ Branded print v2, vždy viditeľný nav pás, .xlsx sken, ✨ AI Details, Kitchen Reports drill-down, centrálny Anthropic kľúč, brandované auth emaily'
+  ]},
+  { date:'2026-07-17', headline:'Community vrstva (Public police + zdieľanie), Invoice Scan v2, tutoriály pre každé okno, bezpečnostná kontrola s trvalými poistkami', accomplished:[
+    '🧪 Celodenné vedené testovanie s Richardom — každý nájdený bug opravený v ten istý deň: komentáre naprieč kuchyňami (db/129 + počítadlá), firemný recept na osobnej polici (db/130), Safari print-preview, remove-member RPC (db/124–125)',
+    '🌍 Verejné police: recepty (db/131–133) aj ingrediencie (db/136) publikovateľné do každej kuchyne; per-recept (db/138) aj per-ingredienciu zdieľanie priateľom + Chef Friends profil; company profily nezdieľajú NIČ (appka + DB triggery); cudzí obsah read-only',
+    '🧾 Invoice Scan v2: dodávateľ z hlavičky na všetky položky (nové pole supplier, db/137); oba skeny prekladajú do jazyka z nastavenia, originál ako alias; preskakuje dátumy/DPH/súčty',
+    '🎓 Tutoriál pre každé okno (auto pri prvom otvorení + ❓ v lište); úvod zoštíhlený na Welcome + Home; What\'s New srdiečko zmazané',
+    '🔐 Bezpečnostná kontrola celého projektu: VEREJNÝ bucket so zmluvami zavretý (db/134, privátny + signed URLs), cross-kitchen stored-XSS zavretý (escapery na dátovej hranici), obe triedy trvalo blokované auditormi; živý DB health check čistý',
+    '📧 Email Contacts číslované + detail s napojeným účtom; Feedback len Head Admin; 📚 konsolidácia dokumentov 13 → 11 → 5 (produkt/plan/biznis/znacka + Critical Review) so záložkami a krížovou navigáciou'
   ]}
 ];
 function isoWeekLabel(dateStr){
@@ -650,8 +692,76 @@ function toggleBlock(id, forceOpen){
   if(forceOpen){ el.classList.add('open'); return; }
   el.classList.toggle('open');
 }
+/* ---------- Charts (Richard, 17.7.) ---------- */
+/* Daily feature-status snapshots — APPEND one row here whenever feature_status.html counts
+   change (part of the doc-sync routine). Started 17.7.; earlier splits weren't recorded. */
+const FEATURE_COUNT_HISTORY = [
+  { date:'2026-07-17', ok:66, test:32, plan:7 },
+];
+function shortDay(d){ return d.slice(8,10) + '.' + String(+d.slice(5,7)) + '.'; }
+function renderTasksPerDay(){
+  const el = document.getElementById('tasksPerDayChart');
+  if(!el) return;
+  const days = DAYS.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const max = Math.max(...days.map(d=>d.accomplished.length));
+  const BW = 34, GAP = 14, H = 150, TOP = 18, LBL = 30;
+  const W = days.length * (BW + GAP) + GAP;
+  const bars = days.map((d,i)=>{
+    const h = Math.max(3, Math.round(d.accomplished.length / max * H));
+    const x = GAP + i * (BW + GAP), y = TOP + H - h;
+    return `<g class="bar" onclick="openDayFromChart('${d.date}')"><title>${d.date} — ${d.accomplished.length}</title>
+      <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="4" fill="var(--accent)"/>
+      <text x="${x+BW/2}" y="${y-5}" text-anchor="middle" font-size="11" fill="var(--ink)">${d.accomplished.length}</text>
+      <text x="${x+BW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(d.date)}</text></g>`;
+  }).join('');
+  el.innerHTML = `<svg width="${W}" height="${TOP+H+LBL}" viewBox="0 0 ${W} ${TOP+H+LBL}">${bars}</svg>`;
+}
+function renderFeaturesOverTime(){
+  const el = document.getElementById('featuresOverTimeChart');
+  if(!el) return;
+  const SER = [
+    { key:'ok', label:'Funkčné', color:'#4ADE80' },
+    { key:'test', label:'Čaká na test', color:'#FB923C' },
+    { key:'plan', label:'Naplánované', color:'#FF7A68' },
+    { key:'total', label:'Spolu', color:'#34F7D7' },
+  ];
+  const rows = FEATURE_COUNT_HISTORY.map(r=>({ ...r, total: r.ok + r.test + r.plan }));
+  const max = Math.max(...rows.map(r=>r.total));
+  const BW = 20, IG = 4, GG = 26, H = 150, TOP = 18, LBL = 30;
+  const groupW = SER.length * (BW + IG) - IG;
+  const W = rows.length * (groupW + GG) + GG;
+  const bars = rows.map((r,gi)=>{
+    const gx = GG + gi * (groupW + GG);
+    const inner = SER.map((s,si)=>{
+      const v = r[s.key];
+      const h = Math.max(3, Math.round(v / max * H));
+      const x = gx + si * (BW + IG), y = TOP + H - h;
+      return `<g><title>${s.label}: ${v}</title>
+        <rect x="${x}" y="${y}" width="${BW}" height="${h}" rx="3" fill="${s.color}"/>
+        <text x="${x+BW/2}" y="${y-4}" text-anchor="middle" font-size="9.5" fill="var(--ink)">${v}</text></g>`;
+    }).join('');
+    return inner + `<text x="${gx+groupW/2}" y="${TOP+H+16}" text-anchor="middle" font-size="9.5" fill="var(--ink-dim)">${shortDay(r.date)}</text>`;
+  }).join('');
+  const legend = SER.map((s,i)=>`<rect x="${GG + i*118}" y="${TOP+H+22}" width="9" height="9" rx="2" fill="${s.color}"/><text x="${GG + i*118 + 13}" y="${TOP+H+30}" font-size="9.5" fill="var(--ink-dim)">${s.label}</text>`).join('');
+  el.innerHTML = `<svg width="${Math.max(W, GG + 4*118)}" height="${TOP+H+LBL+10}" viewBox="0 0 ${Math.max(W, GG + 4*118)} ${TOP+H+LBL+10}">${bars}${legend}</svg>`;
+}
+function openDayFromChart(date){
+  document.querySelectorAll('.month-block, .week-block').forEach(b=>b.classList.add('open'));
+  const row = [...document.querySelectorAll('.day-row')].find(r=>{
+    const d = r.querySelector('.day-date');
+    return d && d.textContent.includes(date);
+  });
+  if(!row) return;
+  row.classList.add('open');
+  row.scrollIntoView({ behavior:'smooth', block:'center' });
+  row.classList.add('flash');
+  setTimeout(()=>row.classList.remove('flash'), 2200);
+}
+
 applyLang();
 renderTimeline();
+renderTasksPerDay();
+renderFeaturesOverTime();
 </script>
 
 <div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>
