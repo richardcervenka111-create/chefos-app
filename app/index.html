@@ -8777,14 +8777,16 @@ async function showChefFriends(){
     el.innerHTML = '<div class="empty-state">No connections yet. Scan another chef’s QR (Share QR Code → Add friend) to connect.</div>';
     return;
   }
+  // Every friend is tappable now (17.7.) — even if they don't share ALL recipes, they may have
+  // shared individual ingredients or a list, which only show once you open their profile.
   el.innerHTML = _chefFriendRows.map(f=>`
-    <div class="task-row" ${f.recipes_shared?`onclick="showFriendRecipes('${f.id}')" style="cursor:pointer;"`:''}>
+    <div class="task-row" onclick="showFriendRecipes('${f.id}')" style="cursor:pointer;">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
           <div class="name task-text">${(f.full_name||f.email||'Unknown').replace(/</g,'&lt;')}</div>
-          <div class="meta">${(f.email||'').replace(/</g,'&lt;')} · ${f.recipes_shared?'📖 shares recipes — tap to view':'not sharing recipes'}</div>
+          <div class="meta">${(f.email||'').replace(/</g,'&lt;')} · ${f.recipes_shared?'📖 shares recipes — tap to view':'tap to see what they share'}</div>
         </div>
-        ${f.recipes_shared?'<span style="font-size:18px;">›</span>':''}
+        <span style="font-size:18px;">›</span>
       </div>
     </div>
   `).join('');
@@ -8830,7 +8832,23 @@ async function showFriendRecipes(friendId){
         </div>
       </div>
     `).join('')}` : '';
-  el.innerHTML = recipesHtml + listsHtml;
+  // Individual ingredients this friend shared with friends (Richard, 17.7. bod 6 — db/136). RLS
+  // ("read connected shared ingredients") only surfaces their shared_with_friends rows to an
+  // actual connection, so a plain query is already correctly scoped. Read-only, escaped.
+  const { data: sharedIng } = await sb.from('ingredients')
+    .select('name, unit, price, category, supplier')
+    .eq('created_by', friendId).eq('shared_with_friends', true).order('name');
+  const ingHtml = (sharedIng && sharedIng.length) ? `
+    <div class="section-label" style="margin-top:16px;">🤝 Shared ingredients</div>
+    ${sharedIng.map(i=>`
+      <div class="task-row"><div class="task-row-top"><div class="info" style="flex:1;">
+        <div class="name task-text">${escapeHtml(i.name)}</div>
+        <div class="meta">${[i.category, i.supplier?'🏭 '+i.supplier:null, i.price!=null?formatMoney(i.price)+(i.unit?' / '+i.unit:''):null].filter(Boolean).map(escapeHtml).join(' · ') || '—'}</div>
+      </div></div></div>
+    `).join('')}` : '';
+  el.innerHTML = (recipesHtml + listsHtml + ingHtml) ||
+    '<div class="empty-state">This chef isn’t sharing anything right now.</div>';
+  document.getElementById('friendsRecipesSubtitle').textContent = 'Read-only — what this chef chose to share with friends.';
 }
 async function openFriendIngredientList(listId, listName){
   document.getElementById('friendListItemsTitle').textContent = '📋 ' + listName;
@@ -9611,7 +9629,7 @@ async function fetchAllRows(table, orderCol, eqCol, eqVal){
 /* SECURITY (17.7. — db/136 Public ingredients): foreign ingredients (other kitchens' public or
    friend-shared rows) render as innerHTML, so escape their free-text fields once at load, same
    data-boundary approach as sanitizeForeignRecipe. They're display-only (edit is blocked). */
-const INGREDIENT_TEXT_FIELDS = ['name','category','storage_type','notes','cuisine'];
+const INGREDIENT_TEXT_FIELDS = ['name','category','storage_type','notes','cuisine','supplier'];
 function sanitizeForeignIngredient(ing){
   INGREDIENT_TEXT_FIELDS.forEach(f=>{ if(ing[f]) ing[f] = escapeHtml(ing[f]); });
   ing.aliases = (ing.aliases || []).map(escapeHtml);
@@ -12452,10 +12470,12 @@ function updateDetailBarButtons(r){
     pub.classList.toggle('active', !!r.isPublic);
     pub.title = r.isPublic ? 'Published — tap to unpublish' : 'Publish to the Public shelf';
   }
-  // A foreign kitchen's public recipe is read-only here — RLS would reject the save anyway,
-  // so don't offer an Edit that can only fail.
+  // Any recipe from ANOTHER kitchen (Public shelf db/131, or a friend's shared recipe db/89) is
+  // read-only — you can scale it, comment on it, add its ingredients to your own book, but never
+  // overwrite it (Richard, 17.7.: "verejné recepty sa nemôžu prepisovať, iba škálovať"). RLS
+  // would reject the save anyway, so don't offer an Edit that can only fail.
   const edit = document.getElementById('editBtn');
-  if(edit) edit.style.display = (r.isPublic && r.createdBy !== currentUser.id && r.kitchenId !== currentKitchenId) ? 'none' : '';
+  if(edit) edit.style.display = (r.kitchenId && r.kitchenId !== currentKitchenId) ? 'none' : '';
 }
 /* Share chooser (Richard, 17.7. bod 6): the 🌍 button now offers TWO routes — publish to the
    public shelf, or share with friends — instead of only publishing. Company profiles can do
@@ -13820,6 +13840,7 @@ function ingredientRowEl(ing, idx){
       <div class="name">${ing.name}${ing.hidden ? ' <span class="meta">(hidden)</span>' : ''}${ing.cuisine ? `<span class="cuisine-badge">${ing.cuisine}</span>` : ''}</div>
       <div class="meta">${[
         (ing.aliases||[]).length ? 'aka ' + ing.aliases.join(', ') : '',
+        ing.supplier ? `🏭 ${ing.supplier}` : '',
         ing.kcal_per_100g != null ? `🔥 ${Math.round(ing.kcal_per_100g)} kcal/100g` : '',
         (ing.price != null && ing.price_updated_at) ? `💰 upd ${new Date(ing.price_updated_at).toLocaleDateString('sk-SK')}` : ''
       ].filter(Boolean).join(' · ')}</div>
@@ -13922,6 +13943,7 @@ function editIngredientForm(idx){
   ingredientEditingId = ing.id;
   renderIngredientForm({
     name: ing.name, cuisine: ing.cuisine || 'Universal', category: ing.category || '',
+    supplier: ing.supplier || '',
     unit: ing.unit, price: ing.price != null ? ing.price : '', notes: ing.notes || '',
     aliases: (ing.aliases||[]).join(', '), storage_type: ing.storage_type || '', seasons: ing.seasons || [],
     yield_pct: ing.yield_pct != null ? ing.yield_pct : 100,
@@ -13946,6 +13968,9 @@ function renderIngredientForm(data){
 
     <label class="form-label">Category (optional)</label>
     <input class="form-field" id="i_category" type="text" placeholder="e.g. Produce, Dairy, Spices & Seasonings" value="${(data.category||'').replace(/"/g,'&quot;')}">
+
+    <label class="form-label">Supplier (optional — who you buy it from)</label>
+    <input class="form-field" id="i_supplier" type="text" placeholder="e.g. Metro, Pistor, local farm" value="${(data.supplier||'').replace(/"/g,'&quot;')}">
 
     <label class="form-label">Priced by</label>
     <select class="form-field" id="i_unit">
@@ -14025,6 +14050,7 @@ async function saveIngredientForm(){
   if(!name){ alert('Please give the ingredient a name.'); return; }
   const cuisine = document.getElementById('i_cuisine').value;
   const category = document.getElementById('i_category').value.trim() || null;
+  const supplier = document.getElementById('i_supplier').value.trim() || null;
   const unit = document.getElementById('i_unit').value;
   const priceRaw = document.getElementById('i_price').value;
   // Typed in the kitchen's current display currency, stored back in EUR (the single currency
@@ -14039,7 +14065,7 @@ async function saveIngredientForm(){
   const numOrNull = id => { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); };
 
   const payload = {
-    name, cuisine, category, unit, aliases, notes, storage_type, seasons, yield_pct,
+    name, cuisine, category, supplier, unit, aliases, notes, storage_type, seasons, yield_pct,
     price, price_updated_at: price != null ? new Date().toISOString() : null,
     kcal_per_100g: numOrNull('i_kcal'),
     protein_g_per_100g: numOrNull('i_protein'),
@@ -18194,15 +18220,17 @@ async function runInvoiceScan(base64, mediaType, fileName){
   try{
     const tool = {
       name: 'record_invoice_items',
-      description: 'Extract every priced line item from this supplier invoice or delivery note.',
+      description: 'Extract the supplier, currency and every priced product line from this invoice or delivery note, in ANY language.',
       input_schema: {
         type: 'object',
         properties: {
+          supplier: { type:'string', description:'The SUPPLIER / vendor company name, read from the invoice header/letterhead (who the invoice is FROM — not the customer/kitchen it is addressed TO). Omit only if genuinely not shown.' },
           currency: { type:'string', description:'ISO currency code of the invoice, e.g. CHF or EUR' },
           items: { type:'array', items: { type:'object', properties: {
-            name: { type:'string', description:'Product/ingredient name, cleaned of article numbers' },
-            unit: { type:'string', description:'kg, l or pc — the unit the UNIT price refers to; omit if unclear' },
-            price: { type:'number', description:'UNIT price (per kg / per litre / per piece). Compute line total ÷ quantity when only a total is shown.' }
+            name: { type:'string', description:'Product/ingredient name in its ORIGINAL language (do not translate), cleaned of article/EAN numbers' },
+            unit: { type:'string', enum:['kg','l','pc'], description:'Normalise to exactly kg, l or pc REGARDLESS of language — weight (g/dag/dkg/kg)→kg, volume (ml/cl/dl/l)→l, count (ks/kus/Stk/Stück/szt/pz/ud/pc/each)→pc.' },
+            category: { type:'string', enum:['Produce','Dairy','Meat','Seafood','Bakery','Dry Goods','Spices & Seasonings','Beverages','Other'], description:'Classify into one English category by what the item IS, translating from the source language (e.g. Zwiebel/cibuľa→Produce, Milch/mlieko→Dairy). Omit if unclear.' },
+            price: { type:'number', description:'UNIT price (per kg/l/pc), accept comma OR dot decimals. Compute line total ÷ quantity when only a total is shown.' }
           }, required:['name','price'] } }
         },
         required: ['items']
@@ -18210,16 +18238,17 @@ async function runInvoiceScan(base64, mediaType, fileName){
     };
     const data = await callClaudeAPI({
       model: 'claude-sonnet-5',
-      max_tokens: 4096,
+      max_tokens: 8192,
       tools: [tool],
       tool_choice: { type:'tool', name:'record_invoice_items' },
       messages: [{ role:'user', content: [
         claudeScanSourceBlock(base64, mediaType, fileName),
-        { type:'text', text:'This is a supplier invoice or delivery note for a professional kitchen. Extract every priced line item with its UNIT price (per kg / per litre / per piece — compute it from line total ÷ quantity when needed) using the record_invoice_items tool. Skip VAT lines, deposits, delivery fees and discounts. Also return the invoice currency.' }
+        { type:'text', text:'This is a supplier invoice or delivery note for a professional kitchen. IT MAY BE IN ANY LANGUAGE (German, Slovak, Czech, French…) — read it regardless. Using the record_invoice_items tool: (1) read the SUPPLIER/vendor name from the header (who it is FROM), (2) the invoice currency, (3) every PRODUCT line with its UNIT price (per kg/l/pc — compute from line total ÷ quantity when needed), keeping product names in their original language but normalising units to kg/l/pc and classifying categories into the English set. IMPORTANT: extract ONLY real products. Do NOT create items from dates, invoice/customer numbers, addresses, page headers, subtotals, totals, VAT/tax lines, deposits (Pfand), delivery fees or discounts.' }
       ] }]
     });
     const toolUse = (data.content || []).find(b=>b.type==='tool_use');
     if(!toolUse || !(toolUse.input.items||[]).length) throw new Error('No priced items found on this invoice — try a clearer photo.');
+    const supplier = (toolUse.input.supplier || '').trim() || null;
     const currency = String(toolUse.input.currency || 'CHF').toUpperCase();
     const rate = (CURRENCY_INFO[currency] || CURRENCY_INFO.EUR).fromEur; // stored prices are EUR-based
     const shelfRows = _ingredients.filter(i=>ingredientOnCurrentShelf(i));
@@ -18228,29 +18257,36 @@ async function runInvoiceScan(base64, mediaType, fileName){
       byName[normalizeIngredientText(i.name)] = i;
       (i.aliases || []).forEach(a=>{ byName[normalizeIngredientText(a)] = i; });
     });
+    const CATS = ['Produce','Dairy','Meat','Seafood','Bakery','Dry Goods','Spices & Seasonings','Beverages','Other'];
     const updates = [], adds = [];
     (toolUse.input.items || []).forEach(it=>{
       if(!it.name || typeof it.price !== 'number' || !(it.price > 0)) return;
       const priceEur = it.price / rate;
+      const category = CATS.includes(it.category) ? it.category : null;
       const match = byName[normalizeIngredientText(it.name)];
-      if(match) updates.push({ row: match, priceEur });
-      else adds.push({ name: it.name.trim(), priceEur, unit: ['kg','l','pc'].includes(String(it.unit||'').toLowerCase()) ? String(it.unit).toLowerCase() : 'kg' });
+      if(match) updates.push({ row: match, priceEur, category });
+      else adds.push({ name: it.name.trim(), priceEur, category, unit: ['kg','l','pc'].includes(String(it.unit||'').toLowerCase()) ? String(it.unit).toLowerCase() : 'kg' });
     });
     if(!updates.length && !adds.length) throw new Error('No usable priced items found on this invoice.');
     const preview = [...updates.map(u=>'↺ ' + u.row.name), ...adds.map(a=>'+ ' + a.name)].slice(0, 10).join('\n');
-    if(!confirm(`Invoice read (${currency}): update ${updates.length} price(s), add ${adds.length} new ingredient(s) to ${currentIngredientListName()}.\n\n${preview}${updates.length + adds.length > 10 ? '\n…' : ''}\n\nApply?`)) return;
+    if(!confirm(`Invoice read (${currency})${supplier ? ' from ' + supplier : ''}: update ${updates.length} price(s), add ${adds.length} new ingredient(s) to ${currentIngredientListName()}.${supplier ? `\n\nSupplier "${supplier}" will be set on every item from this invoice.` : ''}\n\n${preview}${updates.length + adds.length > 10 ? '\n…' : ''}\n\nApply?`)) return;
     const nowIso = new Date().toISOString();
     const history = [];
     for(const u of updates){
-      const { error } = await sb.from('ingredients').update({ price: u.priceEur, price_updated_at: nowIso }).eq('id', u.row.id);
+      // Update price + date always; set supplier when the invoice named one; fill category only
+      // if it was empty (never overwrite what the chef set — same rule as AI Details).
+      const patch = { price: u.priceEur, price_updated_at: nowIso };
+      if(supplier) patch.supplier = supplier;
+      if(u.category && !u.row.category) patch.category = u.category;
+      const { error } = await sb.from('ingredients').update(patch).eq('id', u.row.id);
       if(error) continue;
-      u.row.price = u.priceEur; u.row.price_updated_at = nowIso;
+      Object.assign(u.row, patch);
       history.push({ kitchen_id: currentKitchenId, ingredient_id: u.row.id, name: u.row.name, price: u.priceEur, unit: u.row.unit, source:'invoice_scan', created_by: currentUser.id });
     }
     let addedCount = 0;
     if(adds.length){
       const listId = (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null;
-      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso }));
+      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null }));
       const { data: ins, error } = await sb.from('ingredients').insert(rows).select();
       if(error) throw error;
       (ins || []).forEach(x=>{
@@ -18264,7 +18300,7 @@ async function runInvoiceScan(base64, mediaType, fileName){
     }
     buildIngredientLookup();
     renderIngredientList();
-    alert(`Invoice applied: ${updates.length} price update(s) · ${addedCount} new ingredient(s) — every price carries today's date and lands in the price history for Kitchen Reports.`);
+    alert(`Invoice applied: ${updates.length} price update(s) · ${addedCount} new ingredient(s)${supplier ? ` · supplier set to "${supplier}"` : ''} — every price carries today's date and lands in the price history for Kitchen Reports. Run ✨ AI Details to fill any missing seasons/storage/nutrition.`);
   } catch(err){
     alert('Invoice scan failed: ' + (err.message || err));
   } finally {
