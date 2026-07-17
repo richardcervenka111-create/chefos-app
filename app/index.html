@@ -12017,6 +12017,74 @@ async function addRecipeIngredientsTo(target){
   alert(`Added ${inserted.length} ingredient${inserted.length===1?'':'s'}${skipped ? ` · skipped ${skipped} already there` : ''}. Prices and nutrition are empty — fill them in (or use ✨ AI Details) in Ingredients, and this recipe's cost + calories start computing.`);
 }
 
+/* ---------- Generate nutrition from my database (Richard, 17.7.) ----------
+   Scoped AI-fill straight from the recipe detail: takes THIS recipe's ingredient lines that
+   already match a row in the user's database (respecting the 📌 pinned source) but are missing
+   per-100g nutrition, fills just those, and re-renders the detail so the Calories block
+   recomputes on the spot. Same rules as ✨ AI Details: only-empty fields, normal AI credit. */
+async function generateNutritionForRecipe(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r) return;
+  const items = recipeIngredientNames(r);
+  const matched = [], unmatchedNames = [];
+  items.forEach(it=>{
+    const ing = _ingredientLookup[normalizeIngredientText(it.name)];
+    if(ing) matched.push(ing); else unmatchedNames.push(it.name);
+  });
+  const targets = [...new Map(matched.map(i=>[i.id, i])).values()]
+    .filter(i=>i.kcal_per_100g == null).slice(0, 25);
+  if(!targets.length){
+    alert(matched.length
+      ? 'Every matched ingredient of this recipe already has nutrition filled in.' +
+        (unmatchedNames.length ? `\n\nStill unmatched (not in your database${recipeIngredientSource() ? ' — 📌 ' + recipeIngredientSource().name : ''}): ${unmatchedNames.slice(0,6).join(', ')}${unmatchedNames.length>6?'…':''}. Use "Add all ingredients to my database" first.` : '')
+      : 'None of this recipe\'s ingredients are in your database yet — use "🧂 Add all ingredients to my database" first, then generate their nutrition.');
+    return;
+  }
+  if(!confirm(`Generate nutrition per 100 g for ${targets.length} ingredient${targets.length===1?'':'s'} from this recipe (${targets.slice(0,5).map(t=>t.name).join(', ')}${targets.length>5?'…':''})? This uses your AI credit.`)) return;
+  setSyncStatus('saving');
+  try{
+    const data = await callClaudeAPI({
+      model: 'claude-sonnet-5',
+      max_tokens: 4096,
+      tools: [{
+        name: 'fill_nutrition',
+        description: 'Provide typical nutrition values per 100 g of each raw ingredient.',
+        input_schema: { type:'object', properties: { items: { type:'array', items: { type:'object', properties: {
+          name: { type:'string', description:'The ingredient name, exactly as given' },
+          kcal_per_100g: { type:'number' },
+          protein_g_per_100g: { type:'number' },
+          carbs_g_per_100g: { type:'number' },
+          fat_g_per_100g: { type:'number' }
+        }, required:['name','kcal_per_100g'] } } }, required:['items'] }
+      }],
+      tool_choice: { type:'tool', name:'fill_nutrition' },
+      messages: [{ role:'user', content: 'Give typical nutrition values per 100 g of the RAW ingredient for each of these professional-kitchen ingredients, using the fill_nutrition tool. Echo names back exactly as given: ' + targets.map(t=>t.name).join('; ') }]
+    });
+    const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+    if(!toolUse) throw new Error('No nutrition came back — try again.');
+    let updated = 0;
+    for(const item of (toolUse.input.items || [])){
+      const match = targets.find(t=>t.name.toLowerCase() === (item.name||'').toLowerCase());
+      if(!match) continue;
+      const payload = {};
+      if(match.kcal_per_100g == null && typeof item.kcal_per_100g === 'number') payload.kcal_per_100g = item.kcal_per_100g;
+      if(match.protein_g_per_100g == null && typeof item.protein_g_per_100g === 'number') payload.protein_g_per_100g = item.protein_g_per_100g;
+      if(match.carbs_g_per_100g == null && typeof item.carbs_g_per_100g === 'number') payload.carbs_g_per_100g = item.carbs_g_per_100g;
+      if(match.fat_g_per_100g == null && typeof item.fat_g_per_100g === 'number') payload.fat_g_per_100g = item.fat_g_per_100g;
+      if(!Object.keys(payload).length) continue;
+      const { error } = await sb.from('ingredients').update(payload).eq('id', match.id);
+      if(!error){ Object.assign(match, payload); updated++; }
+    }
+    buildIngredientLookup();
+    setSyncStatus('saved');
+    showDetail(window.currentDetailIdx); // Calories block recomputes immediately
+    alert(`Nutrition generated for ${updated} ingredient${updated===1?'':'s'} — typical values per 100 g of the raw ingredient (estimates, editable in Ingredients).${unmatchedNames.length ? `\n\nStill unmatched: ${unmatchedNames.slice(0,6).join(', ')}${unmatchedNames.length>6?'…':''} — add them to your database to count them in too.` : ''}`);
+  } catch(err){
+    setSyncStatus('offline');
+    alert('Could not generate nutrition: ' + (err.message || err));
+  }
+}
+
 let _currentCommentsMasterId = null;
 async function openRecipeComments(){
   const r = allRecipes()[window.currentDetailIdx];
@@ -12233,11 +12301,25 @@ function showDetail(idx){
       `).join('')}
     </div>`;
     // Same entry point as under the cost block (Richard, 17.7.) — unmatched nutrition lines
-    // have the same fix: get the ingredients into your database, then ✨ AI Details fills
-    // their per-100g nutrition and this block recomputes.
+    // have the same fix: get the ingredients into your database, then AI fills their per-100g
+    // nutrition and this block recomputes.
     if(nutrition.matched < nutrition.total){
-      html += `<button class="add-row-btn" style="margin:-6px 0 14px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
+      html += `<button class="add-row-btn" style="margin:-6px 0 8px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>`;
+      html += `<button class="add-row-btn" style="margin:0 0 14px 0;" onclick="generateNutritionForRecipe()">✨ Generate nutrition from my database</button>`;
     }
+  } else if(nutrition.total > 0){
+    // Zero lines matched → the block used to vanish entirely, taking every fix path with it
+    // (Richard's brioche report, 17.7.). Now the section stays visible with an honest note and
+    // both actions: get the ingredients in, then AI-fill their nutrition.
+    html += `<div class="cost-block">
+      <div class="cost-item">
+        <div class="label">Calories</div>
+        <div class="value" style="color:var(--ink-dim);">—</div>
+      </div>
+    </div>
+    <div class="scale-note" style="margin:-14px 0 12px 0;">0 of ${nutrition.total} ingredient line${nutrition.total===1?'':'s'} matched${recipeIngredientSource() ? ' against 📌 ' + krEsc(recipeIngredientSource().name) : ''} — add the ingredients to your database, then generate their nutrition, and this block starts computing.</div>
+    <button class="add-row-btn" style="margin:-6px 0 8px 0;" onclick="openAddRecipeIngredientsToDb()">🧂 Add all ingredients to my database</button>
+    <button class="add-row-btn" style="margin:0 0 14px 0;" onclick="generateNutritionForRecipe()">✨ Generate nutrition from my database</button>`;
   }
 
   const hasTable = r.sections.some(s=>s.type==='table');
