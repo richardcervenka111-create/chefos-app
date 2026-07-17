@@ -2708,6 +2708,11 @@
     <button class="icon-btn" onclick="printRecipeBranded()" title="Print">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/><path d="M9 17h6M9 20h4"/></svg>
     </button>
+    <!-- Publish to the Public shelf (Richard, 17.7. — db/131). Only shown on your OWN
+         recipes; teal (active) while published. -->
+    <button class="icon-btn" id="publishBtn" onclick="togglePublishRecipe()" title="Publish" style="display:none;">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </button>
     <button class="icon-btn" onclick="openRecipeComments()" title="Comments" style="position:relative;">
       <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <!-- Comment count (Richard, 17.7.) — caps at "9+". Hidden when the recipe has none. -->
@@ -7985,7 +7990,7 @@ function krRenderRecipes(){
   _krSection = 'recipes';
   document.getElementById('krPeriodChips').style.display = 'none';
   const chefos = allRecipes().filter(r=>!r.createdBy);
-  const company = krDemoActive() ? krDemoCompanyRecipes() : allRecipes().filter(r=>r.createdBy && !r.isPersonal);
+  const company = krDemoActive() ? krDemoCompanyRecipes() : allRecipes().filter(r=>r.createdBy && !r.isPersonal && r.kitchenId === currentKitchenId);
   if(_krShelf === null){
     krSectionShell('📖 Recipes', `
       <div class="task-row" style="cursor:pointer;" onclick="_krShelf='chefos'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
@@ -9480,6 +9485,8 @@ function dbRowToRecipe(row){
     createdAt: row.created_at || null,
     createdBy: row.created_by || null,
     isPersonal: !!row.is_personal,
+    isPublic: !!row.is_public,
+    kitchenId: row.kitchen_id || null,
     chefosMasterId: row.chefos_master_id || null,
     listId: row.list_id || null
   };
@@ -11349,10 +11356,13 @@ let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false,
    My Recipes/Company Recipes, 16.7. neskoro večer). */
 function recipeOnCurrentShelf(r){
   if(recipeSourceFilter === 'chefos') return !r.createdBy;
+  // Public = published by ANY chef in ANY kitchen (db/131) — the community shelf.
+  if(recipeSourceFilter === 'public') return !!r.isPublic;
   // Company = every authored, NON-personal recipe — including your own (Richard's bug,
   // 17.7.: "createdBy !== me" excluded the author's own company recipes, so a company admin's
-  // saves silently fell into My Recipes instead of Company Recipes).
-  if(recipeSourceFilter === 'company') return !!r.createdBy && !r.isPersonal;
+  // saves silently fell into My Recipes instead of Company Recipes). Kitchen-scoped since
+  // db/131: foreign kitchens' PUBLIC recipes also load now and must not leak in here.
+  if(recipeSourceFilter === 'company') return !!r.createdBy && !r.isPersonal && r.kitchenId === currentKitchenId;
   // Mine = my own TRULY PERSONAL recipes, in BOTH modes. The old "personal mode shows all my
   // authored rows" fallback (meant to keep pre-db/97 legacy rows visible) also leaked company
   // saves onto the personal shelf when the same person toggles modes (Richard, 17.7.:
@@ -11366,9 +11376,10 @@ function recipeOnCurrentShelf(r){
    same-named section's recipes on a different shelf. */
 function applyRecipeShelfQueryFilter(query){
   if(recipeSourceFilter === 'chefos') return query.is('created_by', null);
-  // Mirrors recipeOnCurrentShelf() exactly (17.7. fix): company = authored + non-personal
-  // regardless of author; mine = my rows, personal-only when operating as a Company account.
-  if(recipeSourceFilter === 'company') return query.not('created_by', 'is', null).eq('is_personal', false);
+  if(recipeSourceFilter === 'public') return query.eq('is_public', true);
+  // Mirrors recipeOnCurrentShelf() exactly (17.7. fix): company = authored + non-personal,
+  // kitchen-scoped (db/131 loads foreign public recipes too).
+  if(recipeSourceFilter === 'company') return query.not('created_by', 'is', null).eq('is_personal', false).eq('kitchen_id', currentKitchenId);
   if(recipeSourceFilter === 'mine'){
     return query.eq('created_by', currentUser.id).is('list_id', null).eq('is_personal', true);
   }
@@ -12316,6 +12327,39 @@ function jumpToRecipeById(recipeId){
   if(idx > -1) showDetail(idx);
 }
 
+/* Publish / unpublish to the Public shelf (Richard, 17.7. — db/131). The globe button only
+   shows on the person's OWN recipes; both directions ask first. One row, no copies — the
+   recipe appears on everyone's Public shelf the moment it's published. */
+function updateDetailBarButtons(r){
+  const pub = document.getElementById('publishBtn');
+  if(pub){
+    const own = r.createdBy === currentUser.id;
+    pub.style.display = own ? '' : 'none';
+    pub.classList.toggle('active', !!r.isPublic);
+    pub.title = r.isPublic ? 'Published — tap to unpublish' : 'Publish to the Public shelf';
+  }
+  // A foreign kitchen's public recipe is read-only here — RLS would reject the save anyway,
+  // so don't offer an Edit that can only fail.
+  const edit = document.getElementById('editBtn');
+  if(edit) edit.style.display = (r.isPublic && r.createdBy !== currentUser.id && r.kitchenId !== currentKitchenId) ? 'none' : '';
+}
+async function togglePublishRecipe(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r || r.createdBy !== currentUser.id) return;
+  if(!r.isPublic){
+    if(!confirm(`🌍 Publish "${r.title}"?\n\nIt will appear on the Public shelf in EVERY ChefOS kitchen — any chef can read and comment on it. It stays yours, and you can unpublish anytime with this same button.`)) return;
+  } else {
+    if(!confirm(`Unpublish "${r.title}"?\n\nIt disappears from everyone's Public shelf (comments are kept for if you republish).`)) return;
+  }
+  const makePublic = !r.isPublic;
+  setSyncStatus('saving');
+  const { error } = await sb.from('recipes').update({ is_public: makePublic, published_at: makePublic ? new Date().toISOString() : null }).eq('id', r.id);
+  if(error){ alert('Could not update: ' + error.message + ' — has db/131 been run?'); setSyncStatus('offline'); return; }
+  r.isPublic = makePublic;
+  setSyncStatus('saved');
+  updateDetailBarButtons(r);
+}
+
 /* Comment-count badge on the detail bar (Richard, 17.7.) — one head-only count query per
    detail open, capped visually at "9+". Uses the comment's own chefos_master_id (db/129), so
    the count covers the whole cross-kitchen thread. */
@@ -12337,6 +12381,7 @@ function showDetail(idx){
   window.currentDetailIdx = idx;
   const r = allRecipes()[idx];
   refreshCommentCountBadge(r);
+  updateDetailBarButtons(r);
   const el = document.getElementById('detailContent');
   let html = '';
   if(r.img){
@@ -12943,6 +12988,8 @@ function renderRecipeShelvesGrid(){
     addTile('📖', 'My Recipes', ()=>openShelf('mine'), ()=>openShareMyRecipes());
   }
   addTile('✨', 'ChefOS', ()=>openShelf('chefos'));
+  // Public shelf (db/131) — every account type sees it, like the ChefOS library.
+  addTile('🌍', 'Public', ()=>openShelf('public'));
   if(currentAccountType === 'company'){
     addTile('🏢', 'Company Recipes', ()=>openShelf('company'));
   }
