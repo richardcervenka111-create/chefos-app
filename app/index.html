@@ -2805,6 +2805,11 @@
           <span style="font-size:13px; font-weight:600;">Search &amp; Filter</span>
           <span id="ingredientFiltersActiveDot" style="display:none; width:8px; height:8px; border-radius:50%; background:var(--copper); flex:none;"></span>
         </button>
+        <span class="sync-status saved" id="ingSyncStatus"></span>
+      </div>
+      <!-- Second row (Richard, 17.7.) — the action buttons wrap onto their own line instead of
+           cramming into the top row. -->
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin-top:8px;">
         <!-- Custom Ingredients (bod 2, 16.7. — moved here from Home per Richard's request:
              belongs with Ingredients, not on the main menu). Admin-only. -->
         <!-- AI details (bod 8, 16.7.) — fills in category/season/storage/aliases for items on a
@@ -2831,7 +2836,6 @@
         <button class="icon-btn" onclick="openCustomIngredients()" title="Custom Ingredients" id="customIngredientsIconBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13 21H4a2 2 0 0 1-2-2v-9l7.59-7.59A2 2 0 0 1 11 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-.41 1.41z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
         </button>
-        <span class="sync-status saved" id="ingSyncStatus"></span>
       </div>
       <h1 class="title display" id="ingredientsShelfTitle">Ingredients &amp; Pricing</h1>
       <p id="ingredientStickyCount" style="margin:4px 0 0 0; font-size:12.5px; color:var(--ink-dim);"></p>
@@ -18214,6 +18218,10 @@ function handleCustomIngredientFileSelected(e){
   readFileForScan(file, runCustomIngredientScan);
 }
 async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
+  const lang = scanTargetLangName(); // Scan Settings target language, or null when off
+  const nameDesc = lang
+    ? `The ingredient/product name TRANSLATED into standard professional-kitchen ${lang} (e.g. Slovak "cibuľa"/German "Zwiebel" → "${lang==='English'?'Onion':'…'}", "Mehl" → "${lang==='English'?'Plain flour':'…'}").`
+    : 'Ingredient/product name in its original language, cleaned of article numbers.';
   const tool = {
     name: 'record_custom_ingredients',
     description: 'Extract every distinct ingredient/product listed in this document, in ANY language.',
@@ -18225,8 +18233,8 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
           items: {
             type: 'object',
             properties: {
-              name: { type:'string', description:'The ingredient/product name TRANSLATED into standard professional-kitchen ENGLISH (e.g. Slovak "cibuľa"/German "Zwiebel" → "Onion", "múka hladká"/"Mehl" → "Plain flour", "hovädzie"/"Rindfleisch" → "Beef").' },
-              original_name: { type:'string', description:'The name EXACTLY as written in the source language — kept as an alias so the chef recognises it and future scans match. Omit only if identical to the English name.' },
+              name: { type:'string', description: nameDesc },
+              original_name: { type:'string', description:'The name EXACTLY as written in the source language — kept as an alias so the chef recognises it and future scans match. Omit only if identical to the translated name.' },
               unit: { type:'string', enum:['kg','l','pc'], description:'Normalise the sale/price unit to one of exactly kg, l, or pc — REGARDLESS of the language it is written in. Map any weight unit (g, dag, dkg, kg) to "kg"; any volume (ml, cl, dl, l) to "l"; any count/piece unit to "pc" (e.g. Slovak ks/kus, Czech ks, German Stk/Stück/St, Polish szt, French pcs/pièce, Italian pz, Spanish ud/uds, English pc/pcs/each/unit). Omit only if truly not stated.' },
               price: { type:'number', description:'Price if stated (accept comma OR dot decimals, e.g. "3,50" = 3.5) — omit if not present' },
               category: { type:'string', enum:['Produce','Dairy','Meat','Seafood','Bakery','Dry Goods','Spices & Seasonings','Beverages','Other'], description:'Classify into exactly one of these English categories based on what the item IS (e.g. Slovak "mlieko"/German "Milch" → Dairy, "hovädzie"/"Rindfleisch" → Meat, "múka"/"Mehl" → Bakery or Dry Goods, "cibuľa"/"Zwiebel" → Produce). Omit only if genuinely unclear.' },
@@ -18235,7 +18243,8 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
             required: ['name']
           },
           description: 'One entry per distinct ingredient/product found — a supplier price list, handwritten list, spec sheet, or similar.'
-        }
+        },
+        supplier: { type:'string', description:'The SUPPLIER / vendor company name IF the document has one (a price list header, letterhead, logo). Omit if it is just a bare list with no vendor named.' }
       },
       required: ['ingredients']
     }
@@ -18249,7 +18258,7 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
       role: 'user',
       content: [
         claudeScanSourceBlock(base64, mediaType, fileName),
-        { type:'text', text:'This is a document listing ingredients or products for a professional kitchen — a supplier price list, handwritten list, or spec sheet, as a photo, PDF, spreadsheet, or document text. IT MAY BE IN ANY LANGUAGE (Slovak, Czech, German, Polish, French, Italian, Spanish, English, …) and column headers/units may be in that language — read it regardless. Extract EVERY distinct item using the record_custom_ingredients tool: TRANSLATE each name into standard English (put the original-language name in original_name), normalise its unit to kg/l/pc, and classify its category into the English set. If a field is genuinely not present, leave it empty rather than guessing.' }
+        { type:'text', text:`This is a document listing ingredients or products for a professional kitchen — a supplier price list, handwritten list, or spec sheet, as a photo, PDF, spreadsheet, or document text. IT MAY BE IN ANY LANGUAGE (Slovak, Czech, German, Polish, French, Italian, Spanish, English, …) and column headers/units may be in that language — read it regardless. Extract EVERY distinct item using the record_custom_ingredients tool: ${lang ? `TRANSLATE each name into ${lang} (put the original-language name in original_name)` : 'keep each name in its original language'}, normalise its unit to kg/l/pc, and classify its category into the English set. If the document names a SUPPLIER/vendor (a price-list header, letterhead or logo), return it in the supplier field. If a field is genuinely not present, leave it empty rather than guessing.` }
       ]
     }]
   });
@@ -18274,6 +18283,10 @@ async function runInvoiceScan(base64, mediaType, fileName){
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = '🧾 Reading…';
   try{
+    const lang = scanTargetLangName(); // e.g. 'English', or null when auto-translate is off
+    const nameDesc = lang
+      ? `The ingredient/product name TRANSLATED into standard professional-kitchen ${lang} (e.g. German "Zwiebel"→"${lang==='English'?'Onion':'…'}", Slovak "cibuľa"→"${lang==='English'?'Onion':'…'}"). Clean off article/EAN numbers and pack sizes.`
+      : 'Product/ingredient name in its original language, cleaned of article/EAN numbers and pack sizes.';
     const tool = {
       name: 'record_invoice_items',
       description: 'Extract the supplier, currency and every priced product line from this invoice or delivery note, in ANY language.',
@@ -18283,8 +18296,8 @@ async function runInvoiceScan(base64, mediaType, fileName){
           supplier: { type:'string', description:'The SUPPLIER / vendor company name, read from the invoice header/letterhead (who the invoice is FROM — not the customer/kitchen it is addressed TO). Omit only if genuinely not shown.' },
           currency: { type:'string', description:'ISO currency code of the invoice, e.g. CHF or EUR' },
           items: { type:'array', items: { type:'object', properties: {
-            name: { type:'string', description:'The ingredient/product name TRANSLATED into standard professional-kitchen ENGLISH (e.g. German "Zwiebel"→"Onion", "Rindfleisch"→"Beef", Slovak "cibuľa"→"Onion", "múka hladká"→"Plain flour"). Clean off article/EAN numbers and pack sizes.' },
-            original_name: { type:'string', description:'The name EXACTLY as printed on the invoice, in its original language — kept so the chef recognises it and future scans match. Omit only if identical to the English name.' },
+            name: { type:'string', description: nameDesc },
+            original_name: { type:'string', description:'The name EXACTLY as printed on the invoice, in its original language — kept so the chef recognises it and future scans match. Omit only if identical to the translated name.' },
             unit: { type:'string', enum:['kg','l','pc'], description:'Normalise to exactly kg, l or pc REGARDLESS of language — weight (g/dag/dkg/kg)→kg, volume (ml/cl/dl/l)→l, count (ks/kus/Stk/Stück/szt/pz/ud/pc/each)→pc.' },
             category: { type:'string', enum:['Produce','Dairy','Meat','Seafood','Bakery','Dry Goods','Spices & Seasonings','Beverages','Other'], description:'Classify into one English category by what the item IS (e.g. Zwiebel/cibuľa→Produce, Milch/mlieko→Dairy). Omit if unclear.' },
             price: { type:'number', description:'UNIT price (per kg/l/pc), accept comma OR dot decimals. Compute line total ÷ quantity when only a total is shown.' }
@@ -18300,7 +18313,7 @@ async function runInvoiceScan(base64, mediaType, fileName){
       tool_choice: { type:'tool', name:'record_invoice_items' },
       messages: [{ role:'user', content: [
         claudeScanSourceBlock(base64, mediaType, fileName),
-        { type:'text', text:'This is a supplier invoice or delivery note for a professional kitchen. IT MAY BE IN ANY LANGUAGE (German, Slovak, Czech, French…) — read it regardless. Using the record_invoice_items tool: (1) read the SUPPLIER/vendor name from the header (who it is FROM), (2) the invoice currency, (3) every PRODUCT line with its UNIT price (per kg/l/pc — compute from line total ÷ quantity when needed). TRANSLATE every product name into standard English (put the original-language name in original_name), normalise units to kg/l/pc, and classify categories into the English set. IMPORTANT: extract ONLY real products. Do NOT create items from dates, invoice/customer numbers, addresses, page headers, subtotals, totals, VAT/tax lines, deposits (Pfand), delivery fees or discounts.' }
+        { type:'text', text:`This is a supplier invoice or delivery note for a professional kitchen. IT MAY BE IN ANY LANGUAGE (German, Slovak, Czech, French…) — read it regardless. Using the record_invoice_items tool: (1) read the SUPPLIER/vendor name from the header (who it is FROM), (2) the invoice currency, (3) every PRODUCT line with its UNIT price (per kg/l/pc — compute from line total ÷ quantity when needed). ${lang ? `TRANSLATE every product name into ${lang} (put the original-language name in original_name)` : 'Keep product names in their original language'}, normalise units to kg/l/pc, and classify categories into the English set. IMPORTANT: extract ONLY real products. Do NOT create items from dates, invoice/customer numbers, addresses, page headers, subtotals, totals, VAT/tax lines, deposits (Pfand), delivery fees or discounts.` }
       ] }]
     });
     const toolUse = (data.content || []).find(b=>b.type==='tool_use');
@@ -18346,7 +18359,7 @@ async function runInvoiceScan(base64, mediaType, fileName){
     let addedCount = 0;
     if(adds.length){
       const listId = (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null;
-      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : null }));
+      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
       const { data: ins, error } = await sb.from('ingredients').insert(rows).select();
       if(error) throw error;
       (ins || []).forEach(x=>{
@@ -18509,9 +18522,11 @@ async function runIngredientScan(base64, mediaType, fileName){
   }
 }
 let _pendingScanIngredients = [];
+let _pendingScanSupplier = null;
 function openIngredientScanReview(input){
   _pendingScanIngredients = (input.ingredients || []).map(x=>({ ...x, _include:true }));
-  document.getElementById('isr_shelf_label').textContent = ingredientSourceFilter === 'chefos' ? 'ChefOS (shared with your kitchen)' : currentIngredientListName() + ' (private)';
+  _pendingScanSupplier = (input.supplier || '').trim() || null;
+  document.getElementById('isr_shelf_label').textContent = (ingredientSourceFilter === 'chefos' ? 'ChefOS (shared with your kitchen)' : currentIngredientListName() + ' (private)') + (_pendingScanSupplier ? ` · supplier: ${_pendingScanSupplier}` : '');
   renderIngredientScanReviewList();
   document.getElementById('ingredientScanReviewOverlay').classList.add('open');
 }
@@ -18545,13 +18560,14 @@ async function saveIngredientScanReview(){
   // whole batch — those just get skipped and reported, everything else still saves.
   for(const x of toSave){
     const orig = (x.original_name || '').trim();
-    const aliases = (orig && normalizeIngredientText(orig) !== normalizeIngredientText(x.name)) ? [orig] : null;
+    const aliases = (orig && normalizeIngredientText(orig) !== normalizeIngredientText(x.name)) ? [orig] : [];
     const { error } = await sb.from('ingredients').insert({
       kitchen_id: currentKitchenId,
       name: x.name.trim(),
       unit: x.unit || 'kg',
       price: x.price != null ? x.price : null,
       category: x.category || null,
+      supplier: _pendingScanSupplier || null,
       aliases,
       notes: x.note || null,
       created_by: currentUser.id,
@@ -19163,6 +19179,12 @@ function scanTranslateInstruction(){
   if(!_scanLanguage || _scanLanguage === 'off') return '';
   const langName = SCAN_LANGUAGE_NAMES[_scanLanguage] || _scanLanguage;
   return ` Translate all extracted text into ${langName}.`;
+}
+// Target language for ingredient/invoice scans — honours the Scan Settings choice (default
+// English; 'off' = keep original language). Names get translated to this, original kept as alias.
+function scanTargetLangName(){
+  if(!_scanLanguage || _scanLanguage === 'off') return null;
+  return SCAN_LANGUAGE_NAMES[_scanLanguage] || 'English';
 }
 
 function triggerPhotoScan(){
