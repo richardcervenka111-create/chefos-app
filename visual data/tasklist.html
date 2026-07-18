@@ -625,8 +625,183 @@ const DAYS=[
     '🎓 Tutoriál pre každé okno (auto pri prvom otvorení + ❓ v lište); úvod zoštíhlený na Welcome + Home; What\'s New srdiečko zmazané',
     '🔐 Bezpečnostná kontrola celého projektu: VEREJNÝ bucket so zmluvami zavretý (db/134, privátny + signed URLs), cross-kitchen stored-XSS zavretý (escapery na dátovej hranici), obe triedy trvalo blokované auditormi; živý DB health check čistý',
     '📧 Email Contacts číslované + detail s napojeným účtom; Feedback len Head Admin; 📚 konsolidácia dokumentov 13 → 11 → 5 (produkt/plan/biznis/znacka + Critical Review) so záložkami a krížovou navigáciou'
+  ]},
+  { date:'2026-07-18', headline:'SAUTERO DEŇ D: doména + e-maily + logo + tímové funkcie + dvojjazyčná dokumentácia', accomplished:[
+    '🏷️ Appka naživo na app.sautero.ch: DNS (Hostpoint CNAME), GitHub Pages custom domain, HTTPS certifikát, Supabase Site URL + allowlist; staré app.chefos.ch odstavené',
+    '✉️ E-maily v novej značke: šablóny Magic link + Confirm signup prebrandované, odosielateľ „Sautero"; prihlasovacie maily poslané na všetky 3 zakladateľské účty',
+    '🎨 Nové logo: serifové teal „S" na navy (všetky ikony 32–512 + maskable + apple-touch) namiesto starého „C"',
+    '🧹 691 náhrad ChefOS→Sautero naprieč celým projektom (zmluvy, reviews, security, snapshoty, root); NAMING_RISK uzavretý s poučením; 2 zabudnuté kópie súborov odložené',
+    '➕ Add Team Member (db/145): kód + QR + link + email pre VLASTNÚ kuchyňu; Create Team dlaždica úplne odstránená (nové kuchyne = Add Company)',
+    '👥 Tímové zdieľanie: zoznamy ingrediencií (db/146) aj projekty receptov (db/147) viditeľné celému tímu so značkou 👥; Company Ingredients agreguje aj zoznamy; sken/faktúra presúva spárované položky na Company policu',
+    '🌐 Dvojjazyčnosť: mapa funkcií 112/112 kariet + 13 modulov SK/EN; nové dokumenty Poznámky (živý zápisník s Poučeniami) a Aare Ventures research — plne bilingválne; História dostala DAYS_I18N',
+    '🩺 Scan diagnóza cez živú DB: kolízie s knižnicou → update namiesto tichého skoku; iOS MIME typy; Invoice Scan zlyhania sa logujú; role labely Main/Kitchen Admin; koláč mapy funkcií rešpektuje filter',
+    '📄 Nové dokumenty: Poznámky ako 5. kolonka doc-navigácie, Aare Ventures (event 14.9., prihláška 23.8.), Events t172 + hlas t173 + preklady t174 do plánu'
   ]}
 ];
+/* t174 (18.7.): the timeline is bilingual via DAYS_I18N — days 08-13 were written in EN,
+   14-17 in SK; the dict supplies the missing language per day (h_sk/a_sk or h_en/a_en) and
+   the base text is the fallback. New days must land with BOTH languages. */
+const DAYS_I18N = {
+  '2026-07-08': { h_sk:'Fáza 0 — Základy & validácia schválené', a_sk:[
+    'Definovaný rozsah Sautero v1: Chef Pro / reštauračné kuchyne, nie domáci kuchári',
+    'Inštalovateľná webová appka mobile/tablet-first, bez natívneho buildu',
+    'Potvrdená pilotná kuchyňa (Hotel Schweizerhof Bern)',
+    'MVP_DEFINITION.md a ARCHITECTURE.md schválené Richardom'
+  ]},
+  '2026-07-09': { h_sk:'Receptový engine naživo, Ingrediencie + Check List v1, Schedule prestavaný, nasadené', a_sk:[
+    'Postavený Supabase backend; zmigrovaných všetkých 173 receptov; opravená škálovacia kalkulačka',
+    'Ingredients & Pricing: 535 položiek naplnených, cenový + nutričný engine',
+    'Plný 20-poľový formulár receptu; vizuálny dizajnový prechod',
+    'Mise en Place v1, Order List, Home dashboard, Fridge Temperature',
+    'Schedule prestavaný podľa reálneho Dienstplan PDF (28 zmenových kódov, 27 ľudí)',
+    'SKY prep sheet postavený z Richardovho reálneho odfoteného papierového hárku',
+    'Nasadený AI import receptov z fotky',
+    'Nasadené do produkcie na GitHub Pages'
+  ]},
+  '2026-07-10': { h_sk:'AI funkcie, Kitchen Flow, všetkých 8 staníc, viacjazyčnosť, ingrediencie na 1 263', a_sk:[
+    'Generate Method s AI + Chef\'s Assistant chatbot (Haiku, s cenovým stropom)',
+    'Kitchen Flow v1: dlaždice staníc s ikonami, 🔥 overload odznak',
+    'Check List prep sheety rozšírené na všetkých 8 staníc',
+    'AI sken prep sheetu (fotka + PDF); premenované „Mise en Place" → „Check List"',
+    'Všetky prep-sheet dáta preložené do angličtiny; viacjazyčné UI v1 (EN/DE/FR/IT/SK)',
+    'Opravený cross-station pohľad „All" aj zaseknuté odznaky dlaždíc; gesto swipe-back',
+    'Ingrediencie rozšírené na 1 263 (filtre sezóna/skladovanie/typ)',
+    'Vytvorené dashboardy presentation.html a planning.html',
+    'Check List: ručné „+ New Section"/„+ Add dish", už nie len zo skenu',
+    'Opravený bug perzistencie staníc medzi zariadeniami',
+    'Reálne crowd-sourced časy prípravy — ťukni na hodiny, hodnoty sa priemerujú',
+    'Prehodené farby stavov TO DO/DON\'T DO; Extra dostalo vlastnú ikonu',
+    'Chef\'s Assistant oprava mobilnej klávesnice + uvítacia bublina',
+    'Dvaja reálni ľudia testujú naživo na dvoch prevádzkach',
+    'Naplánovaný verejný trial: 1.8.2026, 25 užívateľov, multi-team cez QR'
+  ]},
+  '2026-07-11': { h_sk:'Multi-team QR + prístupová brána, opravy Receptov/Check Listu, zjednotená vizuálna identita', a_sk:[
+    'presentation.html preorientovaný na Švajčiarsko / kantón Bern so zdrojovanými číslami trhu',
+    'Multi-team cez QR pozvánku (založiť alebo pripojiť sa ku kuchyni) postavené end-to-end',
+    'Uzavretá prístupová brána: každý e-mail ručne schválený pred použitím, nová Admin dlaždica',
+    'Vendorovaný overený QR generátor, plne client-side',
+    'Login obrazovka: pridaný hint „pozri Spam/Kôš"',
+    'Roztriedené 4 plánovacie dokumenty na staviame-teraz vs. vedome zaparkované',
+    'Opravený double-save bug receptov (race condition dvojitého ťuku)',
+    '🚩 vlajka obmedzená len na priority-1 položky',
+    'Check List: vymazať alebo skryť položku, jedlo aj celú sekciu',
+    '🛒 Objednať tlačidlo na každom riadku Check Listu aj ingrediencie receptu',
+    'Opravený skrytý Order List bug — poznámky sa pri uložení ticho strácali',
+    'Postavený app/board.html → premenovaný na app/tasklist.html, s touto časovou osou',
+    'Zjednotená Sautero vizuálna identita (navy/teal) naprieč presentation/planning/tasklist'
+  ]},
+  '2026-07-12': { h_sk:'Order List + Print Labels toolbary, Working Time postavený, 104 reálnych dodávateľských cien, prekopanie Receptov/Ingrediencií, dva kritické bugy nájdené a opravené', a_sk:[
+    'Order List horná lišta: reálna tlač, Send-to-supplier placeholder, Select + hromadné mazanie, zoskupenie podľa sekcie/zariadenia',
+    'Check List: 🖨️ ikona tlače na každom riadku; Print Labels hub predizajnovaný s toolbarom a per-produkt trvanlivosťou pre automatický „use by" dátum na 5×3cm štítkoch',
+    'Working Time postavený od nuly: reálny check-in/check-out časovač, prestávky, mesačné hodiny + nadčasy, odpočet do dovolenky, úväzok, AI sken zmluvy s právno-poradnými poznámkami (výslovne informačné, nie právna rada)',
+    'Nájdené a v ten istý deň opravené dva vážne bugy lámajúce skript (top-level premenná odkazujúca na neskôr deklarovanú — appka bola dvakrát krátko čiastočne/úplne nefunkčná) — oba plne vysvetlené a zdokumentované',
+    'Recepty: opravené „vždy ukáž Favorites" padajúce na prázdnu obrazovku pri nule obľúbených',
+    'Ingredient Audit v1: prejde každý recept + Check List položku, hľadá mená chýbajúce v Ingredienciách, označí pravdepodobné duplicity',
+    'Recepty: 🕐 najnovšie-najprv vedľa Favorites; hľadanie prerobené na samostatnú ikonu s filtrami sekcia + diéta + bez alergénov; sada ikon kategórií zhruba zdvojnásobená',
+    '104 reálnych dodávateľských cien importovaných z veľkoobchodného cenníka Caviezel Giovanettoni AG 2026 (CHF→EUR, artiklové čísla zachované) — ~54 odhadov povýšených na reálne ceny',
+    'Check List & Recepty: každú sekciu/kategóriu možno premenovať a zmeniť jej ikonu, nielen zmazať',
+    'Recepty: zvýraznenie diétneho filtra opravené (bolo sotva viditeľné) + rozšírené z 2 na 7 diét (Pescatarian, Keto, Paleo, Mediterranean, High-Protein)',
+    'Recepty: hľadanie už vždy pokrýva všetky recepty, nie len otvorenú sekciu',
+    '„Ask Chef\'s Assistant" — AI generátor nápadov v hľadaní receptov: spýta sa teplé/studené + sladké/slané, navrhne 5 reálnych jedál, napíše plný recept pre vybrané',
+    'Ingredient Audit prerobený na skutočný per-položkový schvaľovací tok (upraviteľné predčistené meno, Add / Link-as-alias / Ignore) — nahrádza slepé hromadné „create all"',
+    'Kitchen-wide prepínač meny (EUR/CHF/USD), admin-only, default CHF pre švajčiarsky pilot',
+    'Ingrediencie: topbar predizajnovaný — hľadanie + 4 rady filter chipov + Ingredient Audit zbalené za jednu ikonu namiesto permanentného pol-obrazovky',
+    'Tlačidlo hľadania/filtrov s viditeľným textom, opravený zle označený rad „Category" (v skutočnosti Cuisine), pridané „Clear all"'
+  ]},
+  '2026-07-13': { h_sk:'Working Time oprava poznámky, väčšie Home ikony, Print Labels polish, Sautero logo, research tlačiarne + senzorov, prvý menovaný sales cieľ', a_sk:[
+    'Opravené neviditeľné písanie do denníkovej poznámky Working Time (dark-mode/mobil rendering — oprava aplikovaná na celú stránku)',
+    'Home dlaždice opäť zväčšené, stále 3 v rade',
+    'Print Labels: doplnený chýbajúci titul topbaru, reálne zoskupenie „By section" (bol placeholder)',
+    'Navrhnuté minimalistické Sautero logo (kruhový monogram) a nasadené naživo — malá brand hlavička na My Team, prekryv v strede pozvánkového QR (error-correction zvýšená na „H", QR ďalej spoľahlivo skenuje)',
+    'Research bezdrôtových teplomerov do chladničiek („scan QR → živá teplota") — iOS Safari nevie čítať Bluetooth/NFC z webu, treba WiFi/cloud-API senzor; odporúčaný SensorPush ako budget voľba s reálnym free API',
+    'Research fyzickej tlačiarne štítkov + štruktúry dodávateľskej zmluvy — odporúčaný Brother QL-820NWB (~CHF 130, kúpa bez zmluvy) cez existujúci print-dialog; plný report v docs/LABEL_PRINTER_RESEARCH.md',
+    'Nooch Asian Kitchen (skupina FWG, 10+ pobočiek, 3 v kantóne Bern) menovaný ako prvý cieľový zákazník po validácii pilotom',
+    'Ingrediencie hľadanie: živé počítadlo „N ingredients match" pri ladení filtrov, Food-type skratka nahradená plným zoznamom kategórií (19, odvodené z dát), nový filter „Pricing" (Verified / Estimated / Missing)',
+    'Počítadlo zhôd pripnuté priamo do topbaru — viditeľné aj bez otvorenia Search & Filter',
+    'Sautero logo redesign (v1 pôsobilo plocho/genericky) — ručne kreslený prstenec jedným presným oblúkom namiesto fontového písmena, sage/cream namiesto copper, + kurzívny serifový wordmark',
+    'Výber ikon sekcií v Check Liste rozšírený z 30 na rovnakých 72 ikon ako Recepty',
+    'Nové: 🌐 Language Audit — prejde názvy jedál a položiek, označí čo nie je po anglicky (skeny a ručné zápisy nosia DE/FR/IT), navrhne preklad, per-položkové schválenie',
+    'Dve zistenia z expert review v2 vykonané: pilotná kuchyňa zmenená zo Schweizerhofu na Burrito Bandito & Lido (ruší IP riziko voči zamestnávateľovi); RC Studio odložené na ochranu kapacity. presentation.html aktualizovaný; prvý draft pilotnej dohody v docs/PILOT_AGREEMENT.md',
+    'Šesť kritických/bezpečnostných položiek z review vyriešených: Git, Anthropic kľúč server-side (Edge proxy, 9 miest), reálny cross-device sync Check Listu, error tracking + analytika, expirujúce/odvolateľné pozvánky + remove člena, písaný regresný checklist. Všetko vyžadujúce Richardove účty/hardvér/rozhodnutia ostáva otvorené v backlog.html',
+    'Filter sheet: hľadanie + počítadlo pripnuté hore, chip rady skrolujú pod nimi',
+    'backlog.html interaktívny: 38 riadkov ako reálne checkboxy s localStorage, sticky lišta so živým percentom + koláčom',
+    'Check List audit log — každá zmena stavu/on-hand/priority/poznámky sa zaznamenáva (kto, čo, kedy), „Recent activity" v Info paneli',
+    '🔴→✅ Kritický živý bug: db/53 RLS politiky na profiles sa dopytovali samy na seba → nekonečná rekurzia, potichu rozbité takmer všetky tabuľky (overené REST sondou) — pravdepodobne dôvod rozbitého loginu na Richardovom telefóne. Oprava db/55 (SECURITY DEFINER helper); druhá sonda potvrdila všetko OK',
+    'Prečítaná Richardova pracovná zmluva (na jeho žiadosť) — žiadna IP-assignment, non-compete ani side-business klauzula; jasne označené ako ne-právna istota, odporúčaný právnik pred investormi; upokojujúce vzhľadom na OR 332 (Chef de Partie, nie vývojár)',
+    'loadAppData() paralelizovaný — 11 nezávislých dopytov cez Promise.all namiesto sekvenčne',
+    'Kritériá úspechu trialu dohodnuté: 40 %+ tímov aktívnych v Check Liste 3+ dni/týždeň do 2. týždňa, polovica vydrží, 5/25 povie áno na „platil by si X CHF/mesiac", <10 kritických chýb, 3+3 kusy spätnej väzby',
+    'Staging Supabase („chefos-staging") postavený end-to-end: 56 migrácií jedným behom (psycopg2 cez Session Pooler), overené REST sondou bez chýb; odteraz migrácie najprv staging, potom produkcia',
+    'GitHub Pages deploy automatizovaný (Actions), každý commit naživo do minúty; project-scoped Claude Code permissions',
+    'Vizuálna identita appky zjednotená s dokumentmi (navy/teal) na Richardovu výslovnú žiadosť; QR ostáva čiernobiely kvôli skenovateľnosti',
+    'Nočná+ranná dávka: Privacy & Terms (legal.html), feedback tlačidlo, yield/waste faktor vo food coste (db/57), cenový range filter, multi-select chipy, „Show me", 🎯 Chef Challenge dlaždica',
+    'Monetizačný plán formalizovaný: 10-modelový workshop → app/monetization.html; Claude pridal model 11 (platené workshopy digitalizácie); jednohlasný záver: onboarding ~CHF 990 + founding pre-sale CHF 490/rok. Oba odblokovacie dokumenty nadraftované (NEBENERWERB_REQUEST.md, FOUNDING_OFFER.md)',
+    'Databáza ingrediencií rozšírená presne na 2 000 riadkov (db/59, 646 nových AI-odhadovaných položiek), každá s cenou/nutríciou/skladovaním/sezónami/pôvodom/náhradami, poctivo označené ako odhady; overené na stagingu',
+    '🔴→✅ Tichý bug: appka zobrazovala len prvých 1 000 ingrediencií (Supabase REST limit) — vysvetľuje rozpor „1000 vs 1263"; opravené stránkovacím helperom',
+    '🔴→✅ Check List delete potvrdil a potichu nespravil nič (0-riadkový update bez chyby) — deletePrepItem/Dish/deleteStation to teraz detegujú, hlásia a reloadnú',
+    '🔴→✅ Skutočná príčina padania všetkých AI funkcií: claude-proxy nebola nikdy nasadená na produkciu (manuálny CLI krok) — Richard prevedený inštaláciou Supabase CLI a deployom; potvrdené end-to-end; max_tokens prep-skenu 4096→8192',
+    'Pridaná 🗣️ Team Meetings placeholder dlaždica (rozsah rozhodne neskôr; kandidáti v backlog.html)',
+    'Nový nápad (nestavané): sken receptov sa má spýtať „jeden recept či celé menu?" — celé menu by generovalo plný recept pre každé jedlo; podnet: Richard omylom naskenoval menu do Receptov'
+  ]},
+  '2026-07-14': { h_en:'Feature freeze honestly admitted, daily ingredient agent, Working Time location + forgot-to-check-in, contract note tone, Chef Challenge hidden, tasklist redesign', a_en:[
+    'Working Time: "Forgot to check in?" (mirrors the existing "Forgot to check out?") + a one-off location snapshot exactly at check-in/check-out (not continuous tracking — Richard chose this variant for legal and technical reasons)',
+    'AI contract note: now 4–6 points with a tone icon (⚠️ risk / ✅ good / ℹ️ neutral) instead of a problems-only list',
+    'Found and fixed (proposal, awaiting staging test) a real privacy hole: a 13 Jul RLS policy exposed the whole profiles row to anyone in the kitchen, incl. other people\'s contract notes',
+    'Daily AI ingredient agent set up: CHF 30/month cap, runs daily 06:30, report in docs/ingredient_agent_log.md',
+    'Highlighted 🚨 warning about the missed Critical Review deadline',
+    'Reminders set: Sunday snapshot (20:00) + Monday deadline check (14:30)',
+    'Feature-freeze week: honestly admitted that building continued anyway (12+ things in two evenings) — Richard defended it as a conscious decision (real testing generates genuinely useful ideas), not a discipline failure',
+    'Chef Challenge tile hidden from Home (not deleted) at Richard\'s request',
+    'tasklist.html reworked — new visual layer (same navy/teal tokens as status/planning), SK/EN toggle on structural labels'
+  ]},
+  '2026-07-15': { h_en:'Domain live, critical signup bug, HACCP waves 1+2, password + Face ID, URL scan, background scanning, Visual Data Standards', a_en:[
+    'chefos.ch verified in Resend, custom SMTP on, app on its own domain — Richard tested the whole sign-in flow live; the trial\'s main blocker removed',
+    '🔴→✅ Critical signup bug (db/73): every new registration failed on a missing search_path in handle_new_user() — found via Postgres logs, fixed in production',
+    '🧼 HACCP wave 1: a hub in the Home design — goods receiving, core temperature, cooling protocol, cleaning + hygiene checklists, Fridge Temp moved in and revived (db/77)',
+    '🧼 HACCP wave 2: fryer oil + pests switched on (wave-1 engines), Label Expiry — printing logs the use-by date, a new urgency-sorted screen (db/78)',
+    '🔓 Password + Face ID sign-in (WebAuthn per-device unlock, no biometric data leaves the device)',
+    'Menu scan from a website URL (server-side web_fetch, no edge-function change) + background scanning with progress for all 5 AI scans',
+    '3-way recipe filter Mine/Sautero/Company; Order List silent data-loss fix (db/76, staging first)',
+    'New kitchens inherit ingredients (db/74), profile fully optional with "Skip for now" (db/75) — both staging first',
+    '🎨 Visual Data Standards: all 13 documents reworked and moved into /visual data/, automations repointed to the new paths',
+    'Mental-health/camera mechanism rejected (EU AI Act, Art. 328 OR, nDSG), a legitimate alternative recorded and parked at Richard\'s request'
+  ]},
+  '2026-07-16': { h_en:'Marathon: true data privacy, real team membership, role-based admin, Kitchen Reports, central AI key + 2 security incidents fixed live', a_en:[
+    '🔐 True personal/company data isolation (db/97): is_personal enforced in RLS, not just a UI filter; team join codes + confirmation; Privacy consent gate (db/100)',
+    '👥 Real team membership (db/116): Company mode only for real members; a burned admin invite fixed one-off (db/117) AND permanently (db/118); My Profile shows the role',
+    '🛡️ Role-based admin: Kitchen Admin (granular rights) vs Head Admin; an Admin hub (Add Admin / Directory / Access Requests / Email Contacts)',
+    '🔴→✅ Super-admin lockout (recursive RLS + a missing grant) fixed live (db/90) + a permanent guard in the auditor',
+    '🔴→✅ Member removal failed, the "removed" person kept full access — db/121 WITH CHECK (finished 17 Jul via the db/124 RPC)',
+    '✋ Long-press everywhere, custom ingredient lists with sharing (db/112+114), recipe shelves + projects with 8 books (db/120–123)',
+    '🖨️ Branded print v2, always-visible nav strip, .xlsx scan, ✨ AI Details, Kitchen Reports drill-down, central Anthropic key, branded auth emails'
+  ]},
+  '2026-07-17': { h_en:'Community layer (Public shelves + sharing), Invoice Scan v2, per-screen tutorials, a security review with permanent guards', a_en:[
+    '🧪 A full day of guided testing with Richard — every bug found was fixed the same day: cross-kitchen comments (db/129 + counters), a company recipe on the personal shelf (db/130), Safari print preview, the remove-member RPC (db/124–125)',
+    '🌍 Public shelves: recipes (db/131–133) and ingredients (db/136) publishable to every kitchen; per-recipe (db/138) and per-ingredient sharing with friends + a Chef Friends profile; company profiles share NOTHING (app + DB triggers); foreign content read-only',
+    '🧾 Invoice Scan v2: the supplier from the letterhead lands on every item (new supplier field, db/137); both scans translate into the language from Settings, original kept as an alias; skips dates/VAT/totals',
+    '🎓 A tutorial for every screen (auto on first open + ❓ in the bar); the intro slimmed to Welcome + Home; the What\'s New heart deleted',
+    '🔐 A security review of the whole project: the PUBLIC contracts bucket closed (db/134, private + signed URLs), cross-kitchen stored-XSS closed (escapers at the data boundary), both classes permanently blocked by the auditors; live DB health check clean',
+    '📧 Email Contacts numbered + a detail with the linked account; Feedback Head-Admin only; 📚 document consolidation 13 → 11 → 5 (produkt/plan/biznis/znacka + Critical Review) with tabs and cross-navigation'
+  ]},
+  '2026-07-18': { h_en:'SAUTERO D-DAY: domain + emails + logo + team features + bilingual documentation', a_en:[
+    '🏷️ The app live at app.sautero.ch: DNS (Hostpoint CNAME), GitHub Pages custom domain, HTTPS certificate, Supabase Site URL + allowlist; old app.chefos.ch retired',
+    '✉️ Emails in the new brand: Magic link + Confirm signup templates rebranded, sender "Sautero"; sign-in emails sent to all 3 founder accounts',
+    '🎨 New logo: a serif teal "S" on navy (all icons 32–512 + maskable + apple-touch) replacing the old "C"',
+    '🧹 691 ChefOS→Sautero replacements across the whole project (contracts, reviews, security, snapshots, root); NAMING_RISK closed with the lesson; 2 forgotten file copies set aside',
+    '➕ Add Team Member (db/145): code + QR + link + email for YOUR OWN kitchen; the Create Team tile removed entirely (new kitchens = Add Company)',
+    '👥 Team sharing: ingredient lists (db/146) and recipe projects (db/147) visible to the whole team with the 👥 mark; Company Ingredients aggregates lists too; scans/invoices move matched items onto the Company shelf',
+    '🌐 Bilinguality: the feature map 112/112 cards + 13 modules SK/EN; new documents Poznámky (a live notebook with Lessons) and the Aare Ventures research — fully bilingual; História got DAYS_I18N',
+    '🩺 Scan diagnosis via the live DB: library collisions → update instead of a silent skip; iOS MIME types; Invoice Scan failures now logged; Main/Kitchen Admin role labels; the feature-map pie respects the filter',
+    '📄 New documents: Poznámky as the 5th doc-nav column, Aare Ventures (event 14 Sep, application 23 Aug), Events t172 + voice t173 + translations t174 into the plan'
+  ]},
+};
+function dayHeadline(day){
+  const alt = DAYS_I18N[day.date] || {};
+  return _lang==='sk' ? (alt.h_sk || day.headline) : (alt.h_en || day.headline);
+}
+function dayBullets(day){
+  const alt = DAYS_I18N[day.date] || {};
+  return _lang==='sk' ? (alt.a_sk || day.accomplished) : (alt.a_en || day.accomplished);
+}
 function isoWeekLabel(dateStr){
   const d=new Date(dateStr+'T00:00:00');
   const day=(d.getDay()+6)%7;
@@ -664,11 +839,12 @@ function renderTimeline(){
     const weeksHtml=m.weeks.map(w=>{
       const wDayWord = w.days.length===1 ? L('deň','day') : L('dní','days');
       const daysHtml=w.days.map((day,di)=>{
-        const acc=day.accomplished.map(a=>`<li>${a}</li>`).join('');
+        const accList=dayBullets(day);
+  const acc=accList.map(a=>`<li>${a}</li>`).join('');
         return `<div class="day-row" data-id="d-${m.key}-${w.key}-${di}">
           <div class="day-head" onclick="toggleBlock('d-${m.key}-${w.key}-${di}')">
             <span class="day-date">${weekdayShort(day.date)} ${day.date}</span>
-            <span class="day-title">${day.headline}</span>
+            <span class="day-title">${dayHeadline(day)}</span>
             <span class="chev">▶</span>
           </div>
           <div class="day-body"><ul class="accomplished-list">${acc}</ul></div>
