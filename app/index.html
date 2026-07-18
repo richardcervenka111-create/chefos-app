@@ -3019,7 +3019,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
              WITH their price, and every price lands in ingredient_price_history (db/127) so
              Kitchen Reports can chart and project price movement. -->
         <button class="icon-btn" onclick="document.getElementById('invoiceScanFile').click()" title="Scan a supplier invoice" id="invoiceScanBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">🧾 Invoice Scan</button>
-        <input type="file" id="invoiceScanFile" accept="image/*,application/pdf,.pdf,.xlsx,.csv,.html,.htm,.md,.markdown,.txt" style="display:none;" onchange="handleInvoiceScanFile(this)">
+        <input type="file" id="invoiceScanFile" accept="image/*,application/pdf,text/html,text/plain,text/markdown,text/csv,.pdf,.xlsx,.csv,.html,.htm,.md,.markdown,.txt" style="display:none;" onchange="handleInvoiceScanFile(this)">
         <!-- Recipe source pin (Richard, 17.7.) — locks recipe cost/nutrition matching to THIS
              shelf/list, so Sautero-shelf rows can't silently win over the user's own data. -->
         <button class="icon-btn" onclick="toggleRecipeIngredientSource()" id="recipeSourcePinBtn" title="Use this list as the source recipes pull prices & nutrition from" style="width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">📌 Recipe source</button>
@@ -4052,7 +4052,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 <input type="file" id="customIngredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleCustomIngredientFileSelected(event)">
-<input type="file" id="ingredientScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleIngredientScanFileSelected(event)">
+<input type="file" id="ingredientScanInput" accept="image/*,application/pdf,text/html,text/plain,text/markdown,text/csv,.md,.markdown,.html,.htm,.txt,.csv,.xlsx" style="display:none;" onchange="handleIngredientScanFileSelected(event)">
 
 <!-- Friend's shared ingredient list, read-only (bod 4, 16.7. večer — db/114). -->
 <div id="friendListItemsOverlay" class="sheet-overlay" onclick="if(event.target===this) this.classList.remove('open')">
@@ -19189,6 +19189,9 @@ async function runInvoiceScan(base64, mediaType, fileName){
     renderIngredientList();
     alert(`Invoice applied: ${updates.length} price update(s) · ${addedCount} new ingredient(s)${supplier ? ` · supplier set to "${supplier}"` : ''} — every price carries today's date and lands in the price history for Kitchen Reports. Run ✨ AI Details to fill any missing seasons/storage/nutrition.`);
   } catch(err){
+    // Log before alerting (18.7.): a failed invoice scan used to leave zero trace in
+    // error_logs, which made "the scan can't read X" reports impossible to diagnose.
+    logClientError('runInvoiceScan failed (' + (fileName || '?') + ', ' + (mediaType || '?') + '): ' + (err.message || err), err.stack);
     alert('Invoice scan failed: ' + (err.message || err));
   } finally {
     btn.disabled = false; btn.textContent = orig;
@@ -19385,10 +19388,15 @@ async function saveIngredientScanReview(){
   const target = scanTargetFilter();
   const isPersonal = !ingredientShelfIsShared(target);
   const listId = (isPersonal && target !== 'mine') ? target : null;
-  let saved = 0, skipped = 0;
-  // One at a time, not a bulk insert: a name that already exists on this shelf hits the unique
-  // index (ingredients_shared_name_uidx / ingredients_personal_name_uidx) and must not sink the
-  // whole batch — those just get skipped and reported, everything else still saves.
+  let saved = 0, updated = 0, skipped = 0;
+  // One at a time, not a bulk insert: a name that already exists in this shelf's unique
+  // namespace (ingredients_shared_name_uidx spans the WHOLE shared side — library + company —
+  // so a scanned "Onion" collides with the 2,005-item price book) must not sink the batch.
+  // Richard, 18.7.: a collision now UPDATES the existing row (price / supplier / empty
+  // category, alias merge) instead of silently skipping — that's what the invoice scan
+  // already did, and it's the only way a scan can ever attach a supplier to library items.
+  const sameName = (row, name) => normalizeIngredientText(row.name) === normalizeIngredientText(name)
+    || (row.aliases || []).some(a => normalizeIngredientText(a) === normalizeIngredientText(name));
   for(const x of toSave){
     const orig = (x.original_name || '').trim();
     const aliases = (orig && normalizeIngredientText(orig) !== normalizeIngredientText(x.name)) ? [orig] : [];
@@ -19405,12 +19413,31 @@ async function saveIngredientScanReview(){
       is_personal: isPersonal,
       list_id: listId
     });
-    if(error) skipped++; else saved++;
+    if(!error){ saved++; continue; }
+    // Find the row it collided with, inside the same unique namespace the index enforces:
+    // shared shelves share ONE namespace per kitchen; personal ones are per-person per-list.
+    const match = _ingredients.find(r => isPersonal
+      ? (r.is_personal && r.created_by === currentUser.id && (r.list_id || null) === (listId || null) && (sameName(r, x.name) || (orig && sameName(r, orig))))
+      : (!r.is_personal && (sameName(r, x.name) || (orig && sameName(r, orig)))));
+    if(!match){ skipped++; continue; }
+    // Never overwrite what the chef set by hand: price + supplier come from the fresher scan,
+    // category only fills a blank (same rule as AI Details / invoice scan).
+    const patch = {};
+    if(x.price != null) { patch.price = x.price; patch.price_updated_at = new Date().toISOString(); }
+    if(_pendingScanSupplier) patch.supplier = _pendingScanSupplier;
+    if(x.category && !match.category) patch.category = x.category;
+    const mergedAliases = Array.from(new Set([...(match.aliases || []), ...aliases]));
+    if(mergedAliases.length !== (match.aliases || []).length) patch.aliases = mergedAliases;
+    if(!Object.keys(patch).length){ skipped++; continue; }
+    const { error: upErr } = await sb.from('ingredients').update(patch).eq('id', match.id);
+    if(upErr){ skipped++; continue; }
+    Object.assign(match, patch);
+    updated++;
   }
-  statusEl.textContent = skipped ? `Saved ${saved}, skipped ${skipped} (already on this shelf).` : `Saved ${saved}.`;
+  statusEl.textContent = `Saved ${saved} new` + (updated ? ` · updated ${updated} existing (price/supplier)` : '') + (skipped ? ` · skipped ${skipped}` : '') + '.';
   await loadAppData();
   renderIngredientList();
-  setTimeout(closeIngredientScanReview, skipped ? 1800 : 400);
+  setTimeout(closeIngredientScanReview, (updated || skipped) ? 2200 : 400);
 }
 
 /* ---------- Upload Schedule — scan a real roster (Dienstplan, same format the Schedule
