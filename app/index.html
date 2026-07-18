@@ -13967,6 +13967,9 @@ function renderIngredientListsGrid(){
       ()=>openItemContextMenu('ingredientShelf', key, label, isHidden, false));
   };
   fixedTile('chefos', '✨', 'ChefOS');
+  // Company Ingredients (Richard, 18.7.): the kitchen's own shared additions — mirror of the
+  // Company Recipes tile, shown in Company mode only.
+  if(currentAccountType === 'company') fixedTile('company', '🏢', 'Company Ingredients');
   if(showPersonalInCompany) fixedTile('mine', '👤', 'My Ingredients');
   fixedTile('public', '🌍', 'Public');
   const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
@@ -14177,6 +14180,7 @@ function closeIngredientShareSheet(){
 function currentIngredientListName(){
   if(ingredientSourceFilter === 'mine') return '👤 My Ingredients';
   if(ingredientSourceFilter === 'chefos') return '✨ ChefOS Ingredients';
+  if(ingredientSourceFilter === 'company') return '🏢 Company Ingredients';
   if(ingredientSourceFilter === 'public') return '🌍 Public Ingredients';
   const l = _ingredientLists.find(x=>x.id === ingredientSourceFilter);
   return '📋 ' + ((l && l.name) || 'List');
@@ -14188,10 +14192,14 @@ function ingredientOnCurrentShelf(ing){
   if(ingredientSourceFilter === 'public') return !!ing.is_public;
   // All other shelves are MY kitchen only — foreign shared rows never appear on them.
   if(ing._foreign) return false;
-  if(ingredientSourceFilter === 'chefos') return !ing.is_personal;
+  // ChefOS = seeded library (created_by null); Company = the kitchen's own shared additions
+  // (created_by set) — exact mirror of the recipes shelves (Richard, 18.7.: parity rule).
+  if(ingredientSourceFilter === 'chefos') return !ing.is_personal && !ing.created_by;
+  if(ingredientSourceFilter === 'company') return !ing.is_personal && !!ing.created_by;
   if(ingredientSourceFilter === 'mine') return !!ing.is_personal && !ing.list_id;
   return ing.list_id === ingredientSourceFilter;
 }
+function ingredientShelfIsShared(f){ return f === 'chefos' || f === 'company'; }
 /* Adding to the shared ChefOS shelf is admin-only (Richard, 16.7.) — any kind of admin (Head
    Admin or a Kitchen Admin with any admin_perms), matching the RLS check in db/105. My
    Ingredients (is_personal) stays open to everyone regardless. */
@@ -14204,6 +14212,11 @@ function showIngredients(){
   // projects.
   const personalAllowed = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
   if(!personalAllowed && ingredientSourceFilter === 'mine'){
+    ingredientSourceFilter = 'chefos';
+  }
+  // Company shelf exists only in Company mode — Personal mode redirects to ChefOS (mirror of
+  // the recipes rule).
+  if(currentAccountType !== 'company' && ingredientSourceFilter === 'company'){
     ingredientSourceFilter = 'chefos';
   }
   logEvent('view_opened', {view:'ingredients', source:ingredientSourceFilter});
@@ -14219,17 +14232,21 @@ function showIngredients(){
   renderIngredientList();
   refreshIngredientFiltersActiveDot();
   // Public shelf (db/136) is READ-ONLY — other kitchens' shared ingredients, browse only.
+  // Company shelf (18.7., parity rule): the kitchen's own shared additions — every team
+  // member can add there (like company recipes); ChefOS library stays admin-curated.
   const isPublicShelf = ingredientSourceFilter === 'public';
-  const isPersonalShelf = ingredientSourceFilter !== 'chefos' && !isPublicShelf;
-  const canAdd = (ingredientSourceFilter !== 'chefos' || canManageSharedIngredients()) && !isPublicShelf;
+  const isCompanyShelf = ingredientSourceFilter === 'company';
+  const isPersonalShelf = !ingredientShelfIsShared(ingredientSourceFilter) && !isPublicShelf;
+  // Shared shelves (ChefOS aj Company) = admin-only adds — the DB enforces it too (db/105).
+  const canAdd = (!ingredientShelfIsShared(ingredientSourceFilter) || canManageSharedIngredients()) && !isPublicShelf;
   const fab = document.getElementById('addIngredientFab');
   if(fab) fab.style.display = canAdd ? 'flex' : 'none';
   const customIngredientsBtn = document.getElementById('customIngredientsIconBtn');
   if(customIngredientsBtn) customIngredientsBtn.style.display = (currentIsAdmin && !isPublicShelf) ? 'flex' : 'none';
   const genBtn = document.getElementById('generateDetailsBtn');
-  if(genBtn) genBtn.style.display = isPersonalShelf ? 'flex' : 'none';
+  if(genBtn) genBtn.style.display = (isPersonalShelf || isCompanyShelf) ? 'flex' : 'none';
   const invBtn = document.getElementById('invoiceScanBtn');
-  if(invBtn) invBtn.style.display = isPersonalShelf ? 'flex' : 'none';
+  if(invBtn) invBtn.style.display = (isPersonalShelf || isCompanyShelf) ? 'flex' : 'none';
   const shareBtn = document.getElementById('ingredientShareBtn');
   if(shareBtn) shareBtn.style.display = isPersonalShelf ? 'flex' : 'none';
   syncRecipeSourcePin();
@@ -14839,7 +14856,7 @@ function renderIngredientForm(data){
   window.scrollTo(0,0);
   requestAnimationFrame(()=>window.scrollTo(0,0));
   const scanBtn = document.getElementById('ingredientScanFormBtn');
-  if(scanBtn) scanBtn.style.display = (ingredientSourceFilter === 'mine' || canManageSharedIngredients()) ? '' : 'none';
+  if(scanBtn) scanBtn.style.display = (!ingredientShelfIsShared(ingredientSourceFilter) || canManageSharedIngredients()) ? '' : 'none';
   if(ingredientEditingId){
     const delBtn = document.createElement('button');
     delBtn.className = 'danger-btn';
@@ -14894,7 +14911,7 @@ async function saveIngredientForm(){
     ({ error } = await sb.from('ingredients').update(payload).eq('id', ingredientEditingId));
   } else {
     let insertedRow;
-    ({ data: insertedRow, error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: ingredientSourceFilter !== 'chefos', list_id: (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null }).select().single());
+    ({ data: insertedRow, error } = await sb.from('ingredients').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: !ingredientShelfIsShared(ingredientSourceFilter), list_id: (!ingredientShelfIsShared(ingredientSourceFilter) && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null }).select().single());
     if(insertedRow) savedIngredientId = insertedRow.id;
   }
   if(!error && priceChanged && savedIngredientId){
@@ -19131,8 +19148,8 @@ async function runInvoiceScan(base64, mediaType, fileName){
     if(adds.length){
       // Target shelf captured at scan start — see handleInvoiceScanFile (18.7. bod 3).
       const target = scanTargetFilter();
-      const listId = (target !== 'chefos' && target !== 'mine') ? target : null;
-      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: target !== 'chefos', list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
+      const listId = (!ingredientShelfIsShared(target) && target !== 'mine') ? target : null;
+      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: !ingredientShelfIsShared(target), list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
       const { data: ins, error } = await sb.from('ingredients').insert(rows).select();
       if(error) throw error;
       (ins || []).forEach(x=>{
@@ -19260,6 +19277,7 @@ function scanTargetListName(){
   const f = scanTargetFilter();
   if(f === 'mine') return '👤 My Ingredients';
   if(f === 'chefos') return '✨ ChefOS Ingredients';
+  if(f === 'company') return '🏢 Company Ingredients';
   const l = _ingredientLists.find(x=>x.id === f);
   return l ? ('📋 ' + l.name) : currentIngredientListName();
 }
@@ -19313,7 +19331,7 @@ let _pendingScanSupplier = null;
 function openIngredientScanReview(input){
   _pendingScanIngredients = (input.ingredients || []).map(x=>({ ...x, _include:true }));
   _pendingScanSupplier = (input.supplier || '').trim() || null;
-  document.getElementById('isr_shelf_label').textContent = (scanTargetFilter() === 'chefos' ? 'ChefOS (shared with your kitchen)' : scanTargetListName() + ' (private)') + (_pendingScanSupplier ? ` · supplier: ${_pendingScanSupplier}` : '');
+  document.getElementById('isr_shelf_label').textContent = (ingredientShelfIsShared(scanTargetFilter()) ? scanTargetListName() + ' (shared with your kitchen)' : scanTargetListName() + ' (private)') + (_pendingScanSupplier ? ` · supplier: ${_pendingScanSupplier}` : '');
   renderIngredientScanReviewList();
   document.getElementById('ingredientScanReviewOverlay').classList.add('open');
 }
@@ -19341,7 +19359,7 @@ async function saveIngredientScanReview(){
   statusEl.textContent = 'Saving…';
   // Save into the shelf the scan was STARTED from, not wherever the person navigated meanwhile.
   const target = scanTargetFilter();
-  const isPersonal = target !== 'chefos';
+  const isPersonal = !ingredientShelfIsShared(target);
   const listId = (isPersonal && target !== 'mine') ? target : null;
   let saved = 0, skipped = 0;
   // One at a time, not a bulk insert: a name that already exists on this shelf hits the unique
