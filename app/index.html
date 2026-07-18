@@ -11374,10 +11374,11 @@ const ADMIN_TILE_DEFS = [
   { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
   /* Add Team Member (Richard, 18.7. — db/145): a kitchen admin's kitchen ALREADY EXISTS, so
      "Create Team" made no sense there — what they need is to bring people INTO it. This sheet
-     mints a join code for the CURRENT kitchen (6-char code + QR + link + email send). Creating
-     brand-new kitchens stays with the Head Admin (Create Team / Add Company below). */
+     mints a join code for the CURRENT kitchen (6-char code + QR + link + email send). The
+     Create Team tile was removed entirely 18.7. evening (Richard: "vôbec ju nikde
+     nepotrebujeme") — new kitchens are born via Add Company below. Future idea (Poznámky):
+     kitchen admins may one day create multiple teams inside their own company. */
   { key:'addTeamMember', icon:'➕', staticLabel:'Add Team Member', onclick:'openAddTeamMember()', adminOnly:()=> !!(currentAdminPerms.company_admin || currentAdminPerms.create_teams || currentIsAdmin) },
-  { key:'createTeam', icon:'🏗️', staticLabel:'Create Team', onclick:'openCreateTeam()', adminOnly:()=> currentIsAdmin },
   /* Add Company (bod 5, 16.7. — db/109) — Richard's side of onboarding a new restaurant:
      names the company, sends ONE single-use invite email; whoever accepts becomes that
      kitchen's Company Admin automatically. */
