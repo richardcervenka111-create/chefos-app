@@ -1,4 +1,4 @@
-# ChefOS — Project Roadmap
+# Sautero — Project Roadmap
 
 *Living document — status updated as we complete each phase. We do not start a phase's tasks
 until the previous phase is explicitly approved by Richard.*
@@ -10,7 +10,7 @@ until the previous phase is explicitly approved by Richard.*
 
 | # | Phase | Status | Objective |
 |---|---|---|---|
-| 0 | Foundation & Validation | **Done 2026-07-08** | Define exactly what ChefOS v1 is, for whom, and on what technical foundation |
+| 0 | Foundation & Validation | **Done 2026-07-08** | Define exactly what Sautero v1 is, for whom, and on what technical foundation |
 | 1 | Core Recipe Engine | **Done 2026-07-09** (1a data foundation + 1b AI import live) | Rebuild the recipe backbone (full standardized format, calculator, AI import) on real, shared infrastructure |
 | 2 | Kitchen Flow MVP | **Largely built, not service-tested** — Check List live since 2026-07-09-10, roles/live-service validation pending | The live prep board, multi-user roles, tested in the real pilot kitchen |
 | 3 | Inventory, Food Cost & Shopping | **Partially pulled forward** — priced ingredients (~1,300 live), food cost + yield, Order List; real stock tracking not started | Connect recipes to real stock levels and real cost numbers |
@@ -21,7 +21,7 @@ until the previous phase is explicitly approved by Richard.*
 
 ## Phase 0 — Foundation & Validation (current)
 
-**Objective:** Get an unambiguous, written definition of ChefOS v1 before writing new product
+**Objective:** Get an unambiguous, written definition of Sautero v1 before writing new product
 code.
 
 **Decisions made 2026-07-08:** see `MVP_DEFINITION.md` for the full write-up.
@@ -192,7 +192,7 @@ expands a per-ingredient kcal/protein/carbs/fat breakdown, same transparency app
 ## Autonomous batch — 2026-07-09, later same session
 
 Richard granted broad autonomy to proceed on well-scoped technical work without per-step
-check-ins (see memory `feedback-chefos-autonomy-grant`). Completed in this batch:
+check-ins (see memory `feedback-sautero-autonomy-grant`). Completed in this batch:
 
 - **Full 20-field recipe form.** All the Phase 1a spec fields that already existed as DB
   columns but had no UI (description, cuisine, equipment, chef notes, storage, shelf life,
@@ -393,7 +393,7 @@ done here.
   indicator.
 
 **Deployed to production:** the app is now live at
-`https://richardcervenka111-create.github.io/chefos-app/` via GitHub Pages (a public repo,
+`https://richardcervenka111-create.github.io/sautero-app/` via GitHub Pages (a public repo,
 safe since the only credential in the file is the Supabase publishable/anon key, which is
 meant to be client-visible and is protected by RLS). Updates ship by re-uploading
 `app/index.html` through GitHub's web UI (Add file → Upload files) — no build step, no CLI.
@@ -835,7 +835,7 @@ any code could be written correctly.
 **Decided today:**
 - Label printing (Check List + Recipes + General's "Print Labels" icon): **use the device's
   native print dialog** (`window.print()`) — works with whatever printer is already paired to
-  the phone/iPad (AirPrint etc.) without ChefOS needing a printer-specific driver. Real
+  the phone/iPad (AirPrint etc.) without Sautero needing a printer-specific driver. Real
   WiFi/Bluetooth printer *auto-discovery* stays parked until a specific printer model is chosen.
 - Login stays **email-code only, no password** — the "email + password twice" note in
   General.txt is parked as a future idea, not built (adds real friction, and the current
@@ -918,14 +918,14 @@ option already shipped.
 
 **New SQL to run:** `36_prep_hidden.sql`.
 
-## ChefOS Master Board — new visual identity (2026-07-11)
+## Sautero Master Board — new visual identity (2026-07-11)
 
-Richard sent a reference file (`ChefOS_Master_Development_Board.html` — dark navy, teal accent,
+Richard sent a reference file (`Sautero_Master_Development_Board.html` — dark navy, teal accent,
 sticky progress bar, localStorage checkboxes) and asked for a comprehensive version covering
 everything shipped and everything planned, with a live pie-chart progress indicator and each
 task tagged by who does it (him vs. me). Built `app/board.html`:
 - Exact same palette/fonts as his reference (`#0A1A2F` bg, `#34F7D7` teal accent, `#9C949E`
-  muted text, `-apple-system, Arial`) — declared his standing visual identity for ChefOS
+  muted text, `-apple-system, Arial`) — declared his standing visual identity for Sautero
   documents going forward, saved to memory.
 - Added a CSS `conic-gradient` pie chart in the sticky top bar (no chart library, no canvas),
   updating live alongside the existing progress bar/stats.
@@ -940,7 +940,7 @@ task tagged by who does it (him vs. me). Built `app/board.html`:
 warm copper/sage palette) should be restyled to match this new navy/teal identity too — flagged
 to Richard, not changed without his confirmation.
 
-## Unified ChefOS visual identity applied everywhere (2026-07-11)
+## Unified Sautero visual identity applied everywhere (2026-07-11)
 
 Richard confirmed: the whole visual should be unified ("všetko cely vizual bude jednotný").
 Migrated `app/presentation.html` and `app/planning.html` off their original warm copper/sage
@@ -949,7 +949,7 @@ Migrated `app/presentation.html` and `app/planning.html` off their original warm
 the new secondary accent (replaces copper's "in-progress" role and sage's "warning/disclaimer"
 role depending on context — see each file's own comments), `#9C949E` muted text, Georgia serif
 headings dropped in favor of the same `-apple-system, Arial` used everywhere else. Chart.js
-colors in presentation.html's roadmap/revenue charts updated to match. All three ChefOS
+colors in presentation.html's roadmap/revenue charts updated to match. All three Sautero
 documents (presentation, planning, board) now share one CSS variable naming scheme
 (`--bg/--paper/--paper-raised/--ink/--ink-dim/--ink-faint/--rule/--accent/--gold`), so future
 edits only need to touch one place's definitions to stay in sync.
@@ -1424,7 +1424,7 @@ display-only.
    that shift code's start time in `shift_codes`, and fires once when 45 minutes out (a
    `localStorage` flag per date stops it firing repeatedly). Requests `Notification` permission
    on first enable, from the toggle tap itself (a real user gesture, required by browsers).
-   **Important, disclosed to Richard directly**: this only works while ChefOS is open in the
+   **Important, disclosed to Richard directly**: this only works while Sautero is open in the
    browser (foreground, or a backgrounded tab the OS hasn't killed) — there's no server
    component in this app to wake a fully closed phone/tab. True background push would need Web
    Push + a server-side scheduler (e.g. a Supabase Edge Function on a cron), a separate, larger
@@ -1548,7 +1548,7 @@ No new SQL — all three are UI/logic changes over existing `prep_items` columns
 7. **"Clear queue" renamed to "Clear list"** everywhere (button, confirm dialog, "Add to Print
    Queue" → "Add to Print List"). Also: Richard found Print All / Clear List not working on one
    of his 3 test devices, traced to the browser — [Firefox Klar](https://apps.apple.com/ch/app/firefox-klar/id1073435754),
-   a privacy-focused browser that blocks trackers/scripts aggressively by default. Not a ChefOS
+   a privacy-focused browser that blocks trackers/scripts aggressively by default. Not a Sautero
    bug; noting it here as a known incompatibility in case it comes up again — Klar's tracking
    protection can interfere with `window.print()`/localStorage-heavy flows. No fix needed on
    our side unless it turns out to affect a mainstream browser too.
@@ -1829,7 +1829,7 @@ to reset all 4 filters + search was clicking "All" on each row individually).
    button was a `printLabelsNotImplemented()` placeholder — wired it up for real, mirroring Order
    List's `toggleOrderListGrouping()` pattern exactly (groups the print queue by `station`, with
    a "No section" bucket for manually-typed labels that never got one).
-4. **Minimalist ChefOS logo** — a simple circular monogram (white circle, copper ring, copper
+4. **Minimalist Sautero logo** — a simple circular monogram (white circle, copper ring, copper
    "C") kept deliberately plain so it stays legible at the tiny size it needs to sit at.
    `chefOSLogoMarkSvg(size)` renders it inline as SVG (no image asset). Applied it live in two
    places on the My Team screen: a small brand header, and centered on top of the invite QR
@@ -1899,7 +1899,7 @@ handler/id resolves — only the two known dynamic-id false positives remain), p
 other code still referenced the old `ingredientActiveFoodType`/`renderIngredientFoodTypeChips`
 names after the rename.
 
-## ChefOS logo v2 — Richard's first pass looked too generic (2026-07-13, later still)
+## Sautero logo v2 — Richard's first pass looked too generic (2026-07-13, later still)
 
 Richard: "ten qr kod je niečo hrozne... nepoužívaj takú farbu a sprav tomu viac umelecký font."
 Replaced the plain system-font "C" (copper, bold sans) with a hand-built abstract mark: a bold
@@ -1908,7 +1908,7 @@ open ring drawn as one precise SVG arc (`M 46.8 42.3 A 18 18 0 1 1 46.8 21.7`, r
 is immune to whatever fonts happen to be installed on Richard's phone since nothing in the mark
 itself depends on font rendering. Colors moved off copper entirely to a deep sage on warm
 cream, still pulled from the app's own existing palette (not a new color introduced from
-nowhere). The "ChefOS" wordmark next to it on My Team also got a pass — was plain bold sans,
+nowhere). The "Sautero" wordmark next to it on My Team also got a pass — was plain bold sans,
 now Georgia italic in sage, a more editorial/elegant pairing with the mark. Same
 `chefOSLogoMarkSvg(size)` function, so both the small brand header and the QR-code overlay pick
 up the new design automatically with no other code changes.
@@ -1980,20 +1980,20 @@ touched by this session's features (`recipe_category_icons`, `prep_dishes`, `pre
 
 ## Pilot kitchen changes from Hotel Schweizerhof to Burrito Bandito & Lido (2026-07-13, later still)
 
-The backlog v2 expert review (see `app/backlog.html`) surfaced a real founder-level risk: ChefOS
+The backlog v2 expert review (see `app/backlog.html`) surfaced a real founder-level risk: Sautero
 was built during Richard's employment at Hotel Schweizerhof Bern AG, and its Check List prep
 sheets were built from that hotel's real menu documents — Swiss law (OR Art. 332) can give an
 employer rights over work-related output, and there's reportedly an active labor dispute with
 the hotel concurrently, which raises the stakes considerably. Richard resolved this directly
 rather than treating it as an open risk to manage around:
 
-- **Hotel Schweizerhof data is being retired from ChefOS entirely** — not worth keeping given
+- **Hotel Schweizerhof data is being retired from Sautero entirely** — not worth keeping given
   the IP exposure, and Richard is leaving that job anyway.
 - **New pilot kitchen: Burrito Bandito & Lido** — one company, two separate venues. Confirmed
   and reflected in `app/presentation.html` (hero lede, Market KPI, staff-count KPI, pilot-kitchen
   KPI) and `docs/VISUAL_GUIDE.html`'s Schedule section description.
 - **RC Studio (Richard's other venture) is shelved** — directly addresses the "capacity" risk
-  the same review flagged (full-time new job + ChefOS + a third venture wasn't sustainable at
+  the same review flagged (full-time new job + Sautero + a third venture wasn't sustainable at
   the build pace this project has been running at).
 - **First draft of a written pilot agreement** — `docs/PILOT_AGREEMENT.md`, covering what the
   app is (beta), what gets logged, that data belongs to the kitchen, a HACCP-output liability

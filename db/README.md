@@ -31,7 +31,7 @@ commit/push/deploy on violation.
 
 ---
 
-# ChefOS — Database setup (Phase 1a)
+# Sautero — Database setup (Phase 1a)
 
 Run these two files, in order, in the Supabase Dashboard → SQL Editor → New query:
 

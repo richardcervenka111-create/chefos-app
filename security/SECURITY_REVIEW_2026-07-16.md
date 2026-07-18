@@ -1,4 +1,4 @@
-# ChefOS — Technical Security Review (self-review, 16 July 2026)
+# Sautero — Technical Security Review (self-review, 16 July 2026)
 
 Written by Claude, not an independent auditor — treat this as a structured starting point for a
 real security review, not a substitute for one. Ran `scripts/audit_db.py` against all 100
@@ -51,7 +51,7 @@ profiles-lockout fix (db/90).
    decision: keep both, or retire the old one now that `create_team` exists.
 3. **Join codes have no attempt-throttling** beyond Supabase's general API limits. 6 uppercase
    alphanumeric characters (36^6 ≈ 2.2 billion combinations) is fine against casual guessing at
-   current scale, but isn't a substitute for real rate-limiting if ChefOS grows.
+   current scale, but isn't a substitute for real rate-limiting if Sautero grows.
 4. **Revoking hours-sharing consent is not retroactive** — it stops future admin reads, but
    doesn't (and can't) un-show data an admin already viewed in a past report. Normal limitation
    of this kind of feature, worth stating plainly to users rather than implying otherwise.

@@ -1,10 +1,10 @@
-# ChefOS — MVP Definition (v1)
+# Sautero — MVP Definition (v1)
 
 *Living document. Last updated: 2026-07-08 (end of Phase 0).*
 
 ## In one sentence
 
-ChefOS v1 is a mobile/tablet-first live prep board — **Kitchen Flow** — for one professional
+Sautero v1 is a mobile/tablet-first live prep board — **Kitchen Flow** — for one professional
 kitchen, backed by a proper standardized recipe system, so a chef can see at a glance what's
 done, in progress, waiting, or blocked at every station, without a single conversation about
 whose fault it is.
@@ -38,7 +38,7 @@ service to run.
 
 ## Why this scope
 
-The full ChefOS vision is a multi-year, 20+ feature platform. Trying to build all of it before
+The full Sautero vision is a multi-year, 20+ feature platform. Trying to build all of it before
 proving the core idea works in a real kitchen is the single biggest risk to the company. We
 have a real pilot kitchen willing to test with real service — that's the most valuable asset
 right now, and the fastest way to find out if Kitchen Flow actually reduces stress or just adds

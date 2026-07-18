@@ -1,7 +1,7 @@
-<!-- ChefOS — branded Supabase auth email (Richard, 16.7. večer).
+<!-- Sautero — branded Supabase auth email (Richard, 16.7. večer).
      KAM TO VLOŽIŤ: Supabase dashboard → Authentication → Emails → Templates → "Magic Link"
      → prepni na vlastný obsah, vlož CELÝ tento súbor do poľa Body a ulož.
-     Subject line hore nastav na:  Your ChefOS sign-in link
+     Subject line hore nastav na:  Your Sautero sign-in link
      Ten istý obsah môžeš vložiť aj do šablóny "Confirm signup" (používa rovnakú premennú).
      {{ .ConfirmationURL }} je Supabase premenná — nechaj ju presne tak, nahradí sa linkom.
      Email-klienti nevedia moderné CSS, preto všetko inline a v tabuľkách — to je zámer. -->
@@ -12,20 +12,20 @@
         <tr>
           <td style="padding:28px 32px 20px 32px; border-bottom:2px solid #34F7D7;">
             <div style="font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#34F7D7; font-weight:bold;">KITCHEN NOTEBOOK</div>
-            <div style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:30px; color:#ffffff; margin-top:2px;">ChefOS</div>
+            <div style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:30px; color:#ffffff; margin-top:2px;">Sautero</div>
           </td>
         </tr>
         <tr>
           <td style="padding:28px 32px 8px 32px;">
             <div style="font-family:Georgia,'Times New Roman',serif; font-size:22px; color:#ffffff;">Your kitchen is ready.</div>
             <div style="font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.6; color:#9C949E; margin-top:10px;">
-              One tap on the button below signs you in to ChefOS — recipes, prep lists, ingredients and your whole kitchen, live on your phone. No password needed.
+              One tap on the button below signs you in to Sautero — recipes, prep lists, ingredients and your whole kitchen, live on your phone. No password needed.
             </div>
           </td>
         </tr>
         <tr>
           <td align="center" style="padding:22px 32px 8px 32px;">
-            <a href="{{ .ConfirmationURL }}" style="display:inline-block; background-color:#34F7D7; color:#0A1A2F; font-family:Arial,Helvetica,sans-serif; font-size:16px; font-weight:bold; text-decoration:none; padding:14px 38px; border-radius:10px;">Open ChefOS</a>
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block; background-color:#34F7D7; color:#0A1A2F; font-family:Arial,Helvetica,sans-serif; font-size:16px; font-weight:bold; text-decoration:none; padding:14px 38px; border-radius:10px;">Open Sautero</a>
           </td>
         </tr>
         <tr>
@@ -47,7 +47,7 @@
             <div style="font-family:Arial,Helvetica,sans-serif; font-size:11px; line-height:1.6; color:#6b7688;">
               This link works once and expires shortly — if it's expired, just request a new one from the sign-in screen.<br>
               Didn't expect this email? You can safely ignore it — nothing happens without the link.<br><br>
-              ChefOS · app.chefos.ch
+              Sautero · app.chefos.ch
             </div>
           </td>
         </tr>

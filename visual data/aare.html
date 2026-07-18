@@ -41,6 +41,7 @@
   .verdict{ background:linear-gradient(135deg, rgba(232,196,104,.10), transparent); border:1px solid rgba(232,196,104,.4); border-radius:14px; padding:16px; font-size:13.5px; color:var(--ink-dim); }
   .verdict b{ color:var(--ink); }
   .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
   .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.78); display:none; align-items:flex-end; justify-content:center; z-index:100; }
   .modal-backdrop.open{ display:flex; }
   .modal{ background:var(--paper); border:1px solid var(--rule); border-bottom:none; border-radius:20px 20px 0 0; width:100%; max-width:560px; max-height:82vh; overflow-y:auto; padding:14px 20px calc(24px + env(safe-area-inset-bottom,0px)) 20px; }
@@ -50,35 +51,34 @@
   .modal .body{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
   .modal .body b{ color:var(--ink); }
   .modal .close{ width:100%; margin-top:14px; min-height:46px; border-radius:12px; border:1px solid var(--rule); background:none; color:var(--ink); font-size:14px; font-weight:700; cursor:pointer; }
-  @media print{ .chefos-stamp{ display:none; } }
+  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
 <body>
+<button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
 <div class="wrap">
 
-  <div class="kicker">Investori · research 18. 7. 2026</div>
-  <h1>🤝 Aare Ventures — investori v Berne</h1>
-  <p class="lede">Bernský spolok (založený 2019), ktorý štyrikrát ročne prepája preverené švajčiarske startupy s aktívnymi business angelmi — pitch eventy s networkingom. Zdroj: aareventures.ch (18.7.2026). Ťukni na kartu pre podrobnosti.</p>
+  <div class="kicker" data-sk="Investori · research 18. 7. 2026" data-en="Investors · research Jul 18, 2026"></div>
+  <h1 data-sk="🤝 Aare Ventures — investori v Berne" data-en="🤝 Aare Ventures — investors in Bern"></h1>
+  <p class="lede" data-sk="Bernský spolok (založený 2019), ktorý štyrikrát ročne prepája preverené švajčiarske startupy s aktívnymi business angelmi — pitch eventy s networkingom. Zdroj: aareventures.ch (18.7.2026). Ťukni na kartu pre podrobnosti." data-en="A Bern association (founded 2019) that connects vetted Swiss startups with active business angels four times a year — pitch events with networking. Source: aareventures.ch (Jul 18, 2026). Tap a card for details."></p>
 
   <div class="stats">
-    <div class="stat"><div class="num">&gt;260</div><div class="lbl">pitchov doteraz</div></div>
-    <div class="stat"><div class="num">27</div><div class="lbl">eventov</div></div>
-    <div class="stat"><div class="num">&gt;70</div><div class="lbl">aktívnych investorov</div></div>
-    <div class="stat"><div class="num">&gt;20 mil.</div><div class="lbl">CHF preinvestovaných</div></div>
+    <div class="stat"><div class="num">&gt;260</div><div class="lbl" data-sk="pitchov doteraz" data-en="pitches so far"></div></div>
+    <div class="stat"><div class="num">27</div><div class="lbl" data-sk="eventov" data-en="events"></div></div>
+    <div class="stat"><div class="num">&gt;70</div><div class="lbl" data-sk="aktívnych investorov" data-en="active investors"></div></div>
+    <div class="stat"><div class="num">&gt;20 mil.</div><div class="lbl" data-sk="CHF preinvestovaných" data-en="CHF invested"></div></div>
   </div>
 
-  <div class="section-label"><span class="n">01</span><h2>Ako nám môžu pomôcť</h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">01</span><h2 data-sk="Ako nám môžu pomôcť" data-en="How they can help us"></h2><div class="rule"></div></div>
   <div id="secHelp"></div>
 
-  <div class="section-label"><span class="n">02</span><h2>Ich kritériá vs. Sautero dnes</h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">02</span><h2 data-sk="Ich kritériá vs. Sautero dnes" data-en="Their criteria vs. Sautero today"></h2><div class="rule"></div></div>
   <div id="secFit"></div>
 
-  <div class="section-label"><span class="n">03</span><h2>Verdikt</h2><div class="rule"></div></div>
-  <div class="verdict">
-    <b>Presne náš región a presne naša fáza o pár mesiacov — ale nie dnes.</b> Sautero dnes nespĺňa dve kľúčové podmienky: prvé tržby a financovanie uzatvárateľné do 3 mesiacov. Najbližší event (14.9., prihláška do 23.8.) prichádza tesne po štarte trialu — <b>ak trial + founding pre-sale vyjdú, prihláška má zmysel; inak cieliť ďalší event (Q4/Q1)</b>. Medzitým: napísať na contact@aareventures.ch, či sa dá prísť na networking apéro ako hosť bez pitchovania — sedia tam bernskí investori aj Berner Kantonalbank, presne naše publikum.
-  </div>
+  <div class="section-label"><span class="n">03</span><h2 data-sk="Verdikt" data-en="Verdict"></h2><div class="rule"></div></div>
+  <div class="verdict" data-sk="<b>Presne náš región a presne naša fáza o pár mesiacov — ale nie dnes.</b> Sautero dnes nespĺňa dve kľúčové podmienky: prvé tržby a financovanie uzatvárateľné do 3 mesiacov. Najbližší event (14.9., prihláška do 23.8.) prichádza tesne po štarte trialu — <b>ak trial + founding pre-sale vyjdú, prihláška má zmysel; inak cieliť ďalší event (Q4/Q1)</b>. Medzitým: napísať na contact@aareventures.ch, či sa dá prísť na networking apéro ako hosť bez pitchovania — sedia tam bernskí investori aj Berner Kantonalbank, presne naše publikum." data-en="<b>Exactly our region and exactly our stage in a few months — but not today.</b> Sautero currently fails two key conditions: first revenue and a financing round closable within 3 months. The next event (14 Sep, application by 23 Aug) comes right after the trial starts — <b>if the trial + founding pre-sale work out, applying makes sense; otherwise target the next event (Q4/Q1)</b>. Meanwhile: write to contact@aareventures.ch asking whether we can attend the networking apéro as a guest without pitching — Bern investors and Berner Kantonalbank sit there, exactly our audience."></div>
 
-  <div class="section-label"><span class="n">04</span><h2>Termíny, ľudia, kontakt</h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">04</span><h2 data-sk="Termíny, ľudia, kontakt" data-en="Dates, people, contact"></h2><div class="rule"></div></div>
   <div id="secFacts"></div>
 
 </div>
@@ -89,61 +89,129 @@
     <h3 id="av_t"></h3>
     <div class="sub" id="av_s"></div>
     <div class="body" id="av_b"></div>
-    <button class="close" onclick="closeAv()">Zavrieť</button>
+    <button class="close" onclick="closeAv()" data-sk="Zavrieť" data-en="Close"></button>
   </div>
 </div>
 
-<div class="chefos-stamp">🔄 Stav Sautero k 18. 7. 2026, 11:14</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 13:39" data-en="🔄 Sautero state as of Jul 18, 2026, 13:39"></div>
 
 <script>
+/* FULLY BILINGUAL (standing rule 18.7.): every card carries {sk,en}; the toggle re-renders. */
 const CARDS = [
-  { sec:'help', icon:'💰', pill:null, t:'Kapitál od business angelov', m:'tickety od CHF 25 000, pre-money do 5 mil. — presne seed fáza, v ktorej budeme',
-    s:'financovanie', b:'Ich formát je stavaný na startupy s <b>pre-money valuáciou do CHF 5 mil.</b> a minimálnym ticketom <b>CHF 25 000</b> — presne rozmer, v akom by sa Sautero uchádzal o prvý externý kapitál (dnes beží čisto z Richardovho vrecka, ~CHF 281 hotovosť + ~90 h času). Cez ich eventy pretieklo <b>&gt;CHF 20 mil.</b>' },
-  { sec:'help', icon:'🏔️', pill:null, t:'Bernská sieť — náš domáci trh', m:'investori, BEKB, právnici — všetko v kantóne, kde robíme go-to-market',
-    s:'sieť', b:'Go-to-market Sautera začína <b>v kantóne Bern</b> — a Aare Ventures je bernský spolok s partnermi ako <b>Berner Kantonalbank</b> (gold), právnici <b>Domenig & Partner</b>, <b>Mobiliar, UBS</b>. Bernskí angeli často investujú lokálne a poznajú miestnu gastro scénu — kontakt s nimi má hodnotu aj mimo peňazí (intro do reštaurácií, dôveryhodnosť u Nooch/FWG).' },
-  { sec:'help', icon:'🎤', pill:null, t:'Pitch tréning a viditeľnosť', m:'4+4 pitch (4 min + otázky), 60-sekundové teasery, apéro',
-    s:'formát eventu', b:'Formát: expertný vstup, <b>4-minútové pitche + 4 min otázok</b>, <b>60-sekundové teasery</b> pre startupy mimo hlavného programu a networking apéro. Aj neúspešná prihláška = spätná väzba na deck; teaser slot môže byť nízkoprahový vstup skôr než plný pitch.' },
-  { sec:'help', icon:'🧭', pill:null, t:'Validácia od investorov, nie od kamarátov', m:'ich výberový proces = bezplatný reality-check biznis modelu',
-    s:'feedback', b:'Prihlášky hodnotia mesiac pred eventom podľa tvrdých kritérií (tržby, škálovateľnosť, valuácia). Už samotné vyplnenie formulára (ročné tržby, budget projekcie, biznis model, koľko kapitálu, ticket size, closing) je užitočný <b>checklist toho, čo investori reálne chcú vidieť</b> — použiteľné aj pri Nooch pitchi.' },
-  { sec:'fit', icon:'🇨🇭', pill:'yes', t:'Švajčiarsky startup', m:'áno — Bern, pilot v Berne',
-    s:'kritérium 1/6', b:'Podmienka: „Startup aus der Schweiz". <b>Spĺňame</b> — stavané v Berne, pilot Burrito Bandito & Lido, go-to-market kantón Bern. Formálne ale treba <b>založenú firmu</b> — ďalší dôvod dotiahnuť Einzelfirmu/neskôr GmbH (deadline vlastných podkladov 20.7.).' },
-  { sec:'fit', icon:'📈', pill:'no', t:'Validovaný model + prvé tržby', m:'zatiaľ nie — 0 platiacich, pre-sale ešte nezačal',
-    s:'kritérium 2/6', b:'Chcú „demonstrated initial revenue and validated business model". Dnes máme <b>0 platiacich zákazníkov</b> — monetizácia (founding pre-sale CHF 490/rok + onboarding CHF 990) čaká na Nebenerwerb súhlas + Einzelfirmu. <b>Toto je hlavná brzda prihlášky.</b> Po triali s 25 užívateľmi + prvých pre-sale kuchyniach sa to otáča.' },
-  { sec:'fit', icon:'🚀', pill:'yes', t:'Škálovateľný model v ICT', m:'áno — SaaS, sektor ICT je v ich zozname',
-    s:'kritérium 3/6', b:'Povolené sektory: <b>ICT</b>, High Tech, Deep Tech, Sustainability, Health Tech. Kuchynský SaaS je čistý ICT — multi-tenant appka, ktorá sa škáluje na ďalšie kuchyne bez ďalších nákladov na vývoj. Food-waste/HACCP uhol sa dá legitímne rámovať aj ako Sustainability.' },
-  { sec:'fit', icon:'💎', pill:'yes', t:'Pre-money pod CHF 5 mil.', m:'áno — sme hlboko pod tým',
-    s:'kritérium 4/6', b:'Preferujú pre-money <b>pod CHF 5 mil.</b> — v našej fáze (pre-revenue, sólo founder) by valuácia bola rádovo státisíce až nízke milióny. Žiadny konflikt.' },
-  { sec:'fit', icon:'🎟️', pill:'part', t:'Ticket ≥ CHF 25 000 a jasná runda', m:'museli by sme definovať, koľko a na čo dvíhame',
-    s:'kritérium 5/6', b:'Minimálny ticket CHF 25 000 nie je problém — problém je, že zatiaľ <b>nemáme definovanú rundu</b> (koľko, na čo, za akú equity). Pred prihláškou treba: use-of-funds plán (natívna appka? prvý zamestnanec? marketing kantón Bern?), cieľová suma a valuačná predstava.' },
-  { sec:'fit', icon:'⏱️', pill:'no', t:'Closing do 3 mesiacov po evente', m:'nereálne bez rozbehnutých tržieb a založenej firmy',
-    s:'kritérium 6/6', b:'Chcú financovanie plánovane uzavreté <b>do 3 mesiacov po evente</b>. Bez firmy, tržieb a definovanej rundy je to dnes nereálne — ďalší argument cieliť event až po úspešnom triali a pre-sale.' },
-  { sec:'facts', icon:'📅', pill:null, t:'AV29: pondelok 14. 9. 2026, 16:00–21:00', m:'Eventfabrik Bern · prihláška startupov do 23. 8. 2026',
-    s:'najbližší event', b:'Najbližší pitch event <b>AV29</b>: 14.9.2026, 16:00–21:00, <b>Eventfabrik Bern</b>. Prihláška startupov do <b>23.8.2026</b> — formulár na aareventures.ch/startups + pitch deck (max 20 slidov) na contact@aareventures.ch. Hodnotenie prebieha mesiac pred eventom. Valné zhromaždenie spolku: 19.11.2026.' },
-  { sec:'facts', icon:'👥', pill:null, t:'Ľudia a partneri', m:'board: Schwarzenbach, Domenig, Burkhalter, Moser, Giuffredi, Rufer',
-    s:'kto za tým stojí', b:'<b>Board:</b> Jürg Schwarzenbach, Benjamin Domenig, Tom Burkhalter, Stefan Moser, Guy Giuffredi, Eric Rufer. <b>Tím:</b> Matthias Blaser, Delia Lamparter. <b>Partneri:</b> Berner Kantonalbank + Domenig & Partner (gold), Keller Schneider + T+R AG (silver), Legato, Mobiliar, UBS (bronze). Kontakt: <b>contact@aareventures.ch</b>.' },
-  { sec:'facts', icon:'📋', pill:null, t:'Čo si pripraviť pred prihláškou', m:'firma, tržby, deck ≤20 slidov, definovaná runda, popis v 5 slovách',
-    s:'checklist', b:'Formulár chce: názov firmy + web, údaje o founderoch, <b>ročné tržby (tento + minulý rok)</b>, budget projekcie, popis produktu, biznis model, pre-money valuáciu, koľko kapitálu dvíhame, ticket size, closing plán, odkiaľ o nich vieme + <b>popis firmy v 5 slovách</b> (napr. „Operačný systém pre profesionálne kuchyne"). K tomu deck max 20 slidov — náš Investor Deck v Značka & vízia je dobrý základ, treba doplniť rundu a čísla z trialu.' },
+  { sec:'help', icon:'💰', pill:null,
+    t:{sk:'Kapitál od business angelov', en:'Capital from business angels'},
+    m:{sk:'tickety od CHF 25 000, pre-money do 5 mil. — presne seed fáza, v ktorej budeme', en:'tickets from CHF 25,000, pre-money under 5m — exactly the seed stage we will be in'},
+    s:{sk:'financovanie', en:'funding'},
+    b:{sk:'Ich formát je stavaný na startupy s <b>pre-money valuáciou do CHF 5 mil.</b> a minimálnym ticketom <b>CHF 25 000</b> — presne rozmer, v akom by sa Sautero uchádzal o prvý externý kapitál (dnes beží čisto z Richardovho vrecka, ~CHF 281 hotovosť + ~90 h času). Cez ich eventy pretieklo <b>&gt;CHF 20 mil.</b>',
+       en:'Their format is built for startups with a <b>pre-money valuation under CHF 5m</b> and a minimum ticket of <b>CHF 25,000</b> — exactly the size at which Sautero would seek its first external capital (today it runs purely out of Richard\'s pocket, ~CHF 281 cash + ~90 h of time). <b>&gt;CHF 20m</b> has flowed through their events.'} },
+  { sec:'help', icon:'🏔️', pill:null,
+    t:{sk:'Bernská sieť — náš domáci trh', en:'The Bern network — our home market'},
+    m:{sk:'investori, BEKB, právnici — všetko v kantóne, kde robíme go-to-market', en:'investors, BEKB, lawyers — all in the canton where we go to market'},
+    s:{sk:'sieť', en:'network'},
+    b:{sk:'Go-to-market Sautera začína <b>v kantóne Bern</b> — a Aare Ventures je bernský spolok s partnermi ako <b>Berner Kantonalbank</b> (gold), právnici <b>Domenig &amp; Partner</b>, <b>Mobiliar, UBS</b>. Bernskí angeli často investujú lokálne a poznajú miestnu gastro scénu — kontakt s nimi má hodnotu aj mimo peňazí (intro do reštaurácií, dôveryhodnosť u Nooch/FWG).',
+       en:'Sautero\'s go-to-market starts <b>in canton Bern</b> — and Aare Ventures is a Bern association with partners like <b>Berner Kantonalbank</b> (gold), lawyers <b>Domenig &amp; Partner</b>, <b>Mobiliar, UBS</b>. Bern angels often invest locally and know the local gastro scene — contact with them is valuable beyond money (intros to restaurants, credibility with Nooch/FWG).'} },
+  { sec:'help', icon:'🎤', pill:null,
+    t:{sk:'Pitch tréning a viditeľnosť', en:'Pitch training and visibility'},
+    m:{sk:'4+4 pitch (4 min + otázky), 60-sekundové teasery, apéro', en:'4+4 pitch (4 min + Q&A), 60-second teasers, apéro'},
+    s:{sk:'formát eventu', en:'event format'},
+    b:{sk:'Formát: expertný vstup, <b>4-minútové pitche + 4 min otázok</b>, <b>60-sekundové teasery</b> pre startupy mimo hlavného programu a networking apéro. Aj neúspešná prihláška = spätná väzba na deck; teaser slot môže byť nízkoprahový vstup skôr než plný pitch.',
+       en:'The format: an expert talk, <b>4-minute pitches + 4 min of questions</b>, <b>60-second teasers</b> for startups outside the main programme, and a networking apéro. Even an unsuccessful application = feedback on the deck; the teaser slot can be a low-threshold entry before a full pitch.'} },
+  { sec:'help', icon:'🧭', pill:null,
+    t:{sk:'Validácia od investorov, nie od kamarátov', en:'Validation from investors, not from friends'},
+    m:{sk:'ich výberový proces = bezplatný reality-check biznis modelu', en:'their selection process = a free reality check of the business model'},
+    s:{sk:'feedback', en:'feedback'},
+    b:{sk:'Prihlášky hodnotia mesiac pred eventom podľa tvrdých kritérií (tržby, škálovateľnosť, valuácia). Už samotné vyplnenie formulára (ročné tržby, budget projekcie, biznis model, koľko kapitálu, ticket size, closing) je užitočný <b>checklist toho, čo investori reálne chcú vidieť</b> — použiteľné aj pri Nooch pitchi.',
+       en:'Applications are evaluated a month before the event against hard criteria (revenue, scalability, valuation). Just filling in the form (annual revenue, budget projections, business model, how much capital, ticket size, closing) is a useful <b>checklist of what investors actually want to see</b> — usable for the Nooch pitch too.'} },
+  { sec:'fit', icon:'🇨🇭', pill:'yes',
+    t:{sk:'Švajčiarsky startup', en:'A Swiss startup'},
+    m:{sk:'áno — Bern, pilot v Berne', en:'yes — Bern, pilot in Bern'},
+    s:{sk:'kritérium 1/6', en:'criterion 1/6'},
+    b:{sk:'Podmienka: „Startup aus der Schweiz". <b>Spĺňame</b> — stavané v Berne, pilot Burrito Bandito &amp; Lido, go-to-market kantón Bern. Formálne ale treba <b>založenú firmu</b> — ďalší dôvod dotiahnuť Einzelfirmu/neskôr GmbH (deadline vlastných podkladov 20.7.).',
+       en:'Condition: "Startup aus der Schweiz". <b>We qualify</b> — built in Bern, pilot Burrito Bandito &amp; Lido, go-to-market canton Bern. Formally though it needs <b>a registered company</b> — one more reason to finish the sole proprietorship / later GmbH (own paperwork deadline 20 Jul).'} },
+  { sec:'fit', icon:'📈', pill:'no',
+    t:{sk:'Validovaný model + prvé tržby', en:'Validated model + first revenue'},
+    m:{sk:'zatiaľ nie — 0 platiacich, pre-sale ešte nezačal', en:'not yet — 0 paying customers, the pre-sale hasn\'t started'},
+    s:{sk:'kritérium 2/6', en:'criterion 2/6'},
+    b:{sk:'Chcú „demonstrated initial revenue and validated business model". Dnes máme <b>0 platiacich zákazníkov</b> — monetizácia (founding pre-sale CHF 490/rok + onboarding CHF 990) čaká na Nebenerwerb súhlas + Einzelfirmu. <b>Toto je hlavná brzda prihlášky.</b> Po triali s 25 užívateľmi + prvých pre-sale kuchyniach sa to otáča.',
+       en:'They want "demonstrated initial revenue and a validated business model". Today we have <b>0 paying customers</b> — monetisation (founding pre-sale CHF 490/year + onboarding CHF 990) awaits the side-business consent + sole proprietorship. <b>This is the main brake on applying.</b> After the 25-user trial + the first pre-sale kitchens, it flips.'} },
+  { sec:'fit', icon:'🚀', pill:'yes',
+    t:{sk:'Škálovateľný model v ICT', en:'A scalable model in ICT'},
+    m:{sk:'áno — SaaS, sektor ICT je v ich zozname', en:'yes — SaaS, the ICT sector is on their list'},
+    s:{sk:'kritérium 3/6', en:'criterion 3/6'},
+    b:{sk:'Povolené sektory: <b>ICT</b>, High Tech, Deep Tech, Sustainability, Health Tech. Kuchynský SaaS je čistý ICT — multi-tenant appka, ktorá sa škáluje na ďalšie kuchyne bez ďalších nákladov na vývoj. Food-waste/HACCP uhol sa dá legitímne rámovať aj ako Sustainability.',
+       en:'Approved sectors: <b>ICT</b>, High Tech, Deep Tech, Sustainability, Health Tech. A kitchen SaaS is pure ICT — a multi-tenant app that scales to more kitchens with no extra development cost. The food-waste/HACCP angle can legitimately be framed as Sustainability too.'} },
+  { sec:'fit', icon:'💎', pill:'yes',
+    t:{sk:'Pre-money pod CHF 5 mil.', en:'Pre-money under CHF 5m'},
+    m:{sk:'áno — sme hlboko pod tým', en:'yes — we are far below it'},
+    s:{sk:'kritérium 4/6', en:'criterion 4/6'},
+    b:{sk:'Preferujú pre-money <b>pod CHF 5 mil.</b> — v našej fáze (pre-revenue, sólo founder) by valuácia bola rádovo státisíce až nízke milióny. Žiadny konflikt.',
+       en:'They prefer a pre-money <b>under CHF 5m</b> — at our stage (pre-revenue, solo founder) the valuation would be in the hundreds of thousands to low millions. No conflict.'} },
+  { sec:'fit', icon:'🎟️', pill:'part',
+    t:{sk:'Ticket ≥ CHF 25 000 a jasná runda', en:'Ticket ≥ CHF 25,000 and a defined round'},
+    m:{sk:'museli by sme definovať, koľko a na čo dvíhame', en:'we would have to define how much we raise and what for'},
+    s:{sk:'kritérium 5/6', en:'criterion 5/6'},
+    b:{sk:'Minimálny ticket CHF 25 000 nie je problém — problém je, že zatiaľ <b>nemáme definovanú rundu</b> (koľko, na čo, za akú equity). Pred prihláškou treba: use-of-funds plán (natívna appka? prvý zamestnanec? marketing kantón Bern?), cieľová suma a valuačná predstava.',
+       en:'The CHF 25,000 minimum ticket is not the problem — the problem is that we <b>haven\'t defined a round yet</b> (how much, for what, for what equity). Before applying we need: a use-of-funds plan (native app? first employee? canton Bern marketing?), a target amount and a valuation idea.'} },
+  { sec:'fit', icon:'⏱️', pill:'no',
+    t:{sk:'Closing do 3 mesiacov po evente', en:'Closing within 3 months of the event'},
+    m:{sk:'nereálne bez rozbehnutých tržieb a založenej firmy', en:'unrealistic without running revenue and a registered company'},
+    s:{sk:'kritérium 6/6', en:'criterion 6/6'},
+    b:{sk:'Chcú financovanie plánovane uzavreté <b>do 3 mesiacov po evente</b>. Bez firmy, tržieb a definovanej rundy je to dnes nereálne — ďalší argument cieliť event až po úspešnom triali a pre-sale.',
+       en:'They want the financing planned to close <b>within 3 months of the event</b>. Without a company, revenue and a defined round that is unrealistic today — another argument for targeting the event after a successful trial and pre-sale.'} },
+  { sec:'facts', icon:'📅', pill:null,
+    t:{sk:'AV29: pondelok 14. 9. 2026, 16:00–21:00', en:'AV29: Monday 14 Sep 2026, 4–9 pm'},
+    m:{sk:'Eventfabrik Bern · prihláška startupov do 23. 8. 2026', en:'Eventfabrik Bern · startup applications by 23 Aug 2026'},
+    s:{sk:'najbližší event', en:'next event'},
+    b:{sk:'Najbližší pitch event <b>AV29</b>: 14.9.2026, 16:00–21:00, <b>Eventfabrik Bern</b>. Prihláška startupov do <b>23.8.2026</b> — formulár na aareventures.ch/startups + pitch deck (max 20 slidov) na contact@aareventures.ch. Hodnotenie prebieha mesiac pred eventom. Valné zhromaždenie spolku: 19.11.2026.',
+       en:'The next pitch event <b>AV29</b>: 14 Sep 2026, 4–9 pm, <b>Eventfabrik Bern</b>. Startup applications by <b>23 Aug 2026</b> — the form at aareventures.ch/startups + a pitch deck (max 20 slides) to contact@aareventures.ch. Evaluation happens a month before the event. The association\'s AGM: 19 Nov 2026.'} },
+  { sec:'facts', icon:'👥', pill:null,
+    t:{sk:'Ľudia a partneri', en:'People and partners'},
+    m:{sk:'board: Schwarzenbach, Domenig, Burkhalter, Moser, Giuffredi, Rufer', en:'board: Schwarzenbach, Domenig, Burkhalter, Moser, Giuffredi, Rufer'},
+    s:{sk:'kto za tým stojí', en:'who is behind it'},
+    b:{sk:'<b>Board:</b> Jürg Schwarzenbach, Benjamin Domenig, Tom Burkhalter, Stefan Moser, Guy Giuffredi, Eric Rufer. <b>Tím:</b> Matthias Blaser, Delia Lamparter. <b>Partneri:</b> Berner Kantonalbank + Domenig &amp; Partner (gold), Keller Schneider + T+R AG (silver), Legato, Mobiliar, UBS (bronze). Kontakt: <b>contact@aareventures.ch</b>.',
+       en:'<b>Board:</b> Jürg Schwarzenbach, Benjamin Domenig, Tom Burkhalter, Stefan Moser, Guy Giuffredi, Eric Rufer. <b>Team:</b> Matthias Blaser, Delia Lamparter. <b>Partners:</b> Berner Kantonalbank + Domenig &amp; Partner (gold), Keller Schneider + T+R AG (silver), Legato, Mobiliar, UBS (bronze). Contact: <b>contact@aareventures.ch</b>.'} },
+  { sec:'facts', icon:'📋', pill:null,
+    t:{sk:'Čo si pripraviť pred prihláškou', en:'What to prepare before applying'},
+    m:{sk:'firma, tržby, deck ≤20 slidov, definovaná runda, popis v 5 slovách', en:'company, revenue, deck ≤20 slides, a defined round, a 5-word description'},
+    s:{sk:'checklist', en:'checklist'},
+    b:{sk:'Formulár chce: názov firmy + web, údaje o founderoch, <b>ročné tržby (tento + minulý rok)</b>, budget projekcie, popis produktu, biznis model, pre-money valuáciu, koľko kapitálu dvíhame, ticket size, closing plán, odkiaľ o nich vieme + <b>popis firmy v 5 slovách</b> (napr. „Operačný systém pre profesionálne kuchyne"). K tomu deck max 20 slidov — náš Investor Deck v Značka &amp; vízia je dobrý základ, treba doplniť rundu a čísla z trialu.',
+       en:'The form asks for: company name + website, founder details, <b>annual revenue (this + last year)</b>, budget projections, product description, business model, pre-money valuation, how much capital we raise, ticket size, closing plan, how we heard of them + <b>a 5-word company description</b> (e.g. "The operating system for professional kitchens"). Plus a deck of max 20 slides — our Investor Deck in Brand &amp; Vision is a good base, add the round and trial numbers.'} },
 ];
+
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLangAttrs(){
+  document.querySelectorAll('[data-sk]').forEach(el => { el.innerHTML = el.dataset[_lang] || el.dataset.sk; });
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLangAttrs(); renderCards(); closeAv();
+}
+function L(x){ return x[_lang] || x.sk; }
+const PILL_LABELS = { yes:{sk:'ÁNO',en:'YES'}, no:{sk:'ZATIAĽ NIE',en:'NOT YET'}, part:{sk:'ČIASTOČNE',en:'PARTLY'} };
+
 function renderCards(){
   const secs = { help:'secHelp', fit:'secFit', facts:'secFacts' };
   Object.entries(secs).forEach(([k,id])=>{
     document.getElementById(id).innerHTML = CARDS.filter(c=>c.sec===k).map(c=>`
       <div class="card" onclick="openAv(${CARDS.indexOf(c)})">
         <span class="ico">${c.icon}</span>
-        <span style="flex:1;"><span class="t">${c.t}</span><div class="m">${c.m}</div></span>
-        ${c.pill ? `<span class="pill ${c.pill}">${c.pill==='yes'?'ÁNO':c.pill==='no'?'ZATIAĽ NIE':'ČIASTOČNE'}</span>` : ''}
-        <span class="tap-hint">ťukni ›</span>
+        <span style="flex:1;"><span class="t">${L(c.t)}</span><div class="m">${L(c.m)}</div></span>
+        ${c.pill ? `<span class="pill ${c.pill}">${L(PILL_LABELS[c.pill])}</span>` : ''}
+        <span class="tap-hint">${_lang==='sk' ? 'ťukni ›' : 'tap ›'}</span>
       </div>`).join('');
   });
 }
 function openAv(i){
   const c = CARDS[i];
-  document.getElementById('av_t').textContent = c.icon + ' ' + c.t;
-  document.getElementById('av_s').textContent = c.s;
-  document.getElementById('av_b').innerHTML = c.b;
+  document.getElementById('av_t').textContent = c.icon + ' ' + L(c.t);
+  document.getElementById('av_s').textContent = L(c.s);
+  document.getElementById('av_b').innerHTML = L(c.b);
   document.getElementById('avModal').classList.add('open');
 }
 function closeAv(){ document.getElementById('avModal').classList.remove('open'); }
+applyLangAttrs();
 renderCards();
 </script>
 </body>

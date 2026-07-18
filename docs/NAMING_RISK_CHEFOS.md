@@ -1,3 +1,11 @@
+> **✅ VYRIEŠENÉ / RESOLVED 18.7.2026 — nová značka je SAUTERO.**
+> Domény sautero.ch + sautero.com kúpené, appka beží na app.sautero.ch, všetky dokumenty,
+> e-mailové šablóny aj logo premenované. Tento dokument ostáva ako záznam PROBLÉMU a POUČENIA:
+> **pred výberom akéhokoľvek budúceho mena vždy najprv preveriť App Store (iTunes API), globálny
+> web, whois domén a ochranné známky — a pri rebrande spraviť INVENTÚRU všetkých povrchov
+> (appka, dokumenty, e-mailové šablóny, SMTP meno odosielateľa, logo/ikony, print, edge funkcie),
+> nie jedno hromadné nahradenie.** Nikdy viac nestavať značku na nepreverenom mene.
+
 # Riziko názvu „ChefOS" — nález 18. 7. 2026 (našiel Richard)
 
 ## Fakty (overené webovým prieskumom 18. 7.)

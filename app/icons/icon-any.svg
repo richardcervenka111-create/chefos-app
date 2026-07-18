@@ -1,7 +1,9 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sautero brand mark (18.7.2026): navy ground, Georgia-italic teal S — same voice as the
+       login wordmark "Sau/tero" and the branded print header. Replaces the old ChefOS "C". -->
   <rect width="512" height="512" fill="#0A1A2F"/>
-  <g transform="translate(256 256) scale(7) translate(-34 -34)">
-    <path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/>
-    <circle cx="34" cy="34" r="3" fill="#34F7D7"/>
-  </g>
+  <text x="250" y="256" text-anchor="middle" dominant-baseline="central"
+        font-family="Georgia, 'Times New Roman', serif" font-style="italic"
+        font-size="380" fill="#34F7D7">S</text>
+  <rect x="156" y="428" width="200" height="8" rx="4" fill="#34F7D7" opacity="0.85"/>
 </svg>

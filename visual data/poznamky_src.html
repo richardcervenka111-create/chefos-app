@@ -18,6 +18,7 @@
   .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
   h1{ font-size:26px; margin:0 0 6px 0; }
   .lede{ font-size:13.5px; color:var(--ink-dim); margin:0 0 20px 0; max-width:70ch; }
+  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
   .section-label{ display:flex; align-items:center; gap:10px; margin:26px 0 12px 0; }
   .section-label .n{ font-family:var(--mono); font-size:11px; color:var(--accent); }
   .section-label h2{ font-size:15px; margin:0; }
@@ -34,6 +35,7 @@
   .badge.idea{ border:1px solid var(--rule); color:var(--ink-dim); }
   .badge.you{ background:var(--danger); color:#0A1A2F; }
   .badge.done{ background:var(--ok); color:#0A1A2F; }
+  .badge.lesson{ background:var(--danger); color:#0A1A2F; }
   .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
   .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.78); display:none; align-items:flex-end; justify-content:center; z-index:100; }
   .modal-backdrop.open{ display:flex; }
@@ -44,24 +46,28 @@
   .modal .body{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
   .modal .body b{ color:var(--ink); }
   .modal .close{ width:100%; margin-top:14px; min-height:46px; border-radius:12px; border:1px solid var(--rule); background:none; color:var(--ink); font-size:14px; font-weight:700; cursor:pointer; }
-  @media print{ .chefos-stamp{ display:none; } }
+  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
 <body>
+<button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
 <div class="wrap">
 
-  <div class="kicker">Poznámky · živý zápisník</div>
-  <h1>📝 Poznámky</h1>
-  <p class="lede">Všetky Richardove poznámky, nápady a veci „na dokončenie" na jednom mieste — Claude ich sem priebežne zapisuje a aktualizuje pri každej zmene. Ťukni na poznámku pre podrobnosti. Technické zadania žijú aj v Pláne → Roadmapa (t-čísla).</p>
+  <div class="kicker" data-sk="Poznámky · živý zápisník" data-en="Notes · live notebook"></div>
+  <h1>📝 <span data-sk="Poznámky" data-en="Notes"></span></h1>
+  <p class="lede" data-sk="Všetky Richardove poznámky, nápady a veci „na dokončenie&quot; na jednom mieste — Claude ich sem priebežne zapisuje a aktualizuje pri každej zmene. Ťukni na poznámku pre podrobnosti. Technické zadania žijú aj v Pláne → Roadmapa (t-čísla)." data-en="All of Richard's notes, ideas and &quot;to finish&quot; items in one place — Claude writes them here and keeps them updated as things change. Tap a note for details. Technical specs also live in Plan → Roadmap (t-numbers)."></p>
 
-  <div class="section-label"><span class="n">01</span><h2>🔨 Na dokončenie</h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">01</span><h2 data-sk="🔨 Na dokončenie" data-en="🔨 To finish"></h2><div class="rule"></div></div>
   <div id="secDo"></div>
 
-  <div class="section-label"><span class="n">02</span><h2>💡 Nápady / poznámky</h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">02</span><h2 data-sk="💡 Nápady / poznámky" data-en="💡 Ideas / notes"></h2><div class="rule"></div></div>
   <div id="secIdea"></div>
 
-  <div class="section-label"><span class="n">03</span><h2>🧑‍🍳 Len Richard (nikto iný to nemôže)</h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">03</span><h2 data-sk="🧑‍🍳 Len Richard (nikto iný to nemôže)" data-en="🧑‍🍳 Richard only (nobody else can)"></h2><div class="rule"></div></div>
   <div id="secYou"></div>
+
+  <div class="section-label"><span class="n">04</span><h2 data-sk="🎓 Poučenia (nikdy viac)" data-en="🎓 Lessons (never again)"></h2><div class="rule"></div></div>
+  <div id="secLesson"></div>
 
 </div>
 
@@ -71,70 +77,127 @@
     <h3 id="nm_t"></h3>
     <div class="sub" id="nm_s"></div>
     <div class="body" id="nm_b"></div>
-    <button class="close" onclick="closeNote()">Zavrieť</button>
+    <button class="close" onclick="closeNote()" data-sk="Zavrieť" data-en="Close"></button>
   </div>
 </div>
 
-<div class="chefos-stamp">🔄 Stav Sautero k 18. 7. 2026, 11:14</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 13:39" data-en="🔄 Sautero state as of Jul 18, 2026, 13:39"></div>
 
 <script>
-/* Every note: {sec, icon, badge, t (title), m (one-liner), s (modal subtitle), b (modal body html)}.
+/* Every note: {sec, icon, badge:{sk,en}, badgeCls, t:{sk,en}, m:{sk,en}, s:{sk,en}, b:{sk,en}}.
    KEEP THIS CURRENT — standing rule (Richard, 18.7., bod 5): all his notes live here and get
-   updated whenever anything changes. Newest first inside each section. */
+   updated whenever anything changes. FULLY BILINGUAL — standing rule (Richard, 18.7. večer):
+   every doc has the SK/EN toggle and BOTH views must be complete, modals included. */
 const NOTES = [
-  { sec:'do', icon:'🎪', badge:'DOKONČIŤ', t:'Dlaždica Events (bankety, akcie)', m:'zapísané 18.7. — New Event manuálne alebo scanom, dnešné + zajtrajšie vedľa seba',
-    s:'t172 · Plán → Roadmapa · zapísané 18.7.2026',
-    b:'Nová dlaždica <b>Events</b>: všetky udalosti, ktoré sa ešte len majú stať — napr. <b>banket, 35 ľudí, trojchodové menu</b>.<br><br>· Hore tlačidlo <b>New Event</b>: manuálny zápis (čo je to za akciu, pre koho, koľko ľudí, aké menu, cena, dátum/čas) <b>alebo Scan</b> — odfotíš objednávku/e-mail a AI rozpozná typ akcie, klienta, počet ľudí, menu, cenu a pridá do zoznamu (rovnaký vision vzor ako Invoice Scan).<br>· Pod tým dva stĺpce vedľa seba: <b>Dnešné eventy | Zajtrajšie eventy</b>, ďalšie dni nižšie v zozname.' },
-  { sec:'do', icon:'🖨️', badge:'DOKONČIŤ', t:'Tlač receptov v identite reštaurácie', m:'t170 — každá reštaurácia tlačí vo VLASTNÝCH farbách/logu',
-    s:'t170 · Plán → Roadmapa · zapísané 18.7.2026',
-    b:'Každá nová reštaurácia dostane tlač receptov vo <b>vlastnej identite</b> — farby, font, logo — tak ako dnes naša brandovaná tlač. Návrh: kitchens tabuľka dostane brand polia, print template ich načíta; nastavenie v Admin. Súčasť onboardingu novej reštaurácie.' },
-  { sec:'do', icon:'🌦️', badge:'DOKONČIŤ', t:'Kontext dňa vs. tržby (počasie, deň, sviatky)', m:'t171 — „daždivé utorky = −18 % obedov", po triali',
-    s:'t171 · Plán → Roadmapa · zapísané 18.7.2026',
-    b:'Zbierať denný kontext (počasie z API pre lokalitu kuchyne, deň v týždni, švajčiarske sviatky) a korelovať s tržbami v Kitchen Reports. Predpoklad: tržbové dáta — prídu s POS integráciou alebo ručným denným zápisom tržby. Fáza po triali 1.8.' },
-  { sec:'do', icon:'🧪', badge:'DOKONČIŤ', t:'AI Testing Mode vypnúť pred trialom', m:'t166 — teraz ON (neobmedzené AI pre všetkých), vypnúť pred 1.8.',
-    s:'t166 · Admin → AI Testing Mode',
-    b:'Kým je ON, každé zariadenie má neobmedzené AI bez ohľadu na kredit. Pred verejným trialom 1.8. treba prepnúť OFF, aby platilo normálne kreditovanie (inak 25 cudzích ľudí míňa centrálny kľúč bez limitu).' },
-  { sec:'idea', icon:'🎙️', badge:'POZNÁMKA', t:'Hlasové ovládanie, aj pri zamknutom telefóne', m:'zapísané 18.7. — pri zamknutom = až natívna appka + Siri',
-    s:'t173 · zapísané 18.7.2026 · Fáza 6',
-    b:'Richardova požiadavka: ovládať appku hlasom, ideálne aj so zamknutým displejom.<br><br><b>Technická realita:</b> web appka na iOS <b>nemôže</b> počúvať pri zamknutom telefóne (mikrofón beží len s otvorenou stránkou). Reálna cesta:<br>· <b>pri odomknutom</b> — Web Speech API na diktovanie a príkazy priamo v appke (dá sa spraviť už teraz),<br>· <b>pri zamknutom</b> — natívna appka + Siri Shortcuts/App Intents („Hey Siri, Sautero pridaj…") — patrí do Fázy 6 (natívna mobilná appka, 2027).' },
-  { sec:'idea', icon:'🌡️', badge:'POZNÁMKA', t:'Chladničkové senzory + tlačiareň štítkov', m:'SensorPush ~CHF 125 · Brother QL-820NWB ~CHF 130 — plánované nákupy',
-    s:'research hotový · docs/LABEL_PRINTER_RESEARCH.md',
-    b:'<b>SensorPush</b> (~$55 senzor + ~$100 WiFi brána, bez mesačných poplatkov) je jediná budget možnosť s cloud API pre automatický zápis teplôt do HACCP. <b>Brother QL-820NWB</b> (~CHF 130, bez zmluvy) na tlač štítkov. Oba čakajú na nákup — sú v Nákladoch ako plánované.' },
-  { sec:'idea', icon:'🎓', badge:'PARKOVANÉ', t:'Študentská bakalárka na module Inventory', m:'parkované 17.7. — ohraničený modul, nikdy produkčné dáta',
-    s:'parkované · 17.7.2026',
-    b:'Nápad: študent si vezme <b>ohraničený izolovaný modul</b> (kandidát: Inventory) ako bakalárku. Podmienky: nikdy produkčné dáta ani AI kľúč, IP dohoda vopred. Parkované, kým nie je kapacita.' },
-  { sec:'you', icon:'🌐', badge:'RICHARD', t:'Kúpiť sautero.ch + sautero.com', m:'Hostpoint, ~25 CHF prvý rok — potom presun domény',
-    s:'od 18.7.2026 · blokuje migráciu domény',
-    b:'Obe domény sú voľné (overené cez nic.ch whois). Kúpiť na <b>Hostpoint</b>: sautero.ch ~5 CHF prvý rok (obnova ~15), sautero.com ~20 CHF/rok. Po kúpe Claude presunie appku, e-maily a technické identifikátory z chefos.ch na sautero.ch.' },
-  { sec:'you', icon:'📄', badge:'RICHARD', t:'Nebenerwerb súhlas + Einzelfirma', m:'deadline 20.7. — obe blokujú prvý príjem, drafty v docs/',
-    s:'deadline 20.7.2026 · blokátory monetizácie',
-    b:'Dva právne blokátory prvého príjmu (founding pre-sale CHF 490/rok + onboarding CHF 990):<br>· <b>písomný súhlas zamestnávateľa</b> s vedľajším zárobkom — list je nadraftovaný v docs/, stačí poslať,<br>· <b>registrácia Einzelfirmy</b> (AHV) — draft podkladov tiež v docs/.' },
-  { sec:'you', icon:'🤝', badge:'RICHARD', t:'Aare Ventures — pitch pre investorov v Berne', m:'prihláška do 23.8., event 14.9. Eventfabrik Bern — detail v Internal Docs',
-    s:'aare.html · zapísané 18.7.2026',
-    b:'Bernský spolok prepájajúci startupy s business angelmi (4 eventy ročne, >CHF 20 mil. preinvestovaných). Najbližší event <b>AV29: pondelok 14.9.2026, Eventfabrik Bern</b>, prihláška do <b>23.8.</b> — pitch deck max 20 slidov na contact@aareventures.ch. Plný rozbor + či sa tam hodíme: dokument Aare Ventures v Internal Docs.' },
+  { sec:'do', icon:'🌐', badge:{sk:'DOKONČIŤ',en:'TO FINISH'}, badgeCls:'do',
+    t:{sk:'Preklady: dotiahnuť plné SK/EN pokrytie 4 dokumentov', en:'Translations: finish full SK/EN coverage of 4 documents'},
+    m:{sk:'t174 — mapa funkcií (SK popisy → EN), Denník (SK → EN), Manifesto + Visual Guide (EN → SK), deck dáta (EN → SK)', en:'t174 — feature map (SK descriptions → EN), Diary (SK → EN), Manifesto + Visual Guide (EN → SK), deck data (EN → SK)'},
+    s:{sk:'t174 · zapísané 18.7.2026 · pravidlo: nový obsah sa už rodí dvojjazyčne', en:'t174 · logged 18 Jul 2026 · rule: new content is born bilingual'},
+    b:{sk:'Audit 18.7. ukázal: všetky dokumenty majú SK/EN prepínač a preložené statické texty, ale JS-renderovaný obsah je v štyroch miestach jednojazyčný:<br>· <b>Mapa funkcií</b> — 112 kariet má SK názvy/popisy aj v EN pohľade,<br>· <b>Denník (Plán)</b> — denné záznamy sú len SK,<br>· <b>Manifesto + Visual Guide</b> — celé len EN,<br>· <b>Investor deck</b> — KPI/roadmapa/proces len EN.<br><br>Rozsah ~30 000 slov — prekladá sa systematicky po dokumentoch (poradie: mapa funkcií → deck → Denník → Manifesto/Guide). <b>Trvalé pravidlo od 18.7.:</b> každý nový alebo upravený obsah vzniká rovno dvojjazyčne — tento dlh sa už nesmie zväčšovať.',
+       en:'The 18 Jul audit showed: every document has the SK/EN toggle and translated static texts, but JS-rendered content is single-language in four places:<br>· <b>Feature map</b> — 112 cards show SK names/descriptions in the EN view too,<br>· <b>Diary (Plan)</b> — daily entries are SK only,<br>· <b>Manifesto + Visual Guide</b> — entirely EN,<br>· <b>Investor deck</b> — KPIs/roadmap/process EN only.<br><br>Scope ~30,000 words — translated systematically doc by doc (order: feature map → deck → Diary → Manifesto/Guide). <b>Standing rule since 18 Jul:</b> all new or edited content is born bilingual — this debt must never grow again.'} },
+  { sec:'do', icon:'🎪', badge:{sk:'DOKONČIŤ',en:'TO FINISH'}, badgeCls:'do',
+    t:{sk:'Dlaždica Events (bankety, akcie)', en:'Events tile (banquets, functions)'},
+    m:{sk:'zapísané 18.7. — New Event manuálne alebo scanom, dnešné + zajtrajšie vedľa seba', en:'logged 18 Jul — New Event manually or by scan, today + tomorrow side by side'},
+    s:{sk:'t172 · Plán → Roadmapa · zapísané 18.7.2026', en:'t172 · Plan → Roadmap · logged 18 Jul 2026'},
+    b:{sk:'Nová dlaždica <b>Events</b>: všetky udalosti, ktoré sa ešte len majú stať — napr. <b>banket, 35 ľudí, trojchodové menu</b>.<br><br>· Hore tlačidlo <b>New Event</b>: manuálny zápis (čo je to za akciu, pre koho, koľko ľudí, aké menu, cena, dátum/čas) <b>alebo Scan</b> — odfotíš objednávku/e-mail a AI rozpozná typ akcie, klienta, počet ľudí, menu, cenu a pridá do zoznamu (rovnaký vision vzor ako Invoice Scan).<br>· Pod tým dva stĺpce vedľa seba: <b>Dnešné eventy | Zajtrajšie eventy</b>, ďalšie dni nižšie v zozname.',
+       en:'A new <b>Events</b> tile: everything that is yet to happen — e.g. <b>a banquet, 35 people, three-course menu</b>.<br><br>· At the top a <b>New Event</b> button: manual entry (what kind of event, for whom, how many people, which menu, price, date/time) <b>or Scan</b> — photograph the order/e-mail and AI recognises the event type, client, headcount, menu and price and adds it to the list (same vision pattern as Invoice Scan).<br>· Below it two columns side by side: <b>Today\'s events | Tomorrow\'s events</b>, further days in a list underneath.'} },
+  { sec:'do', icon:'🖨️', badge:{sk:'DOKONČIŤ',en:'TO FINISH'}, badgeCls:'do',
+    t:{sk:'Tlač receptov v identite reštaurácie', en:'Recipe printing in each restaurant\'s identity'},
+    m:{sk:'t170 — každá reštaurácia tlačí vo VLASTNÝCH farbách/logu', en:'t170 — every restaurant prints in its OWN colours/logo'},
+    s:{sk:'t170 · Plán → Roadmapa · zapísané 18.7.2026', en:'t170 · Plan → Roadmap · logged 18 Jul 2026'},
+    b:{sk:'Každá nová reštaurácia dostane tlač receptov vo <b>vlastnej identite</b> — farby, font, logo — tak ako dnes naša brandovaná tlač. Návrh: kitchens tabuľka dostane brand polia, print template ich načíta; nastavenie v Admin. Súčasť onboardingu novej reštaurácie.',
+       en:'Every new restaurant gets recipe printing in <b>its own identity</b> — colours, font, logo — just like our branded print today. Design: the kitchens table gets brand fields, the print template reads them; configured in Admin. Part of onboarding a new restaurant.'} },
+  { sec:'do', icon:'🌦️', badge:{sk:'DOKONČIŤ',en:'TO FINISH'}, badgeCls:'do',
+    t:{sk:'Kontext dňa vs. tržby (počasie, deň, sviatky)', en:'Day context vs. revenue (weather, weekday, holidays)'},
+    m:{sk:'t171 — „daždivé utorky = −18 % obedov", po triali', en:'t171 — "rainy Tuesdays = −18% lunches", after the trial'},
+    s:{sk:'t171 · Plán → Roadmapa · zapísané 18.7.2026', en:'t171 · Plan → Roadmap · logged 18 Jul 2026'},
+    b:{sk:'Zbierať denný kontext (počasie z API pre lokalitu kuchyne, deň v týždni, švajčiarske sviatky) a korelovať s tržbami v Kitchen Reports. Predpoklad: tržbové dáta — prídu s POS integráciou alebo ručným denným zápisom tržby. Fáza po triali 1.8.',
+       en:'Collect daily context (weather from an API for the kitchen\'s location, weekday, Swiss holidays) and correlate it with revenue in Kitchen Reports. Prerequisite: revenue data — comes with a POS integration or a manual daily revenue entry. Phase after the 1 Aug trial.'} },
+  { sec:'do', icon:'🧪', badge:{sk:'DOKONČIŤ',en:'TO FINISH'}, badgeCls:'do',
+    t:{sk:'AI Testing Mode vypnúť pred trialom', en:'Turn AI Testing Mode OFF before the trial'},
+    m:{sk:'t166 — teraz ON (neobmedzené AI pre všetkých), vypnúť pred 1.8.', en:'t166 — currently ON (unlimited AI for everyone), switch off before 1 Aug'},
+    s:{sk:'t166 · Admin → AI Testing Mode', en:'t166 · Admin → AI Testing Mode'},
+    b:{sk:'Kým je ON, každé zariadenie má neobmedzené AI bez ohľadu na kredit. Pred verejným trialom 1.8. treba prepnúť OFF, aby platilo normálne kreditovanie (inak 25 cudzích ľudí míňa centrálny kľúč bez limitu).',
+       en:'While it is ON, every device gets unlimited AI regardless of credit. Before the public trial on 1 Aug it must be switched OFF so normal credit gating applies (otherwise 25 strangers spend the central key without any limit).'} },
+  { sec:'idea', icon:'🎙️', badge:{sk:'POZNÁMKA',en:'NOTE'}, badgeCls:'idea',
+    t:{sk:'Hlasové ovládanie, aj pri zamknutom telefóne', en:'Voice control, even with the phone locked'},
+    m:{sk:'zapísané 18.7. — pri zamknutom = až natívna appka + Siri', en:'logged 18 Jul — locked-phone control needs the native app + Siri'},
+    s:{sk:'t173 · zapísané 18.7.2026 · Fáza 6', en:'t173 · logged 18 Jul 2026 · Phase 6'},
+    b:{sk:'Richardova požiadavka: ovládať appku hlasom, ideálne aj so zamknutým displejom.<br><br><b>Technická realita:</b> web appka na iOS <b>nemôže</b> počúvať pri zamknutom telefóne (mikrofón beží len s otvorenou stránkou). Reálna cesta:<br>· <b>pri odomknutom</b> — Web Speech API na diktovanie a príkazy priamo v appke (dá sa spraviť už teraz),<br>· <b>pri zamknutom</b> — natívna appka + Siri Shortcuts/App Intents („Hey Siri, Sautero pridaj…") — patrí do Fázy 6 (natívna mobilná appka, 2027).',
+       en:'Richard\'s request: control the app by voice, ideally even with the display locked.<br><br><b>Technical reality:</b> a web app on iOS <b>cannot</b> listen while the phone is locked (the microphone only runs with the page open). The real path:<br>· <b>unlocked</b> — Web Speech API for dictation and commands directly in the app (possible today),<br>· <b>locked</b> — native app + Siri Shortcuts/App Intents ("Hey Siri, Sautero add…") — belongs to Phase 6 (native mobile app, 2027).'} },
+  { sec:'idea', icon:'🌡️', badge:{sk:'POZNÁMKA',en:'NOTE'}, badgeCls:'idea',
+    t:{sk:'Chladničkové senzory + tlačiareň štítkov', en:'Fridge sensors + label printer'},
+    m:{sk:'SensorPush ~CHF 125 · Brother QL-820NWB ~CHF 130 — plánované nákupy', en:'SensorPush ~CHF 125 · Brother QL-820NWB ~CHF 130 — planned purchases'},
+    s:{sk:'research hotový · docs/LABEL_PRINTER_RESEARCH.md', en:'research done · docs/LABEL_PRINTER_RESEARCH.md'},
+    b:{sk:'<b>SensorPush</b> (~$55 senzor + ~$100 WiFi brána, bez mesačných poplatkov) je jediná budget možnosť s cloud API pre automatický zápis teplôt do HACCP. <b>Brother QL-820NWB</b> (~CHF 130, bez zmluvy) na tlač štítkov. Oba čakajú na nákup — sú v Nákladoch ako plánované.',
+       en:'<b>SensorPush</b> (~$55 sensor + ~$100 WiFi gateway, no monthly fees) is the only budget option with a cloud API for automatic temperature logging into HACCP. <b>Brother QL-820NWB</b> (~CHF 130, no contract) for label printing. Both awaiting purchase — listed under Costs as planned.'} },
+  { sec:'idea', icon:'🎓', badge:{sk:'PARKOVANÉ',en:'PARKED'}, badgeCls:'idea',
+    t:{sk:'Študentská bakalárka na module Inventory', en:'Student thesis on the Inventory module'},
+    m:{sk:'parkované 17.7. — ohraničený modul, nikdy produkčné dáta', en:'parked 17 Jul — a bounded module, never production data'},
+    s:{sk:'parkované · 17.7.2026', en:'parked · 17 Jul 2026'},
+    b:{sk:'Nápad: študent si vezme <b>ohraničený izolovaný modul</b> (kandidát: Inventory) ako bakalárku. Podmienky: nikdy produkčné dáta ani AI kľúč, IP dohoda vopred. Parkované, kým nie je kapacita.',
+       en:'Idea: a student takes a <b>bounded, isolated module</b> (candidate: Inventory) as their bachelor thesis. Conditions: never production data or the AI key, IP agreement up front. Parked until there is capacity.'} },
+  { sec:'you', icon:'📧', badge:{sk:'RICHARD',en:'RICHARD'}, badgeCls:'you',
+    t:{sk:'E-mailová adresa odosielateľa → @sautero.ch', en:'Sender e-mail address → @sautero.ch'},
+    m:{sk:'maily už chodia ako „Sautero", adresa je ešte noreply@chefos.ch — treba overiť doménu v Resende', en:'mails already arrive as "Sautero", the address is still noreply@chefos.ch — verify the domain in Resend'},
+    s:{sk:'e-mail migrácia · od 18.7.2026', en:'e-mail migration · since 18 Jul 2026'},
+    b:{sk:'Šablóny aj meno odosielateľa sú už Sautero. Posledný krok: overiť doménu <b>sautero.ch v Resende</b> (pridať ich DNS záznamy v Hostpointe — Claude pripraví presné hodnoty) a prepnúť adresu odosielateľa na <b>noreply@sautero.ch</b> v Supabase SMTP. Dovtedy maily chodia z noreply@chefos.ch, čo funguje, len adresa nesie starú doménu.',
+       en:'Templates and the sender name are already Sautero. Last step: verify the <b>sautero.ch domain in Resend</b> (add their DNS records in Hostpoint — Claude will prepare exact values) and switch the sender address to <b>noreply@sautero.ch</b> in Supabase SMTP. Until then mails come from noreply@chefos.ch, which works — the address just carries the old domain.'} },
+  { sec:'you', icon:'📄', badge:{sk:'RICHARD',en:'RICHARD'}, badgeCls:'you',
+    t:{sk:'Nebenerwerb súhlas + Einzelfirma', en:'Side-business consent + sole proprietorship'},
+    m:{sk:'deadline 20.7. — obe blokujú prvý príjem, drafty v docs/', en:'deadline 20 Jul — both block first revenue, drafts in docs/'},
+    s:{sk:'deadline 20.7.2026 · blokátory monetizácie', en:'deadline 20 Jul 2026 · monetisation blockers'},
+    b:{sk:'Dva právne blokátory prvého príjmu (founding pre-sale CHF 490/rok + onboarding CHF 990):<br>· <b>písomný súhlas zamestnávateľa</b> s vedľajším zárobkom — list je nadraftovaný v docs/, stačí poslať,<br>· <b>registrácia Einzelfirmy</b> (AHV) — draft podkladov tiež v docs/.',
+       en:'Two legal blockers of first revenue (founding pre-sale CHF 490/year + onboarding CHF 990):<br>· <b>written employer consent</b> for side-business income — the letter is drafted in docs/, just send it,<br>· <b>sole-proprietorship registration</b> (AHV) — draft materials also in docs/.'} },
+  { sec:'you', icon:'🤝', badge:{sk:'RICHARD',en:'RICHARD'}, badgeCls:'you',
+    t:{sk:'Aare Ventures — pitch pre investorov v Berne', en:'Aare Ventures — pitching Bern investors'},
+    m:{sk:'prihláška do 23.8., event 14.9. Eventfabrik Bern — detail v Internal Docs', en:'application by 23 Aug, event 14 Sep at Eventfabrik Bern — details in Internal Docs'},
+    s:{sk:'aare.html · zapísané 18.7.2026', en:'aare.html · logged 18 Jul 2026'},
+    b:{sk:'Bernský spolok prepájajúci startupy s business angelmi (4 eventy ročne, >CHF 20 mil. preinvestovaných). Najbližší event <b>AV29: pondelok 14.9.2026, Eventfabrik Bern</b>, prihláška do <b>23.8.</b> — pitch deck max 20 slidov na contact@aareventures.ch. Plný rozbor + či sa tam hodíme: dokument Aare Ventures v Internal Docs.',
+       en:'A Bern association connecting startups with business angels (4 events a year, >CHF 20m invested). Next event <b>AV29: Monday 14 Sep 2026, Eventfabrik Bern</b>, application by <b>23 Aug</b> — pitch deck max 20 slides to contact@aareventures.ch. Full analysis + whether we fit: the Aare Ventures document in Internal Docs.'} },
+  { sec:'lesson', icon:'🏷️', badge:{sk:'POUČENIE',en:'LESSON'}, badgeCls:'lesson',
+    t:{sk:'Prípad ChefOS — meno nikdy bez preverenia, rebrand nikdy bez inventúry', en:'The ChefOS case — never a name without checks, never a rebrand without an inventory'},
+    m:{sk:'18.7.2026 — 10 dní budovania značky na kolidujúcom mene + e-maily so starou značkou po rebrande', en:'18 Jul 2026 — 10 days of brand-building on a colliding name + old-brand e-mails after the rebrand'},
+    s:{sk:'trvalé pravidlo · nikdy viac', en:'standing rule · never again'},
+    b:{sk:'<b>Čo sa stalo:</b> 10 dní sme stavali značku „ChefOS" — potom sa ukázalo, že v App Store existuje hotová appka „ChefOS Mobile" (Counter Labs, USA, ™) a ďalší „ChefOS" na chefos.pro. Nasledoval rebrand na Sautero — a aj po ňom odišli užívateľom prihlasovacie e-maily so starou značkou, lebo šablóny e-mailov boli samostatný povrch, na ktorý sa pri hromadnom nahradení zabudlo.<br><br><b>Pravidlo 1 — nové meno:</b> pred akýmkoľvek budúcim menom (produkt, funkcia, doména) VŽDY najprv: App Store (iTunes API), globálny web, whois domén, ochranné známky (Swissreg/EUIPO). Nikdy nestavať značku na nepreverenom mene.<br><br><b>Pravidlo 2 — rebrand = inventúra:</b> premenovanie nie je jedno hromadné nahradenie. Vždy prejsť KOMPLETNÝ zoznam povrchov: appka, PWA manifest, ikony/logo, všetky dokumenty (aj rozkliknutia), e-mailové šablóny v Supabase, SMTP meno odosielateľa, edge funkcie, tlač, QR/inštalačné návody, titulky generovaných dokumentov.<br><br><b>Pravidlo 3 — jazyky:</b> každý dokument má SK/EN prepínač a OBE verzie musia byť úplné vrátane všetkých modalov. Kontroluje sa pri každej aktualizácii.',
+       en:'<b>What happened:</b> we spent 10 days building the "ChefOS" brand — then it turned out a finished "ChefOS Mobile" app existed on the App Store (Counter Labs, USA, ™) plus another "ChefOS" at chefos.pro. A rebrand to Sautero followed — and even after it, users received sign-in e-mails carrying the old brand, because the e-mail templates were a separate surface forgotten during the bulk replace.<br><br><b>Rule 1 — a new name:</b> before ANY future name (product, feature, domain) ALWAYS check first: App Store (iTunes API), the global web, domain whois, trademarks (Swissreg/EUIPO). Never build a brand on an unchecked name.<br><br><b>Rule 2 — a rebrand = an inventory:</b> renaming is not one bulk replace. Always walk the COMPLETE list of surfaces: app, PWA manifest, icons/logo, all documents (tap-details included), Supabase e-mail templates, SMTP sender name, edge functions, print, QR/install instructions, generated doc titles.<br><br><b>Rule 3 — languages:</b> every document has the SK/EN toggle and BOTH versions must be complete, all modals included. Checked on every update.'} },
 ];
 
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function applyLangAttrs(){
+  document.querySelectorAll('[data-sk]').forEach(el => { el.innerHTML = el.dataset[_lang] || el.dataset.sk; });
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  localStorage.setItem('chefos_doc_lang', _lang);
+  applyLangAttrs();
+  renderNotes();
+  closeNote();
+}
+function L(x){ return x[_lang] || x.sk; }
+
 function renderNotes(){
-  const secs = { do:'secDo', idea:'secIdea', you:'secYou' };
-  const badgeCls = { 'DOKONČIŤ':'do', 'POZNÁMKA':'idea', 'PARKOVANÉ':'idea', 'RICHARD':'you', 'HOTOVÉ':'done' };
+  const secs = { do:'secDo', idea:'secIdea', you:'secYou', lesson:'secLesson' };
   Object.entries(secs).forEach(([k, id])=>{
     document.getElementById(id).innerHTML = NOTES.filter(n=>n.sec===k).map((n)=>`
       <div class="note" onclick="openNote(${NOTES.indexOf(n)})">
         <span class="ico">${n.icon}</span>
-        <span style="flex:1;"><span class="t">${n.t}</span><div class="m">${n.m}</div></span>
-        <span class="badge ${badgeCls[n.badge]||'idea'}">${n.badge}</span>
-        <span class="tap-hint">ťukni ›</span>
+        <span style="flex:1;"><span class="t">${L(n.t)}</span><div class="m">${L(n.m)}</div></span>
+        <span class="badge ${n.badgeCls}">${L(n.badge)}</span>
+        <span class="tap-hint">${_lang==='sk' ? 'ťukni ›' : 'tap ›'}</span>
       </div>`).join('');
   });
 }
 function openNote(i){
   const n = NOTES[i];
-  document.getElementById('nm_t').textContent = n.icon + ' ' + n.t;
-  document.getElementById('nm_s').textContent = n.s;
-  document.getElementById('nm_b').innerHTML = n.b;
+  document.getElementById('nm_t').textContent = n.icon + ' ' + L(n.t);
+  document.getElementById('nm_s').textContent = L(n.s);
+  document.getElementById('nm_b').innerHTML = L(n.b);
   document.getElementById('noteModal').classList.add('open');
 }
 function closeNote(){ document.getElementById('noteModal').classList.remove('open'); }
+applyLangAttrs();
 renderNotes();
 </script>
 </body>

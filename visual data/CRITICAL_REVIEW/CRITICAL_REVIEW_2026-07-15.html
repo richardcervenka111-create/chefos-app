@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChefOS — Critical Review · 15 July 2026</title>
+<title>Sautero — Critical Review · 15 July 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -129,16 +129,16 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
 .review-nav a:hover{color:var(--ink)}
 .review-nav a.current{color:var(--teal);border-bottom-color:var(--teal)}
 
-  /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
-     carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
-  .chefos-stamp{
+  /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
+     carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
+  .sautero-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
     font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
     padding:6px 12px; border-radius:999px;
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
   }
-  .chefos-lang-fab{
+  .sautero-lang-fab{
     position:fixed; bottom:14px; left:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
     font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -147,8 +147,8 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     transition:border-color .15s, color .15s;
   }
-  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
-  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
+  .sautero-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .sautero-stamp, .sautero-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -158,9 +158,9 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
 
 <!-- ============================ COVER ============================ -->
 <section class="cover">
-  <div class="rail">ChefOS · Internal strategy review · Pre-seed · Confidential</div>
+  <div class="rail">Sautero · Internal strategy review · Pre-seed · Confidential</div>
   <h1>Two days later,<br><em>the same lesson, twice.</em></h1>
-  <p class="sub">The second weekly critical review of ChefOS, as of <strong>15 July 2026</strong> — cross-referenced against the first (13 July) and against everything that actually shipped in the 48 hours between them: two new production-impacting bugs, a declared feature freeze that was never observed, real (if incomplete) progress on the trial's hard blocker, and a founder now fully between two employers.</p>
+  <p class="sub">The second weekly critical review of Sautero, as of <strong>15 July 2026</strong> — cross-referenced against the first (13 July) and against everything that actually shipped in the 48 hours between them: two new production-impacting bugs, a declared feature freeze that was never observed, real (if incomplete) progress on the trial's hard blocker, and a founder now fully between two employers.</p>
 
   <div class="weeknav">
     <a href="CRITICAL_REVIEW_2026-07-13.html">◂ 13 Jul 2026</a>
@@ -201,7 +201,7 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
 <!-- ============================ 01 EXEC SUMMARY ============================ -->
 <section class="station" id="s01">
   <div class="ticket"><span class="no">TICKET 01</span><h2>Executive summary &amp; what changed</h2><span class="brief">48 hours, cross-referenced against 13 Jul</span></div>
-  <p class="lede"><strong>What ChefOS is today, updated:</strong> unchanged in shape — live, multi-tenant kitchen-management web app, one pilot kitchen group (Burrito Bandito &amp; Lido), zero revenue, zero legal entity. What moved: the founder's employment situation fully resolved (for better and for a new reason to worry), the AI infrastructure outage from last week is confirmed fixed, real progress landed on the trial's hard blocker (a real domain, DNS records filed) without yet actually removing it, and the project's core discipline problem — shipping before testing — produced two more incidents in 48 hours, including one bug introduced by the fix for a previous bug.</p>
+  <p class="lede"><strong>What Sautero is today, updated:</strong> unchanged in shape — live, multi-tenant kitchen-management web app, one pilot kitchen group (Burrito Bandito &amp; Lido), zero revenue, zero legal entity. What moved: the founder's employment situation fully resolved (for better and for a new reason to worry), the AI infrastructure outage from last week is confirmed fixed, real progress landed on the trial's hard blocker (a real domain, DNS records filed) without yet actually removing it, and the project's core discipline problem — shipping before testing — produced two more incidents in 48 hours, including one bug introduced by the fix for a previous bug.</p>
 
   <div class="grid g4">
     <div class="kpi"><div class="n teal">180 / 173</div><div class="l">Recipes in the latest DB export vs. the count still shown in the app's own docs — a new small stale-count contradiction (Ticket 02)</div></div>
@@ -271,7 +271,7 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
 <!-- ============================ 04 COMPETITIVE ============================ -->
 <section class="station" id="s04">
   <div class="ticket"><span class="no">TICKET 04</span><h2>Competitive landscape</h2><span class="brief"><span class="stamp carried">CARRIED FORWARD — no material change this week</span></span></div>
-  <p class="lede">Nothing in the competitive set moved in 48 hours that changes the 13 Jul analysis. The strategic read stands unedited: the category is crowded and back-office-shaped; almost nobody owns the line; that asymmetry is still ChefOS's entire opening. Full competitor table, positioning map, and the four-point "how ChefOS becomes category leader" argument carry forward from the 13 Jul review without change. One addition worth flagging for next week, not this one: Richard has still made zero contact with Nooch (confirmed in <span class="mono">presentation.html</span>, unchanged) — worth watching whether that stays true through the trial, since "named target, no outreach" starts to look like avoidance rather than sequencing after a few more weeks.</p>
+  <p class="lede">Nothing in the competitive set moved in 48 hours that changes the 13 Jul analysis. The strategic read stands unedited: the category is crowded and back-office-shaped; almost nobody owns the line; that asymmetry is still Sautero's entire opening. Full competitor table, positioning map, and the four-point "how Sautero becomes category leader" argument carry forward from the 13 Jul review without change. One addition worth flagging for next week, not this one: Richard has still made zero contact with Nooch (confirmed in <span class="mono">presentation.html</span>, unchanged) — worth watching whether that stays true through the trial, since "named target, no outreach" starts to look like avoidance rather than sequencing after a few more weeks.</p>
 </section>
 
 <!-- ============================ 05 UX AUDIT ============================ -->
@@ -461,19 +461,19 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
 
   <div class="verdictline" style="margin-top:44px">
     <div class="vh">Closing the ticket</div>
-    <div class="vt">The 13 Jul review said ChefOS needs to survive its own velocity. This week is the data point: velocity is not the problem, and was never going to be — the problem is that <span style="color:var(--teal)">verification keeps losing to the next feature</span>, measurably, twice more, in the exact week a freeze was declared to stop it. The fix was never a new plan. It's running the checklist that already exists, sending the letter that's already written, and saying no to the next feature until both are done.</div>
+    <div class="vt">The 13 Jul review said Sautero needs to survive its own velocity. This week is the data point: velocity is not the problem, and was never going to be — the problem is that <span style="color:var(--teal)">verification keeps losing to the next feature</span>, measurably, twice more, in the exact week a freeze was declared to stop it. The fix was never a new plan. It's running the checklist that already exists, sending the letter that's already written, and saying no to the next feature until both are done.</div>
   </div>
 </section>
 
 <footer>
   <p><b>Sources &amp; honesty notes.</b> This review: the 13 Jul 2026 Critical Review (full text, read in full), and current-state reads of app/status.html, app/planning.html, app/features.html, app/automation.html, app/legal.html, app/presentation.html, app/backlog.html (excerpted), docs/MVP_DEFINITION.md, docs/ARCHITECTURE.md, docs/FEATURE_ROADMAP.md, docs/ROADMAP.md (excerpted), docs/NEBENERWERB_REQUEST.md, docs/PILOT_AGREEMENT.md, docs/FOUNDING_OFFER.md, docs/REGRESSION_CHECKLIST.md, docs/ingredient_agent_log.md, docs/automation_cost_log.md, and the git commit log (25 most recent commits). All revenue, valuation and probability figures are scenario estimates and structured judgment, not forecasts. Nothing here is legal, tax, accounting or investment advice.</p>
-  <p style="margin-top:14px">ChefOS Critical Review · prepared 15 July 2026 by Claude, at Richard's direction · tickets 01–16 complete · second in a weekly series, archive linked above · <span class="mono" style="color:var(--teal)">FIRE WHEN READY</span></p>
+  <p style="margin-top:14px">Sautero Critical Review · prepared 15 July 2026 by Claude, at Richard's direction · tickets 01–16 complete · second in a weekly series, archive linked above · <span class="mono" style="color:var(--teal)">FIRE WHEN READY</span></p>
 </footer>
 
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 15. 7. 2026, 03:45" data-en="🔄 ChefOS state as of Jul 15, 2026, 03:45">🔄 Stav ChefOS k 15. 7. 2026, 03:45</div>
-<button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 15. 7. 2026, 03:45" data-en="🔄 Sautero state as of Jul 15, 2026, 03:45">🔄 Stav Sautero k 15. 7. 2026, 03:45</div>
+<button class="sautero-lang-fab" id="sauteroLangFab" onclick="sauteroToggleLang()">EN</button>
 
 <script>
 /* Shared SK/EN toggle for /visual data/ docs without their own — same chefos_doc_lang key as
@@ -486,11 +486,11 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
       const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
       if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
     });
-    const b = document.getElementById('chefosLangFab');
+    const b = document.getElementById('sauteroLangFab');
     if(b) b.textContent = lang === 'sk' ? 'EN' : 'SK';
     document.documentElement.lang = lang;
   }
-  window.chefosToggleLang = function(){
+  window.sauteroToggleLang = function(){
     lang = lang === 'sk' ? 'en' : 'sk';
     localStorage.setItem('chefos_doc_lang', lang);
     apply();

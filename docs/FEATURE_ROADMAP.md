@@ -1,4 +1,4 @@
-# ChefOS — Feature Roadmap
+# Sautero — Feature Roadmap
 
 *Maps every feature from the original vision to the tier it serves and the phase it belongs
 to. This is the "full menu" — `ROADMAP.md` tracks what we're actually cooking right now.*

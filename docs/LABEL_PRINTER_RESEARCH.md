@@ -1,7 +1,7 @@
 # Label Printer Research — Print Labels feature (HACCP date labels)
 
 **Date:** 2026-07-13
-**Context:** ChefOS currently "prints" 5×3cm shelf-life labels via the browser's native `window.print()` dialog. No dedicated physical label printer is deployed yet. This is independent market research for Richard to use as a starting point / second opinion — it is not a review of any specific quote he already has.
+**Context:** Sautero currently "prints" 5×3cm shelf-life labels via the browser's native `window.print()` dialog. No dedicated physical label printer is deployed yet. This is independent market research for Richard to use as a starting point / second opinion — it is not a review of any specific quote he already has.
 
 ---
 
@@ -20,16 +20,16 @@ All of the above support roughly 5×3cm (50×30mm) die-cut or continuous label r
 
 ## 2. Feasibility of driving it from a browser-based web app
 
-This is the key technical constraint for ChefOS specifically (buildless SPA, no native app, runs in mobile Safari/Chrome). Findings:
+This is the key technical constraint for Sautero specifically (buildless SPA, no native app, runs in mobile Safari/Chrome). Findings:
 
-| Path | How it works | Fit for ChefOS |
+| Path | How it works | Fit for Sautero |
 |---|---|---|
 | **OS print dialog (what you have today)** | Printer is paired via Bluetooth/USB at the OS level; browser's `window.print()` opens the normal system print sheet | Works with **any** printer that has OS/AirPrint-style drivers — Brother QL, DYMO LabelWriter both support this on Mac/iOS/Android. Zero code changes needed. Reliability varies (dialog UX, label size templates must be pre-configured on the device). |
 | **Zebra Browser Print SDK** | Official Zebra JS SDK + a small local background agent (runs on the machine, listens on localhost) that lets a web page discover and print directly to Zebra printers, bypassing the OS dialog | Real official web SDK, but requires installing Zebra's local agent software on every kitchen device — extra IT overhead for a solo pre-revenue setup. |
 | **Brother b-PAC / bPAC-js** | Official Brother SDK, but requires installing a browser extension ("b-PAC Client") | Same story as Zebra — official, but requires an install step per device, not a pure zero-install web flow. |
 | **DYMO Connect Framework (JS SDK)** | JS SDK, but requires the DYMO Connect Web Service running locally | Same pattern again — works, but not driver-free. |
 | **WebUSB (community project, `brotherql-webusb`)** | Prints directly from Chrome to a Brother QL over USB with no drivers at all | Real and free, but community-maintained (not official), Chrome/Android only (no Safari/iOS — a real limitation since Richard's kitchen likely uses iPads/iPhones), and USB-tethered only. |
-| **Vendor app + cloud (DayMark MenuPilot)** | Labels are triggered from DayMark's own tablet app, not from a browser at all | ChefOS would **not** drive this printer — MenuPilot becomes a second, parallel system instead of an extension of ChefOS. |
+| **Vendor app + cloud (DayMark MenuPilot)** | Labels are triggered from DayMark's own tablet app, not from a browser at all | Sautero would **not** drive this printer — MenuPilot becomes a second, parallel system instead of an extension of Sautero. |
 
 **Bottom line on drivability:** no small-format label printer has a true zero-install, cross-browser, cross-OS web print API today. Every "programmatic from the web" path requires either a locally installed agent/extension (Zebra, Brother, DYMO) or is Chrome/USB-only (WebUSB). For a mobile-first, buildless SPA running in Safari on iOS, the realistic near-term path is **the OS print dialog** — same approach you use today, just pointed at a real label printer instead of a sheet of paper. Later, if you standardize on one device per station (not phones), the WebUSB or Browser Print agent routes become viable for a more "print with one tap" flow.
 
@@ -69,17 +69,17 @@ Yes, worth considering seriously for the pilot phase specifically:
 **A cheap Bluetooth thermal receipt/label printer already common in POS setups** (e.g., generic 58mm ESC/POS thermal printers, or the Niimbot/Phomemo/MUNBYN category above) is materially cheaper (CHF 30–70 vs. CHF 100+ for QL/DYMO, and far below any DayMark-style bundle) and just as capable of printing a 5×3cm text label. The tradeoff:
 
 - **Pro:** very low upfront cost, good for validating the "does a physical label actually help the kitchen workflow" question before committing more money or a contract.
-- **Con:** these budget printers are phone-app-only (Bluetooth to a companion app), with **no OS print-dialog / driver support** and no official web SDK — meaning ChefOS could *not* print to them via `window.print()` or any browser API at all. Staff would have to manually re-enter/photo the label text into the vendor's own app, defeating the point of ChefOS auto-computing the expiry date. This makes them fine for a completely manual stopgap, but a dead end for the "app drives the printer" goal.
+- **Con:** these budget printers are phone-app-only (Bluetooth to a companion app), with **no OS print-dialog / driver support** and no official web SDK — meaning Sautero could *not* print to them via `window.print()` or any browser API at all. Staff would have to manually re-enter/photo the label text into the vendor's own app, defeating the point of Sautero auto-computing the expiry date. This makes them fine for a completely manual stopgap, but a dead end for the "app drives the printer" goal.
 
-Given that, **the Brother QL / DYMO LabelWriter category is the better real answer**, not the budget Bluetooth makers — because it's the only tier that (a) is affordable, (b) is available in Switzerland with normal retail purchase and support, and (c) actually integrates with ChefOS today via the existing `window.print()` flow with zero code changes, while leaving the door open to a tighter SDK-based integration later if the kitchen standardizes on one printing device per station.
+Given that, **the Brother QL / DYMO LabelWriter category is the better real answer**, not the budget Bluetooth makers — because it's the only tier that (a) is affordable, (b) is available in Switzerland with normal retail purchase and support, and (c) actually integrates with Sautero today via the existing `window.print()` flow with zero code changes, while leaving the door open to a tighter SDK-based integration later if the kitchen standardizes on one printing device per station.
 
 ---
 
 ## Bottom line
 
-**Buy a Brother QL-820NWB outright (~CHF 116–140 from digitec.ch or brack.ch), pair it via Bluetooth/WiFi to whatever device runs ChefOS at the pilot kitchen, and keep printing through the existing `window.print()` flow — no code changes needed, no contract, no lock-in.** Budget roughly CHF 200–1,000/year for generic 50×30mm thermal label rolls (confirm the OS print driver has a saved "50×30mm" template so staff don't have to fiddle with print settings each time).
+**Buy a Brother QL-820NWB outright (~CHF 116–140 from digitec.ch or brack.ch), pair it via Bluetooth/WiFi to whatever device runs Sautero at the pilot kitchen, and keep printing through the existing `window.print()` flow — no code changes needed, no contract, no lock-in.** Budget roughly CHF 200–1,000/year for generic 50×30mm thermal label rolls (confirm the OS print driver has a saved "50×30mm" template so staff don't have to fiddle with print settings each time).
 
-This fits where Richard actually is: one pilot kitchen, pre-revenue, validating whether physical labels change the workflow at all. It avoids any lease/consumables contract, avoids the DayMark-style parallel-system problem (where the label printer would run its own separate app instead of being driven by ChefOS), and it's cheap enough that if the pilot doesn't validate the need, nothing was locked in. Revisit the Zebra Browser Print / WebUSB "print with one tap, no dialog" integration only once there's a second kitchen and it's worth the extra engineering.
+This fits where Richard actually is: one pilot kitchen, pre-revenue, validating whether physical labels change the workflow at all. It avoids any lease/consumables contract, avoids the DayMark-style parallel-system problem (where the label printer would run its own separate app instead of being driven by Sautero), and it's cheap enough that if the pilot doesn't validate the need, nothing was locked in. Revisit the Zebra Browser Print / WebUSB "print with one tap, no dialog" integration only once there's a second kitchen and it's worth the extra engineering.
 
 ---
 

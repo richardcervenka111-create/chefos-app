@@ -1,4 +1,4 @@
-# ChefOS — Architecture Direction
+# Sautero — Architecture Direction
 
 *Living document. This describes the SHAPE of the system in plain language, not implementation
 detail. Updated as decisions get made — nothing here is code yet.*
@@ -71,7 +71,7 @@ permissions system that maps naturally onto Chef/Sous Chef/Commis roles) — in 
 kitchen, with a generous free tier suitable for building and piloting before any revenue exists.
 
 Alternative considered: Firebase (Google) — also solid, but its data model fits loosely
-structured data better than the highly relational recipe/station/role structure ChefOS needs.
+structured data better than the highly relational recipe/station/role structure Sautero needs.
 
 ## Open architecture decisions for Phase 2+ (not yet made)
 

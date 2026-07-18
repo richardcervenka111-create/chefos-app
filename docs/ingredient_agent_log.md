@@ -1,6 +1,6 @@
 # Daily ingredient-agent log
 
-Richard set a CHF 30/month hard cap (2026-07-14) for recurring background ChefOS work and asked
+Richard set a CHF 30/month hard cap (2026-07-14) for recurring background Sautero work and asked
 Claude to decide autonomously what to spend it on, defaulting to expanding/improving the
 ingredients database until told a different priority matters more. This file is the running,
 append-only log of what each daily run did and its self-reported (not audited — see

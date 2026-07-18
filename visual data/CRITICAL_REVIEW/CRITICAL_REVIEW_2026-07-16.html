@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChefOS — Critical Review · 16. júl 2026</title>
+<title>Sautero — Critical Review · 16. júl 2026</title>
 <style>
   :root{
     --bg:#0A1A2F; --paper:#122845; --paper-hi:#16304f; --rule:#223d57;
@@ -86,7 +86,7 @@
 <header class="hero">
   <p class="kicker">Critical Review — interný audit</p>
   <h1>Tretí týždenný audit: appka šprintuje, biznis stojí na mieste</h1>
-  <p class="lede">Stav ChefOS k 16. júlu 2026 neskoro v noci, krížovo overený proti auditom z 13. a 15. júla, proti celému repozitáru (125 migrácií, všetky dokumenty) a proti živej produkčnej databáze. Verdikt na jednu vetu: <b>za 36 hodín pribudlo 41 migrácií a tri natrvalo opravené bezpečnostné incidenty — a zároveň neodišiel jediný z piatich administratívnych krokov, ktoré 15.7. audit označil za „urob pred čímkoľvek iným".</b></p>
+  <p class="lede">Stav Sautero k 16. júlu 2026 neskoro v noci, krížovo overený proti auditom z 13. a 15. júla, proti celému repozitáru (125 migrácií, všetky dokumenty) a proti živej produkčnej databáze. Verdikt na jednu vetu: <b>za 36 hodín pribudlo 41 migrácií a tri natrvalo opravené bezpečnostné incidenty — a zároveň neodišiel jediný z piatich administratívnych krokov, ktoré 15.7. audit označil za „urob pred čímkoľvek iným".</b></p>
   <div class="meta-strip">
     <span>Pre: Richard Červenka</span>
     <span>Zdroje: repo + živá DB + git log + 2 staré audity</span>
@@ -122,7 +122,7 @@
     <div class="fact"><div class="num">42</div><div class="lbl">tabuliek reálne používaných appkou — všetky kryté migráciami</div></div>
     <div class="fact"><div class="num">5</div><div class="lbl">jazykov UI (EN/DE/FR/IT/SK, čiastočné pokrytie)</div></div>
     <div class="fact"><div class="num">15</div><div class="lbl">AI call sites, všetky cez claude-proxy</div></div>
-    <div class="fact"><div class="num">173</div><div class="lbl">unikátnych ChefOS receptov (živá DB — počet sedí s dokumentmi)</div></div>
+    <div class="fact"><div class="num">173</div><div class="lbl">unikátnych Sautero receptov (živá DB — počet sedí s dokumentmi)</div></div>
     <div class="fact warn"><div class="num">24 272</div><div class="lbl">riadkov ingrediencií = ~2 000 × 12 kuchýň (kópie per kuchyňa)</div></div>
     <div class="fact warn"><div class="num">12 / 10</div><div class="lbl">kuchýň vs. profilov — siroty po presunoch sa hromadia</div></div>
     <div class="fact"><div class="num">1 632</div><div class="lbl">usage events; 11 JS chýb za 7 dní; 1 feedback</div></div>
@@ -228,7 +228,7 @@
     <tr><th>Blokátor</th><th>Stav</th><th></th></tr>
     <tr><td>Nebenerwerb oznámenie zamestnávateľovi</td><td>Draft hotový a právne správne preformulovaný (oznámenie, nie žiadosť). Odoslanie z repa neoveriteľné — potvrď. Termín: <b>20.7.</b></td><td><span class="stamp unknown">POTVRĎ</span></td></tr>
     <tr><td>Einzelfirma / AHV</td><td>Neoveriteľné z repa — potvrď. Bez nej žiadna faktúra.</td><td><span class="stamp unknown">POTVRĎ</span></td></tr>
-    <tr><td>Email login cudzou adresou (mailer)</td><td>Vyriešené: chefos.ch + custom SMTP (15.7.), ChefOS-branded šablóny (16.7.), magic-link redirect bug opravený.</td><td><span class="stamp done">VYRIEŠENÉ</span></td></tr>
+    <tr><td>Email login cudzou adresou (mailer)</td><td>Vyriešené: chefos.ch + custom SMTP (15.7.), Sautero-branded šablóny (16.7.), magic-link redirect bug opravený.</td><td><span class="stamp done">VYRIEŠENÉ</span></td></tr>
     <tr><td>Regresný prechod na reálnych zariadeniach</td><td>Checklist existuje od 13.7., zdokumentovaných behov: 0.</td><td><span class="stamp open">OTVORENÉ</span></td></tr>
     <tr><td>Test obnovy zálohy</td><td>Žiadny záznam o restore teste. Pri 125 migráciách a jednom vývojárovi je netestovaná záloha len teória zálohy.</td><td><span class="stamp open">OTVORENÉ</span></td></tr>
     <tr><td>Fronta nespustených migrácií</td><td>Prázdna — všetkých 125 potvrdených na produkcii (dnes večer aj s trojkolovou verifikáciou remove bugu priamo v DB).</td><td><span class="stamp done">VYRIEŠENÉ</span></td></tr>
@@ -242,7 +242,7 @@
 <!-- ============================ LÍSTOK 06 ============================ -->
 <section class="ticket">
   <div class="ticket-head"><span class="ticket-no">LÍSTOK 06</span><h2>Master plán — 4 týždne, kapacitne úprimný</h2></div>
-  <p class="dim small">Predpoklad: od 20.7. nový plný úväzok v kuchyni; na ChefOS reálne ~10–12 h/týždeň. Plán preto stavia na tom, že kód je hotový „dosť" — ďalšie 4 týždne rozhoduje papier, testovanie a ľudia, nie nové funkcie.</p>
+  <p class="dim small">Predpoklad: od 20.7. nový plný úväzok v kuchyni; na Sautero reálne ~10–12 h/týždeň. Plán preto stavia na tom, že kód je hotový „dosť" — ďalšie 4 týždne rozhoduje papier, testovanie a ľudia, nie nové funkcie.</p>
   <div class="card gold"><b>T29 · do nedele 20.7.</b> — Nebenerwerb ODOSLAŤ · AHV/Einzelfirma formulár · legal.html fix (30 min) · Chef Challenge von · 1× regression pass na iPade. <b>Nula nových funkcií.</b> Spolu ~4–5 h.</div>
   <div class="card"><b>T30 · 21.–27.7.</b> — štart nového jobu, len stabilizácia: 2. regression pass · test obnovy zálohy (1 h) · objednať tlačiareň · pripraviť trial QR pozvánky + 5-riadkový onboarding text · doplniť 3 vety do PILOT_AGREEMENT. ~6–8 h.</div>
   <div class="card"><b>T31 · 28.7.–3.8.</b> — soft launch: 5–10 kuchárov rolling (nie 25 naraz) · denných 5 min na error_logs/usage_events · opravy len toho, čo trial reálne rozbije. ~10 h.</div>
@@ -250,7 +250,7 @@
 </section>
 
 <footer>
-  ChefOS · Critical Review 16.7.2026 · pripravené z repozitára + živej produkčnej DB · čísla bez zdroja v repe sú označené ako neoveriteľné · žiadne externé knižnice
+  Sautero · Critical Review 16.7.2026 · pripravené z repozitára + živej produkčnej DB · čísla bez zdroja v repe sú označené ako neoveriteľné · žiadne externé knižnice
 </footer>
 
 </div>

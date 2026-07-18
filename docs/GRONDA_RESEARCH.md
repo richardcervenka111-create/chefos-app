@@ -1,4 +1,4 @@
-# Gronda — research pre ChefOS (17. 7. 2026)
+# Gronda — research pre Sautero (17. 7. 2026)
 
 Zdroje: webový prieskum 17. 7. 2026 (gronda.com, Crunchbase, Dealroom, Tracxn, App Store /
 Google Play). Čísla o tržbách Gronda nezverejňuje — všetko pri tržbách je preto odhad alebo
@@ -29,20 +29,20 @@ neznáme a je to tak označené.
 3. **AI Recipe Creator** — AI nástroj na variácie receptov (t. j. AI už majú, ale plytké —
    generovanie obsahu, nie prevádzka kuchyne).
 
-**Kľúčový rozdiel oproti ChefOS:** Gronda predáva INŠPIRÁCIU a VZDELÁVANIE jednotlivému
-kuchárovi (content biznis — „Netflix/Masterclass pre kuchárov"). ChefOS predáva PREVÁDZKU
+**Kľúčový rozdiel oproti Sautero:** Gronda predáva INŠPIRÁCIU a VZDELÁVANIE jednotlivému
+kuchárovi (content biznis — „Netflix/Masterclass pre kuchárov"). Sautero predáva PREVÁDZKU
 kuchyni ako firme (nástroj — check listy, food cost, HACCP, tím, tlač štítkov). Neprekrývame
 sa v jadre; prekrývame sa v publiku.
 
-## Čím sa inšpirovať (konkrétne pre ChefOS)
+## Čím sa inšpirovať (konkrétne pre Sautero)
 
 1. **Creator ekonomika na recepty** — naša Public polica + zdieľanie priateľom je prvý krok.
    Gronda ukazuje ďalší: nechať najlepších kuchárov na recepte ZARÁBAŤ (platený prístup k
-   prémiovým receptúram, podiel autorovi). Pre ChefOS reálne až po triali, ale architektúra
+   prémiovým receptúram, podiel autorovi). Pre Sautero reálne až po triali, ale architektúra
    (chefos_master_id, per-friend shares, is_public) na to už je pripravená.
 2. **„93 % members say PRO is essential"** — sociálny dôkaz priamo na pricing stránke.
    Rovnakú vetu si vieme vypýtať od pilotných kuchárov a dať do founding-member ponuky.
-3. **Hviezdni ambasádori** — Gronda stojí na menách (Ana Roš...). Pre ChefOS je lokálna
+3. **Hviezdni ambasádori** — Gronda stojí na menách (Ana Roš...). Pre Sautero je lokálna
    verzia: 2–3 rešpektovaní bernskí šéfkuchári ako referencie s menom a fotkou.
 4. **PRO for Teams / Schools ako segmentácia** — presne zrkadlí náš Chef Pro (jednotlivec) vs
    Restaurant (kuchyňa) model; potvrdenie, že dvojvrstvové ceny v gastre fungujú. „Schools"
@@ -54,11 +54,11 @@ sa v jadre; prekrývame sa v publiku.
 
 ## Spolupráca / exit — triezvy pohľad
 
-- **Partnerstvo (reálne, po triali):** ChefOS ako „prevádzková appka" pre Gronda publikum —
+- **Partnerstvo (reálne, po triali):** Sautero ako „prevádzková appka" pre Gronda publikum —
   ich 1M+ kuchárov je presne náš user; im chýba prevádzkový nástroj, nám distribúcia.
-  Formy: cross-promo, Gronda recepty ako prémiová polica v ChefOS, ChefOS ako „kitchen ops"
+  Formy: cross-promo, Gronda recepty ako prémiová polica v Sautero, Sautero ako „kitchen ops"
   partner ich Teams ponuky.
-- **Exit/predaj:** dnes nedáva zmysel (pre ChefOS: 9 dní, 0 tržieb, chýba právna entita).
+- **Exit/predaj:** dnes nedáva zmysel (pre Sautero: 9 dní, 0 tržieb, chýba právna entita).
   A pozor — Gronda s $2,16M celkovým financovaním pravdepodobne **nemá hotovosť na akvizície**;
   realistickejší je obchodný deal než odkup. Vracať sa k tomu po: (1) triali s retenciou,
   (2) prvých founding platbách, (3) založení Einzelfirmy.

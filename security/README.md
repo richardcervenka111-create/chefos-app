@@ -1,7 +1,7 @@
-# ChefOS — Security & Legal Review Package (16 July 2026)
+# Sautero — Security & Legal Review Package (16 July 2026)
 
 This folder exists so a lawyer (and, eventually, a professional security auditor) can review
-what ChefOS actually does today, before the public trial / paid launch. Nothing in here has
+what Sautero actually does today, before the public trial / paid launch. Nothing in here has
 been reviewed by a lawyer yet — it's Claude's best effort based on public information about
 GDPR and the Swiss Federal Act on Data Protection (nDSG/revFADP, in force since Sept 2023), not
 legal advice.
@@ -30,11 +30,11 @@ the old acceptance record stays as permanent proof of what they agreed to and wh
 - No official Data Processing Agreement (DPA) exists yet with Supabase or Anthropic on file —
   both are standard SaaS vendors with their own DPAs available on request; worth formally
   countersigning before real customer data (beyond the current invited trial) flows through.
-- No cookie/consent banner exists because ChefOS doesn't use tracking cookies or third-party
+- No cookie/consent banner exists because Sautero doesn't use tracking cookies or third-party
   analytics (stated in `legal.html`) — confirm this claim stays true as features are added.
-- Switzerland vs. EU: ChefOS is currently framed as subject to both regimes since it may serve
+- Switzerland vs. EU: Sautero is currently framed as subject to both regimes since it may serve
   kitchens in either. A lawyer should confirm whether Swiss law, EU GDPR, or both actually apply
-  given where ChefOS (the company) and its users are based once that's finalized (see the
+  given where Sautero (the company) and its users are based once that's finalized (see the
   Nebenerwerb/Einzelfirma paperwork already in progress).
 - The Working Time / hours data now has a real admin-read path (Kitchen Reports, 16 July) gated
   behind explicit per-employee consent — see the RLS policy in

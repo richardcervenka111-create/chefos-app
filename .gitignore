@@ -22,3 +22,4 @@ backups/
 
 # Weekly working snapshots (large generated artifacts, per the Sunday automation)
 docs/snapshots/
+_archive_local/

@@ -4,7 +4,7 @@
 **Databáza (naživo, produkcia):** 46 tabuliek, **0 bez RLS**, 157 politík, **0 verejných
 storage bucketov**, všetky SECURITY DEFINER funkcie s pripnutým search_path, **0 chýb
 v error_logs za 24 h**. Dáta: 12 profilov (0 bez kuchyne), 20 kuchýň, 183 knižničných
-receptov (0 neobohatených po Michelin passe), 2 005 položiek ChefOS cenníka, 6 komentárov,
+receptov (0 neobohatených po Michelin passe), 2 005 položiek Sautero cenníka, 6 komentárov,
 ai_usage 8 riadkov (meranie per užívateľ reálne zapisuje), recipe_shares 1 (per-friend
 zdieľanie po db/144 potvrdene funguje).
 

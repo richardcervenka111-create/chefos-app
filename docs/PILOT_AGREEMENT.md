@@ -1,10 +1,10 @@
-# ChefOS — Pilot Program Agreement / Pilotprogramm-Vereinbarung
+# Sautero — Pilot Program Agreement / Pilotprogramm-Vereinbarung
 
 *Draft v2 — 2026-07-17. Dvojjazyčná verzia (angličtina + nemčina) pripravená na kontrolu
 právnikom — NIE JE finálna a neprešla právnym posúdením. Oproti v1 (13.7.) doplnená podľa
 skutočného stavu appky: GPS snímka pri dochádzke, menovité hodiny len so súhlasom zamestnanca,
 oddelenie osobných a firemných dát, heslo + in-app súhlasy, centrálny AI kľúč, dobrovoľné
-zdieľanie receptov s ChefOS. Otázky pre právnika sú na konci. Anglická a nemecká verzia majú
+zdieľanie receptov s Sautero. Otázky pre právnika sú na konci. Anglická a nemecká verzia majú
 zhodné číslovanie, aby sa dali kontrolovať vedľa seba.*
 
 ---
@@ -12,13 +12,13 @@ zhodné číslovanie, aby sa dali kontrolovať vedľa seba.*
 ## ENGLISH VERSION
 
 **Between:** __________________________ ("the Kitchen")
-**And:** Richard Červenka, ChefOS ("the Developer")
+**And:** Richard Červenka, Sautero ("the Developer")
 **Venue(s) covered:** __________________________
 **Start date:** __________________________
 
-### 1. What ChefOS is
+### 1. What Sautero is
 
-ChefOS is a **beta (pre-release) kitchen-management application**, under active daily
+Sautero is a **beta (pre-release) kitchen-management application**, under active daily
 development. Features can change, break, or be removed without notice during the pilot. It is
 not a finished, commercially supported product yet, and no particular availability, feature,
 or support level is promised.
@@ -29,7 +29,7 @@ or support level is promised.
   optionally a device-local Face ID/fingerprint unlock — biometric data never leaves the
   device).
 - Before first use, every team member accepts a confidentiality notice and a privacy notice
-  inside the app. The Kitchen will make sure its staff know that using ChefOS is part of the
+  inside the app. The Kitchen will make sure its staff know that using Sautero is part of the
   pilot.
 - Two account modes exist: **Company** (the Kitchen's shared workspace) and **Personal**
   (an individual's private notebook). Anything saved as Personal is private to that individual
@@ -53,28 +53,28 @@ or support level is promised.
     day view and is used for no other purpose.
 - The app keeps basic technical logs (logins, which screens get opened, JavaScript errors) to
   see whether the pilot is used and to fix bugs; these are visible only to the Developer. Email
-  addresses that reach ChefOS (access requests, invites) are kept in an internal contact log.
+  addresses that reach Sautero (access requests, invites) are kept in an internal contact log.
 - The Kitchen can request an export of its data, or its deletion, at any time (see section 8).
 
 ### 4. AI features
 
 - Some features (photo/PDF/Excel scanning of recipes, menus, price lists, schedules or
   contracts; recipe generation; field suggestions; the Chef's Assistant chat) send the
-  relevant text or image to **Anthropic's Claude API** for processing, via ChefOS's own server
-  and ChefOS's own API key. No data is used to train AI models beyond what Anthropic's
+  relevant text or image to **Anthropic's Claude API** for processing, via Sautero's own server
+  and Sautero's own API key. No data is used to train AI models beyond what Anthropic's
   standard API terms cover.
 - During the pilot, AI features are included **at no cost** to the Kitchen, within fair use.
 - When saving a recipe, the app may ask whether the author wants to **contribute it to the
-  shared ChefOS library**. This is voluntary and per-recipe. Contributed recipes may be
+  shared Sautero library**. This is voluntary and per-recipe. Contributed recipes may be
   reviewed by the Developer and, if accepted, included in the library available to other
-  ChefOS kitchens. A contribution can be withdrawn on request; copies already distributed to
+  Sautero kitchens. A contribution can be withdrawn on request; copies already distributed to
   other kitchens' shelves may remain there.
 - AI output (suggested dates, quantities, texts, translations) can be wrong. A professional
   reviews before relying on it — see section 5.
 
 ### 5. Food-safety (HACCP) disclaimer
 
-ChefOS can suggest shelf-life "use by" dates, generate food-safety labels, and store HACCP
+Sautero can suggest shelf-life "use by" dates, generate food-safety labels, and store HACCP
 records (temperatures, cleaning checklists, oil changes, pest checks) based on information
 entered into the app. **These are tools to assist the Kitchen's own food-safety process — they
 are not a substitute for the Kitchen's own HACCP procedures, training, or professional
@@ -91,7 +91,7 @@ agreement.
 
 ### 7. Availability and liability
 
-ChefOS is provided **"as is"**, without warranty. The Developer makes reasonable efforts to
+Sautero is provided **"as is"**, without warranty. The Developer makes reasonable efforts to
 keep the app running and the data safe (managed hosting, provider backups, access controls),
 but does not guarantee availability or freedom from errors. To the extent permitted by Swiss
 law, the Developer's liability under this pilot is excluded; mandatory liability (unlawful
@@ -105,7 +105,7 @@ Sections 5 and 7 survive the end of the pilot.
 
 ### 9. Data-protection roles
 
-For its team's personal data processed in ChefOS, the Kitchen acts as the responsible party
+For its team's personal data processed in Sautero, the Kitchen acts as the responsible party
 (controller) and the Developer processes that data on the Kitchen's behalf for the purpose of
 running the app (Swiss nDSG; GDPR where applicable). Details of this split are one of the
 points to be confirmed by legal review (see the questions at the end).
@@ -124,20 +124,20 @@ Questions or issues during the pilot: __________________________ (Richard's cont
 
 Kitchen representative: _________________________ Date: _____________
 
-Richard Červenka (ChefOS): _________________________ Date: _____________
+Richard Červenka (Sautero): _________________________ Date: _____________
 
 ---
 
 ## DEUTSCHE VERSION
 
 **Zwischen:** __________________________ («die Küche»)
-**Und:** Richard Červenka, ChefOS («der Entwickler»)
+**Und:** Richard Červenka, Sautero («der Entwickler»)
 **Betroffene Betriebe:** __________________________
 **Startdatum:** __________________________
 
-### 1. Was ChefOS ist
+### 1. Was Sautero ist
 
-ChefOS ist eine **Beta-Version (Vorabversion) einer Küchenmanagement-Anwendung**, die täglich
+Sautero ist eine **Beta-Version (Vorabversion) einer Küchenmanagement-Anwendung**, die täglich
 aktiv weiterentwickelt wird. Funktionen können sich während des Pilotbetriebs ohne Ankündigung
 ändern, ausfallen oder entfernt werden. Es handelt sich noch nicht um ein fertiges, kommerziell
 unterstütztes Produkt; eine bestimmte Verfügbarkeit, ein Funktionsumfang oder ein Support-Level
@@ -150,7 +150,7 @@ werden nicht zugesichert.
   biometrische Daten verlassen das Gerät nie).
 - Vor der ersten Nutzung akzeptiert jedes Teammitglied in der App einen Vertraulichkeits- und
   einen Datenschutzhinweis. Die Küche stellt sicher, dass ihr Personal weiss, dass die Nutzung
-  von ChefOS Teil des Pilotbetriebs ist.
+  von Sautero Teil des Pilotbetriebs ist.
 - Es gibt zwei Kontomodi: **Company** (der gemeinsame Arbeitsbereich der Küche) und
   **Personal** (das private Notizbuch einer Einzelperson). Als «Personal» gespeicherte Inhalte
   sind auf Datenbankebene privat — die Küche und ihre Administratoren können sie nicht lesen;
@@ -174,7 +174,7 @@ werden nicht zugesichert.
     sichtbar und wird zu keinem anderen Zweck verwendet.
 - Die App führt technische Basisprotokolle (Logins, geöffnete Bereiche, JavaScript-Fehler),
   um die Nutzung des Piloten zu sehen und Fehler zu beheben; diese sind nur für den Entwickler
-  sichtbar. E-Mail-Adressen, die ChefOS erreichen (Zugangsanfragen, Einladungen), werden in
+  sichtbar. E-Mail-Adressen, die Sautero erreichen (Zugangsanfragen, Einladungen), werden in
   einem internen Kontaktverzeichnis geführt.
 - Die Küche kann jederzeit einen Export ihrer Daten oder deren Löschung verlangen (Ziffer 8).
 
@@ -183,14 +183,14 @@ werden nicht zugesichert.
 - Einige Funktionen (Foto-/PDF-/Excel-Scan von Rezepten, Menüs, Preislisten, Dienstplänen oder
   Verträgen; Rezeptgenerierung; Feldvorschläge; der Chef's-Assistant-Chat) senden den
   betreffenden Text oder das Bild zur Verarbeitung an die **Claude-API von Anthropic**, über
-  den eigenen Server und den eigenen API-Schlüssel von ChefOS. Über die Standard-API-Bedingungen
+  den eigenen Server und den eigenen API-Schlüssel von Sautero. Über die Standard-API-Bedingungen
   von Anthropic hinaus werden keine Daten zum Training von KI-Modellen verwendet.
 - Während des Pilotbetriebs sind die KI-Funktionen für die Küche **kostenlos**, im Rahmen einer
   fairen Nutzung.
 - Beim Speichern eines Rezepts kann die App fragen, ob die Autorin/der Autor das Rezept **der
-  gemeinsamen ChefOS-Bibliothek beisteuern** möchte. Dies ist freiwillig und gilt pro Rezept.
+  gemeinsamen Sautero-Bibliothek beisteuern** möchte. Dies ist freiwillig und gilt pro Rezept.
   Beigesteuerte Rezepte können vom Entwickler geprüft und bei Annahme in die Bibliothek
-  aufgenommen werden, die anderen ChefOS-Küchen zur Verfügung steht. Ein Beitrag kann auf
+  aufgenommen werden, die anderen Sautero-Küchen zur Verfügung steht. Ein Beitrag kann auf
   Anfrage zurückgezogen werden; bereits an andere Küchen verteilte Kopien können dort
   verbleiben.
 - KI-Ausgaben (vorgeschlagene Daten, Mengen, Texte, Übersetzungen) können falsch sein. Eine
@@ -198,7 +198,7 @@ werden nicht zugesichert.
 
 ### 5. Lebensmittelsicherheit (HACCP) — Haftungsausschluss
 
-ChefOS kann Haltbarkeitsdaten («use by») vorschlagen, Etiketten für die Lebensmittelsicherheit
+Sautero kann Haltbarkeitsdaten («use by») vorschlagen, Etiketten für die Lebensmittelsicherheit
 erzeugen und HACCP-Aufzeichnungen speichern (Temperaturen, Reinigungs-Checklisten, Ölwechsel,
 Schädlingskontrollen) — auf Basis der in die App eingegebenen Informationen. **Dies sind
 Hilfsmittel für den eigenen Lebensmittelsicherheitsprozess der Küche — sie ersetzen weder die
@@ -216,7 +216,7 @@ Founding-Member-Abonnement) wäre eine separate, freiwillige Vereinbarung.
 
 ### 7. Verfügbarkeit und Haftung
 
-ChefOS wird **«wie besehen»** («as is») bereitgestellt, ohne Gewährleistung. Der Entwickler
+Sautero wird **«wie besehen»** («as is») bereitgestellt, ohne Gewährleistung. Der Entwickler
 bemüht sich in zumutbarem Rahmen, die App am Laufen und die Daten sicher zu halten (verwaltetes
 Hosting, Backups des Anbieters, Zugriffskontrollen), garantiert jedoch weder Verfügbarkeit noch
 Fehlerfreiheit. Soweit nach schweizerischem Recht zulässig, ist die Haftung des Entwicklers aus
@@ -231,7 +231,7 @@ exportiert und/oder gelöscht. Die Ziffern 5 und 7 gelten über das Ende des Pil
 
 ### 9. Rollen im Datenschutz
 
-Für die in ChefOS bearbeiteten Personendaten ihres Teams ist die Küche Verantwortliche
+Für die in Sautero bearbeiteten Personendaten ihres Teams ist die Küche Verantwortliche
 (Controller); der Entwickler bearbeitet diese Daten im Auftrag der Küche zum Zweck des Betriebs
 der App (Auftragsbearbeiter; schweizerisches nDSG, ggf. DSGVO). Die Einzelheiten dieser
 Rollenverteilung sind Teil der juristischen Prüfung (siehe Fragen am Ende).
@@ -250,7 +250,7 @@ Fragen oder Probleme während des Pilotbetriebs: __________________________ (Kon
 
 Vertretung der Küche: _________________________ Datum: _____________
 
-Richard Červenka (ChefOS): _________________________ Datum: _____________
+Richard Červenka (Sautero): _________________________ Datum: _____________
 
 ---
 
@@ -266,11 +266,11 @@ Richard Červenka (ChefOS): _________________________ Datum: _____________
 3. **Haftungsausschluss (Ziff. 5 und 7):** Hält der Ausschluss in dieser Form vor
    schweizerischem Recht (OR 100)? Bitte Formulierung schärfen, wo nötig.
 4. **Rezept-Beiträge (Ziff. 4):** Ist die Rechteeinräumung für der Bibliothek beigesteuerte
-   Rezepte ausreichend geregelt (Nutzungsrecht für ChefOS und andere Küchen, Widerruf), oder
+   Rezepte ausreichend geregelt (Nutzungsrecht für Sautero und andere Küchen, Widerruf), oder
    braucht es eine ausdrückliche Lizenzklausel?
 5. **Arbeitgeber/IP:** Der Entwickler ist unselbständig in einer Küche angestellt
    (Nebenerwerb gemeldet). Gibt es aus der IP-Klausel des Arbeitsvertrags Risiken für die in
-   ChefOS entstehenden Inhalte, und gehört dazu ein Satz in diese Vereinbarung?
+   Sautero entstehenden Inhalte, und gehört dazu ein Satz in diese Vereinbarung?
 6. **Sprachen & Gerichtsstand (Ziff. 10):** Ist «deutsche Fassung geht vor» + Gerichtsstand
    Bern die richtige Wahl für Pilotküchen im Kanton Bern?
 
