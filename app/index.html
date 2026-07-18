@@ -13958,11 +13958,14 @@ function renderRecipeShelvesGrid(){
   if(currentAccountType === 'company'){
     fixedTile('company', '🏢', 'Company Recipes');
   }
-  // Custom recipe projects (bod 8, 16.7.) — same pattern as custom ingredient lists (db/112):
-  // named, private collections owned by their creator, alongside the two fixed shelves.
+  // Custom recipe projects (bod 8, 16.7.) — same pattern as custom ingredient lists. Since
+  // db/147 (Richard, 18.7.: "rovnaká funkcia ako v ingredienciách") a kitchen's projects and
+  // the recipes filed into them are visible to the WHOLE team; 👥 marks a teammate's project
+  // (rename/delete stay creator-only, enforced by RLS). My Recipes stay strictly private.
   const visibleLists = _recipeLists.filter(l=>_showHiddenRecipeLists || !l.hidden);
   visibleLists.forEach(l=>{
-    addTile(l.icon || '🗂️', l.name + (l.hidden ? ' (hidden)' : ''), ()=>openShelf(l.id),
+    const foreign = l.created_by && currentUser && l.created_by !== currentUser.id;
+    addTile(l.icon || '🗂️', l.name + (foreign ? ' 👥' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openShelf(l.id),
       ()=>openItemContextMenu('recipeList', l.id, l.name, l.hidden, false));
   });
   addTile('➕', 'Add Project', ()=>openNewRecipeProjectPrompt());
