@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sautero — Poznámky</title>
+<style>
+  /* Sautero standing visual identity — dark navy + teal, same tokens as every doc. */
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper2:#0E2138; --ink:#FFFFFF; --ink-dim:#9C949E;
+    --ink-faint:rgba(156,148,158,0.6); --rule:#223d57; --accent:#34F7D7; --gold:#E8C468;
+    --danger:#FF7A68; --ok:#4ADE80; --mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,monospace;
+  }
+  *{ box-sizing:border-box; min-width:0; }
+  html,body{ overflow-x:hidden; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; padding:24px 16px 80px 16px; line-height:1.5; }
+  .wrap{ max-width:920px; margin:0 auto; }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+  h1{ font-size:26px; margin:0 0 6px 0; }
+  .lede{ font-size:13.5px; color:var(--ink-dim); margin:0 0 20px 0; max-width:70ch; }
+  .section-label{ display:flex; align-items:center; gap:10px; margin:26px 0 12px 0; }
+  .section-label .n{ font-family:var(--mono); font-size:11px; color:var(--accent); }
+  .section-label h2{ font-size:15px; margin:0; }
+  .section-label .rule{ flex:1; height:1px; background:var(--rule); }
+  .note{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 16px; margin:10px 0; display:flex; gap:12px; align-items:flex-start; cursor:pointer; transition:border-color .15s, transform .1s; }
+  .note:hover{ border-color:rgba(52,247,215,.5); }
+  .note:active{ transform:scale(.99); }
+  .note .ico{ flex:none; font-size:18px; }
+  .note .t{ font-size:14px; font-weight:700; }
+  .note .m{ font-size:12px; color:var(--ink-dim); margin-top:2px; }
+  .note .tap-hint{ font-family:var(--mono); font-size:10px; color:var(--ink-faint); flex:none; align-self:center; }
+  .badge{ font-family:var(--mono); font-size:10px; font-weight:700; border-radius:999px; padding:2px 9px; flex:none; align-self:center; }
+  .badge.do{ background:var(--gold); color:#0A1A2F; }
+  .badge.idea{ border:1px solid var(--rule); color:var(--ink-dim); }
+  .badge.you{ background:var(--danger); color:#0A1A2F; }
+  .badge.done{ background:var(--ok); color:#0A1A2F; }
+  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.78); display:none; align-items:flex-end; justify-content:center; z-index:100; }
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background:var(--paper); border:1px solid var(--rule); border-bottom:none; border-radius:20px 20px 0 0; width:100%; max-width:560px; max-height:82vh; overflow-y:auto; padding:14px 20px calc(24px + env(safe-area-inset-bottom,0px)) 20px; }
+  .modal .handle{ width:44px; height:4px; border-radius:999px; background:var(--rule); margin:0 auto 12px auto; }
+  .modal h3{ font-size:19px; margin:0 0 4px 0; }
+  .modal .sub{ font-size:12px; color:var(--accent); font-family:var(--mono); margin-bottom:10px; }
+  .modal .body{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
+  .modal .body b{ color:var(--ink); }
+  .modal .close{ width:100%; margin-top:14px; min-height:46px; border-radius:12px; border:1px solid var(--rule); background:none; color:var(--ink); font-size:14px; font-weight:700; cursor:pointer; }
+  @media print{ .chefos-stamp{ display:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Poznámky · živý zápisník</div>
+  <h1>📝 Poznámky</h1>
+  <p class="lede">Všetky Richardove poznámky, nápady a veci „na dokončenie" na jednom mieste — Claude ich sem priebežne zapisuje a aktualizuje pri každej zmene. Ťukni na poznámku pre podrobnosti. Technické zadania žijú aj v Pláne → Roadmapa (t-čísla).</p>
+
+  <div class="section-label"><span class="n">01</span><h2>🔨 Na dokončenie</h2><div class="rule"></div></div>
+  <div id="secDo"></div>
+
+  <div class="section-label"><span class="n">02</span><h2>💡 Nápady / poznámky</h2><div class="rule"></div></div>
+  <div id="secIdea"></div>
+
+  <div class="section-label"><span class="n">03</span><h2>🧑‍🍳 Len Richard (nikto iný to nemôže)</h2><div class="rule"></div></div>
+  <div id="secYou"></div>
+
+</div>
+
+<div class="modal-backdrop" id="noteModal" onclick="if(event.target===this) closeNote()">
+  <div class="modal">
+    <div class="handle"></div>
+    <h3 id="nm_t"></h3>
+    <div class="sub" id="nm_s"></div>
+    <div class="body" id="nm_b"></div>
+    <button class="close" onclick="closeNote()">Zavrieť</button>
+  </div>
+</div>
+
+<div class="chefos-stamp">🔄 Stav Sautero k 18. 7. 2026, 11:14</div>
+
+<script>
+/* Every note: {sec, icon, badge, t (title), m (one-liner), s (modal subtitle), b (modal body html)}.
+   KEEP THIS CURRENT — standing rule (Richard, 18.7., bod 5): all his notes live here and get
+   updated whenever anything changes. Newest first inside each section. */
+const NOTES = [
+  { sec:'do', icon:'🎪', badge:'DOKONČIŤ', t:'Dlaždica Events (bankety, akcie)', m:'zapísané 18.7. — New Event manuálne alebo scanom, dnešné + zajtrajšie vedľa seba',
+    s:'t172 · Plán → Roadmapa · zapísané 18.7.2026',
+    b:'Nová dlaždica <b>Events</b>: všetky udalosti, ktoré sa ešte len majú stať — napr. <b>banket, 35 ľudí, trojchodové menu</b>.<br><br>· Hore tlačidlo <b>New Event</b>: manuálny zápis (čo je to za akciu, pre koho, koľko ľudí, aké menu, cena, dátum/čas) <b>alebo Scan</b> — odfotíš objednávku/e-mail a AI rozpozná typ akcie, klienta, počet ľudí, menu, cenu a pridá do zoznamu (rovnaký vision vzor ako Invoice Scan).<br>· Pod tým dva stĺpce vedľa seba: <b>Dnešné eventy | Zajtrajšie eventy</b>, ďalšie dni nižšie v zozname.' },
+  { sec:'do', icon:'🖨️', badge:'DOKONČIŤ', t:'Tlač receptov v identite reštaurácie', m:'t170 — každá reštaurácia tlačí vo VLASTNÝCH farbách/logu',
+    s:'t170 · Plán → Roadmapa · zapísané 18.7.2026',
+    b:'Každá nová reštaurácia dostane tlač receptov vo <b>vlastnej identite</b> — farby, font, logo — tak ako dnes naša brandovaná tlač. Návrh: kitchens tabuľka dostane brand polia, print template ich načíta; nastavenie v Admin. Súčasť onboardingu novej reštaurácie.' },
+  { sec:'do', icon:'🌦️', badge:'DOKONČIŤ', t:'Kontext dňa vs. tržby (počasie, deň, sviatky)', m:'t171 — „daždivé utorky = −18 % obedov", po triali',
+    s:'t171 · Plán → Roadmapa · zapísané 18.7.2026',
+    b:'Zbierať denný kontext (počasie z API pre lokalitu kuchyne, deň v týždni, švajčiarske sviatky) a korelovať s tržbami v Kitchen Reports. Predpoklad: tržbové dáta — prídu s POS integráciou alebo ručným denným zápisom tržby. Fáza po triali 1.8.' },
+  { sec:'do', icon:'🧪', badge:'DOKONČIŤ', t:'AI Testing Mode vypnúť pred trialom', m:'t166 — teraz ON (neobmedzené AI pre všetkých), vypnúť pred 1.8.',
+    s:'t166 · Admin → AI Testing Mode',
+    b:'Kým je ON, každé zariadenie má neobmedzené AI bez ohľadu na kredit. Pred verejným trialom 1.8. treba prepnúť OFF, aby platilo normálne kreditovanie (inak 25 cudzích ľudí míňa centrálny kľúč bez limitu).' },
+  { sec:'idea', icon:'🎙️', badge:'POZNÁMKA', t:'Hlasové ovládanie, aj pri zamknutom telefóne', m:'zapísané 18.7. — pri zamknutom = až natívna appka + Siri',
+    s:'t173 · zapísané 18.7.2026 · Fáza 6',
+    b:'Richardova požiadavka: ovládať appku hlasom, ideálne aj so zamknutým displejom.<br><br><b>Technická realita:</b> web appka na iOS <b>nemôže</b> počúvať pri zamknutom telefóne (mikrofón beží len s otvorenou stránkou). Reálna cesta:<br>· <b>pri odomknutom</b> — Web Speech API na diktovanie a príkazy priamo v appke (dá sa spraviť už teraz),<br>· <b>pri zamknutom</b> — natívna appka + Siri Shortcuts/App Intents („Hey Siri, Sautero pridaj…") — patrí do Fázy 6 (natívna mobilná appka, 2027).' },
+  { sec:'idea', icon:'🌡️', badge:'POZNÁMKA', t:'Chladničkové senzory + tlačiareň štítkov', m:'SensorPush ~CHF 125 · Brother QL-820NWB ~CHF 130 — plánované nákupy',
+    s:'research hotový · docs/LABEL_PRINTER_RESEARCH.md',
+    b:'<b>SensorPush</b> (~$55 senzor + ~$100 WiFi brána, bez mesačných poplatkov) je jediná budget možnosť s cloud API pre automatický zápis teplôt do HACCP. <b>Brother QL-820NWB</b> (~CHF 130, bez zmluvy) na tlač štítkov. Oba čakajú na nákup — sú v Nákladoch ako plánované.' },
+  { sec:'idea', icon:'🎓', badge:'PARKOVANÉ', t:'Študentská bakalárka na module Inventory', m:'parkované 17.7. — ohraničený modul, nikdy produkčné dáta',
+    s:'parkované · 17.7.2026',
+    b:'Nápad: študent si vezme <b>ohraničený izolovaný modul</b> (kandidát: Inventory) ako bakalárku. Podmienky: nikdy produkčné dáta ani AI kľúč, IP dohoda vopred. Parkované, kým nie je kapacita.' },
+  { sec:'you', icon:'🌐', badge:'RICHARD', t:'Kúpiť sautero.ch + sautero.com', m:'Hostpoint, ~25 CHF prvý rok — potom presun domény',
+    s:'od 18.7.2026 · blokuje migráciu domény',
+    b:'Obe domény sú voľné (overené cez nic.ch whois). Kúpiť na <b>Hostpoint</b>: sautero.ch ~5 CHF prvý rok (obnova ~15), sautero.com ~20 CHF/rok. Po kúpe Claude presunie appku, e-maily a technické identifikátory z chefos.ch na sautero.ch.' },
+  { sec:'you', icon:'📄', badge:'RICHARD', t:'Nebenerwerb súhlas + Einzelfirma', m:'deadline 20.7. — obe blokujú prvý príjem, drafty v docs/',
+    s:'deadline 20.7.2026 · blokátory monetizácie',
+    b:'Dva právne blokátory prvého príjmu (founding pre-sale CHF 490/rok + onboarding CHF 990):<br>· <b>písomný súhlas zamestnávateľa</b> s vedľajším zárobkom — list je nadraftovaný v docs/, stačí poslať,<br>· <b>registrácia Einzelfirmy</b> (AHV) — draft podkladov tiež v docs/.' },
+  { sec:'you', icon:'🤝', badge:'RICHARD', t:'Aare Ventures — pitch pre investorov v Berne', m:'prihláška do 23.8., event 14.9. Eventfabrik Bern — detail v Internal Docs',
+    s:'aare.html · zapísané 18.7.2026',
+    b:'Bernský spolok prepájajúci startupy s business angelmi (4 eventy ročne, >CHF 20 mil. preinvestovaných). Najbližší event <b>AV29: pondelok 14.9.2026, Eventfabrik Bern</b>, prihláška do <b>23.8.</b> — pitch deck max 20 slidov na contact@aareventures.ch. Plný rozbor + či sa tam hodíme: dokument Aare Ventures v Internal Docs.' },
+];
+
+function renderNotes(){
+  const secs = { do:'secDo', idea:'secIdea', you:'secYou' };
+  const badgeCls = { 'DOKONČIŤ':'do', 'POZNÁMKA':'idea', 'PARKOVANÉ':'idea', 'RICHARD':'you', 'HOTOVÉ':'done' };
+  Object.entries(secs).forEach(([k, id])=>{
+    document.getElementById(id).innerHTML = NOTES.filter(n=>n.sec===k).map((n)=>`
+      <div class="note" onclick="openNote(${NOTES.indexOf(n)})">
+        <span class="ico">${n.icon}</span>
+        <span style="flex:1;"><span class="t">${n.t}</span><div class="m">${n.m}</div></span>
+        <span class="badge ${badgeCls[n.badge]||'idea'}">${n.badge}</span>
+        <span class="tap-hint">ťukni ›</span>
+      </div>`).join('');
+  });
+}
+function openNote(i){
+  const n = NOTES[i];
+  document.getElementById('nm_t').textContent = n.icon + ' ' + n.t;
+  document.getElementById('nm_s').textContent = n.s;
+  document.getElementById('nm_b').innerHTML = n.b;
+  document.getElementById('noteModal').classList.add('open');
+}
+function closeNote(){ document.getElementById('noteModal').classList.remove('open'); }
+renderNotes();
+</script>
+</body>
+</html>

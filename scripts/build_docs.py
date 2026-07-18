@@ -65,6 +65,15 @@ MERGED = [
             ('Visual Guide', 'VISUAL_GUIDE.html'),
         ],
     },
+    # Poznámky (Richard, 18.7. bod 5): a live notebook column in the shared doc nav — every
+    # note he dictates lands in poznamky_src.html and gets updated as things change.
+    {
+        'file': 'poznamky.html', 'icon': '📝', 'title': 'Poznámky',
+        'subtitle_sk': 'Živý zápisník — nápady, na dokončenie, Richardove povinnosti',
+        'tabs': [
+            ('Poznámky', 'poznamky_src.html'),
+        ],
+    },
 ]
 
 # The cross-navigation shown in every shell (Critical Review joins as the 5th).

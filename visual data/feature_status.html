@@ -316,6 +316,7 @@ const MODULES = [
   { icon:'⚙️', title:'Nastavenia', items:[
     { name:'My Profile & Security (heslo, Face ID)', status:'ok', desc:'Meno, email, tím, rola; povinné heslo + voliteľné Face ID odomknutie na tomto zariadení (biometria nikdy neopúšťa telefón).' },
     { name:'Light / Dark mode', status:'test', desc:'Prepínač vzhľadu — tmavý (pôvodný Sautero) alebo svetlý pre kuchyňu pri dennom svetle. Per zariadenie, každý člen tímu si volí sám.' },
+    { name:'🎪 Events (bankety a akcie) — plán', status:'plan', desc:'Dlaždica Events: udalosti, ktoré sa ešte len majú stať (banket 35 ľudí, trojchodové menu…). New Event manuálne alebo scanom (AI z fotky objednávky rozpozná typ, klienta, počet ľudí, menu, cenu), pod tým Dnešné | Zajtrajšie eventy vedľa seba. Zapísané 18.7. (t172), s poznámkou dokončiť.' },
     { name:'Add Team Member (kód + QR + link + email)', status:'test', role:'admin', desc:'Admin existujúcej kuchyne (napr. protonmail „T1“) pridáva ľudí do SVOJHO tímu: sheet vygeneruje čerstvý 6-miestny kód, QR, kopírovateľný link a pole na email (login email s pripraveným joinom). Nahradilo mätúce „Create Team“ u kuchynských adminov — vytváranie nových kuchýň ostalo len hlavnému adminovi (iCloud). db/145: kód si smie vygenerovať admin vlastnej kuchyne. 18.7.' },
     { name:'Nový vzhľad (beta — len zakladateľ)', status:'build', role:'admin', desc:'Redesign „tá istá identita, vyššia liga“: navy v 4 vrstvách hĺbky, teal s glow, hairline bordery, 44px+ dotykové ciele, mikrointerakcie. Žije pod html.theme-new — klasická téma nedotknutá; prepínač Klasický/Nový v Appearance vidí len richard.cervenka@icloud.com (u neho default Nový, per zariadenie, nasadené neaktívne pre všetkých ostatných). Vetva redesign-ui, celky 1–3.' },
     { name:'Jazyk (EN/DE/FR/IT/SK)', status:'ok', desc:'Prepnutie jazyka rozhrania — čiastočné pokrytie (login, Home, Check List), zvyšok postupne. Dáta kuchyne sa nikdy neprekladajú.' },
@@ -426,9 +427,13 @@ function renderDonut(ok, test, plan){
     off += frac;
     return c;
   }).join('');
+  // Center number follows the FILTER (Richard, 18.7.): with a segment toggled off it shows
+  // the sum of the segments still on, not the grand total; label flips to say it's filtered.
+  const filtered = activeStatuses.size < 3;
+  const shown = segs.filter(s=>activeStatuses.has(s.key)).reduce((a,s)=>a + s.val, 0);
   svg.innerHTML = circles +
-    `<text class="center-num" x="60" y="58" text-anchor="middle" onclick="resetStatusFilters()">${total}</text>` +
-    `<text class="center-lbl" x="60" y="72" text-anchor="middle">${_lang==='sk'?'funkcií spolu':'features total'}</text>`;
+    `<text class="center-num" x="60" y="58" text-anchor="middle" onclick="resetStatusFilters()">${filtered ? shown : total}</text>` +
+    `<text class="center-lbl" x="60" y="72" text-anchor="middle">${filtered ? (_lang==='sk'?'vo filtri':'in filter') : (_lang==='sk'?'funkcií spolu':'features total')}</text>`;
 }
 function resetStatusFilters(){
   ['ok','test','plan'].forEach(s=>activeStatuses.add(s));
