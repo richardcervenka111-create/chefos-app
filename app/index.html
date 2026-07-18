@@ -14763,6 +14763,16 @@ function attachLongPress(el, onLongPress){
    after ANY overlay closes, clicks outside an overlay are swallowed. Capture phase, so it runs
    before every onclick= handler in the app. */
 let _ghostClickGuardUntil = 0;
+/* Scroll restore + keyboard-offset resync (Richard's 18.7. screen recording, frame-by-frame):
+   typing in a sheet's input makes the iOS keyboard scroll the page; after the sheet closes,
+   (a) the page stays stranded mid-list with the header off-screen, and (b) — the nastier one —
+   Safari keeps HIT-TESTING taps at pre-keyboard offsets, so a tap lands a keyboard-height away
+   from where the finger visibly is (that's how an "Add Item" sheet opened by itself at 0:20 of
+   his video). Fix on every overlay close: blur the input (dismiss the keyboard), force a
+   scroll-sync (realigns Safari's visual/layout viewports), and put the page back where it was
+   when the FIRST overlay opened. */
+let _openOverlayCount = 0;
+let _preOverlayScrollY = null;
 new MutationObserver((muts)=>{
   muts.forEach(m=>{
     const el = m.target;
@@ -14771,7 +14781,25 @@ new MutationObserver((muts)=>{
     if(!isOverlay) return;
     const wasOpen = (m.oldValue || '').split(/\s+/).includes('open');
     const isOpen = el.classList.contains('open');
-    if(wasOpen && !isOpen) _ghostClickGuardUntil = Date.now() + 450;
+    if(!wasOpen && isOpen){
+      if(_openOverlayCount === 0) _preOverlayScrollY = window.scrollY;
+      _openOverlayCount++;
+    }
+    if(wasOpen && !isOpen){
+      _ghostClickGuardUntil = Date.now() + 450;
+      _openOverlayCount = Math.max(0, _openOverlayCount - 1);
+      if(_openOverlayCount === 0){
+        const y = _preOverlayScrollY;
+        _preOverlayScrollY = null;
+        if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        setTimeout(()=>{
+          // Resync first (a zero-distance scroll still realigns hit-testing), then restore the
+          // pre-sheet position if the keyboard/sheet dragged the page somewhere else meanwhile.
+          window.scrollTo(window.scrollX, window.scrollY);
+          if(y != null && Math.abs(window.scrollY - y) > 40) window.scrollTo(0, y);
+        }, 80);
+      }
+    }
   });
 }).observe(document.body, { subtree:true, attributes:true, attributeFilter:['class'], attributeOldValue:true });
 document.addEventListener('click', (e)=>{
@@ -14780,6 +14808,17 @@ document.addEventListener('click', (e)=>{
     e.preventDefault();
   }
 }, true);
+/* Second line of defence for the same Safari hit-test bug, independent of overlays: whenever
+   the on-screen keyboard visibly closes (visual viewport grows back by 100px+), force a
+   scroll-sync so taps land where the finger actually is again. */
+if(window.visualViewport){
+  let _lastVvH = window.visualViewport.height;
+  window.visualViewport.addEventListener('resize', ()=>{
+    const h = window.visualViewport.height;
+    if(h > _lastVvH + 100) window.scrollTo(window.scrollX, window.scrollY);
+    _lastVvH = h;
+  });
+}
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
 function openItemContextMenu(type, id, name, hidden, shared){
