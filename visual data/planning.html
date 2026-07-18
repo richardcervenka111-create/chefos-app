@@ -191,15 +191,15 @@
    Add a new day by pushing one object to DAYS; week/month grouping
    is computed automatically. Keep TOP3 current each session.
    ============================================================ */
-const GENERATED = '2026-07-17';
+const GENERATED = '2026-07-18';
 
 const TOP3 = {
   day: {
-    range: 'Piatok 17. 7. 2026',
+    range: 'Sobota 18. 7. 2026',
     items: [
-      { text: 'Živé vedené testovanie s Richardom: komentáre, police, tlač, zdieľanie — každý nájdený bug opravený v ten istý deň (db/129–138)', status: 'done' },
-      { text: 'Kompletná bezpečnostná kontrola: bucket so zmluvami zavretý, cross-kitchen XSS zavretý, trvalé poistky v auditoroch', status: 'done' },
-      { text: 'Upratanie dokumentov + konsolidácia: 13 → 11 → 5 interných dokumentov so záložkami a krížovou navigáciou', status: 'done' },
+      { text: '🏷️ REBRAND: nová značka Sautero — appka, všetky dokumenty a e-maily premenované; technické kľúče a app.chefos.ch sa presunú po kúpe domén (Richard: sautero.ch + sautero.com, ~25 CHF)', status: 'done' },
+      { text: '8-bodový zoznam dokončený: tímový join s jasným varovaním, sken ukladá do správneho zoznamu, 🏢 Company Ingredients polica, HTML/text podpora vo všetkých skenoch + silnejšia extrakcia dodávateľa', status: 'done' },
+      { text: 'Investor deck hĺbkovo aktualizovaný: 183 receptov / 2 005 ingrediencií / 13 účtov, donut 77-25-7, nový stĺpcový graf hodín buildu s tap-detailom', status: 'done' },
     ]
   },
   week: {
@@ -440,6 +440,19 @@ const DAYS = [
     ],
     planned: 'Otestovať naživo: AI Usage po prvom AI volaní, priateľské QR s novým účtom, pripnutie v Kitchen Reports, obohatené recepty v appke. RLS test súkromia „Moje“ z dvoch účtov. Nebenerwerb + Einzelfirma ostávajú blokátormi príjmu (deadline 20.7.).'
   },
+  {
+    date: '2026-07-18',
+    headline: '🏷️ Rebrand na Sautero + dokončenie 8-bodového zoznamu (tímy, sken do zoznamu, HTML faktúry) + hĺbková aktualizácia investor decku',
+    accomplished: [
+      'REBRAND Sautero: 162 viditeľných výskytov v appke premenovaných (login, tlačová hlavička Sau/tero, PWA manifest, legal, tutoriály), všetkých 15 vizuálnych dokumentov + build_docs titulky; technické identifikátory (localStorage chefos_*, chefos_master_id, app.chefos.ch) zámerne nedotknuté do kúpy domén; nazov.html má verdikt „✅ VYBRANÉ 18.7.2026“; e-mailová notifikácia žiadostí o prístup premenovaná a nasadená',
+      'Bod 2 (tímy icloud↔proton): dáta opravené + trvalá poistka — Join teraz živo načíta meno aktuálnej kuchyne a varuje „You will LEAVE …“, Create Team vysvetľuje že tvorca ostáva vo svojej kuchyni + tlačidlo „Join this team myself“',
+      'Bod 3 (sken do zoznamu): cieľová polica sa zachytáva pri ŠTARTE skenu, nie pri uložení — sken na pozadí už nikdy neuloží do inej police; bonus: 🏢 Company Ingredients polica v company režime (admin pridáva, každý číta), zoznamy fungujú v oboch režimoch ako projekty receptov',
+      'Bod 6 (HTML faktúry): všetkých 7 vision skenov číta HTML/MD/TXT/CSV (HTML sa čistí cez DOMParser), Invoice Scan akceptuje tieto typy; oba prompty učia: dodávateľ = hlavička s právnou formou (AG, GmbH, S.r.l., s.r.o.) + IČ DPH, príjemca („Spett.le“, „Rechnung an“) NIE je dodávateľ — otestované na nemeckej aj talianskej testovacej faktúre',
+      'Body 4+5 do plánu: t170 tlač receptov v identite konkrétnej reštaurácie, t171 počasie/deň/sviatok vs. tržby (backlog.html)',
+      'Bod 7 (Značka & vízia): deck aktualizovaný na dnešné reálne dáta — 183 receptov (Michelin komplet), 2 005 ingrediencií, 13 účtov (10 reálnych), zrelosť funkcií 77-25-7, roadmap riadok 18.7., náklady ~281 CHF hotovosť + ~89,5 h × 45 CHF ≈ 4 028 CHF; NOVÝ stĺpcový graf hodín buildu deň po dni s tap-detailom (koláč zrelosti + ARR krivka už boli); Manifest a Visual Guide čísla zosúladené',
+    ],
+    planned: 'Richard: kúpiť sautero.ch + sautero.com (Hostpoint, ~25 CHF prvý rok) — potom presun domény a technických identifikátorov. Overiť na iPhone: tímový join/create flow, sken do zoznamu, Company Ingredients, HTML faktúru na protonmaile, novú tému na iCloud účte.'
+  },
 ];
 
 function isoWeekLabel(dateStr){
@@ -657,6 +670,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 17. 7. 2026, 19:18" data-en="🔄 Sautero state as of Jul 17, 2026, 19:18">🔄 Stav Sautero k 17. 7. 2026, 19:18</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 10:21" data-en="🔄 Sautero state as of Jul 18, 2026, 10:21">🔄 Stav Sautero k 18. 7. 2026, 10:21</div>
 </body>
 </html>
