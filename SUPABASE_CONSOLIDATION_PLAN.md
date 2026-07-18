@@ -100,6 +100,14 @@ tables; full backup export.
 `zz_retired_*`, drop a week later. 49 → 46. No app change needed (zero call sites — the
 auditor's ghost-table check keeps it that way).
 
+> **Phase 1 EXECUTED 19.7.2026 (db/157):** live measurement corrected the premise — prod had
+> only ONE of the three ("feedback", 0 rows, now renamed `zz_retired_feedback`);
+> `profile_private` was a never-run draft and `schedule_entries` was already dropped by db/18,
+> so **live prod table count was 47, not 49** (two "tables" existed only as create statements
+> in migration files). Staging had none of the three (guarded migration no-op'd). Final drop of
+> `zz_retired_feedback` is due **on/after 26.7.2026** with a `-- DESTRUCTIVE:` migration +
+> Richard's approval. Live count now: **46 real tables**.
+
 **Phase 2 — lookups & settings (low risk):** C2, C3, C4, C5. Pattern per step: add new
 column/table → copy data (`insert … select`) → flip the app reads/writes → verify live on a
 real phone → retire old table. 46 → 39.
