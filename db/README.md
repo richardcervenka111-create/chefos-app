@@ -26,8 +26,15 @@ commit/push/deploy on violation.
    `scripts/tenant_isolation_test.sql` in the staging SQL editor — it raises an
    exception on any cross-kitchen leak. All three historical RLS incidents (db/53
    outage, db/55, db/62 lockout) belonged to exactly this class.
-8. **Who runs migrations:** Richard, personally, via the Supabase SQL editor — staging
-   first per rule 3. Claude writes files, never executes against production.
+8. **Who runs migrations:** either Richard, personally, via the Supabase SQL editor — or
+   Claude, via Richard's already-logged-in Supabase SQL Editor tab in his own Chrome
+   (Richard, 18.7.: explicit standing permission; Claude never handles his DB password or
+   any other raw credential to do this, only his existing authenticated session). Staging
+   first still applies per rule 3 either way. When Claude runs a migration this way: paste
+   the exact file content (verify it landed uncorrupted before hitting Run — editor
+   auto-indent/newline handling can silently mangle multi-line pastes), then re-verify the
+   change actually took (e.g. query `information_schema.columns` / `pg_proc`) rather than
+   trusting a bare "Success" message.
 
 ---
 
