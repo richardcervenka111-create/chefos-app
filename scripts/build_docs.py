@@ -31,73 +31,81 @@ VD = os.path.join(REPO, 'visual data')
 
 MERGED = [
     {
-        'file': 'produkt.html', 'icon': '📱', 'title': 'Produkt',
+        'file': 'produkt.html', 'icon': '📱', 'title': 'Produkt', 'title_en': 'Product',
         'subtitle_sk': 'Čo appka vie — živá mapa funkcií + história shipnutého',
+        'subtitle_en': 'What the app can do — the live feature map + shipped history',
         'tabs': [
-            ('Mapa funkcií', 'feature_status.html'),
-            ('História', 'tasklist.html'),
+            ('Mapa funkcií', 'Feature map', 'feature_status.html'),
+            ('História', 'History', 'tasklist.html'),
         ],
     },
     {
-        'file': 'plan.html', 'icon': '🗺️', 'title': 'Plán',
+        'file': 'plan.html', 'icon': '🗺️', 'title': 'Plán', 'title_en': 'Plan',
         'subtitle_sk': 'Kde sme a čo ďalej — teraz, denník, roadmapa',
+        'subtitle_en': 'Where we are and what is next — now, diary, roadmap',
         'tabs': [
-            ('Teraz', 'status.html'),
-            ('Denník', 'planning.html'),
-            ('Roadmapa', 'backlog.html'),
+            ('Teraz', 'Now', 'status.html'),
+            ('Denník', 'Diary', 'planning.html'),
+            ('Roadmapa', 'Roadmap', 'backlog.html'),
         ],
     },
     {
-        'file': 'biznis.html', 'icon': '💰', 'title': 'Biznis',
+        'file': 'biznis.html', 'icon': '💰', 'title': 'Biznis', 'title_en': 'Business',
         'subtitle_sk': 'Peniaze dnu aj von — monetizácia, automatizácie, náklady',
+        'subtitle_en': 'Money in and out — monetisation, automations, costs',
         'tabs': [
-            ('Monetizácia', 'monetization.html'),
-            ('Automatizácie', 'automation.html'),
-            ('Náklady', 'costs.html'),
+            ('Monetizácia', 'Monetisation', 'monetization.html'),
+            ('Automatizácie', 'Automations', 'automation.html'),
+            ('Náklady', 'Costs', 'costs.html'),
         ],
     },
     {
-        'file': 'znacka.html', 'icon': '🎨', 'title': 'Značka & vízia',
+        'file': 'znacka.html', 'icon': '🎨', 'title': 'Značka & vízia', 'title_en': 'Brand & vision',
         'subtitle_sk': 'Navonok — investor deck, manifest, vizuálny štandard',
+        'subtitle_en': 'Outward-facing — the investor deck, manifesto, visual standard',
         'tabs': [
-            ('Investor Deck', 'presentation.html'),
-            ('Manifesto', 'ChefOS_Manifesto.html'),
-            ('Visual Guide', 'VISUAL_GUIDE.html'),
+            ('Investor Deck', 'Investor Deck', 'presentation.html'),
+            ('Manifesto', 'Manifesto', 'ChefOS_Manifesto.html'),
+            ('Visual Guide', 'Visual Guide', 'VISUAL_GUIDE.html'),
         ],
     },
     # Poznámky (Richard, 18.7. bod 5): a live notebook column in the shared doc nav — every
     # note he dictates lands in poznamky_src.html and gets updated as things change.
     {
-        'file': 'poznamky.html', 'icon': '📝', 'title': 'Poznámky',
+        'file': 'poznamky.html', 'icon': '📝', 'title': 'Poznámky', 'title_en': 'Notes',
         'subtitle_sk': 'Živý zápisník — nápady, na dokončenie, Richardove povinnosti',
+        'subtitle_en': 'A live notebook — ideas, to-finish items, Richard\'s own duties',
         'tabs': [
-            ('Poznámky', 'poznamky_src.html'),
+            ('Poznámky', 'Notes', 'poznamky_src.html'),
         ],
     },
 ]
 
-# The cross-navigation shown in every shell (Critical Review joins as the 5th).
-NAV = [(m['icon'], m['title'], m['file']) for m in MERGED] + [('🔍', 'Critical Review', 'CRITICAL_REVIEW/latest.html')]
+# The cross-navigation shown in every shell (Critical Review joins as the last one).
+NAV = [(m['icon'], m['title'], m.get('title_en', m['title']), m['file']) for m in MERGED] + [('🔍', 'Critical Review', 'Critical Review', 'CRITICAL_REVIEW/latest.html')]
 
 
 def build_one(spec):
     docs = {}
-    for label, fname in spec['tabs']:
+    for _label_sk, _label_en, fname in spec['tabs']:
         path = os.path.join(VD, fname)
         with open(path, encoding='utf-8') as f:
             docs[fname] = f.read()
 
+    # Bilingual shell (Richard, 18.7.: "NEZABUDNI NA HORNÝ BANER") — nav titles, the subtitle
+    # and the tab labels all carry data-sk/data-en; a tiny script applies the shared
+    # chefos_doc_lang and re-applies whenever an inner document's toggle writes localStorage.
     nav_html = ''.join(
-        f'<a href="{f}" class="doc-link{" current" if f == spec["file"] else ""}">{i} {t}</a>'
-        for i, t, f in NAV
+        f'<a href="{f}" class="doc-link{" current" if f == spec["file"] else ""}">{i} <span data-sk="{t}" data-en="{te}">{t}</span></a>'
+        for i, t, te, f in NAV
     )
     tabs_html = ''.join(
-        f'<button class="tab{" active" if n == 0 else ""}" onclick="openTab({n})" id="tabBtn{n}">{label}</button>'
-        for n, (label, _f) in enumerate(spec['tabs'])
+        f'<button class="tab{" active" if n == 0 else ""}" onclick="openTab({n})" id="tabBtn{n}" data-sk="{lsk}" data-en="{len_}">{lsk}</button>'
+        for n, (lsk, len_, _f) in enumerate(spec['tabs'])
     )
     # "<" must be escaped: the sources contain literal "</script>" inside their own scripts,
     # which would terminate the shell's <script> block if embedded raw.
-    payload = json.dumps([docs[f] for _l, f in spec['tabs']], ensure_ascii=False).replace('<', '\\u003c')
+    payload = json.dumps([docs[f] for _l, _le, f in spec['tabs']], ensure_ascii=False).replace('<', '\\u003c')
 
     return f'''<!DOCTYPE html>
 <html lang="sk">
@@ -131,7 +139,7 @@ def build_one(spec):
 <body>
 <header>
   <nav class="docnav">{nav_html}</nav>
-  <div class="titlebar"><h1>{spec['icon']} {spec['title']}</h1><span class="sub">{spec['subtitle_sk']}</span></div>
+  <div class="titlebar"><h1>{spec['icon']} <span data-sk="{spec['title']}" data-en="{spec.get('title_en', spec['title'])}">{spec['title']}</span></h1><span class="sub" data-sk="{spec['subtitle_sk']}" data-en="{spec.get('subtitle_en', spec['subtitle_sk'])}">{spec['subtitle_sk']}</span></div>
   <div class="tabs">{tabs_html}</div>
 </header>
 <main id="frames"></main>
@@ -152,6 +160,18 @@ function openTab(n){{
   frames[n].classList.add('show');
 }}
 openTab(0);
+/* Shell language: follows the shared chefos_doc_lang key. Inner iframes write it on toggle —
+   the parent gets a 'storage' event and re-applies; focus/visibility changes re-check too. */
+function applyShellLang(){{
+  const lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  document.querySelectorAll('[data-sk]').forEach(el=>{{
+    el.textContent = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+  }});
+  document.documentElement.lang = lang;
+}}
+window.addEventListener('storage', e=>{{ if(!e || !e.key || e.key === 'chefos_doc_lang') applyShellLang(); }});
+setInterval(applyShellLang, 1500);
+applyShellLang();
 </script>
 </body>
 </html>

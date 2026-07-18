@@ -29,9 +29,9 @@
 </head>
 <body>
 <header>
-  <nav class="docnav"><a href="produkt.html" class="doc-link current">📱 Produkt</a><a href="plan.html" class="doc-link">🗺️ Plán</a><a href="biznis.html" class="doc-link">💰 Biznis</a><a href="znacka.html" class="doc-link">🎨 Značka & vízia</a><a href="poznamky.html" class="doc-link">📝 Poznámky</a><a href="CRITICAL_REVIEW/latest.html" class="doc-link">🔍 Critical Review</a></nav>
-  <div class="titlebar"><h1>📱 Produkt</h1><span class="sub">Čo appka vie — živá mapa funkcií + história shipnutého</span></div>
-  <div class="tabs"><button class="tab active" onclick="openTab(0)" id="tabBtn0">Mapa funkcií</button><button class="tab" onclick="openTab(1)" id="tabBtn1">História</button></div>
+  <nav class="docnav"><a href="produkt.html" class="doc-link current">📱 <span data-sk="Produkt" data-en="Product">Produkt</span></a><a href="plan.html" class="doc-link">🗺️ <span data-sk="Plán" data-en="Plan">Plán</span></a><a href="biznis.html" class="doc-link">💰 <span data-sk="Biznis" data-en="Business">Biznis</span></a><a href="znacka.html" class="doc-link">🎨 <span data-sk="Značka & vízia" data-en="Brand & vision">Značka & vízia</span></a><a href="poznamky.html" class="doc-link">📝 <span data-sk="Poznámky" data-en="Notes">Poznámky</span></a><a href="CRITICAL_REVIEW/latest.html" class="doc-link">🔍 <span data-sk="Critical Review" data-en="Critical Review">Critical Review</span></a></nav>
+  <div class="titlebar"><h1>📱 <span data-sk="Produkt" data-en="Product">Produkt</span></h1><span class="sub" data-sk="Čo appka vie — živá mapa funkcií + história shipnutého" data-en="What the app can do — the live feature map + shipped history">Čo appka vie — živá mapa funkcií + história shipnutého</span></div>
+  <div class="tabs"><button class="tab active" onclick="openTab(0)" id="tabBtn0" data-sk="Mapa funkcií" data-en="Feature map">Mapa funkcií</button><button class="tab" onclick="openTab(1)" id="tabBtn1" data-sk="História" data-en="History">História</button></div>
 </header>
 <main id="frames"></main>
 <script>
@@ -51,6 +51,18 @@ function openTab(n){
   frames[n].classList.add('show');
 }
 openTab(0);
+/* Shell language: follows the shared chefos_doc_lang key. Inner iframes write it on toggle —
+   the parent gets a 'storage' event and re-applies; focus/visibility changes re-check too. */
+function applyShellLang(){
+  const lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    el.textContent = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+  });
+  document.documentElement.lang = lang;
+}
+window.addEventListener('storage', e=>{ if(!e || !e.key || e.key === 'chefos_doc_lang') applyShellLang(); });
+setInterval(applyShellLang, 1500);
+applyShellLang();
 </script>
 </body>
 </html>
