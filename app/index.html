@@ -13953,9 +13953,10 @@ function renderIngredientListsGrid(){
   };
   // Fixed shelves (Richard, 17.7., same as recipe shelves): NEVER renamable/deletable, but
   // hideable via long-press (per device). Only custom lists can be renamed/deleted.
-  // Mode isolation (Richard, 17.7. večer — protonmail test): personal shelves (My Ingredients
-  // + custom lists) belong to the PERSONAL profile; in Company mode they disappear entirely,
-  // exactly like My Recipes does — same Settings override (chefos_show_personal_in_company).
+  // Mode isolation (Richard, 17.7. večer; aligned with Recipes 18.7. ráno): in Company mode
+  // only the MY INGREDIENTS fixed shelf disappears — custom lists + New List stay available
+  // in BOTH modes, exactly like recipe projects (their items are is_personal, so nothing
+  // leaks to teammates either way). Same Settings override (chefos_show_personal_in_company).
   const showPersonalInCompany = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
   const hiddenShelves = getHiddenIngredientShelves();
   const fixedTile = (key, icon, label)=>{
@@ -13967,14 +13968,12 @@ function renderIngredientListsGrid(){
   fixedTile('chefos', '✨', 'ChefOS');
   if(showPersonalInCompany) fixedTile('mine', '👤', 'My Ingredients');
   fixedTile('public', '🌍', 'Public');
-  if(showPersonalInCompany){
-    const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
-    visibleLists.forEach(l=>{
-      addTile(l.icon || '📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
-        ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
-    });
-    addTile('➕', 'New List', ()=>openNewIngredientListPrompt());
-  }
+  const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
+  visibleLists.forEach(l=>{
+    addTile(l.icon || '📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
+      ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
+  });
+  addTile('➕', 'New List', ()=>openNewIngredientListPrompt());
   const hiddenCount = _ingredientLists.filter(l=>l.hidden).length + hiddenShelves.length;
   if(hiddenCount || _showHiddenIngredientLists){
     const toggle = document.createElement('button');
@@ -14199,10 +14198,11 @@ function canManageSharedIngredients(){
   return currentIsAdmin || Object.values(currentAdminPerms || {}).some(Boolean);
 }
 function showIngredients(){
-  // Mode isolation (Richard, 17.7. večer): a Company profile never lands on a personal shelf —
-  // My Ingredients and custom lists redirect to ChefOS, same rule as the recipes screen.
+  // Mode isolation (17.7. večer; aligned with Recipes 18.7. ráno): in Company mode only the
+  // MY INGREDIENTS shelf redirects to ChefOS — custom lists work in both modes, like recipe
+  // projects.
   const personalAllowed = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
-  if(!personalAllowed && ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'public'){
+  if(!personalAllowed && ingredientSourceFilter === 'mine'){
     ingredientSourceFilter = 'chefos';
   }
   logEvent('view_opened', {view:'ingredients', source:ingredientSourceFilter});
