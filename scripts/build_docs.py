@@ -164,7 +164,9 @@ function patchInnerLinks(f){{
       if(href.startsWith('#')){{
         e.preventDefault();
         const el = href.length > 1 ? doc.getElementById(href.slice(1)) : null;
-        if(el) el.scrollIntoView({{ behavior:'smooth', block:'start' }});
+        // Instant, not behavior:'smooth' — smooth scrolling inside a srcdoc iframe silently
+        // no-ops in some engines (verified live 19.7.); a guaranteed jump beats a pretty maybe.
+        if(el) el.scrollIntoView();
       }} else if(!a.target){{
         a.target = '_top';
       }}
