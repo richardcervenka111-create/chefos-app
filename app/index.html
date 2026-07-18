@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>ChefOS</title>
+<title>Sautero</title>
 
 <!-- Add-to-Home-Screen setup (Richard, 15.7. — bod 6): a real app icon + manifest instead of
      the blank/placeholder tile iOS shows when a site has none. Icons are the app's own ring
@@ -22,7 +22,7 @@
 <meta name="theme-color" content="#0A1A2F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ChefOS">
+<meta name="apple-mobile-web-app-title" content="Sautero">
 <style>
   :root{
     /* Tells the browser/OS this page is always dark, regardless of the device's own light/
@@ -1209,7 +1209,7 @@
   /* Floating Back + Home nav (bod 3, 16.7.) — always top-right on every screen except Home.
      Sits above sticky topbars but below sheet overlays, so an open sheet still covers it. */
   /* Back + Home header band (bod, 16.7. večer v3 — per Richard's own mockup): a full-width
-     ChefOS-branded strip pinned above EVERYTHING on every screen except Home, with the two
+     Sautero-branded strip pinned above EVERYTHING on every screen except Home, with the two
      accent buttons inside it. Content and every sticky bar shift down by its height, so
      nothing can ever sit underneath it — the previous floating pill kept overlapping view
      icons no matter how much right-side room was reserved. */
@@ -1687,7 +1687,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="box">
     <div class="login-mark">👨‍🍳</div>
     <p class="kicker" data-i18n="kicker">Kitchen Notebook</p>
-    <h1 class="title display">ChefOS</h1>
+    <h1 class="title display">Sautero</h1>
     <p class="login-tagline" data-i18n="signInTagline">Sign in to your kitchen</p>
     <div id="loginFaceIdBlock" style="display:none; margin-bottom:14px;">
       <button class="save-btn" style="width:100%;" onclick="signInWithFaceId()">🔓 Sign in with Face ID</button>
@@ -1697,7 +1697,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <!-- Friend-invite notice (bod 1, 16.7.) — who invited can't be shown by name pre-login
            (profiles aren't readable anonymously, by design); the named welcome comes right
            after sign-in instead. -->
-      <p class="lede" id="friendInviteLoginNotice" style="display:none; color:var(--copper); margin-bottom:12px;">🤝 A ChefOS chef invited you to join as their friend — sign up below and you'll be connected automatically.</p>
+      <p class="lede" id="friendInviteLoginNotice" style="display:none; color:var(--copper); margin-bottom:12px;">🤝 A Sautero chef invited you to join as their friend — sign up below and you'll be connected automatically.</p>
       <label class="form-label" data-i18n="yourEmail">Your email</label>
       <input id="loginEmail" class="form-field" type="email" placeholder="you@restaurant.com" autocomplete="email">
       <button class="save-btn" style="width:100%;" onclick="sendLoginCode()" data-i18n="sendCode">Send me a code</button>
@@ -1730,8 +1730,8 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="box">
     <div class="login-mark">👨‍🍳</div>
     <p class="kicker">Kitchen Notebook</p>
-    <h1 class="title display">ChefOS</h1>
-    <p class="lede" style="margin-top:14px;">We're launching soon — get in touch with whoever's already using ChefOS at your kitchen for an invite, or check back shortly.</p>
+    <h1 class="title display">Sautero</h1>
+    <p class="lede" style="margin-top:14px;">We're launching soon — get in touch with whoever's already using Sautero at your kitchen for an invite, or check back shortly.</p>
   </div>
 </div>
 
@@ -1768,7 +1768,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
         <span class="sync-status saved" id="homeSyncStatus"></span>
       </div>
     </div>
-    <h1 class="title display">ChefOS</h1>
+    <h1 class="title display">Sautero</h1>
     <select class="lang-switch" id="homeLangSwitch" onchange="setLanguage(this.value)"></select>
   </div>
   <div class="home-grid" id="homeGrid"></div>
@@ -1875,31 +1875,31 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 <div id="installGuideOverlay" class="sheet-overlay" onclick="if(event.target===this) closeInstallGuide()">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">📲 Add ChefOS to your phone</div>
+    <div class="sheet-title">📲 Add Sautero to your phone</div>
     <div style="display:flex; align-items:center; gap:12px; margin:4px 0 12px 0;">
-      <img src="icons/icon-192.png" width="52" height="52" style="border-radius:12px; flex:none;" alt="ChefOS icon">
+      <img src="icons/icon-192.png" width="52" height="52" style="border-radius:12px; flex:none;" alt="Sautero icon">
       <p class="sheet-text" style="margin:0;">This icon lands on your home screen — no App Store needed. One minute, once:</p>
     </div>
     <label class="form-label" style="margin-top:12px;">iPhone / iPad (Safari)</label>
     <p class="sheet-text">1. Open <b>app.chefos.ch</b> in <b>Safari</b> (not Chrome/Instagram browser)<br>
     2. Tap the <b>Share</b> button <span style="opacity:0.8;">(square with arrow ⬆️, bottom center)</span><br>
     3. Scroll down, tap <b>"Add to Home Screen"</b><br>
-    4. Tap <b>Add</b> — the ChefOS icon appears like a normal app</p>
+    4. Tap <b>Add</b> — the Sautero icon appears like a normal app</p>
     <label class="form-label" style="margin-top:12px;">Android (Chrome)</label>
     <p class="sheet-text">1. Open <b>app.chefos.ch</b> in <b>Chrome</b><br>
     2. Tap the <b>⋮ menu</b> (top right)<br>
     3. Tap <b>"Add to Home screen"</b> → <b>Add</b></p>
-    <p class="sheet-text" style="color:var(--ink-faint);">Tip: opened from that icon, ChefOS runs full-screen without the browser bar — like a real app.</p>
+    <p class="sheet-text" style="color:var(--ink-faint);">Tip: opened from that icon, Sautero runs full-screen without the browser bar — like a real app.</p>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeInstallGuide()">Close</button>
   </div>
 </div>
 
-<!-- Email contacts database (bod 8, 15.7.) — every email ChefOS has touched, admin-only. -->
+<!-- Email contacts database (bod 8, 15.7.) — every email Sautero has touched, admin-only. -->
 <div id="emailContactsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeEmailContacts()">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">📧 Email Contacts</div>
-    <p class="sheet-text">Every address ChefOS has seen — access requests, invites sent. Self-reported source, not verified deliverability.</p>
+    <p class="sheet-text">Every address Sautero has seen — access requests, invites sent. Self-reported source, not verified deliverability.</p>
     <button class="save-btn" style="width:100%; margin-top:8px;" onclick="copyAllEmailContacts()">Copy all emails</button>
     <div class="form-status" id="emailContactsCopyStatus"></div>
     <div id="emailContactsList" style="margin-top:10px;"></div>
@@ -1908,7 +1908,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 </div>
 
 <!-- Full contact detail (Richard, 17.7.) — head admin taps a contact to see everything on them
-     plus their matching ChefOS account, if any. -->
+     plus their matching Sautero account, if any. -->
 <div id="emailContactDetailOverlay" class="sheet-overlay" onclick="if(event.target===this) closeEmailContactDetail()">
   <div class="sheet" style="max-height:82vh; overflow-y:auto;">
     <div class="sheet-handle"></div>
@@ -1919,7 +1919,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 </div>
 
 <!-- AI Usage (Richard, 17.7. — db/139): live per-user AI spend, Head Admin only. The Claude
-     Platform dashboard only sees ChefOS's one central key; this is the per-person split. -->
+     Platform dashboard only sees Sautero's one central key; this is the per-person split. -->
 <div id="aiUsageOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAiUsage()">
   <div class="sheet" style="max-height:85vh; overflow-y:auto;">
     <div class="sheet-handle"></div>
@@ -2040,7 +2040,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 <div id="teamGateView" style="display:none;">
   <div class="box">
     <div class="login-mark">👨‍🍳</div>
-    <h1 class="title display">ChefOS</h1>
+    <h1 class="title display">Sautero</h1>
     <div id="teamGateContent"></div>
   </div>
 </div>
@@ -2069,7 +2069,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 <div class="floating-nav" id="floatingNav">
   <div class="fn-brand">
     <span class="fn-kicker">Kitchen Notebook</span>
-    <span class="fn-name">ChefOS</span>
+    <span class="fn-name">Sautero</span>
   </div>
   <div class="fn-buttons">
     <button onclick="goBackView()" title="Back">
@@ -2088,7 +2088,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 
 <!-- Privacy & Data Protection consent (bod 3, 16.7. — db/100). Same versioned-acceptance
      mechanism as the Confidentiality gate right below (privacy_acceptances mirrors
-     confidentiality_acceptances exactly) but a different subject: this is about what ChefOS
+     confidentiality_acceptances exactly) but a different subject: this is about what Sautero
      itself collects about YOU and why (GDPR/Swiss nFADP-style), not about protecting the
      kitchen's own data. Checked first, before Confidentiality. Full text this summarizes:
      /security/PRIVACY_POLICY_DRAFT.html — a DRAFT for a lawyer to review, not reviewed legal
@@ -2099,12 +2099,12 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <h1 class="title display">Your Privacy</h1>
     <p class="lede">One more thing to agree to, then you're in.</p>
     <div style="text-align:left; max-height:38vh; overflow-y:auto; background:var(--paper-raised); border:1px solid var(--rule); border-radius:12px; padding:14px 16px; margin:14px 0; font-size:14px; line-height:1.55; color:var(--ink-dim);">
-      <p style="margin:0 0 10px 0;"><b style="color:var(--ink);">What ChefOS collects, and why</b></p>
+      <p style="margin:0 0 10px 0;"><b style="color:var(--ink);">What Sautero collects, and why</b></p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Account data</b> — your email and anything you add to My Profile (name, phone, role), to run your login and identify you within your kitchen.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Kitchen data</b> — recipes, ingredients, Check List activity, schedules — needed to run the app's core features.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Working hours</b> — only if you separately opt in under Settings → Share My Hours with Admin. Off by default.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Feedback</b> you choose to send.</p>
-      <p style="margin:0 0 10px 0;">Some features (Chef Assistant, recipe/photo scanning) send the relevant text or image to Anthropic (our AI provider) to work. Everything is hosted on Supabase (our database/hosting provider). Neither sells your data or uses it to train their own models on ChefOS's behalf.</p>
+      <p style="margin:0 0 10px 0;">Some features (Chef Assistant, recipe/photo scanning) send the relevant text or image to Anthropic (our AI provider) to work. Everything is hosted on Supabase (our database/hosting provider). Neither sells your data or uses it to train their own models on Sautero's behalf.</p>
       <p style="margin:0 0 10px 0;">Under GDPR (EU) and the Swiss Federal Act on Data Protection, you can ask to see, correct, export, or delete your data at any time — contact your kitchen admin or richard.cervenka@icloud.com.</p>
       <p style="margin:0;">This is a plain-language summary, not the full policy, and not a lawyer-drafted document — see Settings → Privacy & Terms for the complete draft, currently pending legal review.</p>
     </div>
@@ -2127,16 +2127,16 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <p class="lede">One thing to agree to, then you're in.</p>
     <div style="text-align:left; max-height:38vh; overflow-y:auto; background:var(--paper-raised); border:1px solid var(--rule); border-radius:12px; padding:14px 16px; margin:14px 0; font-size:14px; line-height:1.55; color:var(--ink-dim);">
       <p style="margin:0 0 10px 0;"><b style="color:var(--ink);">Confidentiality</b></p>
-      <p style="margin:0 0 10px 0;">Everything you see in ChefOS — recipes, ingredient prices, prep sheets, schedules, and any other data belonging to your kitchen — is confidential to that kitchen. By continuing, you agree:</p>
+      <p style="margin:0 0 10px 0;">Everything you see in Sautero — recipes, ingredient prices, prep sheets, schedules, and any other data belonging to your kitchen — is confidential to that kitchen. By continuing, you agree:</p>
       <p style="margin:0 0 6px 0;">• not to share, copy, photograph for outside use, or forward this data to anyone outside your kitchen's team;</p>
       <p style="margin:0 0 6px 0;">• not to use it for any purpose other than working in this kitchen;</p>
       <p style="margin:0 0 10px 0;">• to keep your own login private and not share your account with anyone else.</p>
       <p style="margin:0;">This is a plain-language agreement, not a lawyer-drafted contract — ask your kitchen's admin if anything here is unclear.</p>
     </div>
     <details style="text-align:left; margin:0 0 14px 0;">
-      <summary style="cursor:pointer; font-size:13px; color:var(--ink-dim);">What ChefOS stores on your device</summary>
+      <summary style="cursor:pointer; font-size:13px; color:var(--ink-dim);">What Sautero stores on your device</summary>
       <div style="margin-top:8px; font-size:13px; line-height:1.6; color:var(--ink-dim);">
-        <p style="margin:0 0 8px 0;">ChefOS doesn't use tracking cookies, advertising, or any third-party analytics. It only stores a few things directly in your browser (not sent anywhere except to ChefOS itself), all needed for the app to actually work:</p>
+        <p style="margin:0 0 8px 0;">Sautero doesn't use tracking cookies, advertising, or any third-party analytics. It only stores a few things directly in your browser (not sent anywhere except to Sautero itself), all needed for the app to actually work:</p>
         <p style="margin:0 0 4px 0;">• Your login session, so you don't have to re-enter a code every time</p>
         <p style="margin:0 0 4px 0;">• Your language choice</p>
         <p style="margin:0 0 4px 0;">• A random device ID (not linked to your name) so a login can be counted per-device</p>
@@ -2204,8 +2204,8 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div class="login-mark">📖</div>
     <h1 class="title display">Personal or Company Account?</h1>
     <p class="lede">This decides which recipe shelves you see. You can change it anytime in Settings.</p>
-    <button class="save-btn" style="width:100%; margin-top:14px; text-align:left;" onclick="chooseAccountType('personal')">👤 Personal — your own recipes + the ChefOS library</button>
-    <button class="save-btn" style="width:100%; margin-top:10px; text-align:left;" onclick="chooseAccountType('company')">🏢 Company — your team's shared recipes + the ChefOS library</button>
+    <button class="save-btn" style="width:100%; margin-top:14px; text-align:left;" onclick="chooseAccountType('personal')">👤 Personal — your own recipes + the Sautero library</button>
+    <button class="save-btn" style="width:100%; margin-top:10px; text-align:left;" onclick="chooseAccountType('company')">🏢 Company — your team's shared recipes + the Sautero library</button>
     <div class="form-status" id="accountTypeGateStatus"></div>
   </div>
 </div>
@@ -2314,7 +2314,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">👋 Add Friend</div>
-    <p class="sheet-text" id="friendQrDescription">Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step.</p>
+    <p class="sheet-text" id="friendQrDescription">Have another chef scan this with Sautero's Scan QR to connect, no extra approval step.</p>
     <div id="friendQrHolder" style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-top:8px;"><p style="color:#333;">Loading…</p></div>
     <!-- Send by email (bod 4, 16.7.) — same one-tap login-link pattern as the admin's invite
          email, but carrying THIS person's friend QR URL (?invite= + &friend=), so a regular
@@ -2337,7 +2337,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
   <div class="detail-content" style="text-align:center;">
     <h2 class="recipe-title display">📷 Scan QR</h2>
-    <p class="recipe-meta">Point your camera at a ChefOS invite or friend QR code.</p>
+    <p class="recipe-meta">Point your camera at a Sautero invite or friend QR code.</p>
     <div style="position:relative; max-width:420px; margin:16px auto 0 auto; border-radius:16px; overflow:hidden; background:#000;">
       <video id="qrScanVideo" playsinline autoplay muted style="width:100%; display:block;"></video>
       <canvas id="qrScanCanvas" style="display:none;"></canvas>
@@ -2367,7 +2367,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">📖 Share My Recipes</div>
-    <p class="sheet-text">When ON, chefs you've connected with (Add Friend) can view recipes <b>you created</b> — read-only, in their Chef Friends screen. Recipes from your teammates or the ChefOS library are never shared. Turn it off anytime.</p>
+    <p class="sheet-text">When ON, chefs you've connected with (Add Friend) can view recipes <b>you created</b> — read-only, in their Chef Friends screen. Recipes from your teammates or the Sautero library are never shared. Turn it off anytime.</p>
     <div id="shareMyRecipesToggleWrap"></div>
     <div class="form-status" id="shareMyRecipesStatus"></div>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeShareMyRecipes()">Close</button>
@@ -2428,7 +2428,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
   <div class="detail-content">
     <h1 class="title display" style="margin-bottom:4px;">Team Members</h1>
-    <p class="lede" style="margin-bottom:16px;">Everyone in your kitchen. Make Assistant hands out the helper role; Remove takes them out of this kitchen — they keep their own personal ChefOS, and rejoining needs a new invite.</p>
+    <p class="lede" style="margin-bottom:16px;">Everyone in your kitchen. Make Assistant hands out the helper role; Remove takes them out of this kitchen — they keep their own personal Sautero, and rejoining needs a new invite.</p>
     <div id="adminTeamMembersList"><p class="lede">Loading…</p></div>
   </div>
 </div>
@@ -2457,7 +2457,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">➕ Add Admin</div>
-    <p class="sheet-text">Search someone already in ChefOS by email or name, then choose their level.</p>
+    <p class="sheet-text">Search someone already in Sautero by email or name, then choose their level.</p>
     <input class="form-field" id="addAdminSearch" type="text" placeholder="Email or name…" oninput="searchAddAdminCandidates()">
     <div id="addAdminResults" style="margin-top:8px;"></div>
     <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAddAdmin()">Cancel</button>
@@ -2489,7 +2489,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
   <div class="detail-content">
     <h2 class="recipe-title display">📋 Admin Directory</h2>
-    <p class="recipe-meta">Every ChefOS profile. Tap Edit to change one person's admin permissions.</p>
+    <p class="recipe-meta">Every Sautero profile. Tap Edit to change one person's admin permissions.</p>
     <input class="form-field" id="adminDirectorySearch" type="text" placeholder="Search by email or name…" style="margin-top:12px;" oninput="renderAdminDirectory()">
     <div id="adminDirectoryList" style="margin-top:12px;"></div>
   </div>
@@ -2556,15 +2556,15 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
-<!-- Friend welcome (bod 1, 16.7. — db/110) — shown once, right after someone lands in ChefOS
+<!-- Friend welcome (bod 1, 16.7. — db/110) — shown once, right after someone lands in Sautero
      via a friend's personal invite. Names the inviter, explains the friendship, says thanks. -->
 <div id="friendWelcomeOverlay" class="sheet-overlay" onclick="if(event.target===this) closeFriendWelcome()">
   <div class="sheet" style="text-align:center;">
     <div class="sheet-handle"></div>
     <div style="font-size:44px; line-height:1; margin:6px 0 10px 0;">🤝</div>
     <div class="sheet-title" id="friendWelcomeTitle"></div>
-    <p class="sheet-text">You're now friends on ChefOS — you can comment on each other's shared recipes and swap ideas right there. Your own kitchen is ready too: recipes, ingredients, and an empty Check List waiting for your first project.</p>
-    <p class="sheet-text" style="color:var(--copper);">Thank you for choosing ChefOS — we're glad you're here. 🙏</p>
+    <p class="sheet-text">You're now friends on Sautero — you can comment on each other's shared recipes and swap ideas right there. Your own kitchen is ready too: recipes, ingredients, and an empty Check List waiting for your first project.</p>
+    <p class="sheet-text" style="color:var(--copper);">Thank you for choosing Sautero — we're glad you're here. 🙏</p>
     <button class="save-btn" style="width:100%; margin-top:10px;" onclick="closeFriendWelcome()">Let's go</button>
   </div>
 </div>
@@ -2867,7 +2867,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 <div id="orderListPrintSheet" class="order-print-sheet"></div>
 <!-- Branded recipe print (bod 6, 16.7.) — a sample "professional identity" template, separate
      from the plain default (the existing printer icon). No per-kitchen logo/color storage
-     exists yet, so this is one fixed ChefOS-style letterhead, not something each restaurant can
+     exists yet, so this is one fixed Sautero-style letterhead, not something each restaurant can
      customize — that would be a follow-up if Richard wants to take it further. -->
 <div id="recipePrintBrandedSheet" class="recipe-print-branded-sheet"></div>
 
@@ -2945,11 +2945,11 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 
 <!-- Ingredients landing menu (bod 1, 16.7. — db/97) — same tile pattern as Home/HACCP. Splits
      the old single ingredientsView into two shelves: the kitchen-wide catalog (now labelled
-     "ChefOS" per Richard, matching the recipe-shelf naming convention) and a brand-new "My
+     "Sautero" per Richard, matching the recipe-shelf naming convention) and a brand-new "My
      Ingredients" — genuinely private (RLS `is_personal`), visible only to its creator, always,
      regardless of account type or which team they're currently in. -->
 <!-- Recipes landing menu (bod 4, 16.7. večer) — same shelf-picker pattern as Ingredients:
-     Personal accounts see My Recipes + ChefOS, Company accounts see ChefOS + Company Recipes.
+     Personal accounts see My Recipes + Sautero, Company accounts see Sautero + Company Recipes.
      Long-press "My Recipes" opens the existing Share My Recipes toggle (db/89). -->
 <div id="recipesHomeView" style="display:none;">
   <div class="topbar">
@@ -2985,7 +2985,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <h1 class="title display">🧂 Ingredients</h1>
   </div>
   <!-- Rendered by renderIngredientListsGrid() (bod 5, 16.7. večer — db/112): the two fixed
-       shelves (ChefOS, My Ingredients — never renamable/deletable) + the person's own custom
+       shelves (Sautero, My Ingredients — never renamable/deletable) + the person's own custom
        lists (long-press a custom tile for Rename/Hide/Delete) + "New List". -->
   <div class="home-grid" id="ingredientListsGrid"></div>
 </div>
@@ -3012,7 +3012,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
              belongs with Ingredients, not on the main menu). Admin-only. -->
         <!-- AI details (bod 8, 16.7.) — fills in category/season/storage/aliases for items on a
              personal shelf/list that are missing them. Paid AI: runs through the normal credit
-             gate like every other Claude call. Never offered on the ChefOS shelf (curated). -->
+             gate like every other Claude call. Never offered on the Sautero shelf (curated). -->
         <button class="icon-btn" onclick="generateIngredientDetails()" title="Generate details with AI" id="generateDetailsBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">✨ AI Details</button>
         <!-- Invoice Scan (Richard, 17.7.) — scan any supplier invoice: prices get matched onto
              existing ingredients on this shelf (with today's date), unmatched items are added
@@ -3021,13 +3021,13 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
         <button class="icon-btn" onclick="document.getElementById('invoiceScanFile').click()" title="Scan a supplier invoice" id="invoiceScanBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">🧾 Invoice Scan</button>
         <input type="file" id="invoiceScanFile" accept="image/*,application/pdf,.pdf,.xlsx,.csv,.html,.htm,.md,.markdown,.txt" style="display:none;" onchange="handleInvoiceScanFile(this)">
         <!-- Recipe source pin (Richard, 17.7.) — locks recipe cost/nutrition matching to THIS
-             shelf/list, so ChefOS-shelf rows can't silently win over the user's own data. -->
+             shelf/list, so Sautero-shelf rows can't silently win over the user's own data. -->
         <button class="icon-btn" onclick="toggleRecipeIngredientSource()" id="recipeSourcePinBtn" title="Use this list as the source recipes pull prices & nutrition from" style="width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">📌 Recipe source</button>
         <!-- Share (Richard, 17.7. bod 6) — pick ingredients to share publicly or with friends.
-             Personal profiles only; My-Ingredients / custom lists only (never ChefOS/Public). -->
+             Personal profiles only; My-Ingredients / custom lists only (never Sautero/Public). -->
         <button class="icon-btn" onclick="openIngredientShareSheet()" id="ingredientShareBtn" title="Share ingredients" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">🤝 Share</button>
         <!-- Bulk delete (bod 1, 16.7. večer) — by date added, or the whole shelf. Same
-             visibility rule as adding (your own shelves; ChefOS admin-only). -->
+             visibility rule as adding (your own shelves; Sautero admin-only). -->
         <button class="icon-btn" onclick="openBulkDeleteIngredients()" title="Delete ingredients" id="bulkDeleteIngredientsBtn" style="display:none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         </button>
@@ -3040,7 +3040,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     </div>
   </div>
   <div id="ingredientListContainer"><div class="empty-state">Loading ingredients…</div></div>
-  <!-- Adding to the shared ChefOS shelf stays admin-only (Richard, 16.7. — matches the original
+  <!-- Adding to the shared Sautero shelf stays admin-only (Richard, 16.7. — matches the original
        Custom Ingredients convention); My Ingredients (is_personal) stays open to everyone.
        Hidden/shown per-shelf in showIngredients(). -->
   <button class="fab" onclick="showAddIngredientForm()" title="Add ingredient" id="addIngredientFab">
@@ -3100,7 +3100,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     </button>
     <div class="bar-spacer"></div>
     <!-- Add via document scan (bod 3, 16.7. — moved here per Richard's request, same place +
-         style as Save). Hidden on the ChefOS shelf for non-admins, same restriction as the "+"
+         style as Save). Hidden on the Sautero shelf for non-admins, same restriction as the "+"
          FAB and the RLS itself — see toggleIngredientScanBtnVisibility(). -->
     <button class="save-btn" onclick="triggerIngredientScan()" id="ingredientScanFormBtn" style="margin-right:8px;">📎 Scan</button>
     <button class="save-btn" onclick="saveIngredientForm()">Save</button>
@@ -3709,7 +3709,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">📖 Account Type</div>
-    <p class="sheet-text">Controls which recipe shelves you see: Personal shows Moje + ChefOS, Company shows ChefOS + Firemné. Switching just changes what's visible to you — nothing gets deleted either way.</p>
+    <p class="sheet-text">Controls which recipe shelves you see: Personal shows Moje + Sautero, Company shows Sautero + Firemné. Switching just changes what's visible to you — nothing gets deleted either way.</p>
     <div id="accountTypeSettingsList"></div>
     <button class="sheet-cancel" onclick="closeAccountTypeSettings()">Close</button>
   </div>
@@ -4002,7 +4002,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Your Name In The Schedule</div>
-    <p class="sheet-text">Type your name exactly as it appears on the roster (e.g. "Smith John"). ChefOS will find just your row.</p>
+    <p class="sheet-text">Type your name exactly as it appears on the roster (e.g. "Smith John"). Sautero will find just your row.</p>
     <input class="form-field" id="scheduleNameInput" type="text" placeholder="Last First">
     <div class="sheet-row">
       <button class="save-btn" onclick="confirmScheduleNameAndPickFile()">Continue</button>
@@ -4226,7 +4226,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Appearance</div>
-    <p class="sheet-text">Pick how ChefOS looks on this device. This is per-device — everyone on your team can choose their own.</p>
+    <p class="sheet-text">Pick how Sautero looks on this device. This is per-device — everyone on your team can choose their own.</p>
     <div class="sheet-row">
       <button class="task-status-btn" id="appearanceDarkBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('dark')">🌙 Dark</button>
       <button class="task-status-btn" id="appearanceLightBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('light')">☀️ Light</button>
@@ -4251,7 +4251,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Scan Settings</div>
-    <p class="sheet-text">When you scan a photo or PDF of a recipe or prep sheet, ChefOS can automatically translate everything it reads into a language of your choice. On by default (English).</p>
+    <p class="sheet-text">When you scan a photo or PDF of a recipe or prep sheet, Sautero can automatically translate everything it reads into a language of your choice. On by default (English).</p>
     <label class="form-label">Auto-translate scans to</label>
     <select class="form-field" id="scanLanguageSelect">
       <option value="off">Off — keep the original language</option>
@@ -4288,7 +4288,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <p class="sheet-text">
       Scanning a photo into a recipe uses Claude's API directly from this app, on your device. That needs your own Anthropic API key (free to create, pay-as-you-go — a scan costs a fraction of a cent).
       Get one at <span class="sheet-link">console.anthropic.com</span> → API Keys.
-      Your key is saved to your account and is only ever used, from your own browser, to call Anthropic's API when you scan a photo — it never passes through ChefOS's own servers.
+      Your key is saved to your account and is only ever used, from your own browser, to call Anthropic's API when you scan a photo — it never passes through Sautero's own servers.
     </p>
     <input type="password" id="apiKeyInput" class="form-field" placeholder="sk-ant-...">
     <div class="sheet-row">
@@ -6670,7 +6670,7 @@ var qrcode = function() {
 const SUPABASE_URL = 'https://azkhyorqnwvaugaomjvh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
 /* Switched back to localStorage (bod 3, 16.7. — was sessionStorage from 15.7., see git history
-   for that reasoning). Richard: tapping the emailed login link with ChefOS installed as a
+   for that reasoning). Richard: tapping the emailed login link with Sautero installed as a
    Home Screen icon logs him in inside Safari (iOS never routes a Mail-app link into an
    installed PWA — that's an Apple platform restriction, not something fixable from web code),
    but the standalone icon then still showed the login screen — because sessionStorage is
@@ -6756,7 +6756,7 @@ function logEvent(name, meta){
   } catch(e){ /* logging itself must never throw */ }
 }
 
-/* ChefOS brand mark v2 — Richard's first pass (a plain system-font "C" in copper) read as
+/* Sautero brand mark v2 — Richard's first pass (a plain system-font "C" in copper) read as
    flat and generic. Replaced the letterform with a hand-built shape instead: a bold open ring,
    drawn as a single precise arc (not a font glyph), reading as an abstract "C" through negative
    space rather than typography — sidesteps font-availability issues entirely (nothing here
@@ -7053,7 +7053,7 @@ async function verifyLoginCode(){
    the emailed code still always works too.
 
    Face ID: real OS-level biometric (WebAuthn platform authenticator, Face ID/Touch ID/Windows
-   Hello) used as a per-device unlock, NOT a server-verified auth factor — ChefOS has no backend
+   Hello) used as a per-device unlock, NOT a server-verified auth factor — Sautero has no backend
    of its own to verify WebAuthn assertions against, and building one (challenge storage, public
    key storage, attestation verification) is a much bigger addition than this warrants. Instead:
    enabling Face ID creates a real platform-authenticator credential and stores the CURRENT
@@ -7061,7 +7061,7 @@ async function verifyLoginCode(){
    asks the OS for a biometric assertion first — Face ID/Touch ID/Windows Hello never let a
    different enrolled face/fingerprint succeed — and only on a successful match does it hand the
    stored refresh token to Supabase (sb.auth.refreshSession) to resume that session. No biometric
-   data ever reaches ChefOS or Supabase; the device's secure enclave never releases it. This is
+   data ever reaches Sautero or Supabase; the device's secure enclave never releases it. This is
    deliberately safe on SHARED kitchen tablets too: even though the stored refresh token sits in
    that tablet's localStorage, a teammate picking it up can't produce a valid assertion for
    someone else's enrolled biometric, so their Face ID button just does nothing for them.
@@ -7215,11 +7215,11 @@ async function enableFaceIdOnDevice(){
     const cred = await navigator.credentials.create({
       publicKey: {
         challenge: randomChallenge(),
-        rp: { name: 'ChefOS', id: location.hostname },
+        rp: { name: 'Sautero', id: location.hostname },
         user: {
           id: new TextEncoder().encode(currentUser.id),
           name: currentUser.email || 'chefos-user',
-          displayName: currentUserName || currentUser.email || 'ChefOS user'
+          displayName: currentUserName || currentUser.email || 'Sautero user'
         },
         pubKeyCredParams: [{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
         authenticatorSelection: { authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred' },
@@ -7309,7 +7309,7 @@ async function startApp(){
     const { data: reqRow } = await sb.from('access_requests').select('status').eq('email', email).order('requested_at', { ascending:false }).limit(1).maybeSingle();
     if(reqRow && reqRow.status === 'denied'){
       document.getElementById('teamGateView').style.display = 'block';
-      document.getElementById('teamGateContent').innerHTML = `<p class="lede">This email hasn't been approved for ChefOS. If you think that's a mistake, reach out to whoever invited you.</p>`;
+      document.getElementById('teamGateContent').innerHTML = `<p class="lede">This email hasn't been approved for Sautero. If you think that's a mistake, reach out to whoever invited you.</p>`;
       return;
     }
   }
@@ -7421,7 +7421,7 @@ async function enterApp(){
 
   // Company-admin invite opened by an EXISTING user (bod 1, 16.7. — db/109): Add Company links
   // normally onboard brand-new people through renderTeamGate, but Richard can also send one to
-  // someone who already uses ChefOS ("nový aj starý užívatelia"). Only invites that grant
+  // someone who already uses Sautero ("nový aj starý užívatelia"). Only invites that grant
   // company-admin are honored here — an ordinary kitchen invite never silently moves an
   // existing account between kitchens (same protection as the in-app QR scan path).
   const inviteParam = new URLSearchParams(location.search).get('invite');
@@ -7656,8 +7656,8 @@ async function chooseAccountType(type){
 /* Same choice, reachable anytime afterward from Settings instead of the one-time gate above. */
 function openAccountTypeSettings(){
   document.getElementById('accountTypeSettingsList').innerHTML = `
-    <button class="chip${currentAccountType==='personal'?' active':''}" style="width:100%; text-align:left; margin-bottom:8px;" onclick="setAccountTypeFromSettings('personal')">👤 Personal — your own recipes + the ChefOS library${currentAccountType==='personal'?' ✓':''}</button>
-    <button class="chip${currentAccountType==='company'?' active':''}" style="width:100%; text-align:left;" onclick="setAccountTypeFromSettings('company')">🏢 Company — your team's shared recipes + the ChefOS library${currentAccountType==='company'?' ✓':''}</button>
+    <button class="chip${currentAccountType==='personal'?' active':''}" style="width:100%; text-align:left; margin-bottom:8px;" onclick="setAccountTypeFromSettings('personal')">👤 Personal — your own recipes + the Sautero library${currentAccountType==='personal'?' ✓':''}</button>
+    <button class="chip${currentAccountType==='company'?' active':''}" style="width:100%; text-align:left;" onclick="setAccountTypeFromSettings('company')">🏢 Company — your team's shared recipes + the Sautero library${currentAccountType==='company'?' ✓':''}</button>
     ${currentAccountType==='company' ? `<button class="sheet-cancel" style="width:100%; text-align:left; margin-top:10px;" onclick="closeAccountTypeSettings(); openManualTeamCode();">🔢 Enter/Change Team Code</button>` : ''}
     ${currentAccountType==='company' ? `<button class="chip${localStorage.getItem('chefos_show_personal_in_company')==='1'?' active':''}" style="width:100%; text-align:left; margin-top:10px;" onclick="toggleShowPersonalInCompany()">📖 Also show my personal recipes here${localStorage.getItem('chefos_show_personal_in_company')==='1'?' ✓':''}</button>` : ''}
   `;
@@ -7693,7 +7693,7 @@ function setAccountTypeFromSettings(type){
   if(currentSkipAccountTypeConfirm){ applyAccountTypeSwitch(type); return; }
   document.getElementById('accountTypeSwitchConfirmText').textContent =
     `Switch to ${type==='company' ? 'Company' : 'Personal'} account? ` +
-    (type==='company' ? 'You\'ll see your team\'s shared recipes instead of just your own.' : 'You\'ll only see your own recipes + the ChefOS library, not your team\'s.');
+    (type==='company' ? 'You\'ll see your team\'s shared recipes instead of just your own.' : 'You\'ll only see your own recipes + the Sautero library, not your team\'s.');
   document.getElementById('accountTypeSwitchSkipFuture').checked = false;
   document.getElementById('accountTypeSwitchConfirmStatus').textContent = '';
   document.getElementById('accountTypeSwitchConfirmOverlay').classList.add('open');
@@ -8290,7 +8290,7 @@ async function krRenderTeam(){
   `);
 }
 
-/* ---------- 📖 Recipes — shelves first (ChefOS, then Company), drill-down kept ---------- */
+/* ---------- 📖 Recipes — shelves first (Sautero, then Company), drill-down kept ---------- */
 let _krDemoRecipesCache = null;
 function krDemoCompanyRecipes(){
   if(_krDemoRecipesCache) return _krDemoRecipesCache;
@@ -8322,7 +8322,7 @@ function krRenderRecipes(){
   if(_krShelf === null){
     krSectionShell('📖 Recipes', `
       <div class="task-row" style="cursor:pointer;" onclick="_krShelf='chefos'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
-        <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">✨ ChefOS</div><div class="meta">${chefos.length} recipes — the built-in library</div></div><div class="chevron">›</div></div>
+        <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">✨ Sautero</div><div class="meta">${chefos.length} recipes — the built-in library</div></div><div class="chevron">›</div></div>
       </div>
       <div class="task-row" style="cursor:pointer;" onclick="_krShelf='company'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
         <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">🏢 Company Recipes</div><div class="meta">${company.length} recipes — authored by your team</div></div><div class="chevron">›</div></div>
@@ -8331,7 +8331,7 @@ function krRenderRecipes(){
     return;
   }
   const recipes = _krShelf === 'chefos' ? chefos : company;
-  const shelfName = _krShelf === 'chefos' ? '✨ ChefOS' : '🏢 Company Recipes';
+  const shelfName = _krShelf === 'chefos' ? '✨ Sautero' : '🏢 Company Recipes';
   const withTimes = recipes.filter(r=>(r.time && (r.time.active || r.time.passive)) || r.productionTime).length;
   const withMethod = recipes.filter(r=>(r.sections||[]).some(s=>s.type==='steps' && s.items && s.items.length)).length;
   const withCost = recipes.filter(r=>r.cost && (r.cost.total != null || r.cost.perKg != null)).length;
@@ -8352,7 +8352,7 @@ function krRenderRecipes(){
       ? `Your team added <b>${recent}</b> recipes in the last 4 weeks (~${perWeek.toFixed(1)}/week). At that pace the shelf reaches <b>~${recipes.length + Math.round(perWeek * 4)}</b> recipes a month from now.`
       : 'No company recipes added in the last 4 weeks — nothing to project.';
   } else {
-    predictHtml = 'The ChefOS library is curated centrally — it grows with ChefOS releases, not at a per-kitchen pace, so there\'s nothing meaningful to project here.';
+    predictHtml = 'The Sautero library is curated centrally — it grows with Sautero releases, not at a per-kitchen pace, so there\'s nothing meaningful to project here.';
   }
 
   krSectionShell('📖 Recipes', `
@@ -8802,7 +8802,7 @@ async function renderTeamGate(){
   }
 
   if(reqRow.status === 'denied'){
-    el.innerHTML = `<p class="lede">This email hasn't been approved for ChefOS. If you think that's a mistake, reach out to whoever invited you.</p>`;
+    el.innerHTML = `<p class="lede">This email hasn't been approved for Sautero. If you think that's a mistake, reach out to whoever invited you.</p>`;
     return;
   }
 
@@ -8818,7 +8818,7 @@ async function renderTeamGate(){
   // ?friend).
   const dualFriendId = new URLSearchParams(location.search).get('friend');
   if(dualFriendId && dualFriendId !== currentUser.id && invite){
-    el.innerHTML = `<p class="login-tagline">Welcome to ChefOS</p><p class="lede">Setting up your own kitchen…</p>`;
+    el.innerHTML = `<p class="login-tagline">Welcome to Sautero</p><p class="lede">Setting up your own kitchen…</p>`;
     const { error: pkErr } = await sb.rpc('ensure_personal_kitchen');
     if(pkErr){
       logClientError('ensure_personal_kitchen failed (dual link): ' + pkErr.message);
@@ -8847,7 +8847,7 @@ async function renderTeamGate(){
     <input class="form-field" id="newKitchenName" type="text" placeholder="e.g. Ristorante Da Marco" style="margin-top:12px;">
     <button class="save-btn" style="width:100%;" onclick="createOwnKitchen()">Create my kitchen</button>
     <div class="form-status" id="teamGateStatus"></div>`;
-  const noInviteMessage = `<p class="lede">ChefOS is invite-only right now — ask whoever should be inviting you for their link or QR code. There's no self-signup path.</p>`;
+  const noInviteMessage = `<p class="lede">Sautero is invite-only right now — ask whoever should be inviting you for their link or QR code. There's no self-signup path.</p>`;
 
   if(invite || legacyKitchenId){
     if(!targetKitchenId){
@@ -8865,7 +8865,7 @@ async function renderTeamGate(){
     }
     el.innerHTML = `
       <p class="login-tagline">You're invited</p>
-      <p class="lede">Join <b>${kitchen.name}</b>'s team on ChefOS? You'll share Recipes, Check List, and Ingredients with everyone else on their team.</p>
+      <p class="lede">Join <b>${kitchen.name}</b>'s team on Sautero? You'll share Recipes, Check List, and Ingredients with everyone else on their team.</p>
       <button class="save-btn" style="width:100%; margin-top:14px;" onclick="joinKitchenViaLink('${kitchen.id}')">Join ${kitchen.name}</button>
       <div class="form-status" id="teamGateStatus"></div>
     `;
@@ -8874,11 +8874,11 @@ async function renderTeamGate(){
 
   // Friend-only invite from a Personal account (Richard, 16.7. — db/110): no kitchen invite in
   // the URL, just ?friend=. Onboard them into their OWN brand-new kitchen (empty Check List,
-  // standard ChefOS shelves via the seeding triggers), connect the friendship, and hand off to
+  // standard Sautero shelves via the seeding triggers), connect the friendship, and hand off to
   // the normal gate chain — a welcome message shows once they're actually inside (enterApp).
   const friendOnlyId = new URLSearchParams(location.search).get('friend');
   if(friendOnlyId && friendOnlyId !== currentUser.id){
-    el.innerHTML = `<p class="login-tagline">Welcome to ChefOS</p><p class="lede">Setting up your own kitchen…</p>`;
+    el.innerHTML = `<p class="login-tagline">Welcome to Sautero</p><p class="lede">Setting up your own kitchen…</p>`;
     const { error: pkErr } = await sb.rpc('ensure_personal_kitchen');
     if(pkErr){
       logClientError('ensure_personal_kitchen failed: ' + pkErr.message);
@@ -8891,8 +8891,8 @@ async function renderTeamGate(){
     try{
       const { data: conns } = await sb.rpc('get_my_connections');
       const inviter = (conns || []).find(c=>c.id === friendOnlyId);
-      sessionStorage.setItem('chefos_friend_welcome', (inviter && (inviter.full_name || inviter.email)) || 'A ChefOS chef');
-    } catch(e){ sessionStorage.setItem('chefos_friend_welcome', 'A ChefOS chef'); }
+      sessionStorage.setItem('chefos_friend_welcome', (inviter && (inviter.full_name || inviter.email)) || 'A Sautero chef');
+    } catch(e){ sessionStorage.setItem('chefos_friend_welcome', 'A Sautero chef'); }
     history.replaceState(null, '', location.pathname);
     await startApp();
     return;
@@ -9073,7 +9073,7 @@ async function srpPickRecipe(recipeId){
     return;
   }
   const shared = new Set((existing||[]).map(x=>x.friend_id));
-  body.innerHTML = '<p class="sheet-text">Who can see this recipe? They\'ll get a notice next time they open ChefOS.</p>' + conns.map(f=>`
+  body.innerHTML = '<p class="sheet-text">Who can see this recipe? They\'ll get a notice next time they open Sautero.</p>' + conns.map(f=>`
     <label class="task-row" style="cursor:pointer; display:block;">
       <div class="task-row-top"><div class="info" style="flex:1;">
         <div class="name task-text">${(f.full_name||f.email||'Unknown').replace(/</g,'&lt;')}</div>
@@ -9342,7 +9342,7 @@ function closeFriendRecipeDetail(){
    kitchen invite, not just admins'. Encodes BOTH ?invite=<real kitchen_invites token> (reused/
    created via the same getOrCreateActiveInvite() the admin-only "Invite New Chef" flow already
    uses — real, revocable, expiring, not a bare kitchen id) AND ?friend=<my user id>.
-     - Someone who already has a ChefOS account scans it in-app (Scan QR): handleScannedQrText()
+     - Someone who already has a Sautero account scans it in-app (Scan QR): handleScannedQrText()
        checks ?friend first and only ever does the friend-connect, on purpose — an existing chef
        in a different kitchen must never get silently moved into this one.
      - Someone with NO account yet opens the same URL fresh (native camera app): signs in,
@@ -9367,7 +9367,7 @@ async function showMyFriendQr(){
   // of db/95, logged in HEALTH_LOG.md: joining a team now happens ONLY through the real team
   // paths (team join code/QR from Create Team, or an admin invite) — never through Add Friend.
   document.getElementById('friendQrDescription').textContent =
-    "Have another chef scan this with ChefOS's Scan QR to connect, no extra approval step. If they don't have ChefOS yet, the same code signs them up as your friend — with their own kitchen, not yours.";
+    "Have another chef scan this with Sautero's Scan QR to connect, no extra approval step. If they don't have Sautero yet, the same code signs them up as your friend — with their own kitchen, not yours.";
   const url = location.origin + location.pathname + '?friend=' + currentUser.id;
   _currentFriendInviteUrl = url;
   const qr = qrcode(0, 'M');
@@ -9454,7 +9454,7 @@ function handleScannedQrText(text){
   stopQrScan();
   let url;
   try{ url = new URL(text); } catch(e){
-    document.getElementById('qrScanStatus').textContent = "That QR code isn't a ChefOS link.";
+    document.getElementById('qrScanStatus').textContent = "That QR code isn't a Sautero link.";
     return;
   }
   const params = url.searchParams;
@@ -9509,7 +9509,7 @@ function handleScannedQrText(text){
     });
     return;
   }
-  document.getElementById('qrScanStatus').textContent = "That QR code isn't a ChefOS link.";
+  document.getElementById('qrScanStatus').textContent = "That QR code isn't a Sautero link.";
 }
 
 let _scannedFriendId = null;
@@ -9519,7 +9519,7 @@ function showConfirmFriend(friendUserId){
     return;
   }
   _scannedFriendId = friendUserId;
-  document.getElementById('confirmFriendText').textContent = 'Scanned a ChefOS chef\'s code — connect with them?';
+  document.getElementById('confirmFriendText').textContent = 'Scanned a Sautero chef\'s code — connect with them?';
   document.getElementById('confirmFriendStatus').textContent = '';
   document.getElementById('confirmFriendOverlay').classList.add('open');
 }
@@ -9573,7 +9573,7 @@ async function showTeamInvite(){
     el.innerHTML = `
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
         ${chefOSLogoMarkSvg(40)}
-        <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">ChefOS</span>
+        <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">Sautero</span>
       </div>
       <label class="form-label">Your Kitchen</label>
       <h2 class="recipe-title" style="margin:0 0 16px 0;">${kitchen ? kitchen.name : 'Unnamed kitchen'}</h2>
@@ -9597,14 +9597,14 @@ async function showTeamInvite(){
   el.innerHTML = `
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
       ${chefOSLogoMarkSvg(40)}
-      <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">ChefOS</span>
+      <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">Sautero</span>
     </div>
 
     <label class="form-label">Your Kitchen</label>
     <h2 class="recipe-title" style="margin:0 0 16px 0;">${kitchen ? kitchen.name : 'Unnamed kitchen'}</h2>
 
     <label class="form-label">Invite your team</label>
-    <p class="lede">Anyone who opens this link (and is approved for ChefOS) joins your team and shares Recipes, Check List, and Ingredients with you. This link expires in 7 days, or sooner if you revoke it.</p>
+    <p class="lede">Anyone who opens this link (and is approved for Sautero) joins your team and shares Recipes, Check List, and Ingredients with you. This link expires in 7 days, or sooner if you revoke it.</p>
     <input class="form-field" id="inviteLinkField" type="text" readonly value="${inviteUrl}">
     <div class="sheet-row">
       <button class="save-btn" onclick="copyInviteLink()">Copy Link</button>
@@ -9666,7 +9666,7 @@ async function sendInviteByEmail(){
     return;
   }
   // Email contacts database (bod 8) — this was the actual gap: an invite email went out but
-  // nowhere in ChefOS's own tables remembered who it went to. Best-effort, never blocks the
+  // nowhere in Sautero's own tables remembered who it went to. Best-effort, never blocks the
   // "sent" confirmation the person just saw.
   sb.from('email_contacts').upsert(
     { email: email.toLowerCase(), source: 'invite_sent', kitchen_id: currentKitchenId, status: 'new' },
@@ -9746,12 +9746,12 @@ async function toggleMemberAssistant(memberId, on){
   renderTeamMembersList(_teamMembersContainerId);
 }
 async function removeTeamMember(userId, name){
-  if(!confirm(`Remove ${name} from this kitchen? They'll keep their own personal ChefOS — they just lose access to this kitchen's data.`)) return;
+  if(!confirm(`Remove ${name} from this kitchen? They'll keep their own personal Sautero — they just lose access to this kitchen's data.`)) return;
   // SECURITY DEFINER RPC (db/124, softened db/125), not a direct profiles update — Postgres
   // required the UPDATED row to stay visible to the caller via SELECT policies, and a removed
   // member is invisible to their ex-admin by design, so the direct update could never succeed
   // no matter how the UPDATE policy was written (see db/124's header). db/125: removal moves
-  // them into their own fresh personal kitchen instead of locking them out of ChefOS entirely.
+  // them into their own fresh personal kitchen instead of locking them out of Sautero entirely.
   const { error } = await sb.rpc('remove_team_member', { p_member: userId });
   if(error){ alert('Could not remove: ' + error.message + ' — has db/125 been run?'); return; }
   renderTeamMembersList(_teamMembersContainerId);
@@ -9769,7 +9769,7 @@ function copyInviteLink(){
 
 function shareInviteLink(){
   const url = document.getElementById('inviteLinkField').value;
-  navigator.share({ title: 'Join my ChefOS team', url }).catch(()=>{});
+  navigator.share({ title: 'Join my Sautero team', url }).catch(()=>{});
 }
 
 async function showAdminTeamMembers(){
@@ -9916,7 +9916,7 @@ let _scanLanguage = 'en';
    the actual per-call cost deduction) happens server-side in claude-proxy, since this check is
    trivially bypassable from the client. */
 async function callClaudeAPI(body, opts){
-  // freeGrant (17.7.): AI help on a recipe the user agreed to SHARE with the ChefOS library is
+  // freeGrant (17.7.): AI help on a recipe the user agreed to SHARE with the Sautero library is
   // on the house — the marker below makes claude-proxy skip both the credit gate and the
   // metering for this one call. Client-declared for now (see the honest note in the proxy).
   const freeGrant = !!(opts && opts.freeGrant);
@@ -10005,7 +10005,7 @@ function dbRowToRecipe(row){
   };
   // Neutralise recipes from OTHER kitchens before they ever reach innerHTML (see sanitizeForeign-
   // Recipe). Other kitchens = the Public shelf (db/131) — the only untrusted, un-editable
-  // surface. My own kitchen's content (my recipes, teammates' company recipes, ChefOS-library
+  // surface. My own kitchen's content (my recipes, teammates' company recipes, Sautero-library
   // copies) is left raw so edit forms round-trip it unchanged — that's the same same-kitchen
   // trust boundary the app already relied on before Public existed. The null-guard escapes when
   // in doubt (kitchen unknown), which is the safe direction.
@@ -10089,7 +10089,7 @@ async function loadAppData(){
   ]);
   if(error){ console.error(error); setSyncStatus('offline'); return; }
 
-  // Comment counts for the list rows (Richard, 17.7.) — keyed by the ChefOS master id when
+  // Comment counts for the list rows (Richard, 17.7.) — keyed by the Sautero master id when
   // there is one (comments are shared across kitchen copies, db/129), else the recipe's own id.
   _commentCounts = {};
   (commentRows || []).forEach(c=>{
@@ -10144,7 +10144,7 @@ async function loadAppData(){
   // Cached at load (bod 4, 16.7.): printRecipeBranded must NOT await anything before
   // window.print() — an async gap breaks Safari's user-gesture requirement and the browser
   // blocks the print dialog ("Automatická tlač touto stránkou bola zablokovaná").
-  _rpbKitchenName = (kitchenRow && kitchenRow.name) || 'ChefOS';
+  _rpbKitchenName = (kitchenRow && kitchenRow.name) || 'Sautero';
 
   _anthropicKey = (settingsRow && settingsRow.anthropic_api_key) || '';
   _scanLanguage = (settingsRow && settingsRow.scan_language) || 'en';
@@ -10176,7 +10176,7 @@ function normalizeIngredientText(name){
 }
 
 /* Recipe ingredient SOURCE (Richard, 17.7.): recipes' cost + nutrition used to match against
-   every shelf at once, so a ChefOS-shelf row could silently win over the user's own priced/
+   every shelf at once, so a Sautero-shelf row could silently win over the user's own priced/
    nutritioned copy. The 📌 pin in the Ingredients topbar locks recipes to ONE chosen shelf/
    list; unset = all shelves (old behavior). Per device (localStorage), like other view prefs. */
 function recipeIngredientSource(){
@@ -10800,7 +10800,7 @@ let CUSTOM_RECIPE_CATEGORIES = [];
 // Raw rows from recipe_category_icons (every shelf, unfiltered) — _customCategoryIcons/
 // CUSTOM_RECIPE_CATEGORIES above stay the derived, CURRENT-SHELF-ONLY view every other function
 // already reads, refreshed here on load and on every shelf switch (bod, 16.7. neskoro večer:
-// sections used to be one flat kitchen-wide pool, so ChefOS's own taxonomy leaked into My
+// sections used to be one flat kitchen-wide pool, so Sautero's own taxonomy leaked into My
 // Recipes/Company Recipes/every project).
 let _categoryIconRows = [];
 function refreshCustomCategoryState(){
@@ -11071,7 +11071,7 @@ async function openEmailContacts(){
   `).join('');
 }
 /* Full contact detail (Richard, 17.7.: head admin can see their whole record). Everything we
-   hold on this contact, plus — if the email belongs to a real ChefOS account — their profile
+   hold on this contact, plus — if the email belongs to a real Sautero account — their profile
    basics, fetched via the admin directory RPC (head-admin gated server-side). */
 async function openEmailContactDetail(id){
   const r = _emailContactRows.find(x=>x.id===id);
@@ -11086,9 +11086,9 @@ async function openEmailContactDetail(id){
     line('First seen', new Date(r.first_seen_at).toLocaleString('sk-SK')) +
     line('Last seen', new Date(r.last_seen_at).toLocaleString('sk-SK')) +
     line('Notes', r.notes) +
-    '<div id="emailContactProfileSlot"><p class="lede" style="margin-top:10px;">Looking up their ChefOS account…</p></div>';
+    '<div id="emailContactProfileSlot"><p class="lede" style="margin-top:10px;">Looking up their Sautero account…</p></div>';
   document.getElementById('emailContactDetailOverlay').classList.add('open');
-  // Look up a matching ChefOS account directly on profiles — the head admin has RLS read access
+  // Look up a matching Sautero account directly on profiles — the head admin has RLS read access
   // to every profile (same query the Admin Directory uses), so no special RPC is needed. Only
   // the same safe columns the directory reads (never contract/wage columns).
   try{
@@ -11099,11 +11099,11 @@ async function openEmailContactDetail(id){
     const p = (matches || [])[0];
     if(p){
       const role = p.is_admin ? 'Head Admin' : ((p.admin_perms && Object.values(p.admin_perms).some(Boolean)) ? 'Kitchen Admin' : 'Member');
-      slot.innerHTML = `<div class="section-label" style="margin-top:14px;">👤 ChefOS account</div>` +
+      slot.innerHTML = `<div class="section-label" style="margin-top:14px;">👤 Sautero account</div>` +
         line('Name', p.full_name || 'no name set yet') + line('Role', role) +
         line('Account type', p.account_type) + line('Kitchen ID', p.kitchen_id);
     } else {
-      slot.innerHTML = `<p class="lede" style="margin-top:10px;">No ChefOS account on this email yet — outreach contact only.</p>`;
+      slot.innerHTML = `<p class="lede" style="margin-top:10px;">No Sautero account on this email yet — outreach contact only.</p>`;
     }
   }catch(e){
     document.getElementById('emailContactProfileSlot').innerHTML = `<p class="lede" style="margin-top:10px;">Couldn’t load account info (${(e.message||e)}).</p>`;
@@ -11282,7 +11282,7 @@ const ADMIN_PERM_DEFS = [
   { key:'manage_team', label:'Manage Team', desc:'Remove team members from their kitchen' },
   { key:'language_audit', label:'Language Audit', desc:'Run Check List name rewrites for their kitchen' },
   { key:'view_email_contacts', label:'Email Contacts', desc:'View the Email Contacts directory' },
-  { key:'approve_access', label:'Approve Access', desc:'Approve/deny new ChefOS access requests — platform-wide, grant with care' },
+  { key:'approve_access', label:'Approve Access', desc:'Approve/deny new Sautero access requests — platform-wide, grant with care' },
   { key:'create_teams', label:'Create Teams', desc:'Create new restaurant/kitchen teams and generate their join codes — grant with care' },
   { key:'view_kitchen_reports', label:'View Kitchen Reports', desc:"See their kitchen's recipe/Check List activity + hours for employees who've consented" },
   { key:'company_admin', label:'Company Admin', desc:"Main admin of their restaurant/kitchen — normally granted automatically by accepting an Add Company invite, not by hand" },
@@ -11355,7 +11355,7 @@ const INTERNAL_DOCS = [
   { name:'🗺️ Plán (teraz + denník + roadmapa)', file:'plan.html' },
   { name:'💰 Biznis (monetizácia + automatizácie + náklady)', file:'biznis.html' },
   { name:'🥘 Gronda research (konkurencia + inšpirácie)', file:'gronda.html' },
-  { name:'🏷️ Názov & značka (ChefOS US problém + 5 mien)', file:'nazov.html' },
+  { name:'🏷️ Názov & značka (prečo Sautero — ChefOS US problém)', file:'nazov.html' },
   { name:'🎨 Značka & vízia (deck + manifest + guide)', file:'znacka.html' },
   { name:'🔍 Critical Review (najnovší)', file:'CRITICAL_REVIEW/latest.html' },
 ];
@@ -11609,7 +11609,7 @@ async function toggleHeadAdmin(){
    to the next shift needs to do it NOW, not just eventually. Clears the Supabase session, resets
    in-memory state, and drops back to a fresh login screen. */
 async function confirmSignOut(){
-  if(!confirm('Sign out of ChefOS on this device?')) return;
+  if(!confirm('Sign out of Sautero on this device?')) return;
   await sb.auth.signOut();
   currentUser = null; currentKitchenId = null; currentIsAdmin = false; currentAdminPerms = {}; currentAccountType = null; currentSkipAccountTypeConfirm = false; currentTeamJoinSeen = false; currentInTeam = false; currentAiCreditChf = 0; currentAiTestingMode = false; currentPerformanceConsent = false; currentUserName = '';
   if(_realtimeChannel){ sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
@@ -11624,7 +11624,7 @@ async function confirmSignOut(){
 }
 
 /* Decline consent (bod 4, 16.7.) — Richard explicitly asked for a real way to say no, not just
-   a mandatory "I agree" with no other way out. You can't use ChefOS without agreeing (it's a
+   a mandatory "I agree" with no other way out. You can't use Sautero without agreeing (it's a
    real data-processing consent, not a formality), but declining now cleanly signs you out with
    an honest explanation instead of leaving you stuck on a dead-end screen. Nothing about your
    choice is recorded anywhere — declining just means no acceptance row ever gets written, so
@@ -11639,7 +11639,7 @@ async function declineConsent(){
   document.getElementById('loginStep1').style.display = 'block';
   document.getElementById('loginStep2').style.display = 'none';
   document.getElementById('loginEmail').value = '';
-  document.getElementById('loginStatus1').textContent = "You've been signed out — ChefOS needs you to agree to keep using it. You can sign back in and agree anytime.";
+  document.getElementById('loginStatus1').textContent = "You've been signed out — Sautero needs you to agree to keep using it. You can sign back in and agree anytime.";
   document.getElementById('loginView').style.display = 'block';
   renderLoginFaceIdBlock();
   window.scrollTo(0,0);
@@ -11818,7 +11818,7 @@ document.addEventListener('touchend', (e)=>{
 function renderRecipeSummaryBar(){
   const el = document.getElementById('recipeSummarySlot');
   if(!el) return;
-  // Personal accounts only ever see Moje + ChefOS, Company accounts only ever see ChefOS +
+  // Personal accounts only ever see Moje + Sautero, Company accounts only ever see Sautero +
   // Firemné (bod, 16.7.) — currentAccountType null (gate never ran / query failed) falls
   // through both checks below and shows all three, same fail-OPEN pattern as every gate.
   // Show My Recipes in Company mode (bod 1, 16.7.) — opt-in, Settings-only toggle, private to
@@ -11846,7 +11846,7 @@ function renderRecipeSummaryBar(){
 // This just names whichever shelf is currently open, so a "back" from Home doesn't lose context.
 function currentRecipeShelfName(){
   if(recipeSourceFilter === 'mine') return '📖 My Recipes';
-  if(recipeSourceFilter === 'chefos') return '✨ ChefOS';
+  if(recipeSourceFilter === 'chefos') return '✨ Sautero';
   if(recipeSourceFilter === 'company') return '🏢 Company Recipes';
   const l = _recipeLists.find(x=>x.id === recipeSourceFilter);
   return '🗂️ ' + ((l && l.name) || 'Project');
@@ -12118,12 +12118,12 @@ const DIET_FILTER_OPTIONS = [
 ];
 let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false, paleo:false, mediterranean:false, highProtein:false, freeFrom:[] };
 
-/* Shelves (Richard, 15.7., extended 16.7. with custom projects): ChefOS = the built-in library
+/* Shelves (Richard, 15.7., extended 16.7. with custom projects): Sautero = the built-in library
    — every recipe with no author (all migrated ones and anything else unattributed). Mine =
    created by me, excluding anything filed into a custom project. Company = created by a
    teammate. Anything else is a specific custom project's list_id. One shared predicate, used by
    the shelf filter, the section/category list, and the shelf-scoped rename/delete flows below —
-   never re-derived separately (that's exactly how ChefOS's own sections ended up leaking into
+   never re-derived separately (that's exactly how Sautero's own sections ended up leaking into
    My Recipes/Company Recipes, 16.7. neskoro večer). */
 function recipeOnCurrentShelf(r){
   if(recipeSourceFilter === 'chefos') return !r.createdBy;
@@ -12578,7 +12578,7 @@ async function callClaudeGenerateRecipe(title, shortDescription, context){
 }
 
 /* Comment counts per recipe (Richard, 17.7.) — filled by loadAppData, kept fresh by
-   refreshCommentCountBadge. Keyed by chefos_master_id when the recipe is a ChefOS copy
+   refreshCommentCountBadge. Keyed by chefos_master_id when the recipe is a Sautero copy
    (comments are shared across kitchens, db/129), else by the recipe's own id. */
 let _commentCounts = {};
 function recipeCommentCount(r){ return _commentCounts[r.chefosMasterId || r.id] || 0; }
@@ -13048,9 +13048,9 @@ async function deleteRecipeComment(id){
 
 /* ---------- Activity feed (bod 2, 16.7. — db/104; extended 17.7. večer) — comments on
    recipes YOU created AND on recipes you FAVORITED (Richard: "ak niekto komentuje
-   public/chefos recept a ja ho mám vo favorite tak ma to upozorní"). Favorited ChefOS/public
+   public/chefos recept a ja ho mám vo favorite tak ma to upozorní"). Favorited Sautero/public
    recipes are matched by chefos_master_id too, so a comment written in ANOTHER kitchen on the
-   same underlying ChefOS recipe (db/129) still triggers the dot. ---------- */
+   same underlying Sautero recipe (db/129) still triggers the dot. ---------- */
 function activityWatchTargets(){
   const ids = [], masters = [];
   allRecipes().forEach(r=>{
@@ -13184,7 +13184,7 @@ async function togglePublishRecipe(){
       alert('🔒 Publishing isn\'t available on a Company profile.\n\nOur terms don\'t allow sharing company recipes publicly. Switch to your Personal profile (Settings → Account Type) — from there you can publish your own personal recipes anytime.');
       return;
     }
-    if(!confirm(`🌍 Publish "${r.title}"?\n\nIt will appear on the Public shelf in EVERY ChefOS kitchen — any chef can read and comment on it. It stays yours, and you can unpublish anytime with this same button.`)) return;
+    if(!confirm(`🌍 Publish "${r.title}"?\n\nIt will appear on the Public shelf in EVERY Sautero kitchen — any chef can read and comment on it. It stays yours, and you can unpublish anytime with this same button.`)) return;
   } else {
     if(!confirm(`Unpublish "${r.title}"?\n\nIt disappears from everyone's Public shelf (comments are kept for if you republish).`)) return;
   }
@@ -13483,9 +13483,9 @@ function showList(){
   activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
   // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'chefos' on
   // every single call, silently undoing whatever shelf showRecipesHome()'s picker just set,
-  // e.g. tapping "My Recipes" landed back on ChefOS every time. It only went unnoticed while a
+  // e.g. tapping "My Recipes" landed back on Sautero every time. It only went unnoticed while a
   // pill switcher inside this same screen let you flip it back manually; removing that pill
-  // (bod 8) exposed it — ChefOS recipes appeared "everywhere, always", exactly this). The shelf
+  // (bod 8) exposed it — Sautero recipes appeared "everywhere, always", exactly this). The shelf
   // now only ever changes via an explicit choice on the picker screen, and stays put across
   // detail view, delete, save, and back navigation, same as every other shelf-based screen.
   renderRecipeSummaryBar();
@@ -13560,7 +13560,7 @@ function editCurrentRecipe(){
 function renderForm(data){
   formIngredientRows = data.ingredients.length ? data.ingredients : [['','']];
   formStepRows = data.steps.length ? data.steps : [''];
-  _recipeAiShare = null; // fresh share-with-ChefOS decision per form session (17.7.)
+  _recipeAiShare = null; // fresh share-with-Sautero decision per form session (17.7.)
   const el = document.getElementById('formContent');
   const cats = getCategories().filter(c=>c!=='All');
   // A scanned recipe often arrives with a category this shelf doesn't have yet — offer it as a
@@ -13764,13 +13764,13 @@ async function saveFormBody(){
     cross_references: crossReferences || null, tags, sections
   };
 
-  // Share-with-ChefOS question at save (Richard, 17.7.): if the person already answered it
+  // Share-with-Sautero question at save (Richard, 17.7.): if the person already answered it
   // when they first used an AI helper, don't ask again — otherwise ask now (plain sharing
   // question, no free-AI wording, since no AI was used).
   if(!formEditingId && _recipeAiShare === null){
     _recipeAiShare = confirm(
       "👨‍🍳 The best recipes get passed on.\n\n" +
-      "Add this one to the ChefOS library? Your copy stays yours — kitchens across ChefOS get to cook it too.\n\n" +
+      "Add this one to the Sautero library? Your copy stays yours — kitchens across Sautero get to cook it too.\n\n" +
       "OK — share it · Cancel — keep it private"
     );
   }
@@ -13873,8 +13873,8 @@ function renderRecipeShelvesGrid(){
   if(currentAccountType !== 'company' || showPersonalInCompany){
     fixedTile('mine', '📖', 'My Recipes', 'share');
   }
-  fixedTile('chefos', '✨', 'ChefOS');
-  // Public shelf (db/131) — every account type sees it, like the ChefOS library.
+  fixedTile('chefos', '✨', 'Sautero');
+  // Public shelf (db/131) — every account type sees it, like the Sautero library.
   fixedTile('public', '🌍', 'Public');
   if(currentAccountType === 'company'){
     fixedTile('company', '🏢', 'Company Recipes');
@@ -13979,7 +13979,7 @@ function renderIngredientListsGrid(){
     addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openIngredientShelf(key),
       ()=>openItemContextMenu('ingredientShelf', key, label, isHidden, false));
   };
-  fixedTile('chefos', '✨', 'ChefOS');
+  fixedTile('chefos', '✨', 'Sautero');
   // Company Ingredients (Richard, 18.7.): the kitchen's own shared additions — mirror of the
   // Company Recipes tile, shown in Company mode only.
   if(currentAccountType === 'company') fixedTile('company', '🏢', 'Company Ingredients');
@@ -14049,7 +14049,7 @@ function openIngredientShareSheet(){
     alert('🔒 Sharing isn\'t available on a Company profile.\n\nOur terms don\'t allow sharing company ingredients. Switch to your Personal profile (Settings → Account Type) to share your own.');
     return;
   }
-  document.getElementById('ingredientShareHint').textContent = '🌍 Public = every ChefOS kitchen can see it. 🤝 Friends = only your connected chefs. Tap a badge to toggle; tap it again to stop sharing.';
+  document.getElementById('ingredientShareHint').textContent = '🌍 Public = every Sautero kitchen can see it. 🤝 Friends = only your connected chefs. Tap a badge to toggle; tap it again to stop sharing.';
   document.getElementById('ingredientShareStatus').textContent = '';
   renderIngredientShareList();
   document.getElementById('ingredientShareOverlay').classList.add('open');
@@ -14069,9 +14069,9 @@ function renderIngredientShareList(){
     </div>`).join('');
 }
 /* Duplicate guard on publish (Richard, 17.7. bod 5): the Public shelf must not fill up with
-   items that already exist in the ChefOS price book under another spelling. Before an item
+   items that already exist in the Sautero price book under another spelling. Before an item
    goes public, its name is normalized (case/diacritics/spacing) and checked against every
-   ChefOS-book name AND alias already loaded — a match blocks the publish and names the
+   Sautero-book name AND alias already loaded — a match blocks the publish and names the
    existing item, so the library entry stays the one canonical version. This catches exact
    names, alias translations (aliases carry the scans' original-language names) and simple
    spelling variants; it can't catch a completely different word for the same thing in a
@@ -14145,7 +14145,7 @@ async function toggleIngredientShare(id, mode){
     const dup = findPublicDuplicate(ing);
     if(dup){
       document.getElementById('ingredientShareStatus').textContent =
-        `Not published — "${ing.name}" already exists ${dup.is_public ? 'on the Public shelf' : 'in the ChefOS price book'} as "${dup.name}". The existing item stays the one everyone sees.`;
+        `Not published — "${ing.name}" already exists ${dup.is_public ? 'on the Public shelf' : 'in the Sautero price book'} as "${dup.name}". The existing item stays the one everyone sees.`;
       return;
     }
     document.getElementById('ingredientShareStatus').textContent = 'Checking for duplicates…';
@@ -14183,7 +14183,7 @@ async function ingredientShareAll(mode){
     if(!error){ Object.assign(ing, patch); done++; }
     else { statusEl.textContent = 'Could not update: ' + error.message; break; }
   }
-  statusEl.textContent = `Saved (${done}/${rows.length})${skippedDup ? ` — ${skippedDup} skipped as duplicates of existing ChefOS/Public items` : ''}.`;
+  statusEl.textContent = `Saved (${done}/${rows.length})${skippedDup ? ` — ${skippedDup} skipped as duplicates of existing Sautero/Public items` : ''}.`;
   renderIngredientShareList();
 }
 function closeIngredientShareSheet(){
@@ -14192,7 +14192,7 @@ function closeIngredientShareSheet(){
 }
 function currentIngredientListName(){
   if(ingredientSourceFilter === 'mine') return '👤 My Ingredients';
-  if(ingredientSourceFilter === 'chefos') return '✨ ChefOS Ingredients';
+  if(ingredientSourceFilter === 'chefos') return '✨ Sautero Ingredients';
   if(ingredientSourceFilter === 'company') return '🏢 Company Ingredients';
   if(ingredientSourceFilter === 'public') return '🌍 Public Ingredients';
   const l = _ingredientLists.find(x=>x.id === ingredientSourceFilter);
@@ -14205,7 +14205,7 @@ function ingredientOnCurrentShelf(ing){
   if(ingredientSourceFilter === 'public') return !!ing.is_public;
   // All other shelves are MY kitchen only — foreign shared rows never appear on them.
   if(ing._foreign) return false;
-  // ChefOS = seeded library (created_by null); Company = the kitchen's own shared additions
+  // Sautero = seeded library (created_by null); Company = the kitchen's own shared additions
   // (created_by set) — exact mirror of the recipes shelves (Richard, 18.7.: parity rule).
   if(ingredientSourceFilter === 'chefos') return !ing.is_personal && !ing.created_by;
   if(ingredientSourceFilter === 'company') return !ing.is_personal && !!ing.created_by;
@@ -14213,7 +14213,7 @@ function ingredientOnCurrentShelf(ing){
   return ing.list_id === ingredientSourceFilter;
 }
 function ingredientShelfIsShared(f){ return f === 'chefos' || f === 'company'; }
-/* Adding to the shared ChefOS shelf is admin-only (Richard, 16.7.) — any kind of admin (Head
+/* Adding to the shared Sautero shelf is admin-only (Richard, 16.7.) — any kind of admin (Head
    Admin or a Kitchen Admin with any admin_perms), matching the RLS check in db/105. My
    Ingredients (is_personal) stays open to everyone regardless. */
 function canManageSharedIngredients(){
@@ -14221,13 +14221,13 @@ function canManageSharedIngredients(){
 }
 function showIngredients(){
   // Mode isolation (17.7. večer; aligned with Recipes 18.7. ráno): in Company mode only the
-  // MY INGREDIENTS shelf redirects to ChefOS — custom lists work in both modes, like recipe
+  // MY INGREDIENTS shelf redirects to Sautero — custom lists work in both modes, like recipe
   // projects.
   const personalAllowed = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
   if(!personalAllowed && ingredientSourceFilter === 'mine'){
     ingredientSourceFilter = 'chefos';
   }
-  // Company shelf exists only in Company mode — Personal mode redirects to ChefOS (mirror of
+  // Company shelf exists only in Company mode — Personal mode redirects to Sautero (mirror of
   // the recipes rule).
   if(currentAccountType !== 'company' && ingredientSourceFilter === 'company'){
     ingredientSourceFilter = 'chefos';
@@ -14246,11 +14246,11 @@ function showIngredients(){
   refreshIngredientFiltersActiveDot();
   // Public shelf (db/136) is READ-ONLY — other kitchens' shared ingredients, browse only.
   // Company shelf (18.7., parity rule): the kitchen's own shared additions — every team
-  // member can add there (like company recipes); ChefOS library stays admin-curated.
+  // member can add there (like company recipes); Sautero library stays admin-curated.
   const isPublicShelf = ingredientSourceFilter === 'public';
   const isCompanyShelf = ingredientSourceFilter === 'company';
   const isPersonalShelf = !ingredientShelfIsShared(ingredientSourceFilter) && !isPublicShelf;
-  // Shared shelves (ChefOS aj Company) = admin-only adds — the DB enforces it too (db/105).
+  // Shared shelves (Sautero aj Company) = admin-only adds — the DB enforces it too (db/105).
   const canAdd = (!ingredientShelfIsShared(ingredientSourceFilter) || canManageSharedIngredients()) && !isPublicShelf;
   const fab = document.getElementById('addIngredientFab');
   if(fab) fab.style.display = canAdd ? 'flex' : 'none';
@@ -14290,7 +14290,7 @@ async function bulkDeleteIngredients(mode){
   if(!targets.length){ statusEl.textContent = 'Nothing matches — nothing was deleted.'; return; }
   if(!confirm(`Delete ${targets.length} ingredient${targets.length===1?'':'s'} from ${currentIngredientListName()}? This can't be undone.`)) return;
   statusEl.textContent = 'Deleting…';
-  // Chunked — .in() with thousands of ids can exceed URL limits on the big ChefOS shelf.
+  // Chunked — .in() with thousands of ids can exceed URL limits on the big Sautero shelf.
   const ids = targets.map(t=>t.id);
   for(let i = 0; i < ids.length; i += 200){
     const { error } = await sb.from('ingredients').delete().in('id', ids.slice(i, i + 200));
@@ -14424,7 +14424,7 @@ function passesIngredientFilters(ing, q){
    can never drift out of sync with what's actually on screen. */
 function updateIngredientFilterCount(){
   // Count only the shelf being viewed (bod 8, 16.7.) — a personal list must never show the
-  // full 2000+ ChefOS total.
+  // full 2000+ Sautero total.
   const n = _ingredients.reduce((sum, ing)=> sum + ((ingredientOnCurrentShelf(ing) && passesIngredientFilters(ing, ingredientActiveQuery)) ? 1 : 0), 0);
   const label = `${n} ingredient${n===1?'':'s'} match${n===1?'es':''} this filter`;
   const sheetEl = document.getElementById('ingredientFilterCount');
@@ -15181,7 +15181,7 @@ function handleBackToTopScroll(){
 window.addEventListener('scroll', handleBackToTopScroll, { passive: true });
 
 /* Trimmed to the generic set every restaurant recognizes (bod, 16.7.) — SKY/Garde Manger/Lobby
-   were specific to the hotel Richard prototyped ChefOS features against, not a universal
+   were specific to the hotel Richard prototyped Sautero features against, not a universal
    default; they still exist as real data inside his own "Development" project (db/94 backfill),
    just no longer offered as empty starter tabs to every new project. */
 const DEFAULT_STATIONS = ['Hot Line','Entremetier','BQT','Desserts','Extra'];
@@ -16943,7 +16943,7 @@ window.addEventListener('afterprint', _printCleanup);
    Print Labels/Order List). DELIBERATELY SYNCHRONOUS: window.print() must run in the same
    user-gesture tick as the tap, or Safari blocks the dialog — the kitchen name is pre-cached
    by loadAppData for exactly this reason. */
-let _rpbKitchenName = 'ChefOS';
+let _rpbKitchenName = 'Sautero';
 function printRecipeBranded(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
@@ -17011,7 +17011,7 @@ function printRecipeBranded(){
         <div class="rpb-kitchen">${kn}</div>
         <div class="rpb-tag">Professional Recipe Card</div>
       </div>
-      <div class="rpb-mark">Chef<span>OS</span></div>
+      <div class="rpb-mark">Sau<span>tero</span></div>
     </div>
     <h1 class="rpb-title">${(r.title||'').replace(/</g,'&lt;')}</h1>
     ${r.meta ? `<p class="rpb-subtitle">${r.meta.replace(/</g,'&lt;')}</p>` : ''}
@@ -18333,7 +18333,7 @@ function renderWorkingTimeSettings(){
 
 /* ---------- Your Working Time Data: save/upload/delete ----------
    First instance of a "save a backup file to your phone / restore one / delete everything"
-   pattern in ChefOS. Richard: "toto by mohlo byť pri všetkom" (this could be everywhere) —
+   pattern in Sautero. Richard: "toto by mohlo byť pri všetkom" (this could be everywhere) —
    built concretely here first; the same three functions (downloadJSON + an export query +
    an upsert-based import + a delete) are the template to repeat for other screens later.
    Export is a single downloadable .json file, not literally a "folder" — a real folder/zip
@@ -18366,7 +18366,7 @@ async function exportWorkingTimeData(){
     sb.from('profiles').select('contracted_hours_per_week, next_vacation_date, contract_notes, contract_advisory_points').eq('id', currentUser.id).single()
   ]);
   const backup = {
-    app: 'ChefOS', type: 'working_time_backup', version: 1,
+    app: 'Sautero', type: 'working_time_backup', version: 1,
     exported_at: new Date().toISOString(),
     time_entries: entriesRes.data || [],
     day_notes: notesRes.data || [],
@@ -18383,15 +18383,15 @@ function handleWorkingTimeImportSelected(e){
   reader.onload = () => {
     let data;
     try{ data = JSON.parse(reader.result); }
-    catch(err){ document.getElementById('workingTimeDataStatus').textContent = 'That file could not be read — is it a ChefOS Working Time backup?'; return; }
+    catch(err){ document.getElementById('workingTimeDataStatus').textContent = 'That file could not be read — is it a Sautero Working Time backup?'; return; }
     importWorkingTimeData(data);
   };
   reader.readAsText(file);
 }
 async function importWorkingTimeData(data){
   const statusEl = document.getElementById('workingTimeDataStatus');
-  if(!data || data.app !== 'ChefOS' || data.type !== 'working_time_backup'){
-    statusEl.textContent = 'That file does not look like a ChefOS Working Time backup.';
+  if(!data || data.app !== 'Sautero' || data.type !== 'working_time_backup'){
+    statusEl.textContent = 'That file does not look like a Sautero Working Time backup.';
     return;
   }
   const entryCount = (data.time_entries || []).length;
@@ -19283,13 +19283,13 @@ async function saveCustomIngredientReview(){
 
 /* ---------- Add ingredients from a document scan (bod 3, 16.7.) — anyone, straight into the
    real `ingredients` catalog (not the separate admin-only custom_ingredients table), tagged
-   is_personal to match whichever shelf (ChefOS / My Ingredients) they were on when they
+   is_personal to match whichever shelf (Sautero / My Ingredients) they were on when they
    triggered the scan. Reuses callClaudeCustomIngredientVision as-is — the extraction itself
    isn't specific to the custom_ingredients table, only where the result gets saved differs. */
 /* Target shelf is CAPTURED when the scan starts (Richard, 18.7. bod 3): scans run in the
    background and the person can navigate elsewhere meanwhile — reading ingredientSourceFilter
    only at SAVE time meant items landed on whatever shelf was open at that moment (typically
-   ChefOS/company) instead of the list the scan was started from. */
+   Sautero/company) instead of the list the scan was started from. */
 let _pendingScanTargetFilter = null;
 function triggerIngredientScan(){
   _pendingScanTargetFilter = ingredientSourceFilter;
@@ -19300,7 +19300,7 @@ function scanTargetFilter(){ return _pendingScanTargetFilter || ingredientSource
 function scanTargetListName(){
   const f = scanTargetFilter();
   if(f === 'mine') return '👤 My Ingredients';
-  if(f === 'chefos') return '✨ ChefOS Ingredients';
+  if(f === 'chefos') return '✨ Sautero Ingredients';
   if(f === 'company') return '🏢 Company Ingredients';
   const l = _ingredientLists.find(x=>x.id === f);
   return l ? ('📋 ' + l.name) : currentIngredientListName();
@@ -19453,7 +19453,7 @@ async function loadShiftCodesForKitchen(){
    Notification, not a placeholder, but honest about its actual limit: this app has no server
    component (everything talks straight to Supabase/Anthropic from the browser), so there's no
    way to wake a phone that has the tab/app fully closed — that would need Web Push + a
-   server-side scheduler, a separate, bigger build. What DOES work today: while ChefOS is open
+   server-side scheduler, a separate, bigger build. What DOES work today: while Sautero is open
    (foreground or a backgrounded tab the OS hasn't killed), a periodic check compares "now" to
    today's scheduled shift start time (looked up from schedule_forecast + the shift_codes
    dictionary) and fires a real Notification once, 45 minutes out. Toggle + permission are
@@ -19504,7 +19504,7 @@ async function checkShiftReminder(){
   const minsUntil = (shiftStart - new Date()) / 60000;
   const firedKey = 'chefos_shift_reminder_fired_' + todayStr;
   if(minsUntil <= 45 && minsUntil > 0 && localStorage.getItem(firedKey) !== '1'){
-    new Notification('ChefOS — shift starting soon', { body: `Your shift starts at ${code.start_time} — time to head to work.` });
+    new Notification('Sautero — shift starting soon', { body: `Your shift starts at ${code.start_time} — time to head to work.` });
     localStorage.setItem(firedKey, '1');
   }
 }
@@ -19746,7 +19746,7 @@ async function submitFeedbackReport(){
   });
   if(error){ statusEl.textContent = 'Could not send: ' + error.message; return; }
   // Richard (16.7.): every feedback gets a real thank-you, always.
-  statusEl.textContent = '🙏 Thank you! Every message goes straight to Richard — it genuinely helps make ChefOS better.';
+  statusEl.textContent = '🙏 Thank you! Every message goes straight to Richard — it genuinely helps make Sautero better.';
   setTimeout(closeFeedbackOverlay, 2600);
 }
 /* Richard: the first version read as one dense paragraph per slide — too much to read at a
@@ -19756,7 +19756,7 @@ async function submitFeedbackReport(){
    own detailed tutorial the first time its screen opens (VIEW_TUTORIALS below), so the big
    10-screen walkthrough here became redundant. */
 const TUTORIAL_SLIDES = [
-  { icon:'👋', title:'Welcome to ChefOS', bullets:[
+  { icon:'👋', title:'Welcome to Sautero', bullets:[
     { icon:'📓', text:'One shared notebook for the whole kitchen.' },
     { icon:'📱', text:'Recipes, prep, ingredient prices, schedule — all live on everyone\'s phone.' },
     { icon:'🎓', text:'Each feature explains itself the first time you open it — and every screen has a ❓ in its top bar to replay its guide anytime.' }
@@ -19842,7 +19842,7 @@ const VIEW_TUTORIALS = {
   recipes: { slides:[
     { icon:'📖', title:'Recipes — shelves', bullets:[
       { icon:'🔒', text:'My Recipes — yours only. Private at the database level; not even an admin can see them.' },
-      { icon:'✨', text:'ChefOS — the built-in library every kitchen gets.' },
+      { icon:'✨', text:'Sautero — the built-in library every kitchen gets.' },
       { icon:'🏢', text:'Company Recipes — authored by your team (Company accounts).' },
       { icon:'🗂️', text:'➕ Add Project makes your own named collection (e.g. "Summer menu").' },
       { icon:'✋', text:'Press and hold tiles for extra options (e.g. sharing My Recipes with chef friends).' }
@@ -19850,14 +19850,14 @@ const VIEW_TUTORIALS = {
     { icon:'🍳', title:'Inside a recipe', bullets:[
       { icon:'💰', text:'Food-cost and nutrition are calculated live from your Ingredients price book.' },
       { icon:'⚖️', text:'Scale the whole recipe up or down; allergens are detected automatically.' },
-      { icon:'💬', text:'Comments on ChefOS recipes are shared — every kitchen sees them (count bubble in the list).' },
+      { icon:'💬', text:'Comments on Sautero recipes are shared — every kitchen sees them (count bubble in the list).' },
       { icon:'🖨️', text:'Print — a branded recipe card with a composition chart.' },
       { icon:'📷', text:'Add recipes by typing, scanning a photo/PDF, or asking Chef\'s Assistant.' }
     ]}
   ]},
   ingredients: { slides:[
     { icon:'🧂', title:'Ingredients — your price book', bullets:[
-      { icon:'✨', text:'ChefOS — the shared kitchen catalog (admins edit it; everyone uses it).' },
+      { icon:'✨', text:'Sautero — the shared kitchen catalog (admins edit it; everyone uses it).' },
       { icon:'🔒', text:'My Ingredients — your private list. Custom lists via ➕ New List.' },
       { icon:'🌱', text:'The default view leads with what\'s in season right now; filters for category, season, storage, price.' },
       { icon:'📌', text:'The pin on recipes chooses WHICH list recipe costs are calculated from.' }
@@ -19881,7 +19881,7 @@ const VIEW_TUTORIALS = {
   printLabels: { slides:[
     { icon:'🏷️', title:'Print Labels', bullets:[
       { icon:'🖨️', text:'Tap 🖨️ on a Check List item to queue its label here.' },
-      { icon:'⌨️', text:'Or add one by hand — type 3+ letters and ChefOS suggests names.' },
+      { icon:'⌨️', text:'Or add one by hand — type 3+ letters and Sautero suggests names.' },
       { icon:'📅', text:'"Use by" dates are calculated automatically from each product\'s shelf life.' },
       { icon:'⚡', text:'Print everything queued in one go.' },
       { icon:'🧼', text:'Every printed label is logged — HACCP\'s Label Expiry screen watches the dates for you.' }
@@ -19936,7 +19936,7 @@ const VIEW_TUTORIALS = {
   ]},
   settings: { slides:[
     { icon:'⚙️', title:'Settings', bullets:[
-      { icon:'👤', text:'Account Type — Personal (your recipes + ChefOS) or Company (your team\'s shared kitchen).' },
+      { icon:'👤', text:'Account Type — Personal (your recipes + Sautero) or Company (your team\'s shared kitchen).' },
       { icon:'🌓', text:'Appearance — light or dark, per device.' },
       { icon:'🌍', text:'Currency and scan language.' },
       { icon:'❓', text:'The Tutorial tile replays the Home intro anytime.' }
@@ -20518,9 +20518,9 @@ function openMenuScanRecipeForm(i){
 /* Writes a professional Method from just the title + ingredient list — same direct-to-Claude
    pattern as the photo scan, reusing the same stored API key. Replaces whatever is currently
    in the step rows; the chef edits/adjusts from there like anywhere else in the form. */
-/* Share-with-ChefOS decision for the current recipe form (Richard, 17.7.): asked ONCE, the
+/* Share-with-Sautero decision for the current recipe form (Richard, 17.7.): asked ONCE, the
    first time any AI helper is used in the form (or at save if no AI was used). Yes = the
-   recipe is contributed to the ChefOS library on save AND every AI call in this form is free;
+   recipe is contributed to the Sautero library on save AND every AI call in this form is free;
    No = recipe stays private and AI charges credit as normal. null = not asked yet. */
 let _recipeAiShare = null;
 function maybeAskRecipeAiShare(){
@@ -20530,7 +20530,7 @@ function maybeAskRecipeAiShare(){
   // honest, no pressure.
   _recipeAiShare = confirm(
     "👨‍🍳 The best recipes get passed on.\n\n" +
-    "Share this one with the ChefOS library — your copy stays yours, and all AI help on it is on the house.\n\n" +
+    "Share this one with the Sautero library — your copy stays yours, and all AI help on it is on the house.\n\n" +
     "OK — share it (AI free) · Cancel — keep it private"
   );
   return _recipeAiShare;
@@ -21022,7 +21022,7 @@ async function saveAddPrepItem(){
    confident kitchen advice — substitutions, technique, what to do about a shortfall — not a
    general-purpose chatbot.
    ============================================================ */
-const CHEF_ASSISTANT_SYSTEM_PROMPT = `You are the Chef's Assistant inside ChefOS, an app used by professional kitchen staff mid-shift. You have the judgment and voice of a Michelin-starred executive chef mentoring the kitchen team.
+const CHEF_ASSISTANT_SYSTEM_PROMPT = `You are the Chef's Assistant inside Sautero, an app used by professional kitchen staff mid-shift. You have the judgment and voice of a Michelin-starred executive chef mentoring the kitchen team.
 
 Give practical, confident, specific answers: ingredient substitutions when something's missing or run out, recommended preparation methods and techniques, timing and sequencing advice, and general culinary judgment calls. Speak like an experienced head chef talking to their brigade — direct, precise, no hedging, no disclaimers, no filler. Keep answers short enough to read in a few seconds during service unless the question genuinely needs more detail.`;
 

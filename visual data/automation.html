@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChefOS — Automatizácie a náklady</title>
+<title>Sautero — Automatizácie a náklady</title>
 <style>
   :root{
     --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
@@ -96,8 +96,8 @@
 
   footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:40px 0 20px 0; }
 
-  /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
-     carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
+  /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
+     carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
   .chefos-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
@@ -124,7 +124,7 @@
     <div class="topline">
       <div class="brandmark">
         <svg width="24" height="24" viewBox="0 0 68 68"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>
-        <span class="word">ChefOS</span>
+        <span class="word">Sautero</span>
       </div>
       <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
     </div>
@@ -157,7 +157,7 @@
     </div>
     <div class="callout" style="margin-top:12px;">
       <div class="k" data-sk="Kde sa PLATÍ naozaj po tokenoch" data-en="Where real per-token billing DOES happen"></div>
-      <p data-sk="Appka ChefOS samotná (fotoscan, Chef's Assistant, generovanie receptov) používa TVOJ VLASTNÝ Anthropic API kľúč, ktorý si zadal v nastaveniach appky — to sa účtuje priamo z tvojho Anthropic Console účtu, oddelene od Max predplatného použitého tu na tieto 4 úlohy." data-en="The ChefOS app itself (photo scan, Chef's Assistant, recipe generation) uses YOUR OWN Anthropic API key, entered in the app's settings — that's billed directly from your Anthropic Console account, separate from the Max subscription used here for these 4 tasks."></p>
+      <p data-sk="Appka Sautero samotná (fotoscan, Chef's Assistant, generovanie receptov) používa TVOJ VLASTNÝ Anthropic API kľúč, ktorý si zadal v nastaveniach appky — to sa účtuje priamo z tvojho Anthropic Console účtu, oddelene od Max predplatného použitého tu na tieto 4 úlohy." data-en="The Sautero app itself (photo scan, Chef's Assistant, recipe generation) uses YOUR OWN Anthropic API key, entered in the app's settings — that's billed directly from your Anthropic Console account, separate from the Max subscription used here for these 4 tasks."></p>
     </div>
   </section>
 
@@ -237,7 +237,7 @@
   </section>
 
 </div>
-<footer class="foot" data-sk="ChefOS — automatizácie a náklady · aktualizuje sa pri každom behu · 15. 7. 2026" data-en="ChefOS — automations and costs · updates with every run · Jul 15, 2026"></footer>
+<footer class="foot" data-sk="Sautero — automatizácie a náklady · aktualizuje sa pri každom behu · 15. 7. 2026" data-en="Sautero — automations and costs · updates with every run · Jul 15, 2026"></footer>
 
 <script>
 let _autoLang = localStorage.getItem('chefos_doc_lang') || 'sk';
@@ -309,6 +309,6 @@ renderTimeline();
 })();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 12:40" data-en="🔄 ChefOS state as of Jul 17, 2026, 12:40">🔄 Stav ChefOS k 17. 7. 2026, 12:40</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 17. 7. 2026, 12:40" data-en="🔄 Sautero state as of Jul 17, 2026, 12:40">🔄 Stav Sautero k 17. 7. 2026, 12:40</div>
 </body>
 </html>

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChefOS — Planning</title>
+<title>Sautero — Planning</title>
 <style>
-  /* ChefOS standing visual identity (2026-07-11) — same palette/fonts as app/board.html. */
+  /* Sautero standing visual identity (2026-07-11) — same palette/fonts as app/board.html. */
   :root{
     --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
     --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
@@ -125,8 +125,8 @@
   .fbtn:hover{ border-color:var(--accent-dim); color:var(--accent); }
   mark{ background:rgba(52,247,215,0.25); color:var(--ink); border-radius:3px; padding:0 1px; }
 
-  /* ---------- ChefOS stamp + language fab (Richard, 15.7.: every /visual data/ document
-     carries a last-updated-to-ChefOS-state badge and an SK/EN toggle) ---------- */
+  /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
+     carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
   .chefos-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
@@ -152,7 +152,7 @@
 
   <header class="hero">
     <div class="topline">
-      <div class="kicker" data-sk="ChefOS — Plánovanie a postup" data-en="ChefOS — Planning &amp; Progress"></div>
+      <div class="kicker" data-sk="Sautero — Plánovanie a postup" data-en="Sautero — Planning &amp; Progress"></div>
       <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
     </div>
     <h1 class="title">Plan<b>ning</b></h1>
@@ -227,7 +227,7 @@ const DAYS = [
     date: '2026-07-08',
     headline: 'Fáza 0 — Základy & validácia schválené',
     accomplished: [
-      'Definovaný rozsah ChefOS v1: Chef Pro / reštauračné kuchyne, nie domáci kuchári',
+      'Definovaný rozsah Sautero v1: Chef Pro / reštauračné kuchyne, nie domáci kuchári',
       'Inštalovateľná webová appka mobile/tablet-first, bez natívneho buildu',
       'Potvrdená pilotná kuchyňa (Hotel Schweizerhof Bern)',
       'MVP_DEFINITION.md a ARCHITECTURE.md schválené Richardom',
@@ -289,7 +289,7 @@ const DAYS = [
       'Opravený bug dvojitého uloženia receptu (race condition pri double-tape); 🚩 vlajka obmedzená len na priority-1 položky',
       'Check List: vymazať alebo skryť položku, jedlo aj celú sekciu; 🛒 Objednať tlačidlo na každej položke a riadku suroviny receptu',
       'Postavený app/board.html → premenovaný na app/tasklist.html s plným shipped/timeline trackerom',
-      'Zjednotená vizuálna identita ChefOS (navy/teal) naprieč presentation.html, planning.html, tasklist.html',
+      'Zjednotená vizuálna identita Sautero (navy/teal) naprieč presentation.html, planning.html, tasklist.html',
     ],
     planned: 'Toolbary Order Listu + Print Labels, postaviť Working Time od nuly, rozšíriť reálne ceny ingrediencií.'
   },
@@ -305,24 +305,24 @@ const DAYS = [
       'Check List &amp; Recepty: sekcie/kategórie sa dajú premenovať a preikonovať, nie len mazať; diétne filtre Receptov opravené + rozšírené 2→7; pridaný AI generátor receptov „Ask Chef\'s Assistant“',
       'Nasadený kuchynský prepínač meny (EUR/CHF/USD), default CHF; topbar Ingrediencií predizajnovaný, aby nežral pol obrazovky',
     ],
-    planned: 'Drobné vylepšenia, ChefOS logo a hardvérový výskum (tlačiareň štítkov, senzor chladničky).'
+    planned: 'Drobné vylepšenia, Sautero logo a hardvérový výskum (tlačiareň štítkov, senzor chladničky).'
   },
   {
     date: '2026-07-13',
-    headline: 'Oprava viditeľnosti poznámok vo Working Time, väčšie Home ikony, vyladenie Print Labels, ChefOS logo, výskum tlačiarne + senzora, prvý pomenovaný predajný cieľ',
+    headline: 'Oprava viditeľnosti poznámok vo Working Time, väčšie Home ikony, vyladenie Print Labels, Sautero logo, výskum tlačiarne + senzora, prvý pomenovaný predajný cieľ',
     accomplished: [
       'Opravené neviditeľné pole dennej poznámky vo Working Time počas písania (celostránková dark-mode oprava, nie len to jedno pole)',
       'Ikony dlaždíc na Home opäť zväčšené (stále 3 v rade); Print Labels dostal chýbajúci titulok topbaru a skutočný prepínač zoskupenia „Podľa sekcie“',
-      'Navrhnuté minimalistické ChefOS logo (kruhový monogram), nasadené naživo do brand hlavičky My Team a vycentrované priamo v pozvánkovom QR kóde',
+      'Navrhnuté minimalistické Sautero logo (kruhový monogram), nasadené naživo do brand hlavičky My Team a vycentrované priamo v pozvánkovom QR kóde',
       'Preskúmaný bezdrôtový senzor teploty chladničky pre nápad „sken QR → živá teplota“ — odporúčaný SensorPush (jediná budget možnosť so skutočným cloud API; Bluetooth/NFC z webstránky je na iOS slepá ulička)',
       'Preskúmaná fyzická tlačiareň štítkov + prístup k dodávateľským zmluvám — odporúčaný Brother QL-820NWB (~130 CHF, kúpa napriamo, bez zmluvy), celý report v docs/LABEL_PRINTER_RESEARCH.md',
       'Nooch Asian Kitchen (skupina FWG, 3 prevádzky v kantóne Bern) pomenovaný ako prvý predajný cieľ po pilote',
       'Ingrediencie: živý počet zhôd pri filtrovaní, plný reálny zoznam kategórií namiesto starej 4-položkovej skratky, nový cenový filter Overené/Odhad/Chýba',
       'Ingrediencie: počet zhôd pripnutý aj priamo v topbare, viditeľný bez otvorenia Search &amp; Filter',
-      'ChefOS logo predizajnované — ručne stavaný prstencový znak (jeden presný oblúk, nie fontové písmeno) v sage/cream namiesto medenej, italic serif wordmark',
+      'Sautero logo predizajnované — ručne stavaný prstencový znak (jeden presný oblúk, nie fontové písmeno) v sage/cream namiesto medenej, italic serif wordmark',
       'Výber ikon Check Listu rozšírený z 30 na plných 72 ikon, zhodné s Receptami',
       'Nové: Language Audit — skenuje názvy jedál/položiek Check Listu na čokoľvek mimo angličtiny, navrhuje preklady, schvaľovanie po položkách',
-      'Pilotná kuchyňa sa mení z Hotela Schweizerhof na Burrito Bandito &amp; Lido (jedna skupina, dve prevádzky) — ruší Schweizerhof IP riziko z backlog v2 review, keďže ChefOS prestáva závisieť od ich dát; RC Studio odložené kvôli kapacite; prvý draft pilotnej zmluvy v docs/PILOT_AGREEMENT.md',
+      'Pilotná kuchyňa sa mení z Hotela Schweizerhof na Burrito Bandito &amp; Lido (jedna skupina, dve prevádzky) — ruší Schweizerhof IP riziko z backlog v2 review, keďže Sautero prestáva závisieť od ich dát; RC Studio odložené kvôli kapacite; prvý draft pilotnej zmluvy v docs/PILOT_AGREEMENT.md',
       'Vyriešených šesť kritických/bezpečnostných bodov: nastavený Git (úplne chýbal), Anthropic API kľúč presunutý server-side cez novú Edge Function proxy, reálne zapojený realtime sync Check Listu medzi zariadeniami (potvrdene predtým neexistoval), základné error trackovanie + usage analytika, expirujúce/odvolateľné tímové pozvánky + admin odstránenie člena, písaný manuálny regresný checklist',
       'Filter sheet Ingrediencií: vyhľadávanie + živý počet zhôd pripnuté hore, chipy scrollujú pod nimi',
       'backlog.html spravený interaktívny: skutočné checkboxy s localStorage perzistenciou, sticky horný pás so živým koláčom percent + progress barom',
@@ -333,7 +333,7 @@ const DAYS = [
       'Definované a s Richardom dohodnuté kritériá úspechu trialu (používanie, retencia, ochota platiť, spoľahlivosť a kvalitatívny feedback — pozri backlog.html)',
       'Vytvorený a plne bootstrapnutý staging Supabase projekt („chefos-staging“) — všetkých 56 migrácií spustených naraz cez malý psycopg2 skript (cez Session Pooler, lebo Direct connection chce IPv6, ktoré tu nebolo dostupné), naživo overené bez chýb a presne zhodné s produkčnými dátami. Nové SQL migrácie sa odteraz testujú najprv tu.',
       'GitHub Pages deploy plne zautomatizovaný (Actions workflow + prepojené repo) — každý commit je do minúty naživo, koniec Richardovho ručného drag-and-drop nahrávania; nastavené projektové Claude Code permissions, rutinná práca už nepotrebuje schvaľovanie po krokoch',
-      'Vizuálna identita appky zjednotená s dokumentmi (navy/teal #34F7D7 akcent nahrádza starý copper/charcoal look) na Richardovu žiadosť — jeden ChefOS look všade; nasadená Privacy & Terms stránka (legal.html) + feedback tlačidlo; yield/waste faktor pridaný do food costu (db/57 čakal na prod); Ingrediencie: filter cenového rozsahu, multi-select chipy, tlačidlo "Show me"; nová 🎯 Chef Challenge dlaždica (nápady na menu v rozpočte z vlastných nacenených surovín kuchyne)',
+      'Vizuálna identita appky zjednotená s dokumentmi (navy/teal #34F7D7 akcent nahrádza starý copper/charcoal look) na Richardovu žiadosť — jeden Sautero look všade; nasadená Privacy & Terms stránka (legal.html) + feedback tlačidlo; yield/waste faktor pridaný do food costu (db/57 čakal na prod); Ingrediencie: filter cenového rozsahu, multi-select chipy, tlačidlo "Show me"; nová 🎯 Chef Challenge dlaždica (nápady na menu v rozpočte z vlastných nacenených surovín kuchyne)',
       'Formalizovaný monetizačný plán: Richardov workshop 10 modelov s expertným panelom prevedený do app/monetization.html v house štýle, Claude pridal model 11 (platené workshopy/školenia) + akčný plán. Jednomyseľný záver panelu: onboarding ~990 CHF + founding ročná predplatba 490 CHF je celý 12-mesačný plán. Nadraftované dva odblokovacie dokumenty: docs/NEBENERWERB_REQUEST.md (súhlas zamestnávateľa — právny blokátor č. 1) a docs/FOUNDING_OFFER.md (founding-member ponuka s podmienkami).',
       'Databáza ingrediencií rozšírená presne na 2 000 riadkov (db/59, 646 nových AI-odhadovaných položiek s plnými dátami cena/nutrície/sklad/sezóny/pôvod/náhrady, poctivo označené ako odhad); nájdený a opravený tichý bug, kde appka načítavala len prvých 1 000 ingrediencií (defaultný REST strop Supabase) — preto sa appka a deck nezhodovali v celkovom počte.',
       '🔴→✅ Dva živé bugy nahlásené Richardom, nájdené a opravené v ten istý deň: mazanie v Check Liste v niektorých prípadoch ticho nič nespravilo (RLS nechá update trafiť 0 riadkov bez chyby — teraz detegované, logované a zobrazené namiesto predstierania úspechu); a všetky AI funkcie (foto sken, prep list, Chef\'s Assistant) padali, lebo server-side claude-proxy funkcia bola napísaná, ale nikdy nenasadená na produkciu — Richard prevedený inštaláciou Supabase CLI a živým deployom, potvrdene funkčné end-to-end na jeho telefóne.',
@@ -350,7 +350,7 @@ const DAYS = [
       { time:'16:57', text:'claude-proxy nasadený na produkciu a potvrdene dostupný (HTTP 200) — nájdená príčina padania všetkých AI funkcií: funkcia existovala v kóde od migrácie server-side kľúča Working Time, ale nikdy nebola reálne pushnutá do produkčného projektu' },
       'Nasadený sken celého menu v Receptoch: pred skenom voľba „jeden recept“ alebo „celé menu“; sken celého menu rozpozná každé jedlo + jeho sekciu a napíše plný recept per jedlo, každý pristane na bežnom kontrolnom formulári pred uložením',
       'Nasadené a naživo potvrdené: in-app tutoriál, tlačidlo „nahlásiť bug“, autocomplete ingrediencií v Print Labels a brána potvrdenia dôvernosti pri logine',
-      'Externý dokument „ChefOS Critical Review“ prečítaný celý a na mieste anotovaný piatimi poctivými protipoznámkami: Nebenerwerb potreboval precieliť, pomer overených cien ingrediencií sa cez noc pohol zlým smerom, päť funkcií nasadených počas týždňa, ktorý review volá freeze week (vrátane časti dnešných), a Chef Challenge je stále v trial builde napriek vlastnému verdiktu 86 v review',
+      'Externý dokument „Sautero Critical Review“ prečítaný celý a na mieste anotovaný piatimi poctivými protipoznámkami: Nebenerwerb potreboval precieliť, pomer overených cien ingrediencií sa cez noc pohol zlým smerom, päť funkcií nasadených počas týždňa, ktorý review volá freeze week (vrátane časti dnešných), a Chef Challenge je stále v trial builde napriek vlastnému verdiktu 86 v review',
       'Tutoriál prepísaný z jedného odseku na slajd na 3–4 krátke odrážky ikona+riadok podľa Richardovho feedbacku, že sa počas smeny ťažko číta',
       'Meno zakladateľa odstránené z používateľských stránok (legal.html, monetization.html) do zriadenia skutočnej hello@chefos adresy; feedback/bug emaily už neukazujú surové kitchen UUID a plný user-agent, len krátke report ID',
       'Obrazovka Ingrediencií: default pohľad teraz začína max. 30 položkami v sezóne tento mesiac, potom max. 30 prichádzajúcimi do sezóny budúci mesiac, až potom bežné kategórie',
@@ -378,7 +378,7 @@ const DAYS = [
       'Richard nahlásil, že jeho nahraná zmluva po refreshi zmizla — príčina dohľadaná v db/62: column-level grant blokoval aj vlastníkov SELECT, nie len kolegov (privilégiá stĺpcov v Postgrese nevedia rozlíšiť „môj riadok“ od „cudzieho“). Núdzová oprava (db/68) vracia plný prístup; správna oprava (samostatná tabuľka profile_private, db/69) nadraftovaná pre staging, nehnaná do produkcie v tú noc',
       'Samostatné Feedback/Bug ikony v topbare zlúčené do jedného dropdownu s treťou možnosťou „Question“ (db/70)',
       'Nasadené „Check & Add“: kontrola prep-sheet skenu je teraz plne editovateľná per jedlo (názov, cena, každá položka, odstrániť položku/jedlo) namiesto jedného read-only súhrnu a jediného tlačidla „add all“ — podnietené tým, že Richard naskenoval reálne 14-jedlové reštauračné menu do Check Listu',
-      'Jednoducho vysvetlené cookies vs. localStorage; v kóde overené, že ChefOS nepoužíva žiadne cookies, len localStorage na čisto funkčné veci (session, jazyk, device id, videný tutoriál, tlačový front) — na obrazovku dôvernosti pridané zrozumiteľné vysvetlenie namiesto bezvýznamného súhlasového checkboxu',
+      'Jednoducho vysvetlené cookies vs. localStorage; v kóde overené, že Sautero nepoužíva žiadne cookies, len localStorage na čisto funkčné veci (session, jazyk, device id, videný tutoriál, tlačový front) — na obrazovku dôvernosti pridané zrozumiteľné vysvetlenie namiesto bezvýznamného súhlasového checkboxu',
       'My Team dlaždica opäť zapnutá (reálna obrazovka, nie paused banner), keďže email login funguje pre cudzie adresy; pridané „poslať pozvánku emailom“ s rovnakým passwordless login flow cez emailRedirectTo — zatiaľ neotestované naživo end-to-end',
       'Pri testovaní takmer okamžite narazený limit vstavaného mailera 2 emaily/hod. (dve rôzne zlyhania, jedno čitateľné, jedno surové „{}“ — rovnaká príčina); pre obe pridaná jasná, akčná chybová hláška',
       'Kúpená doména chefos.ch (Hostpoint, 5 CHF prvý rok) a pridané Resend DKIM/SPF DNS záznamy — verifikácia čaká (Resend uviedol pár hodín); toto je skutočná oprava email loginu, vstavaný mailer bol vždy len nočná záplata',
@@ -393,7 +393,7 @@ const DAYS = [
       'chefos.ch verifikovaná v Resende, custom SMTP znovu zapnuté, appka presunutá na app.chefos.ch — Richard otestoval celý login flow naživo (HTTPS, email link, automatické prihlásenie). Tvrdý emailový blokátor verejného trialu je preč',
       'Kritický signup bug nájdený cez Richardov vlastný gmail test + Postgres logy: handle_new_user() nemal pripnutý search_path, takže KAŽDÁ nová registrácia padla („relation profiles does not exist“) — opravené na produkcii (db/73). Klient to mylne označoval za rate limit; opravená aj friendlyAuthErrorMessage()',
       'Order List: pri implementácii Richardovej sharing špecifikácie nájdené dva skutočné bugy — objednávky rovnakej ingrediencie sa navzájom prepisovali a Save jedného človeka ticho zmazal objednávky celej stanice pre celú kuchyňu. db/76 dáva každému vlastný riadok; admin vidí rozpis per osoba (najprv staging)',
-      '3-cestný filter receptov (Moje / ChefOS / Firemné) nahrádza 2-cestný AI Playground prepínač; default ostáva „Firemné“, aby 173 migrovaných receptov ostalo dostupných',
+      '3-cestný filter receptov (Moje / Sautero / Firemné) nahrádza 2-cestný AI Playground prepínač; default ostáva „Firemné“, aby 173 migrovaných receptov ostalo dostupných',
       'AI skenovanie na pozadí: všetkých 5 sken flowov sa dá počas behu minimalizovať — trvalá pilulka ukazuje živý progres a prepne sa na „hotovo, ťukni pre zobrazenie“',
       'Sken menu z webovej URL: nová položka „A menu website“ využívajúca Claudov server-side web_fetch nástroj — nula zmien v edge funkciách',
       'Login heslom + Face ID: štandardné Supabase heslo plus WebAuthn platform-authenticator odomknutie per zariadenie; biometrické dáta nikdy neopúšťajú zariadenie',
@@ -435,7 +435,7 @@ const DAYS = [
       'Neskorý večer: Add Admin zlúčený do Admin Directory (rýchle presety v Edite); AI Usage demo dáta pre predvádzanie (protonmail demo režim); AI druhá kontrola duplicít ingrediencií (Haiku rozozná iný jazyk/preklep); recepty sa otvárajú vždy navrchu a návrat do zoznamu drží pozíciu; Gronda research v docs/GRONDA_RESEARCH.md',
       '🎨 Redesign UI schválený a postavený (vetva redesign-ui, celky 1–3): zachovaná navy/teal identita aj systémový font, nové 4-vrstvové vrstvenie, glow, mikrointerakcie, 44px+ ciele; klasická téma nedotknutá pod html.theme-new; prepínač Klasický/Nový vidí len zakladateľov iCloud (default Nový); nasadené neaktívne — ostatní nič nevidia',
       '🩺 Deep health check (večer, na Richardovu žiadosť): 46 tabuliek / 0 bez RLS / 157 politík / 0 public bucketov / 0 chýb za 24 h; ai_usage už reálne zapisuje (8 volaní), recipe_shares 1 (zdieľanie po oprave funguje). NÁLEZ + oprava: notify-access-request edge funkcia nebola nasadená (žiadosti o prístup ticho neposielali email) — nasadená. Otvorené: AI Testing Mode stále ON (vypnúť pred trialom, t166) a 1 aktívna pozvánka na hlavnú kuchyňu na overenie. Odškrtnuté počas večera: xlsx sken, bulk delete, Invoice Scan v2, My Ingredients súkromie (test Tajná marináda), HACCP viditeľnosť, dlhé podržania — mapa funkcií 77/24/7. Opravené: režimová izolácia ingrediencií, priečinok zdieľaných surovín, ikony Add Project, scroll pamäť všade',
-      'Noc: opravená rekurzia RLS pri per-friend zdieľaní (db/144, SECURITY DEFINER helpery); upozornenia rozšírené aj na komenty pri obľúbených public/ChefOS receptoch (cez master id aj z cudzích kuchýň); koláč nákladov s filtrom (klik v legende odráta/priráta); Gronda infograf pripnutý do Internal Docs (gronda.html)',
+      'Noc: opravená rekurzia RLS pri per-friend zdieľaní (db/144, SECURITY DEFINER helpery); upozornenia rozšírené aj na komenty pri obľúbených public/Sautero receptoch (cez master id aj z cudzích kuchýň); koláč nákladov s filtrom (klik v legende odráta/priráta); Gronda infograf pripnutý do Internal Docs (gronda.html)',
       '🍽️ Michelin-chef prepis KOMPLET, prestavaný efektívne (db/141): všetkých 183 receptov knižnice (173 + 10 povýšených komunitných od užívateľov) má 5 profesionálnych polí, cez title-kľúč platné vo všetkých kuchyniach naraz; ázijské výnimky doplnené. Cestou opravený incident s kódovaním schránky (skomolená diakritika) — všetko preverené: 183/183, 0 prázdnych, 0 skomolených',
     ],
     planned: 'Otestovať naživo: AI Usage po prvom AI volaní, priateľské QR s novým účtom, pripnutie v Kitchen Reports, obohatené recepty v appke. RLS test súkromia „Moje“ z dvoch účtov. Nebenerwerb + Einzelfirma ostávajú blokátormi príjmu (deadline 20.7.).'
@@ -559,7 +559,7 @@ function toggleBlock(id, forceOpen){
 
 /* ---------- Language toggle — translates structural chrome (kicker, headings, section
    descriptions, footer) only. TOP3/DAYS log content stays in English in both modes — same
-   scope boundary as the other ChefOS docs, a separate translation job. ---------- */
+   scope boundary as the other Sautero docs, a separate translation job. ---------- */
 let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
@@ -568,8 +568,8 @@ function applyLang(){
   document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
   document.documentElement.lang = _lang;
   document.getElementById('footNote').textContent = _lang === 'sk'
-    ? `ChefOS · vygenerované ${GENERATED} · doplnok k presentation.html, zdroj docs/ROADMAP.md`
-    : `ChefOS · generated ${GENERATED} · companion to presentation.html, sourced from docs/ROADMAP.md`;
+    ? `Sautero · vygenerované ${GENERATED} · doplnok k presentation.html, zdroj docs/ROADMAP.md`
+    : `Sautero · generated ${GENERATED} · companion to presentation.html, sourced from docs/ROADMAP.md`;
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
@@ -657,6 +657,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 17. 7. 2026, 19:18" data-en="🔄 ChefOS state as of Jul 17, 2026, 19:18">🔄 Stav ChefOS k 17. 7. 2026, 19:18</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 17. 7. 2026, 19:18" data-en="🔄 Sautero state as of Jul 17, 2026, 19:18">🔄 Stav Sautero k 17. 7. 2026, 19:18</div>
 </body>
 </html>

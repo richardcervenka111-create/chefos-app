@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChefOS — Náklady</title>
+<title>Sautero — Náklady</title>
 <style>
-  /* ChefOS visual identity (standing rule): dark navy + teal, mono for numbers. */
+  /* Sautero visual identity (standing rule): dark navy + teal, mono for numbers. */
   :root{
     --bg:#0A1A2F; --paper:#122845; --paper2:#0E2138; --ink:#FFFFFF; --ink-dim:#9C949E;
     --ink-faint:#5E6B7A; --rule:#223d57; --accent:#34F7D7; --gold:#E8C468; --danger:#FF7A68;
@@ -53,7 +53,7 @@
 <div class="wrap">
 
   <h1 data-sk="💸 Náklady" data-en="💸 Costs"></h1>
-  <p class="lede" data-sk="Všetky peniaze a čas, ktoré ChefOS doteraz stál, aj to, čo je naplánované. Klikni na ktorúkoľvek položku (v koláči, legende alebo zozname) a otvorí sa jej časová línia od začiatku projektu — s prepínačom deň / týždeň / mesiac / rok. Self-reported, nie auditované; čas zakladateľa = 45 CHF/h z merača hodín." data-en="All the money and time ChefOS has cost so far, plus what's planned. Click any item (pie, legend or list) to open its timeline since project start — with a day / week / month / year toggle. Self-reported, not audited; founder time = CHF 45/h from the hours meter."></p>
+  <p class="lede" data-sk="Všetky peniaze a čas, ktoré Sautero doteraz stál, aj to, čo je naplánované. Klikni na ktorúkoľvek položku (v koláči, legende alebo zozname) a otvorí sa jej časová línia od začiatku projektu — s prepínačom deň / týždeň / mesiac / rok. Self-reported, nie auditované; čas zakladateľa = 45 CHF/h z merača hodín." data-en="All the money and time Sautero has cost so far, plus what's planned. Click any item (pie, legend or list) to open its timeline since project start — with a day / week / month / year toggle. Self-reported, not audited; founder time = CHF 45/h from the hours meter."></p>
 
   <div class="section-label"><span class="n">01</span><h2 data-sk="Koláč — všetky doterajšie aj budúce náklady" data-en="Pie — all costs to date and upcoming"></h2><div class="rule"></div></div>
   <div class="card" style="display:flex; flex-wrap:wrap; gap:20px; align-items:center;">
@@ -78,7 +78,7 @@
 
   <div class="section-label"><span class="n">03</span><h2 data-sk="AI spotreba — kto koľko minie" data-en="AI spend — who spends what"></h2><div class="rule"></div></div>
   <div class="card">
-    <p class="lede" style="margin:0 0 10px 0;" data-sk="Claude Platform dashboard vidí len jeden spoločný ChefOS kľúč — rozdelenie per užívateľ nikdy ukázať nevie. Preto od 17. 7. 2026 server (claude-proxy) zapisuje každé AI volanie: kto, ktorá funkcia, koľko tokenov a vypočítaná cena. Živý prehľad: Admin → 📈 AI Usage v appke — Head Admin vidí všetkých, Kitchen Admin svoj tím; rozklik na užívateľa ukáže koláč jeho AI funkcií. Do tohto dokumentu sa súhrn prenáša pri každom doc-synce." data-en="The Claude Platform dashboard only sees ChefOS's one shared key — it can never show a per-user split. So since Jul 17, 2026 the server (claude-proxy) logs every AI call: who, which feature, token counts and computed cost. Live view: Admin → 📈 AI Usage in the app — Head Admin sees everyone, a Kitchen Admin their own team; tapping a user opens a pie of their AI functions. A summary lands in this document with every doc-sync."></p>
+    <p class="lede" style="margin:0 0 10px 0;" data-sk="Claude Platform dashboard vidí len jeden spoločný Sautero kľúč — rozdelenie per užívateľ nikdy ukázať nevie. Preto od 17. 7. 2026 server (claude-proxy) zapisuje každé AI volanie: kto, ktorá funkcia, koľko tokenov a vypočítaná cena. Živý prehľad: Admin → 📈 AI Usage v appke — Head Admin vidí všetkých, Kitchen Admin svoj tím; rozklik na užívateľa ukáže koláč jeho AI funkcií. Do tohto dokumentu sa súhrn prenáša pri každom doc-synce." data-en="The Claude Platform dashboard only sees Sautero's one shared key — it can never show a per-user split. So since Jul 17, 2026 the server (claude-proxy) logs every AI call: who, which feature, token counts and computed cost. Live view: Admin → 📈 AI Usage in the app — Head Admin sees everyone, a Kitchen Admin their own team; tapping a user opens a pie of their AI functions. A summary lands in this document with every doc-sync."></p>
     <div class="spend-row" style="cursor:default;">
       <div class="spend-what"><span data-sk="Celkové AI výdavky tento mesiac (celá organizácia)" data-en="Total AI spend this month (whole org)"></span><span class="meta" data-sk="z Claude Platform dashboardu 17.7.: $2.22 minutých, $2.79 kreditov zostáva, 388K tokenov za 7 dní. Čerpá z už zaplatených kreditov v položkách vyššie — nezapočítava sa druhýkrát." data-en="from the Claude Platform dashboard Jul 17: $2.22 spent, $2.79 credits left, 388K tokens in 7 days. Draws on the already-paid credits above — not double-counted."></span></div>
       <div class="spend-amount">$2.22</div>
@@ -90,7 +90,7 @@
   </div>
 
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 18. 7. 2026, 08:40" data-en="🔄 ChefOS state as of Jul 18, 2026, 08:40"></div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 08:40" data-en="🔄 Sautero state as of Jul 18, 2026, 08:40"></div>
 <script>
 /* Shared doc-language key — same as every other visual data document. */
 let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
@@ -121,13 +121,13 @@ function toggleLang(){
    dates are honest estimates and say so in the item note. ---------- */
 const PROJECT_START = '2026-07-08';
 const SPEND_RATE = 45;
-const WORK_HOURS = { '2026-07-08':8.0,'2026-07-09':8.0,'2026-07-10':8.0,'2026-07-11':8.0,'2026-07-12':8.0,'2026-07-13':7.7,'2026-07-14':7.4,'2026-07-15':11.6,'2026-07-16':14.8,'2026-07-17':6.4 };
+const WORK_HOURS = { '2026-07-08':8.0,'2026-07-09':8.0,'2026-07-10':8.0,'2026-07-11':8.0,'2026-07-12':8.0,'2026-07-13':7.7,'2026-07-14':7.4,'2026-07-15':11.6,'2026-07-16':14.8,'2026-07-17':6.4,'2026-07-18':1.6 };
 const SPEND_ITEMS = [
   { key:'time', color:'#8B93FF',
-    sk:'⏱️ Čas zakladateľa — 87,9 h × 45 CHF/h', en:'⏱️ Founder time — 87.9 h × CHF 45/h',
-    meta_sk:'47,9 h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť.',
-    meta_en:'47.9 h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash.',
-    amount:'~CHF 3 956',
+    sk:'⏱️ Čas zakladateľa — 89,5 h × 45 CHF/h', en:'⏱️ Founder time — 89.5 h × CHF 45/h',
+    meta_sk:'49,5 h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť.',
+    meta_en:'49.5 h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash.',
+    amount:'~CHF 4 028',
     events: Object.entries(WORK_HOURS).map(([d,h])=>({ date:d, chf: h*SPEND_RATE })),
     note_sk:'Denné hodiny × 45 CHF. Dni 8.–12.7. sú odhad ~8 h/deň (pred gitom), od 13.7. presne z git histórie.',
     note_en:'Daily hours × CHF 45. Jul 8–12 are ~8 h/day estimates (pre-git); measured from git history since Jul 13.' },
@@ -201,7 +201,7 @@ function renderSpendRows(){
       <div class="spend-amount">${it.amount}</div>
     </div>`).join('') + `
     <div class="spend-total">
-      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 281 (vrátane 1. mesiaca Supabase) · s časom zakladateľa ~CHF 4 236 · plánované nákupy ~CHF 255','Cash to date ~CHF 281 (incl. first Supabase month) · incl. founder time ~CHF 4,236 · planned purchases ~CHF 255')}</div>
+      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 281 (vrátane 1. mesiaca Supabase) · s časom zakladateľa ~CHF 4 308 · plánované nákupy ~CHF 255','Cash to date ~CHF 281 (incl. first Supabase month) · incl. founder time ~CHF 4,308 · planned purchases ~CHF 255')}</div>
     </div>`;
 }
 

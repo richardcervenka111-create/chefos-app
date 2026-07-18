@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ChefOS — Mapa funkcií</title>
+<title>Sautero — Mapa funkcií</title>
 <style>
   :root{
     --bg:#0A1A2F; --bg-2:#0d2036; --paper:#122845; --paper-raised:#0f2340; --paper-hi:#16304f;
@@ -139,7 +139,7 @@
 <header class="hero">
   <div class="hero-inner">
     <div class="topline">
-      <div class="brandmark"><span class="mark">👨‍🍳</span><span class="word">ChefOS</span></div>
+      <div class="brandmark"><span class="mark">👨‍🍳</span><span class="word">Sautero</span></div>
       <div style="display:flex; align-items:center; gap:8px;">
         <div class="acct-toggle" id="acctToggle">
           <button id="acctPersonalBtn" onclick="setAcctView('personal')">👤 Personal</button>
@@ -152,7 +152,7 @@
       </div>
     </div>
     <p class="kicker" data-sk="Mapa funkcií" data-en="Feature map">Mapa funkcií</p>
-    <h1 class="title" id="pageTitle">Čo <em>ChefOS</em> vie dnes</h1>
+    <h1 class="title" id="pageTitle">Čo <em>Sautero</em> vie dnes</h1>
     <p class="lede" id="pageLede">Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. <b style="color:var(--ink);">Klikni na hociktorú funkciu</b> a otvorí sa okno s vysvetlením, čo presne robí. Toggle hore prepína pohľad presne ako v appke — veci iba pre Personal alebo iba pre Company účty sa podľa toho stlmia.</p>
     <div class="legend">
       <div class="legend-item active" id="legendOk" onclick="toggleStatusFilter('ok')"><span class="legend-dot" style="background:var(--ok);"></span><span data-sk="Funkčné, otestované naživo — " data-en="Working, verified live — ">Funkčné, otestované naživo — </span><b id="legendOkCount"></b></div>
@@ -178,7 +178,7 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav ChefOS k 17. 7. 2026, 19:19</div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav Sautero k 17. 7. 2026, 19:19</div>
 </div>
 
 <!-- Feature detail modal -->
@@ -199,27 +199,27 @@
    funkcia viditeľná len pre kitchen adminov. desc = ľudské vysvetlenie pre klik-okno. */
 const MODULES = [
   { icon:'📖', title:'Recepty', items:[
-    { name:'183 receptov, knižnica ChefOS (173 + 10 komunitných)', status:'ok', desc:'Kompletná profesionálna knižnica receptov v plnom 20-poľovom formáte (suroviny, postup, yield, časy, stanica, food cost…). Každá kuchyňa dostane vlastnú kópiu automaticky pri vzniku.' },
-    { name:'Police: My Recipes / ChefOS / Company', status:'ok', desc:'Recepty sú rozdelené na police podľa autora — tvoje vlastné, spoločná ChefOS knižnica a firemné od kolegov. Polica sa vyberá veľkými dlaždicami pri otvorení Receptov. Opravy 16.–17.7.: polica sa sama neprepína, firemný recept od teba sa ukazuje v Company, a firemný recept sa už NIKDY neukáže na osobnej polici My Recipes ani po prepnutí režimu (db/130). Odškrtnuté 17.7.' },
+    { name:'183 receptov, knižnica Sautero (173 + 10 komunitných)', status:'ok', desc:'Kompletná profesionálna knižnica receptov v plnom 20-poľovom formáte (suroviny, postup, yield, časy, stanica, food cost…). Každá kuchyňa dostane vlastnú kópiu automaticky pri vzniku.' },
+    { name:'Police: My Recipes / Sautero / Company', status:'ok', desc:'Recepty sú rozdelené na police podľa autora — tvoje vlastné, spoločná Sautero knižnica a firemné od kolegov. Polica sa vyberá veľkými dlaždicami pri otvorení Receptov. Opravy 16.–17.7.: polica sa sama neprepína, firemný recept od teba sa ukazuje v Company, a firemný recept sa už NIKDY neukáže na osobnej polici My Recipes ani po prepnutí režimu (db/130). Odškrtnuté 17.7.' },
     { name:'Vlastné projekty (Add Project)', status:'ok', desc:'Vedľa pevných políc si vieš vytvoriť vlastné pomenované zbierky receptov — napr. "Svadobné menu 2026" — s výberom z 8 farebných kníh ako ikonou. Dlhé podržanie dlaždice = premenovať / skryť / vymazať. Naživo overené 17.7. („funkčné, som spokojný").' },
     { name:'Sekcie per polica (každá vlastné)', status:'ok', desc:'Každá polica aj projekt má vlastný, nezávislý zoznam sekcií (Polievky, Dezerty…) — nová polica začína čistá, len Favorites + All, a sekcie si buduje sama cez "+ New Section". Naživo overené 17.7. („presne ako má byť").' },
-    { name:'Ochrana proti duplicitám pri zverejnení 🧠', status:'build', desc:'Pri zverejnení ingrediencie na Public policu prebehnú dve kontroly: rýchla normalizácia názvu (veľké/malé písmená, diakritika, medzery) proti celému ChefOS cenníku aj aliasom zo skenov — a keď nič nenájde, krátka AI kontrola (Haiku) rozpozná aj rovnakú surovinu v inom jazyku („Karfiol“ vs „Cauliflower“) či preklep. Duplikát sa nezverejní, existujúca knižničná položka ostáva tá jedna pravá. AI kontrola pri chybe púšťa ďalej (nikdy neblokuje omylom).' },
-    { name:'Verejná polica Public + publikovanie 🌍', status:'ok', desc:'Nová dlaždica Public hneď vedľa ChefOS — vidí ju každý účet v každej kuchyni. Vlastný recept zverejníš glóbusom 🌍 v detaile (s kontrolnou otázkou; rovnakým tlačidlom sa dá aj stiahnuť späť). Recept ostáva jeden — tvoj — a všetci ho čítajú, favoritujú a komentujú priamo (db/131). Cudzie verejné recepty (aj recepty priateľov) sú striktne READ-ONLY — Edit tlačidlo sa vôbec neukáže, dá sa len škálovať, komentovať a pridať suroviny do vlastnej databázy (17.7.). Naživo overené 17.7. naprieč 3 účtami; komentovanie cudzích verejných receptov opravené hneď v teste (db/132). Pravidlá 17.7. popoludní: pevné dlaždice (My Recipes/ChefOS/Public/Company) sa NEDAJÚ vymazať, len skryť (dlhé podržanie); z Company profilu sa publikovať nedá vôbec — appka vypíše podmienky a databázový trigger (db/133) to poistí aj technicky. Publikovať smie každý len vlastné osobné recepty z Personal profilu.' },
+    { name:'Ochrana proti duplicitám pri zverejnení 🧠', status:'build', desc:'Pri zverejnení ingrediencie na Public policu prebehnú dve kontroly: rýchla normalizácia názvu (veľké/malé písmená, diakritika, medzery) proti celému Sautero cenníku aj aliasom zo skenov — a keď nič nenájde, krátka AI kontrola (Haiku) rozpozná aj rovnakú surovinu v inom jazyku („Karfiol“ vs „Cauliflower“) či preklep. Duplikát sa nezverejní, existujúca knižničná položka ostáva tá jedna pravá. AI kontrola pri chybe púšťa ďalej (nikdy neblokuje omylom).' },
+    { name:'Verejná polica Public + publikovanie 🌍', status:'ok', desc:'Nová dlaždica Public hneď vedľa Sautero — vidí ju každý účet v každej kuchyni. Vlastný recept zverejníš glóbusom 🌍 v detaile (s kontrolnou otázkou; rovnakým tlačidlom sa dá aj stiahnuť späť). Recept ostáva jeden — tvoj — a všetci ho čítajú, favoritujú a komentujú priamo (db/131). Cudzie verejné recepty (aj recepty priateľov) sú striktne READ-ONLY — Edit tlačidlo sa vôbec neukáže, dá sa len škálovať, komentovať a pridať suroviny do vlastnej databázy (17.7.). Naživo overené 17.7. naprieč 3 účtami; komentovanie cudzích verejných receptov opravené hneď v teste (db/132). Pravidlá 17.7. popoludní: pevné dlaždice (My Recipes/Sautero/Public/Company) sa NEDAJÚ vymazať, len skryť (dlhé podržanie); z Company profilu sa publikovať nedá vôbec — appka vypíše podmienky a databázový trigger (db/133) to poistí aj technicky. Publikovať smie každý len vlastné osobné recepty z Personal profilu.' },
     { name:'Skutočné súkromie "Moje" (RLS)', status:'test', acct:'personal', desc:'Osobné recepty sú súkromné priamo na úrovni databázy — nevidí ich ani admin kuchyne. Nie je to len filter v appke, ale bezpečnostné pravidlo servera.' },
     { name:'Zdieľanie s priateľmi (opt-in)', status:'ok', desc:'Ak si to zapneš v nastaveniach, tvoji chef-priatelia (Connections) vidia tvoje vlastné recepty — len na čítanie. Vypnuteľné kedykoľvek.' },
-    { name:'Komentáre — zdieľané naprieč kuchyňami', status:'ok', desc:'Komentár na ChefOS recepte vidí každá kuchyňa, ktorá ten recept má — spoločná nástenka nad knižnicou. Naživo overené 17.7. po oprave db/129 (komentár si nesie ID master receptu priamo). Počet komentárov vidno na dvoch miestach: badge na tlačidle komentárov v detaile a bublinka s číslom vedľa hviezdičky priamo v zozname receptov (1–9, potom „9+"). Šípka na riadkoch receptov zmazaná — nič nerobila.' },
-    { name:'Activity feed (🔔 kto okomentoval)', status:'ok', desc:'Zvonček na Home ukáže bodku, keď niekto okomentuje TVOJ recept — po otvorení vidíš zoznam nových komentárov. Potvrdené naživo 17.7. Od 17.7. večera sleduje aj recepty v tvojich Obľúbených (public/ChefOS, aj komenty z iných kuchýň — označené ⭐).' },
+    { name:'Komentáre — zdieľané naprieč kuchyňami', status:'ok', desc:'Komentár na Sautero recepte vidí každá kuchyňa, ktorá ten recept má — spoločná nástenka nad knižnicou. Naživo overené 17.7. po oprave db/129 (komentár si nesie ID master receptu priamo). Počet komentárov vidno na dvoch miestach: badge na tlačidle komentárov v detaile a bublinka s číslom vedľa hviezdičky priamo v zozname receptov (1–9, potom „9+"). Šípka na riadkoch receptov zmazaná — nič nerobila.' },
+    { name:'Activity feed (🔔 kto okomentoval)', status:'ok', desc:'Zvonček na Home ukáže bodku, keď niekto okomentuje TVOJ recept — po otvorení vidíš zoznam nových komentárov. Potvrdené naživo 17.7. Od 17.7. večera sleduje aj recepty v tvojich Obľúbených (public/Sautero, aj komenty z iných kuchýň — označené ⭐).' },
     { name:'AI generovanie receptu / nápadov', status:'ok', desc:'Chef\'s Assistant vie vygenerovať úplne nový recept na mieru — podľa surovín, diéty alebo štýlu — a uložiť ho rovno do tvojej police.' },
-    { name:'Sken receptu z fotky / PDF', status:'ok', desc:'Odfotíš recept (aj ručne písaný, aj celé menu) a AI ho prepíše do štandardného ChefOS formátu — suroviny, množstvá, postup, všetko na svojom mieste.' },
+    { name:'Sken receptu z fotky / PDF', status:'ok', desc:'Odfotíš recept (aj ručne písaný, aj celé menu) a AI ho prepíše do štandardného Sautero formátu — suroviny, množstvá, postup, všetko na svojom mieste.' },
     { name:'Sken menu z URL webstránky', status:'ok', desc:'Vložíš adresu webstránky s menu a AI si ju stiahne a spracuje sama — rovnaký výsledok ako sken fotky, bez fotenia.' },
-    { name:'Tlač — firemná identita (branded)', status:'ok', desc:'Jedno tlačidlo tlače: profesionálna receptová karta s hlavičkou tvojej kuchyne, ChefOS pečiatkou, dvojstĺpcovým layoutom (suroviny + očíslovaný postup), koláčovým grafom zloženia, Chef\'s Notes a sekciou "Used In". Naživo overené 17.7. („receptúry sa tlačia perfektne"); stará základná tlač zmazaná. Opravený bug 17.7.: po zatvorení náhľadu tlače v Safari zmizli ikony pri recepte až do refreshu — appka teraz po tlači vynúti upratanie a prekreslenie sama.' },
+    { name:'Tlač — firemná identita (branded)', status:'ok', desc:'Jedno tlačidlo tlače: profesionálna receptová karta s hlavičkou tvojej kuchyne, Sautero pečiatkou, dvojstĺpcovým layoutom (suroviny + očíslovaný postup), koláčovým grafom zloženia, Chef\'s Notes a sekciou "Used In". Naživo overené 17.7. („receptúry sa tlačia perfektne"); stará základná tlač zmazaná. Opravený bug 17.7.: po zatvorení náhľadu tlače v Safari zmizli ikony pri recepte až do refreshu — appka teraz po tlači vynúti upratanie a prekreslenie sama.' },
     { name:'Pridať recept do Check Listu', status:'ok', desc:'Tlačidlo na recepte — appka sa najprv spýta do ktorého projektu (ak máš viac), potom na ktorú stanicu, a recept pristane v dennom prep liste. Naživo overené 17.7.; na základe testu pribudla možnosť „➕ New section…" — recept vieš vložiť aj do úplne novej sekcie, nielen do existujúcich.' },
     { name:'Obľúbené, poznámky, škálovanie, alergény', status:'ok', desc:'Hviezdička na obľúbené, vlastné poznámky ku každému receptu, prepočet množstiev podľa porcií alebo jednej suroviny, automatická detekcia alergénov a diét z názvov surovín.' },
   ]},
   { icon:'🧂', title:'Ingrediencie', items:[
-    { name:'Zdieľaný cenník (2 005 položiek v ChefOS cenníku)', status:'ok', desc:'Cenová databáza surovín tvojej kuchyne — z nej sa automaticky počíta food cost každého receptu (živý stav k 17.7.: 2 005 položiek ChefOS cenníka (2 058 riadkov s osobnými a zoznamami; public sa počíta zvlášť)). Pozor: väčšina cien je zatiaľ AI odhad, nie overená faktúra — reálne ceny pribúdajú cez Invoice Scan.' },
+    { name:'Zdieľaný cenník (2 005 položiek v Sautero cenníku)', status:'ok', desc:'Cenová databáza surovín tvojej kuchyne — z nej sa automaticky počíta food cost každého receptu (živý stav k 17.7.: 2 005 položiek Sautero cenníka (2 058 riadkov s osobnými a zoznamami; public sa počíta zvlášť)). Pozor: väčšina cien je zatiaľ AI odhad, nie overená faktúra — reálne ceny pribúdajú cez Invoice Scan.' },
     { name:'My Ingredients (súkromné)', status:'ok', acct:'personal', desc:'Tvoja vlastná polica surovín, oddelená od spoločného cenníka — súkromná na úrovni databázy, rovnako ako osobné recepty. Potvrdené živým testom z 2 účtov 17.7. („Tajná marináda“ neviditeľná pre iné účty). Od 17.7. večera navyše platí režimová izolácia: v Company režime osobné police úplne zmiznú (rovnako ako My Recipes), s rovnakým prepínačom v Settings.' },
-    { name:'Vlastné zoznamy + farebné knihy', status:'ok', desc:'Vytvoríš si ďalšie pomenované zoznamy surovín (napr. "Ázijská špajza") s výberom z 8 farebných kníh ako ikonou (17.7.). Dlhé podržanie vlastného zoznamu = premenovať / skryť / vymazať / zdieľať. Pevné police (ChefOS, My Ingredients, Public) sa dajú len SKRYŤ, nikdy nie premenovať/vymazať — rovnako ako pri receptoch.' },
+    { name:'Vlastné zoznamy + farebné knihy', status:'ok', desc:'Vytvoríš si ďalšie pomenované zoznamy surovín (napr. "Ázijská špajza") s výberom z 8 farebných kníh ako ikonou (17.7.). Dlhé podržanie vlastného zoznamu = premenovať / skryť / vymazať / zdieľať. Pevné police (Sautero, My Ingredients, Public) sa dajú len SKRYŤ, nikdy nie premenovať/vymazať — rovnako ako pri receptoch.' },
     { name:'Verejná polica + zdieľanie surovín 🌍🤝', status:'ok', desc:'Nová dlaždica Public (naprieč kuchyňami, len na čítanie) + tlačidlo Share v My Ingredients: zoznam tvojich surovín, pri každej badge 🌍 public / 🤝 friends, plus „všetko naraz" a jednotlivo (db/136). Public = vidí každá kuchyňa, Friends = len tvoji chef-priatelia. Z Company profilu sa nedá zdieľať nič (appka + databázový trigger). Cudzie verejné suroviny sú bezpečne escapované, read-only a nikdy nevstupujú do tvojho cenníka receptov. Rovnaká voľba (public/friends) pribudla aj na publish tlačidlo receptov.' },
     { name:'Pridávanie do zdieľanej police — len admin', status:'test', role:'admin', desc:'Do spoločného cenníka kuchyne môže pridávať a upravovať len admin — bežný člen ho používa, ale nerozbije. Vlastné police má každý naplno.' },
     { name:'Sken dokumentu / fotky → AI extrakcia', status:'ok', desc:'Odfotíš cenník od dodávateľa, ručný zoznam alebo PDF a AI z neho vytiahne každú položku aj s cenou.' },
@@ -231,7 +231,7 @@ const MODULES = [
     { name:'Sezónnosť, kategórie, filtre, Ingredient Audit', status:'ok', desc:'Filtrovanie podľa kuchyne, kategórie, sezóny, skladovania a ceny; sezónne suroviny navrchu; audit nekonzistentných názvov.' },
   ]},
   { icon:'✅', title:'Check List (Kitchen Flow)', items:[
-    { name:'Prep sheet podľa stanice', status:'ok', desc:'Denný prípravný zoznam po staniciach (SKY, Hot Line, Garde Manger…) — jedlá s položkami, stavy TO DO / CHECK / FINISH / DON\'T DO, priority a minúty. Srdce ChefOS.' },
+    { name:'Prep sheet podľa stanice', status:'ok', desc:'Denný prípravný zoznam po staniciach (SKY, Hot Line, Garde Manger…) — jedlá s položkami, stavy TO DO / CHECK / FINISH / DON\'T DO, priority a minúty. Srdce Sautero.' },
     { name:'Projekty / výber reštaurácie', status:'ok', desc:'Jedna kuchyňa môže mať viac projektov (napr. dve prevádzky) — Check List sa otvára cez výber projektu a všetko vnútri je oddelené.' },
     { name:'Cross-station "All" + overload 🔥', status:'ok', desc:'Pohľad na všetky stanice naraz — kto má koľko roboty pred sebou; stanica s viac ako 3,5 h nevybavenej práce dostane 🔥 odznak.' },
     { name:'AI sken prep sheetu (fotka / PDF)', status:'ok', desc:'Odfotíš papierový prep sheet a AI z neho postaví celú stanicu — jedlá aj položky — na jedno potvrdenie.' },
@@ -300,36 +300,36 @@ const MODULES = [
     { name:'Create Team', status:'test', acct:'company', role:'admin', desc:'Kitchen admin (company_admin) vie založiť novú reštauráciu/kuchyňu a vygenerovať jej join kódy — Richard onboarduje firmy cez Add Company, ich admin si potom tvorí tímy sám.' },
     { name:'ROLE v My Profile', status:'test', desc:'V profile vidíš svoju rolu: Head Admin / Admin / Admin Assistant / Member — podľa skutočných práv, nie podľa dojmu.' },
     { name:'Team Members — Make Assistant / Remove', status:'ok', role:'admin', desc:'Admin vidí zoznam členov svojej kuchyne (v Admin aj v Connections > My Team), vie prideliť rolu asistenta a odstrániť člena. Naživo overené 17.7. po trojkolovej oprave RLS.' },
-    { name:'Remove ponecháva osobný ChefOS', status:'ok', desc:'Odstránený člen príde LEN o firemnú kuchyňu — okamžite dostane vlastnú čistú "My Kitchen" so štandardnými policami a jeho osobné recepty/suroviny mu zostávajú. Naživo overené 17.7.' },
+    { name:'Remove ponecháva osobný Sautero', status:'ok', desc:'Odstránený člen príde LEN o firemnú kuchyňu — okamžite dostane vlastnú čistú "My Kitchen" so štandardnými policami a jeho osobné recepty/suroviny mu zostávajú. Naživo overené 17.7.' },
   ]},
   { icon:'🛡️', title:'Admin', items:[
     { name:'Add Admin (Head / Kitchen Admin)', status:'ok', role:'admin', desc:'Dve úrovne: Head Admin (Richard, plný dosah) a Kitchen Admin (vybrané práva cez prepínače — pozvánky, tím, reporty…).' },
     { name:'Add Company (jednorazová pozvánka)', status:'ok', role:'admin', desc:'Richard založí firmu a pošle JEDNU pozvánku emailom — kto ju prijme, automaticky sa stane hlavným adminom tej kuchyne. Odolné aj voči "spálenému" odkazu (email preview) — overené na chefos@protonmail.com.' },
     { name:'Admin Directory', status:'ok', role:'admin', desc:'Prehľad všetkých účtov s on/off prepínačmi práv, typom účtu a AI kreditom (ak nejaký má).' },
-    { name:'Access Requests', status:'ok', role:'admin', desc:'Schvaľovanie nových žiadostí o prístup do ChefOS — appka je invite-only, bez schválenia sa nikto nedostane dnu.' },
-    { name:'Kitchen Reports (hub + grafy + predikcia)', status:'test', acct:'company', role:'admin', desc:'Reportový hub ako Internal Docs: Team Members (dochádzka, hodiny, aktivita — koláčové a stĺpcové grafy, len so súhlasom zamestnanca), Recepty (police ChefOS/Company, kompletnosť časov a cien, mix sekcií), Ingrediencie (% s cenami a doplnenými dátami), Check List (stavy, zostávajúce minúty per stanica, projekty) — každá sekcia s 🔮 predikciou tempa. HACCP reporty zatiaľ ako "pracujeme na tom".' },
+    { name:'Access Requests', status:'ok', role:'admin', desc:'Schvaľovanie nových žiadostí o prístup do Sautero — appka je invite-only, bez schválenia sa nikto nedostane dnu.' },
+    { name:'Kitchen Reports (hub + grafy + predikcia)', status:'test', acct:'company', role:'admin', desc:'Reportový hub ako Internal Docs: Team Members (dochádzka, hodiny, aktivita — koláčové a stĺpcové grafy, len so súhlasom zamestnanca), Recepty (police Sautero/Company, kompletnosť časov a cien, mix sekcií), Ingrediencie (% s cenami a doplnenými dátami), Check List (stavy, zostávajúce minúty per stanica, projekty) — každá sekcia s 🔮 predikciou tempa. HACCP reporty zatiaľ ako "pracujeme na tom".' },
     { name:'Feedback inbox (iba Head Admin)', status:'ok', role:'admin', desc:'Všetka spätná väzba od užívateľov (Settings > Send Feedback) na jednom mieste. Vidí ju IBA hlavný admin (Richard / iCloud) — nie kuchynskí admini. Zabezpečené aj v databáze (read policy is_super_admin(), db/108) aj v UI. Naživo overené 17.7.' },
-    { name:'Email Contacts (číslované + detail)', status:'test', role:'admin', desc:'Každá emailová adresa, ktorú ChefOS kedy videl (žiadosti, pozvánky) — plnené automaticky databázovým triggerom. 17.7.: pribudlo číslovanie (#1 najstarší naspodu, najnovší hore) a ťuknutím na kontakt sa hlavnému adminovi otvorí celý detail vrátane napojeného ChefOS účtu (meno, rola, typ, kuchyňa), ak taký existuje.' },
+    { name:'Email Contacts (číslované + detail)', status:'test', role:'admin', desc:'Každá emailová adresa, ktorú Sautero kedy videl (žiadosti, pozvánky) — plnené automaticky databázovým triggerom. 17.7.: pribudlo číslovanie (#1 najstarší naspodu, najnovší hore) a ťuknutím na kontakt sa hlavnému adminovi otvorí celý detail vrátane napojeného Sautero účtu (meno, rola, typ, kuchyňa), ak taký existuje.' },
     { name:'AI Testing Mode + Internal Docs', status:'ok', role:'admin', desc:'Vypínač neobmedzeného AI na testovanie + interné dokumenty (status, backlog, investor deck, najnovší Critical Review) — Internal Docs len pre Richarda.' },
     { name:'Preview as Normal User', status:'ok', role:'admin', desc:'Admin si jedným ťukom pozrie appku očami bežného člena — s trvalým bannerom na návrat.' },
   ]},
   { icon:'⚙️', title:'Nastavenia', items:[
     { name:'My Profile & Security (heslo, Face ID)', status:'ok', desc:'Meno, email, tím, rola; povinné heslo + voliteľné Face ID odomknutie na tomto zariadení (biometria nikdy neopúšťa telefón).' },
-    { name:'Light / Dark mode', status:'test', desc:'Prepínač vzhľadu — tmavý (pôvodný ChefOS) alebo svetlý pre kuchyňu pri dennom svetle. Per zariadenie, každý člen tímu si volí sám.' },
+    { name:'Light / Dark mode', status:'test', desc:'Prepínač vzhľadu — tmavý (pôvodný Sautero) alebo svetlý pre kuchyňu pri dennom svetle. Per zariadenie, každý člen tímu si volí sám.' },
     { name:'Nový vzhľad (beta — len zakladateľ)', status:'build', role:'admin', desc:'Redesign „tá istá identita, vyššia liga“: navy v 4 vrstvách hĺbky, teal s glow, hairline bordery, 44px+ dotykové ciele, mikrointerakcie. Žije pod html.theme-new — klasická téma nedotknutá; prepínač Klasický/Nový v Appearance vidí len richard.cervenka@icloud.com (u neho default Nový, per zariadenie, nasadené neaktívne pre všetkých ostatných). Vetva redesign-ui, celky 1–3.' },
     { name:'Jazyk (EN/DE/FR/IT/SK)', status:'ok', desc:'Prepnutie jazyka rozhrania — čiastočné pokrytie (login, Home, Check List), zvyšok postupne. Dáta kuchyne sa nikdy neprekladajú.' },
     { name:'Tutoriály pre každé okno (❓)', status:'test', desc:'Každá hlavná obrazovka (Check List, Recepty, Ingrediencie, Order List, Print Labels, Working Time, Schedule, HACCP, Chef\'s Assistant, Connections, Admin, Settings) má vlastný podrobný sprievodca: otvorí sa sám pri prvom otvorení obrazovky a v hornej lište je natrvalo ❓ na jeho zopakovanie. Nahradilo What\'s New srdiečko (zmazané 17.7. ako duplicitné — Richard).' },
     { name:'Preusporiadanie ikoniek Home/Settings', status:'ok', desc:'Poradie dlaždíc si každý nastaví sám — platí len pre jeho zariadenie.' },
     { name:'Send Feedback', status:'test', desc:'Správa priamo Richardovi z appky — chyba, nápad alebo pochvala.' },
     { name:'Zdieľať hodiny s adminom (súhlas)', status:'test', desc:'Defaultne admin vidí hodiny tímu len anonymne v súčte; menovite len ak si to tu sám zapneš. Kedykoľvek odvolateľné.' },
-    { name:'Tutorial + pridanie na plochu', status:'ok', desc:'Úvodný sprievodca sa 17.7. zoštíhlil len na privítanie + hlavnú plochu (Home) — detaily jednotlivých funkcií prevzali tutoriály priamo v ich obrazovkách. Otvára sa sám pri prvom prihlásení, znova cez ❓ na Home. Bez admin obsahu pre bežných členov; + návod, ako si dať ChefOS na plochu telefónu ako appku.' },
-    { name:'Vždy viditeľný hlavičkový pás', status:'test', desc:'Kitchen Notebook / ChefOS pás s tlačidlami Späť a Domov na každej obrazovke okrem hlavného menu — Domov navyše vždy vyroluje čistý vrch stránky.' },
+    { name:'Tutorial + pridanie na plochu', status:'ok', desc:'Úvodný sprievodca sa 17.7. zoštíhlil len na privítanie + hlavnú plochu (Home) — detaily jednotlivých funkcií prevzali tutoriály priamo v ich obrazovkách. Otvára sa sám pri prvom prihlásení, znova cez ❓ na Home. Bez admin obsahu pre bežných členov; + návod, ako si dať Sautero na plochu telefónu ako appku.' },
+    { name:'Vždy viditeľný hlavičkový pás', status:'test', desc:'Kitchen Notebook / Sautero pás s tlačidlami Späť a Domov na každej obrazovke okrem hlavného menu — Domov navyše vždy vyroluje čistý vrch stránky.' },
   ]},
   { icon:'🔐', title:'Bezpečnosť a súkromie', items:[
     { name:'Invite-only prístup + schvaľovanie', status:'ok', desc:'Do appky sa nedá samoregistrovať — len pozvánkou (QR/link/email) a po schválení. "Coming soon" stena pre náhodných návštevníkov.' },
     { name:'Confidentiality + Privacy brány', status:'test', desc:'Pri prvom prihlásení (a po každej zmene verzie) musí každý odsúhlasiť mlčanlivosť a ochranu osobných údajov (GDPR/nDSG) — s možnosťou nesúhlasiť a odhlásiť sa.' },
     { name:'RLS izolácia dát per kuchyňa', status:'ok', desc:'Každá tabuľka v databáze má bezpečnostné pravidlá — dáta jednej kuchyne druhá nikdy nevidí, a osobné dáta nevidí ani vlastný admin. Kontrolované automatickým auditom pri každom commite.' },
-    { name:'Branded auth emaily', status:'test', desc:'Prihlasovacie a potvrdzovacie emaily prichádzajú v ChefOS identite (navy/teal, vlastná doména) namiesto generického Supabase vzhľadu.' },
+    { name:'Branded auth emaily', status:'test', desc:'Prihlasovacie a potvrdzovacie emaily prichádzajú v Sautero identite (navy/teal, vlastná doména) namiesto generického Supabase vzhľadu.' },
     { name:'Trvalé opravy incidentov (db/118, 121–125)', status:'ok', desc:'Tri bezpečnostné incidenty zo 16.7. (spálená admin pozvánka, nefunkčný Remove, zamknutý účet po remove) — každý opravený štrukturálne, nie záplatou, a zapísaný v HEALTH_LOG.md aj s ponaučením.' },
     { name:'/security dokumenty pre právnika', status:'test', desc:'Priečinok s bezpečnostným review a podkladmi pre právnu konzultáciu pred trialom.' },
     { name:'legal.html — aktualizácia (heslo, GPS)', status:'plan', desc:'Audit 16.7. našiel dve zastarané tvrdenia: dokument tvrdí "žiadne heslá" (heslo je povinné od 15.7.) a nespomína GPS snímku pri check-in/out. Oprava textu čaká — pred trialom povinná.' },
@@ -475,8 +475,8 @@ function applyLang(){
     el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
   });
   document.getElementById('pageTitle').innerHTML = _lang === 'sk'
-    ? 'Čo <em>ChefOS</em> vie dnes'
-    : 'What <em>ChefOS</em> can do today';
+    ? 'Čo <em>Sautero</em> vie dnes'
+    : 'What <em>Sautero</em> can do today';
   document.getElementById('pageLede').innerHTML = _lang === 'sk'
     ? 'Kompletný zoznam funkcií appky, s reálnym stavom každej jednej. <b style="color:var(--ink);">Klikni na hociktorú funkciu</b> a otvorí sa okno s vysvetlením, čo presne robí. Toggle hore prepína pohľad presne ako v appke — veci iba pre Personal alebo iba pre Company účty sa podľa toho stlmia.'
     : 'The complete list of app features, each with its real status. <b style="color:var(--ink);">Click any feature</b> to open an explanation of exactly what it does. The toggle above switches the view like in the app — Personal-only or Company-only items dim accordingly. <i>(Feature names &amp; descriptions stay in Slovak for now.)</i>';

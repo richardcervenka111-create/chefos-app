@@ -1,4 +1,4 @@
-// ChefOS — email notification when someone new requests access (2026-07-15).
+// Sautero — email notification when someone new requests access (2026-07-15).
 //
 // Why this exists: the real blocker for a public trial is that Resend's free tier can only
 // deliver email to the account owner's own verified address until a custom domain is verified
@@ -55,10 +55,10 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'ChefOS <onboarding@resend.dev>',
+        from: 'Sautero <onboarding@resend.dev>',
         to: [NOTIFY_EMAIL],
-        subject: `ChefOS — new access request: ${email}`,
-        text: `${email} just requested access to ChefOS.\n\nOpen the Admin tile in the app to approve or deny it.`,
+        subject: `Sautero — new access request: ${email}`,
+        text: `${email} just requested access to Sautero.\n\nOpen the Admin tile in the app to approve or deny it.`,
       }),
     });
 
