@@ -2663,6 +2663,10 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <p style="font-size:28px; font-weight:700; letter-spacing:.08em; margin:6px 0 14px;" id="createTeamCode"></p>
       <div id="createTeamQrHolder" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
       <p class="sheet-text">New members: Settings → Account Type → Company → Enter Code Manually, or scan this QR.</p>
+      <!-- Creator-stays clarity (Richard, 18.7. bod 2): creating a team does NOT move you —
+           that's what made the icloud↔proton test look broken. Say it, and offer the join. -->
+      <p class="sheet-text" style="color:var(--gold);">ℹ️ You stay in YOUR current kitchen — this team is for the people you invite. Want to work in it yourself?</p>
+      <button class="add-row-btn" style="width:100%;" onclick="closeCreateTeam(); showConfirmTeamJoin(document.getElementById('createTeamCode').textContent, document.getElementById('createTeamName').value.trim() || 'the new team');">➡️ Join this team myself (leaves your current kitchen)</button>
       <label class="form-label" style="margin-top:18px; text-align:left; display:block;">Or send it by email</label>
       <p class="sheet-text" style="margin-bottom:6px;">They'll get a real login email with the join already built in — one tap and they're a Company account in this team.</p>
       <input class="form-field" id="createTeamEmailField" type="email" placeholder="their@email.com">
@@ -3015,7 +3019,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
              WITH their price, and every price lands in ingredient_price_history (db/127) so
              Kitchen Reports can chart and project price movement. -->
         <button class="icon-btn" onclick="document.getElementById('invoiceScanFile').click()" title="Scan a supplier invoice" id="invoiceScanBtn" style="display:none; width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">🧾 Invoice Scan</button>
-        <input type="file" id="invoiceScanFile" accept="image/*,.pdf,.xlsx" style="display:none;" onchange="handleInvoiceScanFile(this)">
+        <input type="file" id="invoiceScanFile" accept="image/*,application/pdf,.pdf,.xlsx,.csv,.html,.htm,.md,.markdown,.txt" style="display:none;" onchange="handleInvoiceScanFile(this)">
         <!-- Recipe source pin (Richard, 17.7.) — locks recipe cost/nutrition matching to THIS
              shelf/list, so ChefOS-shelf rows can't silently win over the user's own data. -->
         <button class="icon-btn" onclick="toggleRecipeIngredientSource()" id="recipeSourcePinBtn" title="Use this list as the source recipes pull prices & nutrition from" style="width:auto; padding:0 8px; gap:5px; font-size:12px; font-weight:600; color:var(--copper);">📌 Recipe source</button>
@@ -7764,9 +7768,18 @@ async function lookupManualTeamCode(){
   showConfirmTeamJoin(code, row.name);
 }
 let _pendingTeamJoinCode = null;
-function showConfirmTeamJoin(code, name){
+async function showConfirmTeamJoin(code, name){
   _pendingTeamJoinCode = code;
-  document.getElementById('confirmTeamJoinText').textContent = `Join "${name}"? Your Company account will show their shared recipes.`;
+  // Explicit leave-warning (Richard, 18.7. bod 2): joining silently moved his Head Admin out
+  // of My Kitchen — the confirm now names the kitchen being LEFT, loudly. Name fetched live
+  // (no global holds it); a fetch failure still shows the warning, just without the name.
+  let currentName = 'your current kitchen';
+  if(currentKitchenId){
+    const { data: k } = await sb.from('kitchens').select('name').eq('id', currentKitchenId).maybeSingle();
+    if(k && k.name) currentName = `"${k.name}"`;
+  }
+  document.getElementById('confirmTeamJoinText').textContent =
+    `Join "${name}"?` + (currentKitchenId ? ` ⚠️ You will LEAVE ${currentName} — its Company recipes, ingredients and Check List will no longer be yours. Your Personal data stays with you.` : '');
   document.getElementById('confirmTeamJoinStatus').textContent = '';
   document.getElementById('confirmTeamJoinOverlay').classList.add('open');
 }
@@ -18717,7 +18730,18 @@ function base64ToUtf8Text(base64){
    as binary exactly as before, text documents go in as a plain text block instead. */
 function claudeScanSourceBlock(base64, mediaType, fileName){
   if(isTextDocumentFile(mediaType, fileName)){
-    return { type:'text', text: base64ToUtf8Text(base64) };
+    let text = base64ToUtf8Text(base64);
+    // HTML files (Richard, 18.7. bod 6): strip the markup and send clean text — raw tags
+    // drowned out things like the supplier letterhead on the Italian test invoice. The
+    // DOMParser is inert (no scripts run); a parse failure falls back to the raw text.
+    if(/\.html?$/i.test(fileName || '') || /text\/html/.test(mediaType || '')){
+      try{
+        const doc = new DOMParser().parseFromString(text, 'text/html');
+        const clean = (doc.body && doc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+        if(clean.length > 20) text = clean;
+      } catch(e){ /* keep raw text */ }
+    }
+    return { type:'text', text };
   }
   if(mediaType === 'application/pdf'){
     return { type:'document', source:{ type:'base64', media_type:'application/pdf', data: base64 } };
@@ -19042,7 +19066,7 @@ async function callClaudeCustomIngredientVision(base64, mediaType, fileName){
       role: 'user',
       content: [
         claudeScanSourceBlock(base64, mediaType, fileName),
-        { type:'text', text:`This is a document listing ingredients or products for a professional kitchen — a supplier price list, handwritten list, or spec sheet, as a photo, PDF, spreadsheet, or document text. IT MAY BE IN ANY LANGUAGE (Slovak, Czech, German, Polish, French, Italian, Spanish, English, …) and column headers/units may be in that language — read it regardless. Extract EVERY distinct item using the record_custom_ingredients tool: ${lang ? `TRANSLATE each name into ${lang} (put the original-language name in original_name)` : 'keep each name in its original language'}, normalise its unit to kg/l/pc, and classify its category into the English set. If the document names a SUPPLIER/vendor (a price-list header, letterhead or logo), return it in the supplier field. If a field is genuinely not present, leave it empty rather than guessing.` }
+        { type:'text', text:`This is a document listing ingredients or products for a professional kitchen — a supplier price list, handwritten list, or spec sheet, as a photo, PDF, spreadsheet, or document text. IT MAY BE IN ANY LANGUAGE (Slovak, Czech, German, Polish, French, Italian, Spanish, English, …) and column headers/units may be in that language — read it regardless. Extract EVERY distinct item using the record_custom_ingredients tool: ${lang ? `TRANSLATE each name into ${lang} (put the original-language name in original_name)` : 'keep each name in its original language'}, normalise its unit to kg/l/pc, and classify its category into the English set. If the document names a SUPPLIER/vendor, return it in the supplier field — look for the letterhead/logo company name, typically the business with a legal suffix (AG, GmbH, S.r.l., s.r.o., SA, Ltd, Inc, spol., d.o.o., …) plus its address/VAT line, in ANY language; the RECIPIENT (restaurant/customer, "Spett.le", "An:", "Rechnung an") is NOT the supplier. If a field is genuinely not present, leave it empty rather than guessing.` }
       ]
     }]
   });
@@ -19101,7 +19125,7 @@ async function runInvoiceScan(base64, mediaType, fileName){
       tool_choice: { type:'tool', name:'record_invoice_items' },
       messages: [{ role:'user', content: [
         claudeScanSourceBlock(base64, mediaType, fileName),
-        { type:'text', text:`This is a supplier invoice or delivery note for a professional kitchen. IT MAY BE IN ANY LANGUAGE (German, Slovak, Czech, French…) — read it regardless. Using the record_invoice_items tool: (1) read the SUPPLIER/vendor name from the header (who it is FROM), (2) the invoice currency, (3) every PRODUCT line with its UNIT price (per kg/l/pc — compute from line total ÷ quantity when needed). ${lang ? `TRANSLATE every product name into ${lang} (put the original-language name in original_name)` : 'Keep product names in their original language'}, normalise units to kg/l/pc, and classify categories into the English set. IMPORTANT: extract ONLY real products. Do NOT create items from dates, invoice/customer numbers, addresses, page headers, subtotals, totals, VAT/tax lines, deposits (Pfand), delivery fees or discounts.` }
+        { type:'text', text:`This is a supplier invoice or delivery note for a professional kitchen. IT MAY BE IN ANY LANGUAGE (German, Slovak, Czech, French…) — read it regardless. Using the record_invoice_items tool: (1) read the SUPPLIER/vendor name — the letterhead/logo business the invoice is FROM, typically carrying a legal suffix (AG, GmbH, S.r.l., s.r.o., SA, Ltd…) and a VAT/P.IVA line; the RECIPIENT (restaurant/customer, "Spett.le", "Rechnung an") is NOT the supplier, (2) the invoice currency, (3) every PRODUCT line with its UNIT price (per kg/l/pc — compute from line total ÷ quantity when needed). ${lang ? `TRANSLATE every product name into ${lang} (put the original-language name in original_name)` : 'Keep product names in their original language'}, normalise units to kg/l/pc, and classify categories into the English set. IMPORTANT: extract ONLY real products. Do NOT create items from dates, invoice/customer numbers, addresses, page headers, subtotals, totals, VAT/tax lines, deposits (Pfand), delivery fees or discounts.` }
       ] }]
     });
     const toolUse = (data.content || []).find(b=>b.type==='tool_use');
