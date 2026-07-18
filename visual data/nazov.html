@@ -45,6 +45,24 @@
   .steps b{ color:var(--ink); }
   .price-note{ font-size:11px; color:var(--ink-dim); border-left:2px solid var(--gold); padding:6px 12px; margin-top:12px; line-height:1.6; }
   .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  .cand{ cursor:pointer; transition:border-color .15s, transform .1s; }
+  .cand:hover{ border-color:rgba(52,247,215,.5); }
+  .cand:active{ transform:scale(.99); }
+  .risk{ cursor:pointer; border-radius:10px; transition:background .15s; }
+  .risk:hover{ background:var(--paper2); }
+  .tap-hint{ font-family:var(--mono); font-size:10px; color:var(--ink-faint); flex:none; align-self:center; }
+  @media (max-width:600px){ .cand .story{ display:none; } .cand .doms .pill:nth-child(2){ display:none; } }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.78); display:none; align-items:flex-end; justify-content:center; z-index:100; }
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background:var(--paper); border:1px solid var(--rule); border-bottom:none; border-radius:20px 20px 0 0; width:100%; max-width:560px; max-height:82vh; overflow-y:auto; padding:14px 20px calc(24px + env(safe-area-inset-bottom,0px)) 20px; }
+  .modal .handle{ width:44px; height:4px; border-radius:999px; background:var(--rule); margin:0 auto 12px auto; }
+  .modal h3{ font-size:19px; margin:0 0 4px 0; letter-spacing:-.01em; }
+  .modal .sub{ font-size:12px; color:var(--accent); font-family:var(--mono); margin-bottom:10px; }
+  .modal .body{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
+  .modal .body b{ color:var(--ink); }
+  .modal .drow{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid var(--rule); font-size:12.5px; }
+  .modal .drow span:last-child{ font-family:var(--mono); color:var(--ink); flex:none; }
+  .modal .close{ width:100%; margin-top:14px; min-height:46px; border-radius:12px; border:1px solid var(--rule); background:none; color:var(--ink); font-size:14px; font-weight:700; cursor:pointer; }
   @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
@@ -58,34 +76,34 @@
 
   <div class="section-label"><span class="n">01</span><h2 data-sk="Problém — kto už používa „ChefOS“" data-en="The problem — who already uses “ChefOS”"></h2><div class="rule"></div></div>
   <div class="card">
-    <div class="risk"><div class="ico">🇺🇸</div><div><b>ChefOS™ · Counter Labs (San Francisco)</b> — <span data-sk="chefos.us + iOS appka „ChefOS Mobile“ v App Store. Takmer identický produkt ako náš: smeny, inventár, skenovanie faktúr, waste, analytika, AI asistent „Sous“. Copyright 2026, používajú ™ (nárok na známku — nie je to registrovaná ®, ale jasný signál zámeru)." data-en="chefos.us + the “ChefOS Mobile” iOS app on the App Store. Nearly identical product to ours: shifts, inventory, invoice scanning, waste, analytics, an AI assistant called “Sous”. Copyright 2026; they use ™ (a trademark claim — not a registered ®, but a clear signal of intent)."></span></div></div>
-    <div class="risk"><div class="ico">🌐</div><div><b>chefos.pro</b> — <span data-sk="ďalší, iný „ChefOS“: QR menu a objednávkový systém, tvrdí 89+ reštaurácií. Meno teda v našej kategórii používajú minimálne DVAJA." data-en="another, different “ChefOS”: a QR-menu and ordering system claiming 89+ restaurants. So at least TWO players already use the name in our category."></span></div></div>
-    <div class="risk"><div class="ico">⚠️</div><div><b data-sk="Čo nám hrozí" data-en="What it means for us"></b> — <span data-sk="kolízia pri budúcom vydaní v App Store, zámena u investorov a partnerov (Gronda), riziko že známku zaregistrujú skôr než my. Dnes nás v CH nikto neblokuje — ale každý deň budovania značky na spornom mene je drahší než ten predchádzajúci." data-en="a collision at our future App Store release, confusion with investors and partners (Gronda), and the risk they register the mark before we do. Nobody blocks us in CH today — but every day of brand-building on a contested name costs more than the last."></span></div></div>
+    <div class="risk" onclick="openNameDetail('counterlabs')"><div class="ico">🇺🇸</div><div><b>ChefOS™ · Counter Labs (San Francisco)</b> — <span data-sk="chefos.us + iOS appka „ChefOS Mobile“ v App Store. Takmer identický produkt ako náš: smeny, inventár, skenovanie faktúr, waste, analytika, AI asistent „Sous“. Copyright 2026, používajú ™ (nárok na známku — nie je to registrovaná ®, ale jasný signál zámeru)." data-en="chefos.us + the “ChefOS Mobile” iOS app on the App Store. Nearly identical product to ours: shifts, inventory, invoice scanning, waste, analytics, an AI assistant called “Sous”. Copyright 2026; they use ™ (a trademark claim — not a registered ®, but a clear signal of intent)."></span></div></div>
+    <div class="risk" onclick="openNameDetail('chefospro')"><div class="ico">🌐</div><div><b>chefos.pro</b> — <span data-sk="ďalší, iný „ChefOS“: QR menu a objednávkový systém, tvrdí 89+ reštaurácií. Meno teda v našej kategórii používajú minimálne DVAJA." data-en="another, different “ChefOS”: a QR-menu and ordering system claiming 89+ restaurants. So at least TWO players already use the name in our category."></span></div></div>
+    <div class="risk" onclick="openNameDetail('hrozba')"><div class="ico">⚠️</div><div><b data-sk="Čo nám hrozí" data-en="What it means for us"></b> — <span data-sk="kolízia pri budúcom vydaní v App Store, zámena u investorov a partnerov (Gronda), riziko že známku zaregistrujú skôr než my. Dnes nás v CH nikto neblokuje — ale každý deň budovania značky na spornom mene je drahší než ten predchádzajúci." data-en="a collision at our future App Store release, confusion with investors and partners (Gronda), and the risk they register the mark before we do. Nobody blocks us in CH today — but every day of brand-building on a contested name costs more than the last."></span></div></div>
   </div>
 
   <div class="section-label"><span class="n">02</span><h2 data-sk="Finálna päťka — čisté mená s cenami domén" data-en="The final five — clean names with domain prices"></h2><div class="rule"></div></div>
 
-  <div class="cand top"><span class="tip" data-sk="TIP" data-en="TOP PICK"></span>
+  <div class="cand top" onclick="openNameDetail('plancho')"><span class="tip" data-sk="TIP" data-en="TOP PICK"></span>
     <span class="rank">01</span><span class="nm">Plancho</span>
     <span class="story" data-sk="z „plancha“ — gril, na ktorom sa reálne varí; krátke, úderné, vysloviteľné v každej kuchyni" data-en="from “plancha” — the grill real cooking happens on; short, punchy, pronounceable in any kitchen"></span>
-    <span class="doms"><span class="pill ok">plancho.ch · voľná · ~5 CHF 1. rok*</span><span class="pill ok">plancho.com · voľná · ~20 CHF/rok</span></span>
+    <span class="doms"><span class="tap-hint" data-sk="ťukni ›" data-en="tap ›"></span><span class="pill ok">plancho.ch · voľná · ~5 CHF 1. rok*</span><span class="pill ok">plancho.com · voľná · ~20 CHF/rok</span></span>
   </div>
-  <div class="cand top"><span class="tip" data-sk="TIP" data-en="TOP PICK"></span>
+  <div class="cand top" onclick="openNameDetail('sautero')"><span class="tip" data-sk="TIP" data-en="TOP PICK"></span>
     <span class="rank">02</span><span class="nm">Sautero</span>
     <span class="story" data-sk="zo „sauté“ — kuchárska technika; znie dobre nemecky aj anglicky" data-en="from “sauté” — the chef technique; sounds right in German and English alike"></span>
     <span class="doms"><span class="pill ok">sautero.ch · voľná · ~5 CHF 1. rok*</span><span class="pill ok">sautero.com · voľná · ~20 CHF/rok</span></span>
   </div>
-  <div class="cand">
+  <div class="cand" onclick="openNameDetail('cuisora')">
     <span class="rank">03</span><span class="nm">Cuisora</span>
     <span class="story" data-sk="z „cuisine“ — najelegantnejšie; na globálnom webe doslova 0 výsledkov" data-en="from “cuisine” — the most elegant; literally 0 results on the global web"></span>
     <span class="doms"><span class="pill ok">cuisora.ch · voľná · ~5 CHF 1. rok*</span><span class="pill warn">cuisora.com · zaparkovaná**</span></span>
   </div>
-  <div class="cand">
+  <div class="cand" onclick="openNameDetail('mizeta')">
     <span class="rank">04</span><span class="nm">Mizeta</span>
     <span class="story" data-sk="z „mise en place“ — krátke a ostré; jediná stopa je malé talianske srl mimo odboru" data-en="from “mise en place” — short and sharp; the only trace is a small Italian srl outside our field"></span>
     <span class="doms"><span class="pill ok">mizeta.ch · voľná · ~5 CHF 1. rok*</span><span class="pill warn">mizeta.com · zaparkovaná**</span></span>
   </div>
-  <div class="cand">
+  <div class="cand" onclick="openNameDetail('mepli')">
     <span class="rank">05</span><span class="nm">Mepli</span>
     <span class="story" data-sk="z „MEP“ — kuchárskeho slangu pre mise en place; insider meno, ktoré kuchár pochopí okamžite" data-en="from “MEP” — kitchen slang for mise en place; an insider name a chef gets instantly"></span>
     <span class="doms"><span class="pill ok">mepli.ch · voľná · ~5 CHF 1. rok*</span><span class="pill warn">mepli.com · zaparkovaná**</span></span>
@@ -113,7 +131,38 @@
   </div>
 
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 18. 7. 2026, 09:19" data-en="🔄 ChefOS state as of Jul 18, 2026, 09:19"></div>
+<div class="chefos-stamp" data-sk="🔄 Stav ChefOS k 18. 7. 2026, 09:29" data-en="🔄 ChefOS state as of Jul 18, 2026, 09:29"></div>
+<div class="modal-backdrop" id="nameModal" onclick="if(event.target===this) closeNameDetail()">
+  <div class="modal">
+    <div class="handle"></div>
+    <h3 id="nmTitle"></h3>
+    <div class="sub" id="nmSub"></div>
+    <div class="body" id="nmBody"></div>
+    <button class="close" onclick="closeNameDetail()" data-sk="Zavrieť" data-en="Close"></button>
+  </div>
+</div>
+<script>
+/* Klik = podrobnosti (Richardov štandard od 18.7.: dokumenty ako mapa funkcií). */
+const NAME_DETAILS = {
+  plancho: { t:'Plancho', s:'kandidát 01 · TIP', sk:'<b>Pôvod:</b> „plancha" — gril/platňa, na ktorej sa reálne varí. Krátke, úderné, vysloviteľné v každej kuchyni od Bernu po Londýn.<div class="drow"><span>plancho.ch</span><span>voľná · ~5 CHF 1. rok, obnova ~15 CHF</span></div><div class="drow"><span>plancho.com</span><span>voľná · ~20 CHF/rok</span></div><div class="drow"><span>App Store</span><span>žiadna appka s týmto menom</span></div><div class="drow"><span>Web kolízie</span><span>žiadne</span></div><b>Prečo TIP:</b> jediná dvojica (s Sautero) s voľnou .ch AJ .com — plná kontrola značky za ~25 CHF prvý rok.', en:'<b>Origin:</b> “plancha” — the grill real cooking happens on. Short, punchy, pronounceable in any kitchen.<div class="drow"><span>plancho.ch</span><span>free · ~CHF 5 yr 1, renews ~15</span></div><div class="drow"><span>plancho.com</span><span>free · ~CHF 20/yr</span></div><div class="drow"><span>App Store</span><span>no app with this name</span></div><div class="drow"><span>Web collisions</span><span>none</span></div><b>Why top pick:</b> one of only two names (with Sautero) with .ch AND .com free — full brand control for ~CHF 25 in year one.' },
+  sautero: { t:'Sautero', s:'kandidát 02 · TIP', sk:'<b>Pôvod:</b> „sauté" — kuchárska technika. Znie prirodzene nemecky aj anglicky.<div class="drow"><span>sautero.ch</span><span>voľná · ~5 CHF 1. rok, obnova ~15 CHF</span></div><div class="drow"><span>sautero.com</span><span>voľná · ~20 CHF/rok</span></div><div class="drow"><span>App Store</span><span>žiadna appka s týmto menom</span></div><div class="drow"><span>Web kolízie</span><span>žiadne</span></div><b>Prečo TIP:</b> voľná .ch aj .com; technika, ktorú pozná každý kuchár.', en:'<b>Origin:</b> “sauté” — the chef technique. Sounds natural in German and English.<div class="drow"><span>sautero.ch</span><span>free · ~CHF 5 yr 1, renews ~15</span></div><div class="drow"><span>sautero.com</span><span>free · ~CHF 20/yr</span></div><div class="drow"><span>App Store</span><span>no app with this name</span></div><div class="drow"><span>Web collisions</span><span>none</span></div><b>Why top pick:</b> .ch and .com both free; a technique every chef knows.' },
+  cuisora: { t:'Cuisora', s:'kandidát 03', sk:'<b>Pôvod:</b> „cuisine". Najelegantnejšie meno z päťky — na globálnom webe doslova 0 výsledkov.<div class="drow"><span>cuisora.ch</span><span>voľná · ~5 CHF 1. rok</span></div><div class="drow"><span>cuisora.com</span><span>zaparkovaná — registrovaná bez webu; pre CH stačí .ch, .com sa dá dokúpiť neskôr</span></div><div class="drow"><span>App Store</span><span>žiadna appka</span></div><div class="drow"><span>Web kolízie</span><span>žiadne (0 výsledkov)</span></div>', en:'<b>Origin:</b> “cuisine”. The most elegant of the five — literally 0 results on the global web.<div class="drow"><span>cuisora.ch</span><span>free · ~CHF 5 yr 1</span></div><div class="drow"><span>cuisora.com</span><span>parked — registered, no site; .ch suffices for CH, .com can be bought later</span></div><div class="drow"><span>App Store</span><span>no app</span></div><div class="drow"><span>Web collisions</span><span>none (0 results)</span></div>' },
+  mizeta: { t:'Mizeta', s:'kandidát 04', sk:'<b>Pôvod:</b> „mise en place". Krátke a ostré.<div class="drow"><span>mizeta.ch</span><span>voľná · ~5 CHF 1. rok</span></div><div class="drow"><span>mizeta.com</span><span>zaparkovaná</span></div><div class="drow"><span>App Store</span><span>žiadna appka</span></div><div class="drow"><span>Web kolízie</span><span>len malé talianske srl mimo odboru (D&B záznam)</span></div>', en:'<b>Origin:</b> “mise en place”. Short and sharp.<div class="drow"><span>mizeta.ch</span><span>free · ~CHF 5 yr 1</span></div><div class="drow"><span>mizeta.com</span><span>parked</span></div><div class="drow"><span>App Store</span><span>no app</span></div><div class="drow"><span>Web collisions</span><span>only a small Italian srl outside our field (D&B record)</span></div>' },
+  mepli: { t:'Mepli', s:'kandidát 05', sk:'<b>Pôvod:</b> „MEP" — kuchárske slang pre mise en place. Insider meno, ktoré kuchár pochopí okamžite; laik nie, čo môže byť plus (odlíšenie) aj mínus (vysvetľovanie investorom).<div class="drow"><span>mepli.ch</span><span>voľná · ~5 CHF 1. rok</span></div><div class="drow"><span>mepli.com</span><span>zaparkovaná</span></div><div class="drow"><span>App Store</span><span>žiadna appka</span></div><div class="drow"><span>Web kolízie</span><span>žiadne</span></div>', en:'<b>Origin:</b> “MEP” — kitchen slang for mise en place. An insider name a chef gets instantly; a layperson won\'t, which cuts both ways.<div class="drow"><span>mepli.ch</span><span>free · ~CHF 5 yr 1</span></div><div class="drow"><span>mepli.com</span><span>parked</span></div><div class="drow"><span>App Store</span><span>no app</span></div><div class="drow"><span>Web collisions</span><span>none</span></div>' },
+  counterlabs: { t:'ChefOS™ · Counter Labs', s:'San Francisco · chefos.us', sk:'iOS appka „ChefOS Mobile" (App Store id 6763660343, Business, EN, 46.5 MB, 2 hodnotenia). Produkt: smeny s forecastom, inventár so skenovaním faktúr dodávateľov, sales analytika, waste tracking, tímové kanály po staniciach a AI asistent <b>„Sous"</b> — obdoba nášho Chef\'s Assistant. Copyright 2026 (čerstvý), na webe <b>™</b> — nárok na známku, nie registrovaná ®. Kontakt hello@chefos.us. <b>Priamy menovec s takmer identickým produktom.</b>', en:'The “ChefOS Mobile” iOS app (App Store id 6763660343, Business, EN, 46.5 MB, 2 ratings). Product: forecast scheduling, inventory with vendor-invoice scanning, sales analytics, waste tracking, station-scoped team channels and an AI assistant <b>“Sous”</b> — an analogue of our Chef\'s Assistant. Copyright 2026 (fresh), <b>™</b> on the site — a claim, not a registered ®. Contact hello@chefos.us. <b>A direct namesake with a nearly identical product.</b>' },
+  chefospro: { t:'chefos.pro', s:'druhý menovec', sk:'Iný „ChefOS — Professional Restaurant Management System": QR menu s AI odporúčaniami, objednávky, kitchen dashboard. Tvrdí <b>89+ reštaurácií</b> a o 40 % rýchlejší order-to-table. Nie je to Counter Labs — čiže meno v našej kategórii používajú minimálne DVAJA nezávislí hráči.', en:'A different “ChefOS — Professional Restaurant Management System”: QR menus with AI recommendations, ordering, a kitchen dashboard. Claims <b>89+ restaurants</b> and 40% faster order-to-table. Not Counter Labs — so at least TWO independent players use the name in our category.' },
+  hrozba: { t:'Čo nám hrozí', s:'triezvo, nie panika', sk:'<b>1 · App Store:</b> náš budúci iOS „ChefOS" narazí na existujúci názov.<br><b>2 · Zámena:</b> investori, partneri (Gronda) a Google už dnes nachádzajú ich — presne takto to našiel Richard.<br><b>3 · Známka:</b> ak Counter Labs zaregistruje EU/IR známku skôr, budovali by sme značku, o ktorú môžeme prísť.<br><b>Dnes nás v CH nikto neblokuje</b> — registrovanú EU/CH známku sme nenašli (oficiálna kontrola Swissreg/EUIPO je ďalší krok). Ale každý deň budovania značky na spornom mene je drahší než predchádzajúci.', en:'<b>1 · App Store:</b> our future iOS “ChefOS” hits the existing name.<br><b>2 · Confusion:</b> investors, partners (Gronda) and Google already surface them — exactly how Richard found it.<br><b>3 · Trademark:</b> if Counter Labs registers an EU/IR mark first, we\'d be building a brand we could lose.<br><b>Nobody blocks us in CH today</b> — no registered EU/CH mark found (official Swissreg/EUIPO check is the next step). But every day on a contested name costs more than the last.' },
+};
+function openNameDetail(key){
+  const d = NAME_DETAILS[key];
+  if(!d) return;
+  document.getElementById('nmTitle').textContent = d.t;
+  document.getElementById('nmSub').textContent = d.s;
+  document.getElementById('nmBody').innerHTML = _lang === 'sk' ? d.sk : d.en;
+  document.getElementById('nameModal').classList.add('open');
+}
+function closeNameDetail(){ document.getElementById('nameModal').classList.remove('open'); }
+</script>
 <script>
 let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
 function applyLang(){
