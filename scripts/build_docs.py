@@ -148,11 +148,35 @@ def build_one(spec):
    their CSS/JS/lang-toggles stay fully isolated from each other and from this shell. */
 const DOCS = {payload};
 const frames = [];
+/* Anchor links inside an embedded doc MUST be intercepted (Richard's 19.7. phone video — every
+   tap on the inner jump-nav stacked another copy of this shell's banner): a srcdoc iframe
+   inherits its base URL from THIS page, so a plain href="#timeline" resolves to plan.html#…
+   and NAVIGATES the iframe to the whole shell — recursively nesting banner inside banner.
+   Same-origin srcdoc means we can reach in: hash links become in-iframe smooth scrolls, real
+   links (automation.html, …) escape to the top window instead of loading inside the tab. */
+function patchInnerLinks(f){{
+  try{{
+    const doc = f.contentDocument;
+    doc.addEventListener('click', (e)=>{{
+      const a = e.target.closest ? e.target.closest('a[href]') : null;
+      if(!a) return;
+      const href = a.getAttribute('href');
+      if(href.startsWith('#')){{
+        e.preventDefault();
+        const el = href.length > 1 ? doc.getElementById(href.slice(1)) : null;
+        if(el) el.scrollIntoView({{ behavior:'smooth', block:'start' }});
+      }} else if(!a.target){{
+        a.target = '_top';
+      }}
+    }}, true);
+  }} catch(err){{}}
+}}
 function openTab(n){{
   document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active', i===n));
   frames.forEach(f=>f && f.classList.remove('show'));
   if(!frames[n]){{
     const f = document.createElement('iframe');
+    f.addEventListener('load', ()=>patchInnerLinks(f));
     f.srcdoc = DOCS[n];
     document.getElementById('frames').appendChild(f);
     frames[n] = f;
