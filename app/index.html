@@ -14061,7 +14061,10 @@ function renderIngredientListsGrid(){
   fixedTile('public', '🌍', 'Public');
   const visibleLists = _ingredientLists.filter(l=>_showHiddenIngredientLists || !l.hidden);
   visibleLists.forEach(l=>{
-    addTile(l.icon || '📋', l.name + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
+    // 👥 marks a teammate's list (db/146: kitchen lists are team-visible; rename/delete stay
+    // creator-only, so the context menu on a foreign list will just refuse politely).
+    const foreign = l.created_by && currentUser && l.created_by !== currentUser.id;
+    addTile(l.icon || '📋', l.name + (foreign ? ' 👥' : '') + (l.shared ? ' 🤝' : '') + (l.hidden ? ' (hidden)' : ''), ()=>openIngredientShelf(l.id),
       ()=>openItemContextMenu('ingredientList', l.id, l.name, l.hidden, l.shared));
   });
   addTile('➕', 'New List', ()=>openNewIngredientListPrompt());
@@ -19246,10 +19249,12 @@ async function runInvoiceScan(base64, mediaType, fileName){
       const patch = { price: u.priceEur, price_updated_at: nowIso };
       if(supplier) patch.supplier = supplier;
       if(u.category && !u.row.category) patch.category = u.category;
-      // Scanned from the 🏢 Company shelf (Richard, 18.7.): items you actually buy move from
-      // the seeded library onto YOUR Company shelf (created_by set = company semantics) — the
-      // only way they can show there, since the unique index forbids a second same-name row.
-      if(target === 'company' && !u.row.is_personal && !u.row.created_by) patch.created_by = currentUser.id;
+      // Company mode (Richard, 18.7., druhé kolo: "stále sa nepresunú"): items you actually
+      // buy move from the seeded library onto YOUR Company shelf on ANY shared-shelf scan —
+      // not only when the 🏢 shelf itself was open. In company mode the invoice's home is
+      // Company Ingredients, full stop; the unique index forbids a second same-name row, so
+      // moving the library row (created_by set = company semantics) is the only way.
+      if(currentAccountType === 'company' && targetShared && !u.row.is_personal && !u.row.created_by) patch.created_by = currentUser.id;
       const { error } = await sb.from('ingredients').update(patch).eq('id', u.row.id);
       if(error) continue;
       Object.assign(u.row, patch);
@@ -19513,9 +19518,10 @@ async function saveIngredientScanReview(){
     if(x.category && !match.category) patch.category = x.category;
     const mergedAliases = Array.from(new Set([...(match.aliases || []), ...aliases]));
     if(mergedAliases.length !== (match.aliases || []).length) patch.aliases = mergedAliases;
-    // Scanned onto the 🏢 Company shelf (Richard, 18.7.): a matched library row moves onto the
-    // Company shelf (created_by set) so the scanned item actually shows where he aimed it.
-    if(target === 'company' && !match.is_personal && !match.created_by) patch.created_by = currentUser.id;
+    // Company mode (Richard, 18.7., druhé kolo): a matched library row moves onto the Company
+    // shelf (created_by set) on ANY shared-shelf scan in company mode — not only when the 🏢
+    // shelf itself was open. The scanned item must land where he'll look for it.
+    if(currentAccountType === 'company' && ingredientShelfIsShared(target) && !match.is_personal && !match.created_by) patch.created_by = currentUser.id;
     if(!Object.keys(patch).length){ skipped++; continue; }
     const { error: upErr } = await sb.from('ingredients').update(patch).eq('id', match.id);
     if(upErr){ skipped++; continue; }
