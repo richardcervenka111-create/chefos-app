@@ -21,3 +21,22 @@ v auditoroch.
 coming_soon = ON (zámer do trialu); 1 aktívna pozvánka na hlavnú kuchyňu (overiť s Richardom
 — ak nie je jeho dnešná, odvolať); RLS test receptov „Moje" z 2 účtov ešte čaká (ingrediencie
 už potvrdené testom „Tajná marináda").
+
+## 🩺 Deep health check v2 — 17. 7. 2026, 08:39 (po nasadení redesignu)
+
+**Stav:** auditory čisté (144 migrácií, 48 tabuliek), obe edge funkcie ACTIVE (claude-proxy v8,
+notify-access-request v1), **0 chýb v error_logs za 3 h po nasadení novej témy**, ai_usage 9
+riadkov, recipe_shares 1, 13 profilov. Klasická téma na produkcii nezmenená; theme-new kód
+neaktívny pre všetkých okrem zakladateľovho prepínača. Hodiny: 47,9 h git + ~40 h = **~87,9 h**.
+
+**NÁLEZ 1 → OPRAVENÉ (dáta + kód):** nový užívateľ **Adam Bazik** (adambazik1991@gmail.com,
+registrácia dnes večer) uviazol bez kuchyne — schválený užívateľ bez pozvánkového kontextu
+nemal v bráne ŽIADNU cestu ku kuchyni (rovnaká trieda ako patrik/anny/sergey z db/140).
+Jednorazovo: vytvorená Adam's Kitchen a priradená. Trvalo: renderTeamGate() teraz schválenému
+užívateľovi bez pozvánky automaticky založí vlastnú kuchyňu (ensure_personal_kitchen, db/110)
+namiesto slepej hlášky.
+
+**NÁLEZ 2 → OPRAVENÉ (nová téma):** tri komponenty používajú --rule ako plné pozadie
+(wt-dot/bar-absence, fridge-status-dot.none) — po premapovaní premenných na 9% hairline by boli
+v Novej téme takmer neviditeľné; dostali pevnú vrstvu nv-3. (.sheet-handle bol pokrytý už
+v celku 2.)

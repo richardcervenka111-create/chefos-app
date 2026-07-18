@@ -1654,6 +1654,11 @@ html.theme-new .login-tagline{ color:var(--ink-dim); }
 html.theme-new .block h3{ font-weight:800; letter-spacing:-.01em; }
 html.theme-new .method-list li, html.theme-new .bullet-list li{ line-height:1.65; }
 html.theme-new .modal-backdrop, html.theme-new .sheet-overlay{ background:rgba(4,10,20,.72); backdrop-filter:saturate(1.1) blur(2px); }
+/* Deep health check 17.7. večer: tieto tri používajú --rule ako PLNÉ pozadie — po premapovaní
+   na 9% hairline by boli takmer neviditeľné. V novej téme dostávajú pevnú vrstvu nv-3. */
+html.theme-new .fridge-status-dot.none,
+html.theme-new .wt-dot-absence,
+html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 </style>
 <!-- Apply the saved Appearance theme before first paint (bod 10, 16.7.) — this has to run here,
      not in the main script at the bottom of the page, or the page would flash dark-then-light
@@ -8880,10 +8885,24 @@ async function renderTeamGate(){
     return;
   }
 
-  el.innerHTML = isSuperAdmin
-    ? `<p class="login-tagline">Set up your kitchen</p>
-       <p class="lede">You're approved. Name your restaurant/kitchen to get started — you can invite your team afterwards.</p>${createOwnKitchenBlock}`
-    : `<p class="login-tagline">You're approved</p>${noInviteMessage}`;
+  if(isSuperAdmin){
+    el.innerHTML = `<p class="login-tagline">Set up your kitchen</p>
+       <p class="lede">You're approved. Name your restaurant/kitchen to get started — you can invite your team afterwards.</p>${createOwnKitchenBlock}`;
+    return;
+  }
+  // Approved, no invite context, no kitchen (deep health check 17.7. večer — Adam Bazik got
+  // stranded exactly here): every approved person gets their OWN kitchen automatically, same
+  // ensure_personal_kitchen path the friend-link flow uses (db/110). The old dead-end message
+  // ("ask whoever should be inviting you") only remains if even that setup fails.
+  el.innerHTML = `<p class="login-tagline">You're approved</p><p class="lede">Setting up your own kitchen…</p>`;
+  const { error: soloErr } = await sb.rpc('ensure_personal_kitchen');
+  if(soloErr){
+    logClientError('ensure_personal_kitchen failed (approved, no invite): ' + soloErr.message);
+    el.innerHTML = `<p class="login-tagline">You're approved</p>${noInviteMessage}`;
+    return;
+  }
+  history.replaceState(null, '', location.pathname);
+  await startApp();
 }
 
 async function createOwnKitchen(){
