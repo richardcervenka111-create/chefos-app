@@ -289,7 +289,7 @@
     <div class="hero-foot">
       <span><b>Status</b> Working build, in daily use</span>
       <span><b>Built by</b> Richard Červenka</span>
-      <span><b>Where</b> Bratislava</span>
+      <span><b>Where</b> Bern</span>
     </div>
   </div>
 </div>
@@ -452,8 +452,8 @@
 
 <footer>
   <div class="wrap">
-    <span>Sautero — built kitchen-side out.</span>
-    <span>Bratislava, 2026.</span>
+    <span><span data-sk="Sautero — stavané z kuchyne von." data-en="Sautero — built kitchen-side out.">Sautero — built kitchen-side out.</span></span>
+    <span><span data-sk="Bern, 2026." data-en="Bern, 2026.">Bern, 2026.</span></span>
   </div>
 </footer>
 
@@ -494,6 +494,110 @@
     apply();
   };
   apply();
+})();
+</script>
+<script>
+/* t174 (18.7.): the Manifesto is bilingual — the HTML stays the EN original, MSK carries the
+   Slovak per selector index; the walker stashes EN innerHTML and swaps. Keep MSK in sync
+   with any content edit. */
+(function(){
+  const MSK = {
+    heroMark: 'Sautero — operačný systém pre profesionálne kuchyne',
+    heroLines: ['Kuchyne bežia', 'na chaose už', 'sto rokov.', 'Myslíme si, že to netreba.'],
+    heroSub: 'Stavané vnútri skutočnej kuchyne, nie okolo nej. Jedno spoločné miesto pre to, čo kuchyňa vie, čo sa deje práve teraz a čo bude treba zajtra — namiesto dvanástich zošitov a niečej pamäti.',
+    heroFoot: ['<b>Stav</b> Funkčný build, v dennom používaní', '<b>Postavil</b> Richard Červenka', '<b>Kde</b> Bern'],
+    eyebrows: ['Problém', 'Vízia', 'Čo robí dnes', 'Kam to smeruje', 'Práve teraz'],
+    heads: ['Každá kuchyňa prijala ten istý chaos.', 'Kuchyňa, ktorá si pamätá.', 'Nie funkcie. Iná kuchyňa.', 'Osem myšlienok, jedna za druhou.', 'Toto nie je prezentácia. Toto beží.'],
+    problem: [
+      'Technika šéfkuchárky žije v jej hlave — a nikde inde.',
+      'Odkaz sa podá na passe a polovica sa na linku nikdy nedostane.',
+      'Na prípravu sa zabudne, kým už nie je hore prvý bon.',
+      'Tácka letí do koša a nikto nevie povedať, koľko naozaj stála.',
+      'Niečo sa pokazí — a otázka znie <i>kto</i>, nikdy <i>prečo</i>.'
+    ],
+    problemFinal: 'Každá kuchyňa sa s tým naučila žiť. <b>Sautero nie.</b>',
+    visionBody: [
+      'Softvér zmenil, ako si firmy držia pravdu — jeden záznam, ktorému veria všetci, namiesto tuctu súkromných. Kuchyne to nikdy nedostali.',
+      'Sautero pristupuje ku kuchyni rovnako. Čo vie jeden kuchár, môže vedieť každý. Čo sa práve deje na linke, vidí ten, kto to vidieť potrebuje — nie ten, kto kričí najhlasnejšie.',
+      'Nič nezávisí od toho, či si to niekto zapamätá — lebo nič sa pamätať nemusí.'
+    ],
+    visionQuote: 'Chaos nie je kuchynská tradícia. Je to len najstarší bug, ktorý nikto neopravil.',
+    lblBefore: 'Predtým', lblAfter: 'Potom',
+    xformBefore: [
+      'Recepty žijú v šanónoch, na lepiacich papierikoch a v pamäti jedného šéfkuchára.',
+      'Nikto nevie, koľko jedlo stojí, kým neprídu faktúry.',
+      'Náhrady a sezónnosť žijú v niečej pamäti — ak vôbec.',
+      'Zajtrajší prep list sa dnes večer píše rukou a zajtra sa polovične dodrží.',
+      'Objednáva sa z pamäti, stanica po stanici.'
+    ],
+    headlines: [
+      'Spoločné poznanie kuchyne.',
+      'Presne vieš, koľko stojí každý tanier.',
+      'Každá ingrediencia nesie svoje vlastné poznanie.',
+      'Každý vie, čo je hotové. Žiadne kričanie. Žiadne hádanie.',
+      'Na objednávku sa nezabúda.'
+    ],
+    details: [
+      'Každý recept na jednom mieste, stavaný pre pracovnú linku — nie pre policu s kuchárskymi knihami.',
+      'Počíta sa automaticky, ingrediencia po ingrediencii, v momente napísania receptu.',
+      'Odkiaľ je, kedy má sezónu, čo ju nahradí — jedno ťuknutie z ktoréhokoľvek receptu.',
+      'Zoznam napíšeš raz, za pár sekúnd. Celá zajtrajšia zmena číta ten istý.',
+      'Jeden zoznam, usporiadaný tak, ako kuchyňa naozaj funguje — nie ako tabuľka.'
+    ],
+    stageNames: ['Poznanie', 'Exekúcia', 'Komunikácia', 'Sklad', 'Produkcia', 'Inteligencia', 'Multi-prevádzka', 'Platforma'],
+    stageTags: { 'Live':'Naživo', 'Ahead':'Pred nami' },
+    stageDescs: [
+      'Dostať všetko z hláv ľudí na jednu stránku, ktorú vie čítať každý.',
+      'Premeniť to poznanie na to, čo sa dnes reálne deje na linke.',
+      'Nech celý tím vidí tú istú pravdu v reálnom čase — a od 17. júla sa rozprávajú aj kuchyne medzi sebou: verejné police receptov a ingrediencií, zdieľanie s chef-priateľmi, komentáre naprieč kuchyňami.',
+      'Vedieť, čo máš, skôr než sa to minie.',
+      'Plánovať celý servis, nie jedno jedlo naraz.',
+      'Nech sa kuchyňa učí z vlastných vzorcov namiesto spoliehania len na cit.',
+      'Poznanie jednej kuchyne sa stáva výhodou každej.',
+      'V každom vrecku, na každej linke — či wifi stojí za niečo, alebo nie.'
+    ],
+    progressBody: '<strong>183 skutočných receptov</strong> nesie skutočnú techniku, nie výplň — každý obohatený do Michelin hĺbky. <strong>2 005 ingrediencií</strong> už pozná svoju cenu, sezónu aj to, čo ich zastúpi, keď dôjdu. Každý tanier už zhruba vie, koľko stojí, skôr než sa vôbec naservíruje. Nič z toho nie je mockup — je to build, dnes večer v rukách fungujúcej kuchyne.',
+    pstatLabels: ['Receptov so skutočnou technikou', 'Ingrediencií, nacenených a so sezónou', 'Fáz na ceste k hotovému', 'Kuchyňa, ktorá to už používa'],
+  };
+  function setEl(el, val){
+    if(!el) return;
+    if(!el.dataset.enHtml) el.dataset.enHtml = el.innerHTML;
+    el.innerHTML = (window.__manifLang === 'sk' && val) ? val : el.dataset.enHtml;
+  }
+  window.applyManifContent = function(lang){
+    window.__manifLang = lang;
+    const q = sel => Array.from(document.querySelectorAll(sel));
+    setEl(document.querySelector('.hero-mark'), '<span class="pulse"></span>' + MSK.heroMark);
+    q('h1.hero-head .ln span').forEach((el,i)=>setEl(el, MSK.heroLines[i]));
+    setEl(document.querySelector('.hero-sub'), MSK.heroSub);
+    q('.hero-foot > span').forEach((el,i)=>setEl(el, MSK.heroFoot[i]));
+    q('.eyebrow').forEach((el,i)=>setEl(el, MSK.eyebrows[i]));
+    q('.head').forEach((el,i)=>setEl(el, MSK.heads[i]));
+    q('.problem-lines p:not(.final)').forEach((el,i)=>setEl(el, MSK.problem[i]));
+    setEl(document.querySelector('.problem-lines p.final') || document.querySelector('p.final'), MSK.problemFinal);
+    q('.vision-body p').forEach((el,i)=>setEl(el, MSK.visionBody[i]));
+    setEl(document.querySelector('.vision-quote'), MSK.visionQuote);
+    q('.xform-before').forEach((el,i)=>setEl(el, '<span class="lbl">' + MSK.lblBefore + '</span>' + MSK.xformBefore[i]));
+    q('.xform-after .lbl').forEach(el=>setEl(el, MSK.lblAfter));
+    q('.headline').forEach((el,i)=>setEl(el, MSK.headlines[i]));
+    q('.detail').forEach((el,i)=>setEl(el, MSK.details[i]));
+    q('.stage-name').forEach((el,i)=>setEl(el, MSK.stageNames[i]));
+    q('.stage-tag').forEach(el=>{
+      if(!el.dataset.enHtml) el.dataset.enHtml = el.innerHTML;
+      el.innerHTML = lang === 'sk' ? (MSK.stageTags[el.dataset.enHtml.trim()] || el.dataset.enHtml) : el.dataset.enHtml;
+    });
+    q('.progress-body p').forEach((el,i)=>setEl(el, i===0 ? MSK.progressBody : null));
+    q('.pstat .l').forEach((el,i)=>setEl(el, MSK.pstatLabels[i]));
+  };
+  const orig = window.chefosToggleLang;
+  function hook(){
+    const lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+    window.applyManifContent(lang);
+  }
+  if(typeof orig === 'function'){
+    window.chefosToggleLang = function(){ orig(); hook(); };
+  }
+  hook();
 })();
 </script>
 </body>
