@@ -16,9 +16,14 @@
      the blank/placeholder tile iOS shows when a site has none. Icons are the app's own ring
      mark (same SVG used in the topbar brandmark elsewhere), rendered at each required size. -->
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-32.png" sizes="32x32">
-<link rel="icon" href="icons/icon-192.png" sizes="192x192">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<!-- -v2 filenames (18.7.): Safari/iPadOS caches a tab/home-screen favicon per-device and often
+     ignores query-string cache-busting on it — a genuinely new file path was the only reliable
+     way to force tablets still showing the old ChefOS icon to actually fetch the new Sautero
+     one. If a tablet already has an old Add-to-Home-Screen icon, that snapshot is frozen at
+     iOS's OS level regardless of anything served here — remove and re-add it once. -->
+<link rel="icon" href="icons/icon-32-v2.png" sizes="32x32">
+<link rel="icon" href="icons/icon-192-v2.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-v2.png">
 <meta name="theme-color" content="#0A1A2F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1877,7 +1882,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div class="sheet-handle"></div>
     <div class="sheet-title">📲 Add Sautero to your phone</div>
     <div style="display:flex; align-items:center; gap:12px; margin:4px 0 12px 0;">
-      <img src="icons/icon-192.png" width="52" height="52" style="border-radius:12px; flex:none;" alt="Sautero icon">
+      <img src="icons/icon-192-v2.png" width="52" height="52" style="border-radius:12px; flex:none;" alt="Sautero icon">
       <p class="sheet-text" style="margin:0;">This icon lands on your home screen — no App Store needed. One minute, once:</p>
     </div>
     <label class="form-label" style="margin-top:12px;">iPhone / iPad (Safari)</label>
@@ -9624,6 +9629,19 @@ async function acceptScannedFriend(){
   showConnections();
 }
 
+/* Head Admin can rename the kitchen/team whenever, not just at creation (Richard, 18.7.: "ako
+   hlavný admín chcem mať funkciu meniť názov TEAM/KUCHYNE kedy uznám za vhodné"). Reuses the
+   existing "admin update own kitchen" policy (db/48) — any is_admin member of that kitchen can
+   already update its row, no new migration needed. Scoped to the kitchen Richard is currently
+   in; renaming a kitchen he isn't a member of (e.g. one made purely via Add Company) would need
+   a kitchen directory screen, which doesn't exist yet. */
+async function renameCurrentKitchen(currentName){
+  const next = prompt('Rename this kitchen/team:', currentName);
+  if(!next || !next.trim() || next.trim() === currentName) return;
+  const { error } = await sb.from('kitchens').update({ name: next.trim() }).eq('id', currentKitchenId);
+  if(error){ alert('Could not rename: ' + error.message); return; }
+  await showTeamInvite();
+}
 /* ---------- My Team: invite link + QR ---------- */
 let _currentInviteUrl = null;
 async function showTeamInvite(){
@@ -9685,7 +9703,10 @@ async function showTeamInvite(){
     </div>
 
     <label class="form-label">Your Kitchen</label>
-    <h2 class="recipe-title" style="margin:0 0 16px 0;">${kitchen ? kitchen.name : 'Unnamed kitchen'}</h2>
+    <div style="display:flex; align-items:center; gap:10px; margin:0 0 16px 0;">
+      <h2 class="recipe-title" style="margin:0;">${kitchen ? kitchen.name : 'Unnamed kitchen'}</h2>
+      ${currentIsAdmin ? `<button class="task-status-btn" title="Rename this kitchen/team" onclick="renameCurrentKitchen('${(kitchen&&kitchen.name||'').replace(/'/g,"\\'")}')">✏️</button>` : ''}
+    </div>
 
     <label class="form-label">Invite your team</label>
     <p class="lede">Anyone who opens this link (and is approved for Sautero) joins your team and shares Recipes, Check List, and Ingredients with you. This link expires in 7 days, or sooner if you revoke it.</p>
