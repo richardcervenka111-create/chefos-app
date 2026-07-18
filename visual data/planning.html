@@ -778,6 +778,8 @@ function toggleLang(){
   localStorage.setItem('chefos_doc_lang', _lang);
   applyLang();
   renderLogStats();
+  renderTop3();
+  renderTimeline();
   const search = document.getElementById('logSearch');
   if(search) search.placeholder = _lang === 'sk' ? 'Hľadať v denníku…' : 'Search the log…';
 }
