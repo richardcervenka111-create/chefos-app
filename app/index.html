@@ -12962,7 +12962,9 @@ function applyIngredientScale(idx){
 async function addRecipeToCheckList(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
-  const { data: projects, error } = await sb.from('projects').select('id, name, icon').order('created_at');
+  // Same mode split as the Check List project grid (db/159) — adding a recipe in personal
+  // mode targets YOUR private projects, in company mode the team's shared ones.
+  const { data: projects, error } = await projectsModeFilter(sb.from('projects').select('id, name, icon').eq('kitchen_id', currentKitchenId)).order('created_at');
   if(error){ alert('Could not load your projects: ' + error.message); return; }
   if(!projects || !projects.length){
     alert('No Check List project yet — open Check List and create one first, then come back here.');
@@ -14457,10 +14459,15 @@ function showIngredients(){
   if(fab) fab.style.display = canAdd ? 'flex' : 'none';
   const customIngredientsBtn = document.getElementById('customIngredientsIconBtn');
   if(customIngredientsBtn) customIngredientsBtn.style.display = (currentIsAdmin && !isPublicShelf) ? 'flex' : 'none';
+  // AI Details + Invoice Scan on the Sautero library shelf too, for admins (Richard, 19.7.:
+  // "v sautero ingredients chýbajú v hornej lište AI details a invoice scan" — the 18.7. shelf
+  // parity change hid them on shared shelves for EVERYONE, including the admins who curate the
+  // library; db/105 enforces the write side server-side either way). Public stays read-only.
+  const canAiTools = isPersonalShelf || isCompanyShelf || (ingredientShelfIsShared(ingredientSourceFilter) && !isPublicShelf && canManageSharedIngredients());
   const genBtn = document.getElementById('generateDetailsBtn');
-  if(genBtn) genBtn.style.display = (isPersonalShelf || isCompanyShelf) ? 'flex' : 'none';
+  if(genBtn) genBtn.style.display = canAiTools ? 'flex' : 'none';
   const invBtn = document.getElementById('invoiceScanBtn');
-  if(invBtn) invBtn.style.display = (isPersonalShelf || isCompanyShelf) ? 'flex' : 'none';
+  if(invBtn) invBtn.style.display = canAiTools ? 'flex' : 'none';
   const shareBtn = document.getElementById('ingredientShareBtn');
   if(shareBtn) shareBtn.style.display = isPersonalShelf ? 'flex' : 'none';
   syncRecipeSourcePin();
@@ -15336,6 +15343,19 @@ let taskEditingId = null;
 let _prepDishes = [];
 let _prepItems = [];
 
+/* Personal vs company context for Check List projects (Richard, 19.7. — db/159): a team
+   member's kitchen_id points at the COMPANY kitchen even in personal mode, so every projects
+   read must carry the mode explicitly — personal mode: only MY personal projects; company
+   mode: only the team's shared projects. Company projects are created by the kitchen's admin
+   only (Head Admin / company_admin) — members create sections inside them, not projects. */
+function projectsIsPersonalMode(){ return currentAccountType === 'personal'; }
+function projectsModeFilter(q){
+  q = q.eq('is_personal', projectsIsPersonalMode());
+  if(projectsIsPersonalMode()) q = q.eq('created_by', currentUser.id);
+  return q;
+}
+function canCreateCompanyProject(){ return currentIsAdmin || !!currentAdminPerms.company_admin; }
+
 async function showCheckListProjects(){
   logEvent('view_opened', {view:'check_list_projects'});
   hideAllViews();
@@ -15343,7 +15363,10 @@ async function showCheckListProjects(){
   maybeShowViewTutorial('checkList');
   const el = document.getElementById('checkListProjectsGrid');
   el.innerHTML = '<p class="lede">Loading…</p>';
-  const { data, error } = await sb.from('projects').select('*').eq('kitchen_id', currentKitchenId).order('created_at');
+  // Personal vs company context (Richard, 19.7. — db/159, same class as Order List's db/156):
+  // personal mode shows ONLY your own personal projects; company mode only the team's shared
+  // ones. RLS enforces the privacy server-side; this filter enforces the mode split.
+  const { data, error } = await projectsModeFilter(sb.from('projects').select('*').eq('kitchen_id', currentKitchenId)).order('created_at');
   if(error){ el.innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   currentProjects = data || [];
   renderCheckListProjectsGrid();
@@ -15366,11 +15389,15 @@ function renderCheckListProjectsGrid(){
     attachLongPress(btn, ()=> openItemContextMenu('project', p.id, p.name || 'Untitled', p.hidden));
     el.appendChild(btn);
   });
-  const addBtn = document.createElement('button');
-  addBtn.className = 'home-tile';
-  addBtn.innerHTML = `<span class="home-tile-icon">➕</span><span class="home-tile-label">Add Project</span>`;
-  addBtn.onclick = openAddProject;
-  el.appendChild(addBtn);
+  // Add Project: personal mode → everyone (their own private project); company mode → the
+  // kitchen's admin only (Richard, 19.7.: "projekty vytvára iba admin daného teamu").
+  if(projectsIsPersonalMode() || canCreateCompanyProject()){
+    const addBtn = document.createElement('button');
+    addBtn.className = 'home-tile';
+    addBtn.innerHTML = `<span class="home-tile-icon">➕</span><span class="home-tile-label">Add Project</span>`;
+    addBtn.onclick = openAddProject;
+    el.appendChild(addBtn);
+  }
   const hiddenCount = currentProjects.filter(p=>p.hidden).length;
   if(hiddenCount || _showHiddenProjects){
     const toggle = document.createElement('button');
@@ -15399,6 +15426,11 @@ function renderAddProjectIconGrid(){
 }
 function pickAddProjectIcon(icon){ _newProjectIcon = icon; renderAddProjectIconGrid(); }
 function openAddProject(){
+  // Belt-and-braces behind the hidden tile (db/159 enforces it server-side too).
+  if(!projectsIsPersonalMode() && !canCreateCompanyProject()){
+    alert('Only your kitchen admin can create a company project. Switch to Personal mode to create your own private one.');
+    return;
+  }
   document.getElementById('addProjectName').value = '';
   document.getElementById('addProjectStatus').textContent = '';
   _newProjectIcon = RECIPE_PROJECT_ICON_CHOICES[0];
@@ -15411,7 +15443,7 @@ async function saveAddProject(){
   const name = document.getElementById('addProjectName').value.trim();
   if(!name){ statusEl.textContent = 'Give it a name first.'; return; }
   statusEl.textContent = 'Saving…';
-  const { data, error } = await sb.from('projects').insert({ kitchen_id: currentKitchenId, name, icon: _newProjectIcon, created_by: currentUser.id }).select().single();
+  const { data, error } = await sb.from('projects').insert({ kitchen_id: currentKitchenId, name, icon: _newProjectIcon, created_by: currentUser.id, is_personal: projectsIsPersonalMode() }).select().single();
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   closeAddProject();
   currentProjects.push(data);

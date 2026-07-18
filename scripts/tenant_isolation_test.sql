@@ -22,11 +22,13 @@ declare
   user_b uuid; kitchen_b uuid;
   t text;
   leaked bigint;
+  -- schedule_entries removed 19.7. (never existed in prod — dropped by db/18; the reference
+  -- here would abort the whole test on a missing table); projects/tasks/events added.
   tenant_tables text[] := array[
     'recipes', 'ingredients', 'prep_items', 'prep_dishes', 'order_list_items',
     'fridges', 'fridge_logs', 'print_label_settings', 'print_label_log',
     'haccp_checklist_items', 'haccp_checklist_log', 'haccp_measurement_log',
-    'time_entries', 'schedule_entries', 'check_list_audit_log', 'kitchen_invites'
+    'time_entries', 'projects', 'tasks', 'events', 'check_list_audit_log', 'kitchen_invites'
   ];
 begin
   -- two users from two DIFFERENT kitchens
