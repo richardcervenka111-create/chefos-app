@@ -556,5 +556,188 @@
       </div>`).join('');
 })();
 </script>
+<script>
+/* t174 (18.7.): full SK/EN for monetization. The walker stashes the Slovak innerHTML on first
+   run and swaps by index arrays — the HTML body stays single-source (SK), EN lives here.
+   New models/sections must extend these arrays. */
+(function(){
+  const T = {
+    dek: `The outcome of a five-perspective panel discussion over all project documents (roadmap, MVP, pilot agreement, legal.html, employment contracts). Every model carries a fit rating for your exact situation — solo founder, pre-GmbH, employed full-time, 1 pilot kitchen, market: professional kitchens of 5–25 people in Switzerland. Models 11-12 and the action plan added by Claude 13 Jul; model 13 is Richard's own idea, 15 Jul; model 14 (free-tier gamification) proposed at Richard's request 15 Jul.`,
+    mTitle: [
+      'Per-kitchen subscription (flat SaaS)','Founding-member pre-sale','Modular subscription (à la carte)','Onboarding as a paid service','AI credits / metered AI','Hardware bundle — label printer + consumables','Enterprise / multi-location licence','Supplier commissions / an ordering marketplace','Benchmarking &amp; data insights','Content layer — recipes &amp; technique as premium content','Training &amp; workshops — the "digital kitchen" live','Sponsored placement of local suppliers',`Chef's Assistant as a whole "office team" for micro-restaurants`,'Gamification for non-payers — a data flywheel'
+    ],
+    mSub: [
+      'One price per kitchen/month, unlimited team members — e.g. Chef Pro CHF 49, Restaurant CHF 149',
+      'The first 10–20 kitchens pay a year up front at a discount (e.g. CHF 490/yr instead of 588) + a lifetime founding price',
+      'The base cheap (recipes + Check List), modules as add-ons: Working Time +CHF 20, Food Cost +CHF 30, AI +CHF 20…',
+      '"We digitise your whole kitchen" — a one-off CHF 500–2000: an AI scan of all recipes, station setup, prep sheets, training',
+      `A base subscription + AI features (Chef's Assistant, scanning, generation) billed by consumption or in credit packs`,
+      'Sautero sells/rents the Brother QL + a margin on label rolls (CHF 200–1000/yr per kitchen per our own research)',
+      'Chains (Nooch, 10+ locations): central recipe management, a discounted per-location price, an annual contract, an SLA',
+      'The Order List connects to suppliers (Transgourmet, Saviva…) — Sautero takes a % of orders or an integration fee',
+      `Anonymised cross-kitchen reports: "your food cost vs. the median of similar venues", ingredient price trends`,
+      '173 professional recipes + a video library (Phase 6+) as a paid "Sautero Library" add-on or a standalone Level 1 (home cook) product',
+      `Paid half-day workshops for kitchen teams: digitising operations, food cost in practice, HACCP documentation — with Sautero as the tool, but the chef's know-how as the value. CHF 500–1500 per workshop. <b style="color:var(--gold);">Added by Claude 13 Jul.</b>`,
+      `A local supplier (e.g. a local cheese dairy, Caviezel, Gourmador) pays for highlighted placement on the ingredients it supplies — a "recommended local supplier" tag in Ingredients/Order List, clearly marked as sponsored. <b style="color:var(--gold);">Added by Claude 13 Jul, at the founder's question.</b>`,
+      `Instead of selling the app as a recipe/prep tool, position the higher tier as a replacement for the office/admin work a micro-restaurant (1-3 people in the kitchen, no dedicated admin) otherwise can't afford: food cost, supplier price tracking, prep planning, simple hours records (Working Time) — one AI + app instead of a part-time bookkeeper/office manager. <b style="color:var(--gold);">Richard's idea, 15 Jul.</b>`,
+      `Free users "earn" their usage by contributing value: points/tokens for a filled Yield %, a verified price, a HACCP log, an added recipe — spent on AI features and premium content`
+    ],
+    h4: { 'Panel za':'Panel for', 'Panel proti':'Panel against', 'Za':'For', 'Proti':'Against' },
+    badges: {
+      'Primárny model':'Primary model','Prvý príjem':'First revenue','Po triale':'After the trial','Po trial validácii cenníka':'After trial price validation','Okamžitý doplnok':'Immediate add-on','Keď AI náklady porastú':'Once AI costs grow','Vedľajší kanál':'Side channel','Fáza 6 (multi-location)':'Phase 6 (multi-location)','Fáza 3+':'Phase 3+','Vysoké právne riziko teraz':'High legal risk now','Dlhodobá vízia':'Long-term vision','Spustiteľné pred produktom':'Launchable before the product','Až s viac kuchyňami':'Only with more kitchens','Po tom, ako existuje reálne používanie':'Once real usage exists'
+    },
+    rcTitle: 'Model ranking by rating — click to jump to the card',
+  };
+  Object.assign(window.__monetT || T, {
+    pro: [
+      `<b>CFO:</b> predictable MRR, simple accounting. <b>SaaS CEO:</b> "per kitchen" fits how restaurants buy — a chef doesn't want to count licences for temps. <b>CTO:</b> the multi-tenant architecture already exists, nothing to build except the billing layer.`,
+      `<b>CFO:</b> cash up front with no debt and no investor — exactly the mechanism you chose long ago as the first revenue source before it vanished from the documents. <b>SaaS CEO:</b> the best validation — someone paying a year ahead for a beta is a real customer, not a polite tester.`,
+      `<b>CFO:</b> revenue expansion without acquiring new customers — a kitchen starts basic and buys more. <b>SaaS CEO:</b> a low entry barrier for sceptical chefs.`,
+      `<b>SaaS CEO:</b> solves the biggest adoption barrier (nobody wants to retype 200 recipes) and the customer pays for it. <b>CFO:</b> high margin — the AI scan does most of the work, you review. One-off cash immediately. <b>Unique edge:</b> you are a chef — competing SaaS firms can't credibly offer this service.`,
+      `<b>CFO:</b> the only model where variable costs (the Anthropic API) exactly track revenue — zero risk of a "power user" eating you. <b>CTO:</b> the usage log de facto already exists in analytics.`,
+      `<b>CFO:</b> recurring consumables revenue is a beautiful business (LABEL_PRINTER_RESEARCH shows the rolls cost more than the printer). <b>SaaS CEO:</b> hardware in the kitchen = a physical anchor against churn.`,
+      `<b>CFO:</b> one signature = 10× MRR, annual payments up front. <b>SaaS CEO:</b> Nooch is already an identified target — a central recipe push to locations is exactly their pain.`,
+      `<b>CFO:</b> potentially the biggest model of all — a % of a kitchen's food purchasing is an order of magnitude more than a subscription. <b>SaaS CEO:</b> this is exactly how MarketMan and Choco grew.`,
+      `<b>SaaS CEO:</b> data is the only moat competitors can't catch up with. Genuinely valuable to kitchens (nobody knows whether their food cost is good).`,
+      `<b>SaaS CEO:</b> the content exists for free — it's already done. Marketing value (SEO, a showcase of quality) even if it never earns directly. <b>CFO:</b> zero marginal cost.`,
+      `<b>The only model that doesn't depend on a finished product</b> — you sell knowledge you already have, Sautero is "just" the demo tool in hand. The same unique edge as model 04 (a chef, not a programmer), but without waiting for the trial. Every workshop is also a sales channel: the participants are exactly the audience for the founding-member offer. Swiss gastro associations and trade schools actively look for these topics.`,
+      `<b>CTO:</b> technically trivial compared to model 08 (the marketplace) — no supplier API integration, no ordering workflow, just a tag/banner when an ingredient matches a supplier's range. We're building the data for it right now (the origin field, ingredients with a real supplier and article number from db/46, db/58). <b>SaaS CEO:</b> hyperlocal relevance is exactly what big ad networks can't offer — a Thurgau supplier can reach precisely the kitchens actively planning a menu with its cheese in the ingredient list.`,
+      `<b>SaaS CEO:</b> changes the sales frame from "another kitchen tool you must learn" to "you save hiring an office manager" — a far stronger reason to pay CHF 149/month for the Restaurant tier, since it compares against a real wage, not against zero. <b>CTO:</b> the app already has nearly all the building blocks (the cost engine, Ingredients, Working Time, Chef's Assistant) — this is mostly positioning/marketing, not a new feature. The micro-restaurant audience (5-25 people) is also today's market, so who buys doesn't change — only why.`,
+      `<b>SaaS CEO:</b> this is not a "game for fun" — it's a data flywheel: free users build with their contributions exactly the asset (verified prices, real yields, HACCP benchmark data) that makes the paid tiers and the future B2B layer sellable. <b>PM:</b> unifies three of Richard's existing ideas into one system — Yield % rewards (t44), tokens for "training the app" (t71) and Chef Challenge (already built). Mechanics: XP and levels (Commis → Chef de Partie → Sous → Head Chef), daily streaks for check-ins, badges, monthly Chef Challenge contests, tokens for AI scans. <b>CFO:</b> the free tier stops being pure cost — AI usage is covered by the token cap, so a non-payer never burns more than they "worked off".`
+    ],
+    con: [
+      `<b>CFO:</b> a flat price leaves money on the table with big kitchens (25 people pay like 5). <b>SaaS CEO:</b> churn in gastronomy is brutal — restaurants close; budget for 3–5% monthly.`,
+      `<b>Lawyer:</b> you're selling a promise — if the product isn't delivered, a refund claim arises. Keep the money separate until it's earned. <b>SaaS CEO:</b> a "lifetime price" sounds tempting, but define exactly what it covers (today's modules, not everything future).`,
+      `<b>SaaS CEO 2:</b> for a solo founder this is pricing complexity that kills — 5 modules × discounts × combinations = support hell. <b>CTO:</b> feature-gating in a single-file app = another code layer you don't need now.`,
+      `<b>CFO:</b> doesn't scale — it's your time, which is scarce with the new job. <b>CTO:</b> a dependency on Anthropic API costs — for big kitchens, price the scan in advance.`,
+      `<b>SaaS CEO:</b> chefs hate the taximeter — price uncertainty kills usage of exactly the features that differentiate you. <b>SaaS CEO 2:</b> AI costs are negligible so far — you're solving a problem you don't have.`,
+      `<b>CFO:</b> logistics, stock, returns, capital tied up in goods — a nightmare for a solo founder. <b>Lawyer:</b> as a hardware seller you carry warranty duties (2 years in CH). <b>Ironic:</b> your own research warns kitchens about consumables lock-in — don't be the vendor you warned against.`,
+      `<b>CTO:</b> multi-location does NOT exist in the app (Phase 6) — don't sell what you can't deliver. <b>Lawyer:</b> an enterprise customer will want a DPA, SLA, insurance, a security audit — none of that exists yet. <b>SaaS CEO 2:</b> an enterprise sales cycle = 6–12 months of your time.`,
+      `<b>CTO:</b> requires partnerships and the big suppliers' APIs — months of negotiations a solo founder has no leverage for without a user base. <b>Lawyer:</b> a commission conflict of interest — if the supplier pays you, whom does your "cost optimisation" advice serve? Must be transparently admitted in the terms.`,
+      `<b>Lawyer — IMPORTANT:</b> legal.html and the PILOT_AGREEMENT today explicitly promise kitchen data won't be used for anything but running the app. Monetising data would break your own written promise. Requires: changed terms, an explicit opt-in, real anonymisation (with 10 kitchens in Bern, "anonymous" is easily re-identifiable). <b>CFO:</b> with a small sample the benchmarks are statistically worthless anyway.`,
+      `<b>SaaS CEO 2:</b> you yourself marked the home-cook market as crowded and low-margin in MVP_DEFINITION — and you were right. Don't be distracted by it. <b>Lawyer:</b> verify the origin of all 173 recipes — recipes from previous workplaces can hit confidentiality (Geheimhaltungspflicht survives the end of employment).`,
+      `Doesn't scale — your time, which is scarce with a full-time job (the same problem as model 04, but worse: you can't run a workshop from the couch at night). Requires the same side-business consent as everything else. A distraction risk: if workshops earn, it's tempting to become a trainer instead of a founder.`,
+      `<b>SaaS CEO 2:</b> without real volume (dozens of active kitchens) there's nothing to sell — zero traffic = zero value to an advertiser; selling it now would be premature. <b>CFO:</b> a paid tool with ads in it looks cheap unless clearly framed as "useful information", not intrusive advertising. <b>Lawyer:</b> must be clearly marked as sponsored/paid placement (the Swiss UWG — unfair-competition law requires ads to be distinguishable from organic content).`,
+      `<b>CFO:</b> "replaces an office manager" is a strong claim the app can't truly meet today — real payroll/accounting integration is missing (Working Time collects data but computes no wage and sends nothing anywhere). Overselling here can disappoint exactly the most valuable customers. <b>Lawyer:</b> if the app starts looking like it "replaces a bookkeeper", the line to providing regulated financial/payroll services gets closer — communicate clearly that it's an organisational tool, not accounting/payroll software.`,
+      `<b>UX/chef:</b> gamification in a professional tool can look cheap — a chef mid-service doesn't want confetti; it must be subtle (a quiet points account, not animations). <b>CTO:</b> gamified inputs = a data-quality risk (people enter anything for points) — validation needed (e.g. a yield outside a sane band doesn't count). <b>Lawyer:</b> in Switzerland beware public comparison of individuals' performance at work — leaderboards opt-in only and at team/kitchen level, not by name (the Art. 328 OR context, same as the mental-health topic).`
+    ],
+    verdict: [
+      `<b>Panel verdict:</b> This is the backbone. Two tiers (Chef Pro solo / Restaurant team) exactly mirror the existing Level 2/3 tiers from FEATURE_ROADMAP. Everything else in this document is an add-on to this base.`,
+      `<b>Panel verdict:</b> Launch during/after August. The 25-person trial is exactly the audience for "want the founding price?". Goal: 5 paying founding kitchens = validation + first cash.`,
+      `<b>Panel verdict:</b> A good evolution of model 01 once there are 30+ customers and it's clear what they actually use. Not for the start.`,
+      `<b>Panel verdict:</b> The ideal "wedge" — a kitchen pays for onboarding, gets a ready system, and the subscription (model 01) is the natural continuation. Combine: onboarding CHF 990 + a founding first year.`,
+      `<b>Panel verdict:</b> Keep in reserve. Build a "fair use" cap into the subscription (e.g. 500 AI actions/month) and pull out the metered model only once data shows it's needed.`,
+      `<b>Panel verdict:</b> For now just recommend the printer (an affiliate link on digitec = small risk-free income). Selling hardware yourself only at 20+ kitchens, if at all.`,
+      `<b>Panel verdict:</b> The right goal for 2027, not 2026. But: start with ONE Nooch location as a normal Restaurant customer (model 01) — a Trojan horse into the chain.`,
+      `<b>Panel verdict:</b> Write it into the investor vision (a great "TAM expansion" slide), leave it until 50+ kitchens.`,
+      `<b>Panel verdict:</b> 2028+. Until then build the data cleanly, with trust — that's worth more than a premature data business.`,
+      `<b>Panel verdict:</b> Not as a business, yes as marketing — a few recipes publicly free as a showcase of Sautero quality.`,
+      `<b>Verdict:</b> Keep as an add-on to model 04, not a standalone business — e.g. a "Premium" onboarding bundle = digitisation + a half-day team workshop for a surcharge. One workshop per quarter as marketing + direct income, no more.`,
+      `<b>Verdict:</b> A good idea, the wrong moment. Postpone until the app has genuinely active kitchens from the trial (at least 20-30) — then you can offer suppliers a concrete number ("your product is seen by X professional kitchens weekly while planning menus"). Until then, prepare the ground for free: showing "Supplier: Caviezel Giovanettoni, article no. XXXXX" on ingredients already builds exactly the local-supplier relationships that later pay for placement.`,
+      `<b>Verdict:</b> A strong idea for POSITIONING the Restaurant tier once the trial shows people genuinely think of it this way (watch whether customers describe the app like this themselves). Don't build payroll/accounting features just for this — first prove the message via copy/marketing on the existing product, add features once demand confirms the direction.`,
+      `<b>Panel verdict:</b> Build AFTER the trial as the free tier's retention layer and data engine — not as a revenue replacement (models 1+2 remain the backbone). The first step is cheap: a quiet points account for Yield % + verified prices, tokens spendable on AI scans. Leaderboards and levels only once data shows it retains people. The investor point: "free users build our data base" is a stronger story than "the free tier is marketing".`
+    ],
+    flags: [
+      `<b>⚠ Legal block — side business</b>This is the first moment Sautero "dem Erwerbszweck dient". Under the Personalreglement (and almost certainly a similar clause in the Burrito Bandito contract) you need the employer's WRITTEN consent to gainful side work BEFORE accepting the first payment. This is a condition for models 1–11 without exception.`,
+      `<b>⚠ Invoicing entity</b>Before the first invoice the legal form must be decided: a sole proprietorship suffices at the start (fast, cheap), the GmbH per the "after revenue" plan — but the first invoice IS revenue, so at minimum the sole proprietorship + AHV registration as self-employed must exist at the first payment.`,
+      `<b>⚠ HACCP liability</b>If you sell hardware + software as a "HACCP solution", you strengthen the impression that you vouch for the food-safety outcome. The PILOT_AGREEMENT disclaimer (art. 3) must survive into commercial contracts, and check professional liability insurance before launching this.`,
+      `<b>⚠ Conflict with existing promises</b>Do not launch until: (1) there are 100+ kitchens for real anonymity, (2) the terms pass a lawyer, (3) an opt-in mechanism exists. Today's documents explicitly forbid this model — and rightly so.`
+    ],
+    gflagH: [
+      '1. Side business — the employer\'s written consent BEFORE the first payment',
+      '2. Legal form and invoicing',
+      '3. HACCP liability when going paid',
+      '4. Working Time data = the customer\'s payroll agenda',
+      '5. Anthropic API costs vs. "unlimited AI"',
+      'The panel\'s unanimous conclusion'
+    ],
+    gflagP: [
+      `The SHB Personalreglement (art. 3.6) forbids gainful side work without written consent — and expect a similar clause in the Burrito Bandito contract. While Sautero is an unpaid trial you're in a grey zone; the first franc received leaves it. The solution: a short written request to the new employer ("kitchen software, doesn't compete with the restaurant, outside working hours"). <b>The draft request is ready in docs/NEBENERWERB_REQUEST.md — just fill in the employer's name and send.</b> <b style="color:var(--gold);">As of 17 Jul: on 16 Jul Richard committed to both blockers (the consent and the sole proprietorship/AHV).</b>`,
+      `"A GmbH after revenue" is fine as a goal, but nobody can invoice without an entity — at the first revenue you need at least a sole proprietorship (self-employment, AHV registration as selbständig; the commercial-register entry only becomes mandatory from CHF 100k turnover). VAT registration only from CHF 100k turnover — until then you invoice without VAT. For later EU sales consider a Merchant-of-Record (Paddle/Lemon Squeezy) that handles VAT for you.`,
+      `The disclaimer in PILOT_AGREEMENT art. 3 is a good start, but it covers a free pilot. With a paid product a court judges liability more strictly ("I paid for a tool that computes my use-by dates"). Before the commercial launch: lawyer-checked commercial terms + professional liability insurance (Berufshaftpflicht, for software in the hundreds of CHF/yr).`,
+      `As soon as a kitchen pays and uses Working Time to compute wages, Sautero processes employees' personal data on the employer's behalf — in a commercial relationship that normally requires a data-processing agreement (ADV/DPA) attached to the terms. legal.html is fine at trial level; the paid product needs an upgrade.`,
+      `Never promise unlimited AI at a flat price without a fair-use clause. One kitchen scanning 500 recipes a day can eat the margin. The panel's recommendation: a fair-use cap in the terms + a cost alert on the Anthropic account (already on the task list).`,
+      `Don't invent exotica. The combination <b>onboarding CHF ~990 + a founding annual subscription</b> is the entire monetisation plan for the next 12 months — simple to explain, simple to invoice, and it uses your unique edge (a chef who digitises kitchens, not a programmer playing chef). Everything else is a slide for the investor deck. The only two things genuinely blocking you aren't product ones: <b>the employer's written consent and founding the sole proprietorship.</b>`
+    ],
+    aTitle: [
+      'Draft of the side-business consent request','Draft of the founding-member offer','Send the consent request to the employer (Burrito Bandito)','Sole proprietorship / AHV registration','Decide the final prices (founding + onboarding)','After consent: the founding offer right in the app','A fair-use clause into legal.html'
+    ],
+    aDesc: [
+      `docs/NEBENERWERB_REQUEST.md — a bilingual draft (DE + an SK explanation); fill in the employer's name, print/send. This is blocker #1 for any revenue.`,
+      `docs/FOUNDING_OFFER.md — the complete offer (what a founding kitchen gets, the CHF 490/yr price + CHF 990 onboarding, what the "lifetime price" exactly covers and doesn't, the refund terms) — a draft for your price edits and legal review.`,
+      `Without this no first payment may be accepted. Estimate: 10 minutes of your time + waiting for the signature.`,
+      `Online via the AHV compensation office of canton Bern. No commercial-register entry needed (below CHF 100k). Estimate: 1–2 hours + fees in the tens of CHF.`,
+      `The proposal in FOUNDING_OFFER.md is CHF 490/yr founding + CHF 990 onboarding — adjust by feel, you know the market.`,
+      `A simple "Founding member" page/card in the app for trial users — they see the offer, tap "I'm interested", you get an email. No payment gateway at the start — you send the invoice manually (up to 20 kitchens it's plenty and you skip Stripe fees and integration).`,
+      `A short paragraph about AI limits — prepares the ground for the paid product, changes nothing for the trial.`
+    ],
+    rName: [
+      'Founding-member pre-sale (02)','Onboarding service (04) + workshops (11) as the premium variant','Flat SaaS subscription (01)','Modular add-ons (03) + AI fair-use → metered (05)','Enterprise/Nooch (07)','Sponsored suppliers (12) — after 20-30 active trial kitchens','Marketplace commissions (08), benchmarking (09), content (10), hardware (06)'
+    ],
+    rWhen: [
+      'August–September 2026, after the employer\'s consent','in parallel — the wedge into every new kitchen','Q4 2026 — a public price list after a successful trial','2027, at 30+ customers','2027, after multi-location (Phase 6)','end of 2026 / early 2027, depends on volume','2028+ or never — investor vision, not a plan'
+    ],
+  });
+  window.__monetT = T;
+  function setEl(el, en){
+    if(!el) return;
+    if(!el.dataset.skHtml) el.dataset.skHtml = el.innerHTML;
+    el.innerHTML = (window.__monetLang === 'sk') ? el.dataset.skHtml : (en || el.dataset.skHtml);
+  }
+  window.applyMonetContent = function(lang){
+    window.__monetLang = lang;
+    const q = sel => Array.from(document.querySelectorAll(sel));
+    setEl(document.querySelector('.dek'), T.dek);
+    q('.m-title').forEach((el,i)=>setEl(el, T.mTitle[i]));
+    q('.m-sub').forEach((el,i)=>setEl(el, T.mSub[i]));
+    q('.m-col h4').forEach(el=>{
+      if(!el.dataset.skHtml) el.dataset.skHtml = el.innerHTML;
+      el.innerHTML = lang==='sk' ? el.dataset.skHtml : (T.h4[el.dataset.skHtml.trim()] || el.dataset.skHtml);
+    });
+    q('.fit-badge').forEach(el=>{
+      if(!el.dataset.skHtml) el.dataset.skHtml = el.innerHTML;
+      const key = el.dataset.skHtml.trim();
+      el.innerHTML = lang==='sk' ? el.dataset.skHtml : (T.badges[key] || el.dataset.skHtml);
+    });
+    const rt = document.querySelector('.rc-title'); if(rt) setEl(rt, T.rcTitle);
+    if(T.pro) q('.m-col.pro p').forEach((el,i)=>setEl(el, T.pro[i]));
+    if(T.con) q('.m-col.con p').forEach((el,i)=>setEl(el, T.con[i]));
+    if(T.verdict) q('.m-verdict').forEach((el,i)=>setEl(el, T.verdict[i]));
+    if(T.flags) q('.flag').forEach((el,i)=>setEl(el, T.flags[i]));
+    if(T.gflagH) q('.gflag h3').forEach((el,i)=>setEl(el, T.gflagH[i]));
+    if(T.gflagP) q('.gflag p').forEach((el,i)=>setEl(el, T.gflagP[i]));
+    if(T.aTitle) q('.a-title').forEach((el,i)=>setEl(el, T.aTitle[i]));
+    if(T.aDesc) q('.a-desc').forEach((el,i)=>setEl(el, T.aDesc[i]));
+    if(T.rName) q('.r-name').forEach((el,i)=>setEl(el, T.rName[i]));
+    if(T.rWhen) q('.r-when').forEach((el,i)=>setEl(el, T.rWhen[i]));
+  };
+})();
+/* Shared SK/EN toggle (same chefos_doc_lang key as every doc). */
+(function(){
+  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  function apply(){
+    document.querySelectorAll('[data-sk]').forEach(el=>{
+      const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
+      if(val.indexOf('<') !== -1) el.innerHTML = val; else el.textContent = val;
+    });
+    const b = document.getElementById('chefosLangFab');
+    if(b) b.textContent = lang === 'sk' ? 'EN' : 'SK';
+    document.documentElement.lang = lang;
+    if(window.applyMonetContent) window.applyMonetContent(lang);
+  }
+  window.chefosToggleLang = function(){
+    lang = lang === 'sk' ? 'en' : 'sk';
+    localStorage.setItem('chefos_doc_lang', lang);
+    apply();
+  };
+  if(!document.getElementById('chefosLangFab')){
+    const b = document.createElement('button');
+    b.id = 'chefosLangFab'; b.textContent = 'EN'; b.onclick = window.chefosToggleLang;
+    b.style.cssText = 'position:fixed;top:12px;right:12px;z-index:60;background:var(--paper);border:1px solid var(--rule);color:var(--ink);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;';
+    document.body.appendChild(b);
+  }
+  apply();
+})();
+</script>
 </body>
 </html>
