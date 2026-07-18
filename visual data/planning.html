@@ -197,25 +197,25 @@ const TOP3 = {
   day: {
     range: 'Sobota 18. 7. 2026',
     items: [
-      { text: '🏷️ SAUTERO DEŇ D: appka naživo na app.sautero.ch (DNS+Pages+HTTPS), e-maily a odosielateľ Sautero, nové logo (teal S), 691 náhrad v dokumentoch, NAMING_RISK uzavretý s poučením', status: 'done' },
-      { text: 'Tímové funkcie: ➕ Add Team Member (db/145), tímové zoznamy aj projekty receptov (db/146-147, 👥), Company Ingredients agreguje zoznamy, sken→Company presun, roly Main/Kitchen Admin, Create Team odstránené', status: 'done' },
-      { text: '🌐 Dvojjazyčnosť: mapa funkcií 112/112 SK/EN; nové dokumenty Poznámky (+ Poučenia) a Aare Ventures — plne bilingválne; trvalé pravidlo SK/EN + inventúra povrchov pri rebrande', status: 'done' },
+      { text: '🏷️ SAUTERO DEŇ D: appka naživo na app.sautero.ch (DNS+Pages+HTTPS), e-maily a odosielateľ Sautero, nové logo (teal S), 691 náhrad v dokumentoch, NAMING_RISK uzavretý s poučením', text_en: '🏷️ SAUTERO D-DAY: app live at app.sautero.ch (DNS+Pages+HTTPS), emails and sender Sautero, new logo (teal S), 691 replacements across documents, NAMING_RISK closed with the lesson', status: 'done' },
+      { text: 'Tímové funkcie: ➕ Add Team Member (db/145), tímové zoznamy aj projekty receptov (db/146-147, 👥), Company Ingredients agreguje zoznamy, sken→Company presun, roly Main/Kitchen Admin, Create Team odstránené', text_en: 'Team features: ➕ Add Team Member (db/145), team ingredient lists and recipe projects (db/146-147, 👥), Company Ingredients aggregates lists, scan→Company move, Main/Kitchen Admin roles, Create Team removed', status: 'done' },
+      { text: '🌐 Dvojjazyčnosť: mapa funkcií 112/112 SK/EN; nové dokumenty Poznámky (+ Poučenia) a Aare Ventures — plne bilingválne; trvalé pravidlo SK/EN + inventúra povrchov pri rebrande', text_en: '🌐 Bilinguality: feature map 112/112 SK/EN; new documents Notes (+ Lessons) and Aare Ventures — fully bilingual; standing rule SK/EN + a surface inventory on every rebrand', status: 'done' },
     ]
   },
   week: {
     range: 'Týždeň 13. 7. – 19. 7. 2026',
     items: [
-      { text: 'Community vrstva nasadená: verejné police (recepty + ingrediencie), zdieľanie po položkách verejne/priateľom, komentáre naprieč kuchyňami', status: 'done' },
-      { text: 'Maratón 16. 7.: skutočné súkromie dát, reálne členstvo v tíme, rolový admin, Kitchen Reports, centrálny AI kľúč', status: 'done' },
-      { text: 'Poslať Nebenerwerb žiadosť + registrovať Einzelfirma/AHV (oba príjmové blokátory, oba len Richard, termín 20. 7.)', status: 'planned' },
+      { text: 'Community vrstva nasadená: verejné police (recepty + ingrediencie), zdieľanie po položkách verejne/priateľom, komentáre naprieč kuchyňami', text_en: 'Community layer shipped: public shelves (recipes + ingredients), per-item sharing publicly/with friends, cross-kitchen comments', status: 'done' },
+      { text: 'Maratón 16. 7.: skutočné súkromie dát, reálne členstvo v tíme, rolový admin, Kitchen Reports, centrálny AI kľúč', text_en: '16 Jul marathon: true data privacy, real team membership, role-based admin, Kitchen Reports, central AI key', status: 'done' },
+      { text: 'Poslať Nebenerwerb žiadosť + registrovať Einzelfirma/AHV (oba príjmové blokátory, oba len Richard, termín 20. 7.)', text_en: 'Send the side-business consent + register the sole proprietorship/AHV (both revenue blockers, both Richard-only, due 20 Jul)', status: 'planned' },
     ]
   },
   month: {
     range: 'Júl 2026',
     items: [
-      { text: 'Spustenie verejného trialu — 25 užívateľov, viac reštaurácií, vlastný tím pre každú kuchyňu (cieľ 1. 8. 2026)', status: 'progress' },
-      { text: 'Vedený živý test celej appky s Richardom — prebieha, väčšina kľúčových tokov overená 16.–17. 7.', status: 'progress' },
-      { text: 'Odblokovanie prvého príjmu: Nebenerwerb súhlas + registrácia Einzelfirma (termín 20. 7.)', status: 'planned' },
+      { text: 'Spustenie verejného trialu — 25 užívateľov, viac reštaurácií, vlastný tím pre každú kuchyňu (cieľ 1. 8. 2026)', text_en: 'Public trial launch — 25 users, several restaurants, each kitchen its own team (target 1 Aug 2026)', status: 'progress' },
+      { text: 'Vedený živý test celej appky s Richardom — prebieha, väčšina kľúčových tokov overená 16.–17. 7.', text_en: 'A guided live test of the whole app with Richard — ongoing, most key flows verified 16–17 Jul', status: 'progress' },
+      { text: 'Odblokovanie prvého príjmu: Nebenerwerb súhlas + registrácia Einzelfirma (termín 20. 7.)', text_en: 'Unblocking first revenue: side-business consent + sole-proprietorship registration (due 20 Jul)', status: 'planned' },
     ]
   }
 };
@@ -460,6 +460,189 @@ const DAYS = [
     planned: 'Richard: kúpiť sautero.ch + sautero.com (Hostpoint, ~25 CHF prvý rok) — potom presun domény a technických identifikátorov. Overiť na iPhone: tímový join/create flow, sken do zoznamu, Company Ingredients, HTML faktúru na protonmaile, novú tému na iCloud účte.'
   },
 ];
+/* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
+   is the key); the forEach glues headline_en/accomplished_en/planned_en onto each entry.
+   New diary entries must be added to BOTH arrays. */
+const DAYS_EN = [
+  { h:'Phase 0 — Foundations & validation approved', a:[
+    'Sautero v1 scope defined: Chef Pro / restaurant kitchens, not home cooks',
+    'Installable mobile/tablet-first web app, no native build',
+    'Pilot kitchen confirmed (Hotel Schweizerhof Bern)',
+    'MVP_DEFINITION.md and ARCHITECTURE.md approved by Richard',
+  ], p:'Kick off Phase 1 — a real backend + the full recipe data model.' },
+  { h:'Recipe engine live, Ingredients + Check List v1, Schedule rebuilt, deployed to production', a:[
+    'Supabase backend stood up; all 173 recipes migrated; scaling calculator fixed',
+    'Ingredients & prices: 535 items seeded (estimated prices, flagged), cost + nutrition engines',
+    'Full 20-field recipe form; a visual design pass (login, navigation, focus states)',
+    'Mise en Place v1: a personal task list, 3-state status, quick add from recipes, Order List',
+    'Home dashboard (6 tiles) + a fridge-temperature module',
+    'Schedule rebuilt from the real Dienstplan PDF: 28 shift codes, 27 real employees',
+    'The SKY prep sheet built from Richard\'s real photographed paper sheet (25 dishes, 69 items)',
+    'The prep sheet refined in 5 rounds in one day: stock counts, a status field, min_required flags, readability, per-phase times, a sticky-header rebuild',
+    'AI photo recipe import shipped (Sonnet)',
+    'Deployed to production: richardcervenka111-create.github.io/chefos-app',
+  ], p:'Add more AI features (method generation, a chat assistant) and extend the Check List to all stations.' },
+  { h:'AI features, Kitchen Flow, all 8 stations, multi-language, ingredients to 1,263', a:[
+    'Generate Method with AI + the Chef\'s Assistant chatbot shipped; costs cut via Haiku + a capped history',
+    'Kitchen Flow v1: station picker as icon tiles, a 🔥 overload badge (>3.5 h of outstanding work)',
+    'Check List prep sheets extended to all 8 stations (Hot Line/Garde Manger/Desserts from real menus; Lobby/Entremetier/BQT/Extra provisional, approved by Richard)',
+    'A notes field added to every task/prep item',
+    'AI prep-sheet scan (photo + PDF) — self-service creation of new stations',
+    'Renamed "Mise en Place" → "Check List" (outward only)',
+    'All prep-sheet data translated into English',
+    'Multi-language UI v1: an EN/DE/FR/IT/SK switch (partial coverage, real infrastructure)',
+    'Fixed the cross-station "All" view (it was empty) and stuck station-tile badges',
+    'Added the swipe-back gesture on mobile',
+    'The 20k-row master-DB proposal narrowed to +2 fields and ~1,300 ingredients (730 new, generated, zero collisions)',
+    'Ingredients: season + storage-type + food-type filter chips (combinable)',
+    'Created and since maintained app/presentation.html (the investor dashboard, continuously synced)',
+    'Built app/planning.html (this file) — day/week/month, done vs. planned',
+    'presentation.html refocused on Switzerland / canton Bern, with sourced market numbers and a bottom-up ARR model',
+    'Check List: manual "+ New Section" and "+ Add dish" (item composition), no longer scan-only',
+    'Fixed the cross-device station persistence bug (a station created on one phone shows for everyone after reload)',
+    'Check List: real, crowd-sourced prep times — tap the clock and record the actual minutes, averaged over repeated entries',
+    'TO DO / DON\'T DO status colours swapped (TO DO now red) at Richard\'s request; Extra got its own icon (🧺)',
+    'Chef\'s Assistant: fixed the mobile keyboard covering the input (100dvh), added a greeting bubble',
+    'Two real people tested live via Richard\'s shared login at two venues — Recipes confirmed working for them end-to-end',
+    'The public trial planned and written down: target 1 Aug 2026, 25 users across restaurants, each building its own team via QR invite, scope narrowed to Check List + Chef\'s Assistant + Ingredients + Recipes',
+  ], p:'Fix email login for external addresses (Resend domain verification or the built-in mailer); design and build the multi-team/QR system; polish the 4 trial features towards the 1 Aug 2026 public trial.' },
+  { h:'Multi-team QR + access gate, Recipe/Check List fixes, unified visual identity', a:[
+    'Multi-team via QR invite (create or join a kitchen) built end-to-end; a verified QR generator vendored, fully client-side',
+    'The closed-trial access gate: every email manually approved before use, a new Admin tile',
+    'Fixed the recipe double-save bug (a double-tap race condition); the 🚩 flag restricted to priority-1 items only',
+    'Check List: delete or hide an item, a dish or a whole section; a 🛒 Order button on every item and recipe ingredient row',
+    'Built app/board.html → renamed to app/tasklist.html with the full shipped/timeline tracker',
+    'Unified the Sautero visual identity (navy/teal) across presentation.html, planning.html, tasklist.html',
+  ], p:'Order List + Print Labels toolbars, build Working Time from scratch, expand real ingredient prices.' },
+  { h:'Order List + Print Labels toolbars, Working Time built, 104 real supplier prices, Recipes/Ingredients rework, two critical bugs found and fixed', a:[
+    'Order List top bar shipped (Print, Select + bulk delete, group by section) and the Print Labels hub (toolbar + automatic "use by" dates from shelf life)',
+    'Working Time built from scratch: a check-in/out timer, breaks, monthly hours/overtime, vacation countdown, an AI contract scan with legal-advisory notes',
+    'Two severe script-breaking bugs (top-level variable initialisation order) found and fixed the same day — both fully root-caused',
+    'Ingredient Audit v1 shipped, rebuilt in the same batch into a real per-item approval flow (Add / Link-as-alias / Ignore)',
+    '104 real supplier prices imported from a 2026 Swiss wholesale price list (CHF→EUR, traceable to article numbers)',
+    'Check List & Recipes: sections/categories can be renamed and re-iconed, not just deleted; Recipe diet filters fixed + expanded 2→7; the "Ask Chef\'s Assistant" AI recipe generator added',
+    'A kitchen-wide currency switcher shipped (EUR/CHF/USD), default CHF; the Ingredients topbar redesigned to stop eating half the screen',
+  ], p:'Small refinements, the Sautero logo and hardware research (label printer, fridge sensor).' },
+  { h:'Working Time note-visibility fix, bigger Home icons, Print Labels polish, Sautero logo, printer + sensor research, first named sales target', a:[
+    'Fixed the Working Time day-note field being invisible while typing (a page-wide dark-mode fix, not just that one field)',
+    'Home tile icons enlarged again (still 3 per row); Print Labels got its missing topbar title and a real "By section" grouping toggle',
+    'A minimalist Sautero logo designed (a circular monogram), applied live to the My Team brand header and centred right inside the invite QR code',
+    'Researched a wireless fridge-temperature sensor for the "scan QR → live temp" idea — SensorPush recommended (the only budget option with a real cloud API; Bluetooth/NFC from a website is a dead end on iOS)',
+    'Researched a physical label printer + the approach to supplier contracts — Brother QL-820NWB recommended (~CHF 130, bought outright, no contract), full report in docs/LABEL_PRINTER_RESEARCH.md',
+    'Nooch Asian Kitchen (FWG group, 3 venues in canton Bern) named as the first post-pilot sales target',
+    'Ingredients: a live match count while filtering, the full real category list replacing the old 4-item shortcut, a new price filter Verified/Estimated/Missing',
+    'Ingredients: the match count also pinned right in the topbar, visible without opening Search & Filter',
+    'The Sautero logo redesigned — a hand-built ring mark (one precise arc, not a font letter) in sage/cream instead of copper, an italic serif wordmark',
+    'The Check List icon picker expanded from 30 to the full 72 icons, matching Recipes',
+    'New: Language Audit — scans Check List dish/item names for anything non-English, suggests translations, per-item approval',
+    'The pilot kitchen changes from Hotel Schweizerhof to Burrito Bandito & Lido (one group, two venues) — retiring the Schweizerhof IP risk from the backlog v2 review, since Sautero stops depending on their data; RC Studio shelved for capacity; the first pilot-agreement draft in docs/PILOT_AGREEMENT.md',
+    'Six critical/security items resolved: Git set up (it was entirely missing), the Anthropic API key moved server-side via a new Edge Function proxy, real cross-device realtime sync of the Check List actually wired (confirmed it never existed), basic error tracking + usage analytics, expiring/revocable team invites + admin member removal, a written manual regression checklist',
+    'The Ingredients filter sheet: search + the live match count pinned on top, chips scrolling underneath',
+    'backlog.html made interactive: real checkboxes with localStorage persistence, a sticky top bar with a live percent pie + progress bar',
+    'The Check List audit log shipped — every status/stock/priority/note change records who/what/when, shown as "Recent activity" in the item\'s Info panel',
+    '🔴→✅ A critical bug found and fixed the same day: db/53 added two RLS policies on `profiles` that recursively query `profiles` itself, which Postgres cannot resolve — confirmed live via a direct REST probe that it had broken almost every table in the app (profiles, recipes, ingredients, prep_items, prep_dishes, access_requests…), very likely the cause of the broken login screen on Richard\'s phone. Fixed in db/55, Richard ran it, re-verified with a second REST probe — all tables respond normally.',
+    'At Richard\'s request, read his Hotel Schweizerhof contract: no IP clause, non-compete or side-business ban anywhere — an honestly reassuring read (not a legal guarantee; flagged that a real Swiss employment lawyer should confirm before anything investor-facing)',
+    'loadAppData() parallelised (11 sequential Supabase queries → Promise.all) in response to Richard\'s report that the app sometimes loads slowly',
+    'Trial success criteria defined and agreed with Richard (usage, retention, willingness to pay, reliability and qualitative feedback — see backlog.html)',
+    'A staging Supabase project ("chefos-staging") created and fully bootstrapped — all 56 migrations run in one go via a small psycopg2 script (through the Session Pooler, since the Direct connection wants IPv6 which wasn\'t available), verified live with zero errors and exactly matching production data. New SQL migrations are tested here first from now on.',
+    'GitHub Pages deploy fully automated (an Actions workflow + connected repo) — every commit live within a minute, the end of Richard\'s manual drag-and-drop uploads; project-scoped Claude Code permissions set, routine work no longer needs per-step approvals',
+    'The app\'s visual identity unified with the documents (the navy/teal #34F7D7 accent replacing the old copper/charcoal look) at Richard\'s request — one Sautero look everywhere; the Privacy & Terms page (legal.html) + a feedback button shipped; a yield/waste factor added to food cost (db/57 awaiting prod); Ingredients: a price-range filter, multi-select chips, a "Show me" button; the new 🎯 Chef Challenge tile (menu ideas on a budget from the kitchen\'s own priced ingredients)',
+    'The monetisation plan formalised: Richard\'s 10-model expert workshop converted into app/monetization.html in the house style, Claude added model 11 (paid workshops/training) + an action plan. The panel\'s unanimous conclusion: onboarding ~CHF 990 + a CHF 490/yr founding subscription is the whole 12-month plan. Two unblocking documents drafted: docs/NEBENERWERB_REQUEST.md (employer consent — legal blocker #1) and docs/FOUNDING_OFFER.md (the founding-member offer with terms).',
+    'The ingredient database expanded to exactly 2,000 rows (db/59, 646 new AI-estimated items with full price/nutrition/storage/seasons/origin/substitutes data, honestly flagged as estimates); found and fixed a silent bug where the app only loaded the first 1,000 ingredients (Supabase\'s default REST cap) — which is why the app and the deck disagreed on the total.',
+    '🔴→✅ Two live bugs reported by Richard, found and fixed the same day: Check List deletion sometimes silently did nothing (RLS lets an update hit 0 rows with no error — now detected, logged and surfaced instead of pretending success); and all AI features (photo scan, prep list, Chef\'s Assistant) failed because the server-side claude-proxy function was written but never deployed to production — Richard walked through installing the Supabase CLI and a live deploy, confirmed working end-to-end on his phone.',
+    'At Richard\'s request a placeholder 🗣️ Team Meetings tile added to Home (scope deliberately undecided — logged as an open idea in backlog.html); a new idea logged for the Recipes photo scan: whole-menu import (recognise each dish + generate a full recipe per dish, not just one recipe at a time).',
+  ], p:'THE PATH TO REVENUE: Richard sends the Nebenerwerb request (10 min) and registers the sole proprietorship (1–2 h) — the only two blockers of first revenue; then Claude builds the founding-member offer into the app. Next: production Supabase backups + a restore test into staging; run the remaining SQL on production (58, 59); the Resend domain; the regression checklist on a real device; design the whole-menu scan; towards the 1 Aug 2026 trial.' },
+  { h:'Employment transition closed, the claude-proxy production outage found and fixed, whole-menu scan shipped, the external critical review annotated', a:[
+    'Employment at Hotel Schweizerhof formally ended (Aufhebungsvereinbarung signed, last day 14 July); the new Burrito Bandito GmbH contract is now operative — the Nebenerwerb letter retargeted to the real employer (Samuel Sager) and reworded as a written notification, exactly as the signed contract\'s side-work clause requires',
+    { time:'16:39', text:'Started walking Richard through installing Homebrew + the Supabase CLI, live via screenshots, to deploy the claude-proxy Edge Function' },
+    { time:'16:57', text:'claude-proxy deployed to production and confirmed reachable (HTTP 200) — the cause of all AI features failing found: the function had existed in code since the Working Time server-side key migration but was never actually pushed to the production project' },
+    'Whole-menu scan shipped in Recipes: a pre-scan choice of "one recipe" or "a whole menu"; the menu scan recognises each dish + its section and writes a full recipe per dish, each landing on the normal review form before saving',
+    'Shipped and confirmed live: the in-app tutorial, a "report a bug" button, ingredient autocomplete in Print Labels, and the confidentiality confirmation gate at login',
+    'The external "Sautero Critical Review" read in full and annotated in place with five honest counter-notes: the Nebenerwerb needed retargeting, the verified-price ratio moved the wrong way overnight, five features shipped during the very week the review calls a freeze week (including part of today\'s), and Chef Challenge is still in the trial build despite the review\'s own 86 verdict',
+    'The tutorial rewritten from one paragraph per slide to 3–4 short icon+line bullets after Richard\'s feedback that it was hard to read during a shift',
+    'The founder\'s name removed from user-facing pages (legal.html, monetization.html) until a real hello@ address exists; feedback/bug emails no longer expose raw kitchen UUIDs and the full user-agent, just a short report ID',
+    'The Ingredients screen: the default view now starts with max 30 items in season this month, then max 30 coming into season next month, then the normal categories',
+    'Working Time: "Forgot to check out?" added — sets the real end of a still-open shift via a bounded date/time picker instead of silently running forever',
+    'The contract-note splitter fixed: the old sentence-boundary regex cut through legal abbreviations like "Art. 321c OR"; it now prefers real line breaks and protects known abbreviations',
+    'This per-task time column added to Planning & Progress at Richard\'s request — honestly: it only works going forward, exact times of most of the day\'s earlier work weren\'t recorded continuously',
+    'The evening batch: Working Time "Forgot to check in?" + a one-off location snapshot only at check-in/out (Richard chose it over continuous tracking after a direct trade-off question — legally sensitive and unreliable on a locked phone as a web app anyway)',
+    'The contract-check note restyled with a per-point tone icon (⚠️ risk / ✅ good / ℹ️ neutral) so it also shows fair terms, not only risks — during the review a real hole was found and drafted for fixing (db/62, staging first) where colleagues could technically read each other\'s contract notes through RLS',
+    'The "non-stop ingredient agent" question finally settled: Richard set a real CHF 30/month cap and left cadence/priorities to Claude\'s judgment — a daily 06:30 run created, self-reported costs logged to docs/ingredient_agent_log.md and summarised in status.html',
+    'The Chef Challenge tile hidden from Home (not deleted) at Richard\'s request; tasklist.html fully redesigned into the same visual system as status/planning; status.html gained a Spend section and Top-5 tasks by horizon, plus an SK/EN toggle on the structural chrome (full translation of historical content queued, not rushed)',
+    'The night session: the recipe export arrived (180 rows) — no Schweizerhof texts/photos in the data at all. The Michelin-chef pass started: batch 1 (Salads & Starters, 11/11) and batch 2 (Dressings & Cold Sauces, 8/11, 3 excluded as Asian-influenced) done as staged SQL, nothing run on production yet',
+    'Built app/features.html and app/automation.html: a tile-by-tile health report and a register of every recurring automation with self-reported costs; clearly explained that the CHF 30/month cap draws on the Claude Max subscription\'s usage, not a separate account',
+    'Fridge Temp and My Team keep their Home tiles but open a Team-Meetings-style "paused" banner instead of a real screen (Richard\'s decision: Fridge Temp until real sensor data, My Team until email login supports more addresses); Currency moved from a Home tile to a small admin-only topbar icon',
+    'A mandatory "My Profile" registration added (name/age/position) at first login, the same gate pattern as the confidentiality screen, plus an editable version reachable anytime from a new topbar icon',
+    'Richard switched Supabase from custom SMTP (Resend) to the built-in mailer, so external email addresses receive a login code for the first time — a real, if rate-limited (2/hr), test of the whole invite flow',
+    'Richard corrected a false claim in features.html: the photo scan IS live-tested and mostly works, it just occasionally fails. Failure logging added to all 4 AI scan functions (recipe/menu/prep-sheet/contract) so the next failure leaves a trace in error_logs instead of vanishing — the daily static health check can\'t catch this bug class, said explicitly',
+    'Prep-board tickets and Top-5 tasks in status.html are now clickable: tap, press "Work on this now" and the task is marked + a prepared message copied to the clipboard — the honest limit (a static file can\'t reach into the chat) explained directly instead of overselling',
+  ], p:'Continue the Michelin-chef pass through recipe categories; confirm the "AI Playground" shape for the new AI recipe section; build the Slovak Critical Review page with week navigation; run db/62 on staging; extend the SK/EN toggle to the remaining documents; check the email-login test result.' },
+  { h:'Critical contract-data bug found and fixed, the email domain bought, Feedback/Bug/Question merged, an editable Check & Add scan review, My Team live again', a:[
+    'Richard reported his uploaded contract vanished after a refresh — traced to db/62: a column-level grant blocked even the owner\'s SELECT, not just colleagues\' (Postgres column privileges can\'t tell "my row" from "someone else\'s"). An emergency fix (db/68) restores full access; the proper fix (a separate profile_private table, db/69) drafted for staging, not rushed to production that night',
+    'The separate Feedback/Bug topbar icons merged into one dropdown with a third "Question" option (db/70)',
+    '"Check & Add" shipped: the prep-sheet scan review is now fully editable per dish (name, price, every item, remove an item/dish) instead of one read-only summary and a single "add all" button — prompted by Richard scanning a real 14-dish restaurant menu into the Check List',
+    'Cookies vs. localStorage explained simply; verified in code that Sautero uses no cookies, only localStorage for purely functional things (session, language, device id, seen tutorial, print queue) — a plain-language explanation added to the confidentiality screen instead of a meaningless consent checkbox',
+    'The My Team tile switched back on (a real screen, not the paused banner) since email login works for external addresses; "send an invite by email" added with the same passwordless login flow via emailRedirectTo — not yet live-tested end-to-end',
+    'The built-in mailer\'s 2-emails/hour limit hit almost immediately in testing (two different failures, one readable, one a raw "{}" — same cause); a clear, actionable error message added for both',
+    'The chefos.ch domain bought (Hostpoint, CHF 5 year one) and the Resend DKIM/SPF DNS records added — verification pending (Resend said a few hours); this is the real email-login fix, the built-in mailer was always a one-night patch',
+    'The Michelin-chef recipe pass continued (documented in the previous entry\'s own tracking, exact batch counts in backlog.html)',
+  ], p:'Check "Verified" on the domain in Resend, then re-enable custom SMTP in Supabase on the new domain — that permanently removes the email limit. Live-test the My Team email invite. Continue the Michelin-chef pass and build the AI Playground recipe switch. Once email is reliable, do one honest manual test of the whole live app before the public trial.' },
+  { h:'Domain live end-to-end, critical signup bug fixed, HACCP waves 1+2, password + Face ID, URL menu scan, background scanning, Visual Data Standards rollout', a:[
+    'The domain verified in Resend, custom SMTP re-enabled, the app moved to its own address — Richard tested the whole login flow live (HTTPS, email link, automatic sign-in). The public trial\'s hard email blocker is gone',
+    'A critical signup bug found via Richard\'s own gmail test + the Postgres logs: handle_new_user() had no pinned search_path, so EVERY new registration failed ("relation profiles does not exist") — fixed in production (db/73). The client mislabelled it a rate limit; friendlyAuthErrorMessage() fixed too',
+    'Order List: two real bugs found while implementing Richard\'s sharing spec — same-ingredient orders overwrote each other, and one person\'s Save silently wiped a whole station\'s orders for the whole kitchen. db/76 gives everyone their own row; the admin sees a per-person breakdown (staging first)',
+    'The 3-way recipe filter (Mine / Sautero / Company) replaces the 2-way AI Playground switch; the default stays "Company" so the 173 migrated recipes remain reachable',
+    'Background AI scanning: all 5 scan flows can be minimised while running — a persistent pill shows live progress and flips to "done, tap to view"',
+    'Menu scan from a website URL: a new "A menu website" option using Claude\'s server-side web_fetch tool — zero edge-function changes',
+    'Password + Face ID login: a standard Supabase password plus WebAuthn platform-authenticator per-device unlock; biometric data never leaves the device',
+    'HACCP module wave 1: a hub page identical to Home (same tiles), Fridge Temp moved in and revived, Goods Receiving / Core Cooking Temp / Cooling Log / Cleaning + Personal Hygiene checklists live (db/77)',
+    'HACCP wave 2: Fryer Oil + Pest Control switched on (wave-1 engines had them pre-wired), Label Expiry built — printed labels now log use-by dates (db/78), a new urgency-grouped screen',
+    'New kitchens now inherit the ingredient database (db/74) and the profile gate is fully optional with "Skip for now" (db/75) — both staging first',
+    'Visual Data Standards: all 13 internal documents redesigned to the new bar and moved into /visual data/ with redirect stubs; all 4 scheduled automations repointed to the new paths',
+    'The mental-health/burnout idea parked at Richard\'s request after rejecting a hidden-camera mechanism (EU AI Act / Art. 328 OR / nDSG) — a legitimate alternative documented in backlog t109',
+  ], p:'Run db/73+77+78 on production and db/74+75+76 on staging. Live-test HACCP, Face ID, the URL scan and background scanning. Decide the Asian-recipes scope question so the Michelin pass can continue. HACCP wave 3 (Staff Training + Report) once Richard confirms.' },
+  { h:'Marathon day: true data privacy, team membership, role-based admin, Kitchen Reports, a central AI key — plus two security bugs found live and fixed', a:[
+    'True personal/company data isolation (db/97): is_personal on recipes + ingredients enforced via RLS, not just a UI filter; team join codes + a confirmation dialog; Kitchen Reports with an employee-consent gate (db/99); Send Feedback + an admin inbox (db/98); the Privacy & Data Protection consent gate (db/100)',
+    'Real team membership (db/116): Company mode locked to actual members (invite/code/admin role); the burned single-use admin invite incident fixed one-off (db/117) AND permanently (db/118 tolerant re-claim); My Profile shows the Role',
+    'Role-based admin: Kitchen Admin (granular admin_perms) vs Head Admin; an Admin hub with Add Admin / Directory / Access Requests / Email Contacts; the super-admin lockout incident (recursive RLS + a missing column grant) fixed live (db/90) + a permanent auditor check',
+    'Long-press management everywhere (rename/hide/delete), custom ingredient lists with friend sharing (db/112+114), recipe shelves + custom projects with 8 coloured books (db/120–123), branded print v2, the always-visible nav header, the .xlsx scan, AI Details, the central Anthropic API key + branded auth emails',
+    'A security bug found live: removing a team member always failed while the "removed" member kept full access — the db/121 WITH CHECK fix, finished 17 Jul via the db/124 SECURITY DEFINER RPC',
+  ], p:'A guided live testing session with Richard: comments, print, shelves, add-to-checklist; fix whatever the tests surface.' },
+  { h:'Community layer (Public shelves + sharing), Invoice Scan v2, per-screen tutorials, a full security review with permanent guards', a:[
+    'A full day of guided live testing with Richard — every bug found fixed in the same session: cross-kitchen comments (db/129 denormalised master id + badge counts), company recipes leaking onto the personal shelf (db/130), frozen icons after the Safari print preview, the remove-member RPC finished (db/124–125)',
+    'Public shelves: recipes (db/131–133) and ingredients (db/136) publishable to every kitchen with a confirmation question; per-recipe (db/138) and per-ingredient friend sharing + the Chef Friends profile; company profiles can share NOTHING (app + DB triggers); foreign content strictly read-only',
+    'Invoice Scan v2: reads the supplier from the invoice letterhead and stamps it on every line (a new supplier field, db/137); both scans translate any language into the Scan Settings target, the original name kept as an alias; skips dates/totals/VAT',
+    'Per-screen tutorials: every main screen explains itself on first open + a permanent ❓ in the top bar; onboarding slimmed to Welcome + Home; the What\'s New heart removed as redundant',
+    'A full security review at Richard\'s request: the PUBLIC contracts bucket closed (db/134 private + owner-scoped + signed URLs), cross-kitchen stored-XSS closed (escapers at the data boundary), both classes now permanently blocked by the auditors; the live DB health check clean (0 tables without RLS)',
+    'Email Contacts numbered + a full contact detail with the linked account; the Feedback inbox confirmed main-admin-only; document cleanup: features.html + the old status snapshot removed, Internal Docs = exactly 11 kept documents',
+    'Afternoon: the whole Diary translated into Slovak; the worked-hours meter (~84 h, 43.9 h exactly from git, CHF 45/h rate); a new Costs tab in Biznis with a pie chart of all spend so far and upcoming',
+    'AI Usage per user (db/139): claude-proxy records every AI call (who/feature/tokens/price), a live overview in Admin → 📈 AI Usage — the Claude Platform sees only the shared key, this is the only place with the split',
+    '🔴→✅ PRIORITY: old dual-purpose Add Friend QR links pulled people into Richard\'s team (Paula, Filip, Marc — Marc still today via a still-active old invite) and 3 more people were left with no kitchen at all. Data repair db/140 (6 people → their own kitchens + friendships, old invites revoked) + the permanent fix: ?friend ALWAYS wins over ?invite',
+    'Kitchen Reports: the main admin can pin any kitchen to the top (📌, remembered per device)',
+    'Evening: Connections simplified (Invite Friend direct, Share My Recipe with a specific-friend picker + notification — db/143); the Kitchen Reports list redesigned; AI Usage also for Kitchen Admins with a per-user pie (db/142); Costs with clickable timelines (day/week/month/year); Public-ingredient duplicate protection; CHF 97.73 clarified as a Claude subscription; the duplicated "Add ingredients" button in recipes fixed',
+    'Late evening: Add Admin merged into the Admin Directory (quick presets in Edit); AI Usage demo data for showcasing (protonmail demo mode); an AI second check of ingredient duplicates (Haiku catches another language/typo); recipes always open at the top and returning to the list keeps the position; the Gronda research in docs/GRONDA_RESEARCH.md',
+    '🎨 UI redesign approved and built (branch redesign-ui, waves 1–3): navy/teal identity and the system font preserved, new 4-layer depth, glow, micro-interactions, 44px+ targets; the classic theme untouched under html.theme-new; the Classic/New switch visible only to the founder\'s iCloud (default New); deployed inert — nobody else sees anything',
+    '🩺 A deep health check (evening, at Richard\'s request): 46 tables / 0 without RLS / 157 policies / 0 public buckets / 0 errors in 24 h; ai_usage genuinely recording (8 calls), recipe_shares 1 (sharing works after the fix). FINDING + fix: the notify-access-request edge function had never been deployed (access requests silently sent no email) — deployed. Open: AI Testing Mode still ON (switch off before the trial, t166) and 1 active invite to the main kitchen to verify. Ticked off during the evening: the xlsx scan, bulk delete, Invoice Scan v2, My Ingredients privacy (the Secret marinade test), HACCP visibility, long-presses — feature map 77/24/7. Fixed: ingredient mode isolation, the shared-ingredients folder, Add Project icons, scroll memory everywhere',
+    'Night: the per-friend-sharing RLS recursion fixed (db/144, SECURITY DEFINER helpers); notifications extended to comments on favourited public/Sautero recipes (via master id, even from other kitchens); the costs pie with a filter (a legend click adds/removes an item); the Gronda infographic pinned into Internal Docs (gronda.html)',
+    '🍽️ The Michelin-chef rewrite COMPLETE, rebuilt efficiently (db/141): all 183 library recipes (173 + 10 promoted community ones) carry the 5 professional fields, via a title key valid across all kitchens at once; the Asian exclusions filled in. A clipboard-encoding incident (mangled diacritics) fixed along the way — everything verified: 183/183, 0 empty, 0 mangled',
+  ], p:'Test live: AI Usage after the first AI call, the friend QR with a new account, pinning in Kitchen Reports, the enriched recipes in the app. The RLS "Mine" privacy test from two accounts. The Nebenerwerb + sole proprietorship remain the revenue blockers (deadline 20 Jul).' },
+  { h:'🏷️ The rebrand to Sautero + finishing the 8-point list (teams, scan-to-list, HTML invoices) + a deep investor-deck update', a:[
+    'The SAUTERO REBRAND: 162 visible occurrences in the app renamed (login, the Sau/tero print header, PWA manifest, legal, tutorials), all 15 visual documents + build_docs titles; technical identifiers (localStorage chefos_*, chefos_master_id, the app domain) deliberately untouched until the domain purchase; nazov.html carries the "✅ CHOSEN 18.7.2026" verdict; the access-request email notification renamed and deployed',
+    'Point 2 (icloud↔proton teams): data repaired + a permanent guard — Join now live-fetches the current kitchen\'s name and warns "You will LEAVE …", Create Team explains the creator stays in their own kitchen + a "Join this team myself" button',
+    'Point 3 (scan to a list): the target shelf is captured at scan START, not at save — a background scan can never save to a different shelf again; bonus: the 🏢 Company Ingredients shelf in company mode (admin adds, everyone reads), lists work in both modes like recipe projects',
+    'Point 6 (HTML invoices): all 7 vision scans read HTML/MD/TXT/CSV (HTML cleaned via DOMParser), Invoice Scan accepts these types; both prompts teach: the supplier = the letterhead business with a legal suffix (AG, GmbH, S.r.l., s.r.o.) + a VAT line, the recipient ("Spett.le", "Rechnung an") is NOT the supplier — tested on the German and Italian test invoices',
+    'Points 4+5 into the plan: t170 recipe printing in each restaurant\'s identity, t171 weather/day/holiday vs. revenue (backlog.html)',
+    'The Create Team tile removed entirely (Richard: "we don\'t need it anywhere" — new kitchens = Add Company, people into a team = Add Team Member); the "multiple teams in one company for kitchen admins" idea logged in Notes; the feature map 77/26/8. Earlier: t174 block 1 — the feature map fully bilingual (112/112 cards + 13 modules, verified live in both languages incl. modals) and team recipe projects (db/147, the ingredients mirror: the whole team sees a project + its recipes, the 👥 mark, My Recipes stay private)',
+    '🏷️→✅ THE BIG FINISHING BRAND SWEEP (Richard\'s order "don\'t skip a single document"): 691 ChefOS→Sautero replacements across the WHOLE project — gronda, 4× Critical Review, all docs/ (contracts, Nebenerwerb, ROADMAP, snapshots), security/, db/README, root files; NAMING_RISK got a RESOLVED header with the lesson; 2 forgotten copies found and set aside (app/index 3.html, feature_status 2.html). THE NEW LOGO: a serif teal "S" on navy (icons 32-512 + maskable + apple-touch) replacing the old ChefOS "C". Emails: the Magic link + Confirm signup templates rebranded, sender "Sautero" (the @sautero.ch address awaits Resend verification). Poznámky + Aare fully bilingual incl. modals + the new Lessons section with the ChefOS case; the standing rule written to memory: never a name without checks, a rebrand always with a surface inventory, every document SK/EN. The translation audit: 4 documents carry single-language JS content (~30k words) → t174, translated progressively',
+    'Fix (Richard: "new ingredients in new lists still don\'t save into company"): Company Ingredients now aggregates ALL items in custom lists too — a list is a sub-group OF the company shelf, not a thing beside it, so new-list items count as company and stay team-visible (db/146); private My Ingredients (no list_id) stay private. Verified live on the deployed function',
+    'The evening 5-pointer: 📝 the new Poznámky document in the main doc navigation (a live notebook — Claude writes and updates all of Richard\'s notes there); the 🤝 Aare Ventures research (Bern angel investors, event 14 Sep, application by 23 Aug — verdict: after the trial and pre-sale, not now) as an Internal Docs document; the feature-map pie fix (the centre shows the sum of enabled segments only); the 🎪 Events tile logged as t172 TO FINISH; 🎙️ voice control as note t173 (locked-phone = only the native app + Siri, Phase 6)',
+    '➕ Add Team Member (db/145): the admin of an existing kitchen (protonmail "T1") no longer creates a kitchen — the sheet mints a fresh 6-character code, QR, copyable link and email send for THEIR kitchen; Create Team stays with the Main Admin only (iCloud). Scans/invoices aimed at the 🏢 Company shelf move matched library items onto Company (created_by) and Invoice Scan matches against the target shelf, not the open one — otherwise the whole batch failed on the unique index',
+    'Afternoon — Richard\'s scanning report on protonmail, diagnosed via the live DB: the scan added NOTHING because every name collided with the 2,005-item library (the unique index spans the whole shared side) and was skipped silently — from now on a collision UPDATES the existing row (price/supplier/empty category/alias); Invoice Scan with HTML never reached the API (0 calls in ai_usage) — the accept list gained MIME types for the iOS picker and Invoice Scan failures are now logged to error_logs (zero trace until then)',
+    'Point 7 (Brand & vision): the deck updated to today\'s real data — 183 recipes (Michelin complete), 2,005 ingredients, 13 accounts (10 real), feature maturity 77-26-8, the 18 Jul roadmap row, costs ~CHF 281 cash + ~93 h ≈ CHF 4,185; a NEW day-by-day build-hours bar chart with tap detail (the maturity pie + ARR curve already existed); Manifesto and Visual Guide numbers aligned',
+  ], p:'Richard: verify on the iPhone the team join/create flow, scan-to-list, Company Ingredients, the HTML invoice on protonmail, the new theme on the iCloud account. Then: the sender address to @sautero.ch (Resend verification) and continuing t174.' },
+];
+DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
+
 
 function isoWeekLabel(dateStr){
   const d = new Date(dateStr + 'T00:00:00');
@@ -479,16 +662,16 @@ function weekdayShort(dateStr){
 
 function renderTop3(){
   const scopes = [
-    { key:'day', label:'Today' },
-    { key:'week', label:'This Week' },
-    { key:'month', label:'This Month' },
+    { key:'day', label:_lang==='sk' ? 'Dnes' : 'Today' },
+    { key:'week', label:_lang==='sk' ? 'Tento týždeň' : 'This Week' },
+    { key:'month', label:_lang==='sk' ? 'Tento mesiac' : 'This Month' },
   ];
   document.getElementById('top3Grid').innerHTML = scopes.map(s=>{
     const data = TOP3[s.key];
     const items = data.items.map(it=>`
       <li class="top3-item">
         <span class="top3-dot ${it.status}"></span>
-        <span>${it.text}<span class="top3-status ${it.status}">${it.status}</span></span>
+        <span>${(_lang==='en' && it.text_en) ? it.text_en : it.text}<span class="top3-status ${it.status}">${it.status}</span></span>
       </li>
     `).join('');
     return `
@@ -519,7 +702,7 @@ function renderTimeline(){
     const totalDays = m.weeks.reduce((n,w)=>n+w.days.length,0);
     const weeksHtml = m.weeks.map((w, wi)=>{
       const daysHtml = w.days.map((day, di)=>{
-        const accomplishedHtml = day.accomplished.map(a=>{
+        const accomplishedHtml = ((_lang==='en' && day.accomplished_en) ? day.accomplished_en : day.accomplished).map(a=>{
           const time = (a && typeof a === 'object') ? a.time : null;
           const text = (a && typeof a === 'object') ? a.text : a;
           return `<li>${time ? `<span class="mono" style="color:var(--accent); margin-right:8px;">${time}</span>` : ''}${text}</li>`;
@@ -529,13 +712,13 @@ function renderTimeline(){
             <div class="day-head" onclick="toggleBlock('d-${m.key}-${w.key}-${di}')">
               <div class="day-flex" style="flex:1;">
                 <span class="day-date">${weekdayShort(day.date)} ${day.date}</span>
-                <span class="day-title">${day.headline}</span>
+                <span class="day-title">${(_lang==='en' && day.headline_en) ? day.headline_en : day.headline}</span>
               </div>
               <span class="chev">▶</span>
             </div>
             <div class="day-body">
               <ul class="accomplished-list">${accomplishedHtml}</ul>
-              <div class="day-planned"><b>Planned next:</b> ${day.planned}</div>
+              <div class="day-planned"><b>Planned next:</b> ${(_lang==='en' && day.planned_en) ? day.planned_en : day.planned}</div>
             </div>
           </div>
         `;
