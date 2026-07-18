@@ -3750,6 +3750,12 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="itemActionsTitle"></div>
     <button class="save-btn" onclick="itemActionsEdit()">✏️ Edit name</button>
+    <!-- Admin-only (db/150, Richard 18.7.: lock each stage's time so staff can't drift it) —
+         left empty and hidden for everyone else by openItemActionsMenu. -->
+    <div id="itemActionsLockRow" style="display:none; margin:10px 0;">
+      <div class="meta" style="margin-bottom:6px;">🔒 Lock time (admin)</div>
+      <div class="task-status-group" id="itemActionsLockButtons"></div>
+    </div>
     <button class="save-btn" onclick="itemActionsInfo()">ℹ️ Info &amp; recorded times</button>
     <button class="danger-btn" onclick="itemActionsDelete()">✕ Delete this item</button>
     <button class="sheet-cancel" onclick="closeItemActionsMenu()">Cancel</button>
@@ -7973,9 +7979,12 @@ async function submitAddCompany(){
   if(!name){ statusEl.textContent = 'Name the company first.'; return; }
   if(!email){ statusEl.textContent = "Enter the main admin's email."; return; }
   statusEl.textContent = 'Creating…';
-  const { data, error } = await sb.rpc('create_company', { p_name: name });
+  // p_email (db/148): pre-approves this address in access_requests in the same call, so the
+  // invitee never gets stuck behind the closed-trial "Waiting for approval" gate — they go
+  // straight from the invite link to "You're invited → Join" and become admin immediately.
+  const { data, error } = await sb.rpc('create_company', { p_name: name, p_email: email });
   const row = Array.isArray(data) ? data[0] : data;
-  if(error || !row){ statusEl.textContent = 'Could not create: ' + (error ? error.message : 'unknown error') + ' — has db/109 been run?'; return; }
+  if(error || !row){ statusEl.textContent = 'Could not create: ' + (error ? error.message : 'unknown error') + ' — has db/148 been run?'; return; }
   const inviteUrl = location.origin + location.pathname + '?invite=' + row.invite_id;
   statusEl.textContent = 'Sending invite email…';
   const { error: mailErr } = await sb.auth.signInWithOtp({
@@ -10902,14 +10911,11 @@ const HOME_TILE_DEFS = [
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
   /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
      rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
-  /* Company accounts + Head Admin only for now (Richard, 16.7. večer) — may return to
-     personal accounts later. */
-  /* HACCP visibility (Richard, 17.7. večer): hidden on Personal profiles, ALWAYS present in
-     Company mode — and Company mode itself is locked to real team members (db/116), so every
-     company-team member is guaranteed to have it. Tightened from `!== 'personal'` to
-     `=== 'company'` so accounts that skipped the profile-type gate (account_type NULL) don't
-     see it either. Head Admin sees it everywhere. */
-  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()', adminOnly:()=> currentIsAdmin || currentAccountType === 'company' },
+  /* HACCP visibility (Richard, 18.7.: "Haccp musí mať každý účet") — reopened to every account,
+     Personal included. Was Company/Head-Admin-only from 16.7.–18.7.; HACCP self-monitoring
+     (cleaning, hygiene, temps) is a real food-safety obligation for a solo kitchen too, not
+     just a team feature. */
+  { key:'haccp', icon:'🧼', staticLabel:'HACCP', onclick:'showHACCP()' },
   /* Settings hub (Richard, 15.7., bod 5) — one place for every setting; topbar icons stay
      for muscle memory until Richard says to slim them. */
   { key:'settings', icon:'⚙️', staticLabel:'Settings', onclick:'showSettings()' },
@@ -15079,7 +15085,7 @@ async function openPrepItemInfo(id){
   const timingRows = ['todo','check','finish'].map(stage=>{
     const n = item[stage+'_minutes_n'] || 0;
     const val = item[stage+'_minutes'] || 0;
-    return `<div class="ingredient-info-row"><div class="label">${prepStatusLabel(stage)}</div><div class="value">${val} min${n>0 ? ` — logged ${n} time${n===1?'':'s'}` : ' (placeholder, never logged)'}</div></div>`;
+    return `<div class="ingredient-info-row"><div class="label">${prepItemStatusLabel(item, stage)}</div><div class="value">${val} min${n>0 ? ` — logged ${n} time${n===1?'':'s'}` : ' (placeholder, never logged)'}</div></div>`;
   }).join('');
   document.getElementById('ingredientInfoContent').innerHTML = `
     <div class="ingredient-info-title">${item.name}</div>
@@ -15106,12 +15112,13 @@ async function renderPrepItemAuditHistory(itemId){
     return;
   }
   const fieldLabel = { status:'Status', on_hand:'On hand', priority:'Priority', notes:'Note' };
+  const item = _prepItems.find(i=>i.id===itemId);
   el.innerHTML = data.map(row=>{
     const who = row.changed_by_name || 'Someone';
     const when = new Date(row.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
     const label = fieldLabel[row.field] || row.field;
-    const from = row.field === 'status' ? prepStatusLabel(row.old_value) : (row.old_value || '—');
-    const to = row.field === 'status' ? prepStatusLabel(row.new_value) : (row.new_value || '—');
+    const from = row.field === 'status' ? prepItemStatusLabel(item, row.old_value) : (row.old_value || '—');
+    const to = row.field === 'status' ? prepItemStatusLabel(item, row.new_value) : (row.new_value || '—');
     return `<div style="padding:6px 0; border-bottom:1px solid var(--rule);">
       <div><b>${who}</b> changed <b>${label}</b>: ${from} → ${to}</div>
       <div style="color:var(--ink-dim); font-size:12px;">${when}</div>
@@ -15391,6 +15398,7 @@ function renderAllStationsView(){
       : `<div class="empty-state">Nothing marked "${labels}" anywhere yet.</div>`;
   }
   container.appendChild(listEl);
+  attachPrepItemStatusLongPress(container);
 }
 
 /* Opening a station tab auto-creates a TO DO task (priority 3) for every recipe tagged to
@@ -15738,6 +15746,35 @@ function prepStatusLabel(status){
   if(status === 'dontdo') return t('dontdo');
   return t('todo');
 }
+/* Per-ingredient custom stage label (db/151, Richard 18.7.: long-press a TO DO/CHECK/FINISH
+   button on ONE ingredient to rename just that button, e.g. CHECK → "MARINÁDA" for an item
+   whose check stage really means "still marinating"). Falls back to the normal translated
+   label whenever the item hasn't set one — every other stage/every other ingredient is
+   unaffected. DONT DO has no custom label (Richard's ask names only the 3 timed stages). */
+function prepItemStatusLabel(item, status){
+  if(status !== 'dontdo' && item && item[status + '_label']) return item[status + '_label'];
+  return prepStatusLabel(status);
+}
+function promptRenamePrepStatusLabel(itemId, stage){
+  const item = _prepItems.find(i=>i.id===itemId);
+  if(!item) return;
+  const defaultLabel = prepStatusLabel(stage);
+  const current = item[stage + '_label'] || defaultLabel;
+  const next = prompt(`Rename the "${defaultLabel}" button just for "${item.name}":`, current);
+  if(next === null) return;
+  const trimmed = next.trim();
+  updatePrepItem(itemId, stage + '_label', (!trimmed || trimmed === defaultLabel) ? null : trimmed);
+}
+/* Attaches the long-press-to-rename gesture to every stage button rendered inside a container
+   (renderPrepSheet/renderAllStationsView both insert item rows as HTML strings, so this runs as
+   a pass over the finished DOM rather than at template-build time — same reason dish-name
+   long-press is attached imperatively after card.innerHTML is set, just batched over many rows
+   at once here). */
+function attachPrepItemStatusLongPress(container){
+  container.querySelectorAll('[data-stage-item-id]').forEach(btn=>{
+    attachLongPress(btn, ()=> promptRenamePrepStatusLabel(btn.dataset.stageItemId, btn.dataset.stage));
+  });
+}
 /* Counts used by both the chip badge (quick glance) and the summary row shown once a
    section is opened (full breakdown) — works for prep-sheet stations (SKY) via prep_items
    status, and for normal stations via the tasks table status. */
@@ -15922,7 +15959,7 @@ function renderPrepItemRow(it, dishName, station){
         ${status !== 'dontdo' ? `<button class="prep-item-clock" title="Log how long this actually took" onclick="openAddTimeForItem('${it.id}')">⏱ ${getItemMinutes(it)} min</button>` : ''}
       </div>
       <div class="prep-line2">
-        ${PREP_STATUSES.map(s=>`<button class="task-status-btn status-${s}${s===status?' active':''}" onclick="updatePrepItem('${it.id}','status','${s}')">${prepStatusLabel(s)}</button>`).join('')}
+        ${PREP_STATUSES.map(s=>`<button class="task-status-btn status-${s}${s===status?' active':''}"${s!=='dontdo'?` data-stage-item-id="${it.id}" data-stage="${s}"`:''} onclick="updatePrepItem('${it.id}','status','${s}')">${prepItemStatusLabel(it, s)}</button>`).join('')}
         <button class="task-status-btn" title="More actions" onclick="openItemActionsMenu('${it.id}')">⋮</button>
       </div>
       <div class="prep-line3">
@@ -15970,6 +16007,16 @@ function togglePrepFilter(status){
 let showHiddenPrep = false;
 function togglePrepShowHidden(){
   showHiddenPrep = !showHiddenPrep;
+  renderPrepSheet();
+}
+/* Collapsible dish cards (Richard, 18.7.: "urobime tie jedla rozrolovatelne - kliknem otvoria
+   sa vsetky suroviny") — every dish starts collapsed (device-local, not persisted; a fresh
+   visit to a station always starts fully closed), tap the dish name to open/close it and see
+   every ingredient at once. Keyed by dish id, so a stale id from a station you're not looking
+   at anymore is harmless. */
+let _expandedPrepDishIds = new Set();
+function toggleDishExpanded(id){
+  if(_expandedPrepDishIds.has(id)) _expandedPrepDishIds.delete(id); else _expandedPrepDishIds.add(id);
   renderPrepSheet();
 }
 /* Deleted is a soft delete — never actually removed, always undoable. Kept as its own toggle
@@ -16078,6 +16125,7 @@ function renderPrepSheet(){
       ? items.map(it=> renderPrepItemRow(it, dishById[it.dish_id].name)).join('')
       : `<div class="empty-state">No ingredients with status "${labels}".</div>`;
     container.appendChild(list);
+    attachPrepItemStatusLongPress(container);
     return;
   }
 
@@ -16087,31 +16135,34 @@ function renderPrepSheet(){
     const items = showHiddenPrep ? allItems : allItems.filter(i=>!i.hidden);
     const totalMin = items.reduce((sum,it)=> sum + getItemMinutes(it), 0);
     const anyTime = items.some(it=> (it.status||'dontdo') !== 'dontdo');
+    const expanded = _expandedPrepDishIds.has(dish.id);
     const card = document.createElement('div');
     card.className = 'prep-dish-card' + (dish.hidden ? ' prep-hidden-row' : '');
     card.innerHTML = `
       <div class="prep-dish-header">
-        <span class="prep-dish-name" onclick="openDishVisibilityPicker('${dish.id}')" title="Tap to choose which items are hidden" style="cursor:pointer;">${dish.name}${dish.hidden ? ' <span class="meta">(hidden)</span>' : ''}</span>
+        <span class="prep-dish-name" onclick="toggleDishExpanded('${dish.id}')" title="Tap to ${expanded?'collapse':'open'} — see every ingredient" style="cursor:pointer;"><span class="meta" style="margin-right:2px;">${expanded?'▾':'▸'}</span>${dish.name}${dish.hidden ? ' <span class="meta">(hidden)</span>' : ''}${!expanded && items.length ? ` <span class="meta">· ${items.length} ingredient${items.length===1?'':'s'}</span>` : ''}</span>
         <div class="prep-dish-header-right">
           ${anyTime ? `<span class="prep-dish-total-time">Total prep: ${totalMin} min</span>` : ''}
           ${dish.price != null ? `<span class="prep-dish-price">${dish.price} CHF</span>` : ''}
+          <button class="task-status-btn" title="Choose which items are hidden" onclick="openDishVisibilityPicker('${dish.id}')">👁️</button>
           <button class="task-status-btn" title="Add an item to this dish" onclick="openAddPrepItem('${dish.id}')">+ Add Item</button>
           <button class="task-status-btn status-danger" title="Delete this dish" onclick="deletePrepDish('${dish.id}')">🗑️ Delete</button>
         </div>
       </div>
-      ${items.length ? `
+      ${(expanded && items.length) ? `
       <div class="prep-item-table">
         ${items.map(it=> renderPrepItemRow(it)).join('')}
       </div>` : ''}
-      ${(!showHiddenPrep && hiddenItemCount) ? `<button class="add-row-btn" style="margin-top:6px;" onclick="togglePrepShowHidden()">Show ${hiddenItemCount} hidden item${hiddenItemCount===1?'':'s'}</button>` : ''}
+      ${(expanded && !showHiddenPrep && hiddenItemCount) ? `<button class="add-row-btn" style="margin-top:6px;" onclick="togglePrepShowHidden()">Show ${hiddenItemCount} hidden item${hiddenItemCount===1?'':'s'}</button>` : ''}
     `;
-    // Long-press the dish name for Rename/Hide/Delete (bod 1, 16.7.) — separate from the
-    // existing tap-to-open-visibility-picker on the same element, doesn't conflict since one
-    // is a quick tap and the other needs a ~550ms hold.
+    // Long-press the dish name for Rename/Hide/Delete (bod 1, 16.7.) — separate from the tap
+    // (now toggles open/closed, 18.7.), doesn't conflict since one is a quick tap and the other
+    // needs a ~550ms hold.
     const nameEl = card.querySelector('.prep-dish-name');
     if(nameEl) attachLongPress(nameEl, ()=> openItemContextMenu('prepDish', dish.id, dish.name, dish.hidden));
     container.appendChild(card);
   });
+  attachPrepItemStatusLongPress(container);
 
   const addDishBtn = document.createElement('button');
   addDishBtn.className = 'add-row-btn';
@@ -16174,7 +16225,32 @@ function openItemActionsMenu(id){
   if(!item) return;
   _itemActionsId = id;
   document.getElementById('itemActionsTitle').textContent = item.name;
+  renderItemActionsLockRow(item);
   document.getElementById('itemActionsOverlay').classList.add('open');
+}
+/* Admin-only lock toggles for the item's 3 stage times (db/150). Not shown at all for
+   non-admins — locking is an admin action, but a locked time itself still just shows as
+   locked (the alert in openAddTimeForItem) wherever anyone tries to log a new reading. */
+function renderItemActionsLockRow(item){
+  const row = document.getElementById('itemActionsLockRow');
+  const isAdmin = hasAdminPerm('company_admin');
+  row.style.display = isAdmin ? '' : 'none';
+  if(!isAdmin) return;
+  document.getElementById('itemActionsLockButtons').innerHTML = ['todo','check','finish'].map(stage=>{
+    const locked = !!item[stage + '_locked'];
+    return `<button class="task-status-btn${locked?' active status-danger':''}" onclick="toggleItemTimeLock('${item.id}','${stage}')">${locked?'🔒':'🔓'} ${prepItemStatusLabel(item, stage)}</button>`;
+  }).join('');
+}
+async function toggleItemTimeLock(id, stage){
+  const item = _prepItems.find(i=>i.id===id);
+  if(!item) return;
+  const field = stage + '_locked';
+  const next = !item[field];
+  item[field] = next;
+  renderItemActionsLockRow(item);
+  const { error } = await sb.from('prep_items').update({ [field]: next }).eq('id', id);
+  if(error){ item[field] = !next; renderItemActionsLockRow(item); alert('Could not save: ' + error.message); return; }
+  renderPrepSheet();
 }
 function closeItemActionsMenu(){
   document.getElementById('itemActionsOverlay').classList.remove('open');
@@ -16518,7 +16594,7 @@ async function updatePrepItem(id, field, value){
   // renderActiveStationView() (not renderPrepSheet() directly) — it dispatches to whichever
   // view is actually open (single station's prep sheet, or the "All" cross-station flat list),
   // so a status change or rename re-renders correctly from either place.
-  if(field === 'status' || field === 'name'){ await renderActiveStationView(); renderTaskChips(); }
+  if(field === 'status' || field === 'name' || field.endsWith('_label')){ await renderActiveStationView(); renderTaskChips(); }
   setSyncStatus('saving');
   const { error } = await sb.from('prep_items').update({ [field]: value }).eq('id', id);
   setSyncStatus(error ? 'offline' : 'saved');
@@ -16575,6 +16651,30 @@ async function syncPrepItemAcrossKitchen(sourceItem, field, value){
   await sb.from('prep_items').update({ [field]: value }).in('id', matches.map(i=>i.id));
 }
 
+/* Same "same real-world thing" rule as syncPrepItemAcrossKitchen above, extended to a logged
+   prep time (Richard, 18.7.: "ak niekde označím že to trvá 10 minút a tá istá ingrediencia s
+   rovnakým názvom je aj inde tak automaticky sa ten čas uloží aj tam"). Copies the freshly
+   averaged value+sample-count outright rather than each duplicate averaging the new sample
+   into its own separate count — they're one real prep time being recorded from several places,
+   not independent measurements. Skips any duplicate whose OWN stage time is locked (db/150,
+   Admin lock) — a locked time is a fixed admin-set number, sync must never overwrite it. */
+async function syncPrepItemTimeAcrossKitchen(sourceItem, valueField, countField, newValue, newCount){
+  if(!sourceItem.name) return;
+  const normName = sourceItem.name.trim().toLowerCase();
+  const currentProjectDishIds = new Set(_prepDishes.map(d=>d.id));
+  const lockField = valueField.replace('_minutes', '_locked');
+  const matches = _prepItems.filter(i=>
+    i.id !== sourceItem.id && !i.deleted && i.name && i.name.trim().toLowerCase() === normName
+    && currentProjectDishIds.has(i.dish_id) && !i[lockField]
+  );
+  if(matches.length === 0) return;
+  matches.forEach(i=>{ i[valueField] = newValue; i[countField] = newCount; });
+  renderPrepSheet();
+  renderTaskChips();
+  const { error } = await sb.from('prep_items').update({ [valueField]: newValue, [countField]: newCount }).in('id', matches.map(i=>i.id));
+  if(error) logClientError('syncPrepItemTimeAcrossKitchen: ' + error.message);
+}
+
 /* Anyone can log how long an item actually took, whenever they want — not just once at
    creation. The first real submission for a stage replaces its seeded placeholder outright
    (sample count 0 -> 1); every submission after that averages into the running value, so the
@@ -16584,12 +16684,18 @@ let _addTimeFromTimer = false;
 function openAddTimeForItem(id, prefillMinutes, fromTimer){
   const item = _prepItems.find(i=>i.id===id);
   if(!item) return;
+  const status = item.status || 'dontdo';
+  // Admin lock (db/150, Richard 18.7.) — a locked stage's time is a fixed, admin-set number;
+  // staff can still see it, just can't submit a new reading that would average it away.
+  if(status !== 'dontdo' && item[status + '_locked'] && !hasAdminPerm('company_admin')){
+    alert(`${prepItemStatusLabel(item, status)} time for "${item.name}" is locked by an admin.`);
+    return;
+  }
   _addTimeItemId = id;
   _addTimeFromTimer = !!fromTimer;
-  const status = item.status || 'dontdo';
   document.getElementById('addTimeContext').textContent = fromTimer
     ? `${item.name} — timer measured ${prefillMinutes} min. Adjust if needed, then save.`
-    : `${item.name} — currently ${prepStatusLabel(status)}. Your number gets averaged in with anyone else's.`;
+    : `${item.name} — currently ${prepItemStatusLabel(item, status)}. Your number gets averaged in with anyone else's.`;
   document.getElementById('addTimeMinutes').value = prefillMinutes != null ? prefillMinutes : '';
   document.getElementById('addTimeStatus').textContent = '';
   document.getElementById('addTimeOverlay').classList.add('open');
@@ -16607,6 +16713,12 @@ async function saveAddTimeForItem(){
   if(!item) return;
   const stage = item.status || 'dontdo';
   if(stage === 'dontdo') return;
+  // Re-check the lock here too (not just in openAddTimeForItem) — defence in depth against any
+  // other future path into this save function.
+  if(item[stage + '_locked'] && !hasAdminPerm('company_admin')){
+    statusEl.textContent = 'This time is locked by an admin.';
+    return;
+  }
   const valueField = stage + '_minutes';
   const countField = stage + '_minutes_n';
   const oldValue = item[valueField] || 0;
@@ -16619,6 +16731,9 @@ async function saveAddTimeForItem(){
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   item[valueField] = newValue;
   item[countField] = newCount;
+  // Same ingredient, same real prep time, wherever else it appears (db/149-adjacent feature,
+  // Richard 18.7.) — mirrors the on_hand/priority/status/notes sync above.
+  await syncPrepItemTimeAcrossKitchen(item, valueField, countField, newValue, newCount);
   const wasFromTimer = _addTimeFromTimer;
   const itemName = item.name;
   const itemStation = stationForItem(item);
@@ -21879,7 +21994,28 @@ async function showHaccpChecklist(category){
   await loadHaccpChecklist();
   window.scrollTo(0,0);
 }
+/* Demo starter content (Richard, 18.7.: "treba v ňom vytvoriť cleaning check list ... + pridaj
+   demo") — a kitchen that has NEVER touched the cleaning checklist (zero rows at all, active or
+   not — so a kitchen that deliberately cleared its list never gets silently repopulated) gets a
+   realistic starter set on first visit instead of an empty "no tasks yet" screen. */
+async function seedDemoCleaningChecklistIfEmpty(){
+  const { count } = await sb.from('haccp_checklist_items').select('id', { count:'exact', head:true })
+    .eq('kitchen_id', currentKitchenId).eq('category', 'cleaning');
+  if(count) return;
+  const demo = [
+    { station:'Hot Line', task:'Wipe down and sanitize all prep surfaces', frequency:'daily' },
+    { station:'Dish Pit', task:'Sanitize sinks and drain traps', frequency:'daily' },
+    { station:'Floors', task:'Sweep and mop all kitchen floors', frequency:'daily' },
+    { station:'Walk-in Fridge', task:'Clean shelves and wipe down interior', frequency:'weekly' },
+    { station:'Kitchen', task:'Deep clean extraction hoods and filters', frequency:'monthly' },
+  ];
+  await sb.from('haccp_checklist_items').insert(demo.map(d=>({
+    kitchen_id: currentKitchenId, category:'cleaning', station:d.station, task:d.task,
+    frequency:d.frequency, created_by: currentUser.id
+  })));
+}
 async function loadHaccpChecklist(){
+  if(_haccpChecklistCategory === 'cleaning') await seedDemoCleaningChecklistIfEmpty();
   const { data: items } = await sb.from('haccp_checklist_items').select('*')
     .eq('kitchen_id', currentKitchenId).eq('category', _haccpChecklistCategory).eq('active', true)
     .order('station', { ascending:true }).order('task', { ascending:true });
@@ -21916,8 +22052,11 @@ function renderHaccpChecklist(){
   el.innerHTML = _haccpChecklistItems.map(item => {
     const log = _haccpChecklistLatestLog[item.id];
     const due = haccpChecklistItemDue(item);
+    // Who checked it off — admin-only (Richard, 18.7.: "admin vidí kto čo odškrtne"), everyone
+    // else just sees that it's done, same privacy line the rest of the admin surface draws.
+    const whoLine = (currentIsAdmin && log && log.completed_by_name) ? ' · ' + log.completed_by_name.replace(/</g,'&lt;') : '';
     const statusLine = log
-      ? `${log.status==='issue' ? '⚠️ Problem noted' : '✅ Done'} ${new Date(log.completed_at).toLocaleString()}${log.note ? ' · ' + log.note.replace(/</g,'&lt;') : ''}`
+      ? `${log.status==='issue' ? '⚠️ Problem noted' : '✅ Done'} ${new Date(log.completed_at).toLocaleString()}${whoLine}${log.note ? ' · ' + log.note.replace(/</g,'&lt;') : ''}`
       : 'Not done yet';
     return `
       <div class="task-row">
@@ -21941,7 +22080,8 @@ async function logHaccpChecklistItem(itemId, status){
     note = prompt("What's the problem? (optional)") || null;
   }
   const { error } = await sb.from('haccp_checklist_log').insert({
-    kitchen_id: currentKitchenId, item_id: itemId, status, note, completed_by: currentUser.id
+    kitchen_id: currentKitchenId, item_id: itemId, status, note,
+    completed_by: currentUser.id, completed_by_name: currentUserName
   });
   if(error){ alert('Could not save: ' + error.message); return; }
   await loadHaccpChecklist();
