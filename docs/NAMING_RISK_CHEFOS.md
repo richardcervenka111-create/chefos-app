@@ -40,3 +40,27 @@ lacnejšie. Ak Richard na mene trvá, minimálne B s reálnou registrovou kontro
 pred trialom 1. 8.
 
 Zdroje: chefos.us · apps.apple.com/us/app/chefos-mobile/id6763660343 · chefos.pro
+
+## Deep research nových mien — 18. 7. 2026
+
+Metóda: každý kandidát preverený proti (1) App Store cez iTunes Search API — žiadna appka
+s presným menom, (2) globálnemu webu — žiadna firma/produkt v gastro alebo softvéri,
+(3) doménam — whois .ch (nic.ch) + DNS .com. VYRADENÍ (a prečo): Tournant (tournant.io =
+hotový „Kitchen Operations OS"!), celá brigád-rodina Brigadia/Brigado/Brigata (okolo nej žijú
+Brigade Kitchen, Brigade POS, Brigad, Brigara OS, brigado.io), Herdwerk/Miseo/Kombüse/Culina/
+Rechaud/Prepwerk (obsadené .ch alebo existujúce produkty), Passeo (existujúca appka Passeo),
+Herdio (značka reproduktorov), Chuchi/Rondell (obsadené .ch).
+
+### Finálna päťka (18. 7.)
+
+| Meno | Pôvod | .ch | .com | App Store | Web kolízie |
+|---|---|---|---|---|---|
+| **Plancho** | plancha — gril/platňa | ✅ voľná | ✅ voľná | čisté | žiadne |
+| **Sautero** | sauté — kuchárska technika | ✅ voľná | ✅ voľná | čisté | žiadne |
+| **Cuisora** | cuisine | ✅ voľná | zaparkovaná | čisté | žiadne (0 výsledkov) |
+| **Mizeta** | mise en place | ✅ voľná | zaparkovaná | čisté | len malé talianske srl mimo odboru |
+| **Mepli** | MEP — kuchárske slang pre mise en place | ✅ voľná | zaparkovaná | čisté | žiadne |
+
+Otvorené pred kúpou: oficiálna kontrola registrov známok (Swissreg, EUIPO/tmview) — webové
+vyhľadávanie do registrov nedovidí; odporúčam pred rozhodnutím + registráciu CH známky
+(~550 CHF, triedy 9/42) pre vybrané meno.
