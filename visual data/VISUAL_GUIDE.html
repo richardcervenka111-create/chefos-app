@@ -1186,7 +1186,7 @@
 <div class="doc-section">
   <div class="doc-section-num">01 · Entry</div>
   <h2 class="doc-section-title">Login</h2>
-  <p class="doc-section-desc">No passwords. A cook types their email, gets a one-time code, and is in. Authentication runs on Supabase Auth with custom SMTP (Resend) for reliable delivery.</p>
+  <p class="doc-section-desc">A cook signs in with email + a mandatory password (since 15 Jul), or a one-time email code — plus optional Face ID unlock per device. Authentication runs on Supabase Auth with custom SMTP (Resend) for reliable delivery.</p>
   <div class="doc-mock">
     <div style="padding:40px 28px;">
       <div class="login-mark" style="font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:15px; letter-spacing:0.14em; color:var(--copper); text-transform:uppercase; margin-bottom:6px;">Kitchen Notebook</div>
@@ -1252,14 +1252,14 @@
       <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--rule); display:flex; justify-content:space-between;"><b>Est. cost</b><span class="mono" style="color:var(--copper);">CHF 4.80</span></div>
     </div>
   </div>
-  <div class="doc-note"><b>AI-assisted, two ways:</b> "Scan a photo" reads a handwritten or printed recipe (camera or file) and structures it automatically. "✨ Generate method with AI" writes the step-by-step method from just a title and ingredient list. Both call Claude directly from the browser using the chef's own API key — never through Sautero's servers.</div>
+  <div class="doc-note"><b>AI-assisted, two ways:</b> "Scan a photo" reads a handwritten or printed recipe (camera or file) and structures it automatically. "✨ Generate method with AI" writes the step-by-step method from just a title and ingredient list. Both run through Sautero's central AI key via the server-side claude-proxy function (since 16 Jul) — no chef ever pastes their own key, and every call is metered per user.</div>
 </div>
 
 <!-- 4. INGREDIENTS -->
 <div class="doc-section">
   <div class="doc-section-num">04 · Foundation</div>
   <h2 class="doc-section-title">Ingredients &amp; Pricing</h2>
-  <p class="doc-section-desc">535 ingredients with price, unit, category, allergens, origin, season, and substitutes — the data every cost and nutrition calculation in the app is built on.</p>
+  <p class="doc-section-desc">2,005 price-book ingredients with price, unit, category, allergens, origin, season, and substitutes — the data every cost and nutrition calculation in the app is built on (most prices still honest AI estimates; real ones arrive via Invoice Scan).</p>
   <div class="doc-mock" style="padding:16px 4px; max-width:480px;">
     <div class="ingredient-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--rule);">
       <div><div style="font-size:14.5px;">Garlic, minced</div><div style="font-size:12px; color:var(--ink-dim);">Produce</div></div>
@@ -1474,6 +1474,56 @@
     apply();
   };
   apply();
+})();
+</script>
+<script>
+/* t174 (18.7.): the Visual Guide narrative is bilingual — the HTML stays the EN original,
+   GSK carries the Slovak per selector index (mock screens stay English on purpose: they
+   depict the app's real English UI). Keep GSK in sync with content edits. */
+(function(){
+  const GSK = {
+    lede: 'Kľúčové obrazovky produktu, ukázané v reálnom dizajnovom systéme appky a s reálnymi dátami — nie placeholder mockupy. Slúži ako pracovná referencia aj investorský sprievodca. Obrazovky zo šprintu 14.–15.7. (Working Time, Print Labels, My Team, HACCP) sú v sekcii 11 a plné ilustrované dvojstrany dostanú v ďalšom prechode.',
+    nums: ['01 · Vstup', '02 · Navigácia', '03 · Jadro', '04 · Základ', '05 · Denná prevádzka', '06 · Nákup', '07 · Personál', '08 · Compliance', '11 · Dodané, ešte neilustrované', '09 · Nové · AI', '10 · Náklady a spotreba'],
+    titles: ['Prihlásenie', 'Home', 'Recepty', 'Ingrediencie a ceny', 'Check List (Mise en Place)', 'Order List', 'Rozpis zmien', 'Teplota chladničiek', 'Novšie obrazovky (14.–15.7.)', 'Chef\'s Assistant', 'Koľko to naozaj stojí'],
+    descs: [
+      'Kuchár sa prihlási e-mailom + povinným heslom (od 15.7.), alebo jednorazovým kódom z e-mailu — plus voliteľné Face ID odomknutie per zariadenie. Autentifikácia beží na Supabase Auth s vlastným SMTP (Resend) pre spoľahlivé doručovanie.',
+      'Sedem dlaždíc, jedno ťuknutie. Žiadne vnorené menu — všetko, čo kuchyňa potrebuje, je jednu úroveň hlboko.',
+      'Všetkých 183 receptov knižnice (plus povýšené komunitné), obohatených do Michelin hĺbky, z Richardovej pôvodnej receptúry — zmigrované a teraz upraviteľné, škálovateľné a s food costom/nutríciou počítanými z reálnej tabuľky ingrediencií. Každý recept pokrýva plný 20-poľový profesionálny formát (yield, časy, stanica, alergény, plating poznámky a ďalšie).',
+      '2 005 položiek cenníka s cenou, jednotkou, kategóriou, alergénmi, pôvodom, sezónou a náhradami — dáta, na ktorých stojí každý výpočet nákladov a nutrície v appke (väčšina cien je zatiaľ poctivý AI odhad; reálne pribúdajú cez Invoice Scan).',
+      'Dva pracovné štýly, voliteľné per stanica. Väčšina staníc má plochý prioritizovaný checklist. Stanice so skutočným papierovým prep sheetom — ako SKY — dostanú prep sheet zoskupený podľa jedál, presne kopírujúci papierový originál.',
+      'Rýchle odškrtávanie ingrediencií po staniciach do nákupného zoznamu, s množstvami a priebežnými súčtami z tej istej tabuľky ingrediencií ako všade inde.',
+      'Skutočná mriežka zmenových kódov — ľudia × dátumy — podľa reálneho švajčiarskeho formátu rozpisu: kódy so skutočnými hodinami a prestávkami, personál zoskupený po staniciach (Management, SKY, Bankett, Saucier, Entremetier, Gardemanger, Patisserie, Frühstück). Pôvodný referenčný rozpis vyradený 13.7.2026 spolu so zmenou pilotnej kuchyne; prestavuje sa podľa rozpisu Burrito Bandito & Lido.',
+      'Priebežný log per chladnička/mraznička — rýchle denné odčítania s časovou pečiatkou, pre HACCP záznamy o teplotách.',
+      'Tieto moduly bežia naživo v appke, ale ešte nemajú ilustrované dvojstrany — každý ju dostane v ďalšom obsahovom prechode. Uvedené tu, aby tento sprievodca produkt nikdy potichu nepodhodnocoval:',
+      'Persona michelinského šéfkuchára pre rýchle, sebavedomé kuchynské rozhodnutia — náhrady, technika, čo robiť pri výpadku. Chat len na session, volá Claude.',
+      'Dve oddelené účtovné knihy: čo Richard doteraz minul na stavanie a používanie Sautera, a koľko stojí každá AI funkcia per použitie do budúcna. To druhé je <b style=\"color:var(--ink);\">odhad</b> — skutočné, autoritatívne čísla žijú na <span style=\"font-family:\'SF Mono\',Menlo,monospace; color:var(--copper);\">console.anthropic.com → Usage</span>.'
+    ],
+    notes: [
+      '<b>AI dvoma spôsobmi:</b> „Scan a photo" prečíta rukou písaný alebo tlačený recept (kamera či súbor) a automaticky ho naštruktúruje. „✨ Generate method with AI" napíše postup krok za krokom len z názvu a zoznamu surovín. Oboje beží cez centrálny AI kľúč Sautera cez server-side claude-proxy (od 16.7.) — žiadny kuchár nevkladá vlastný kľúč a každé volanie sa meria per užívateľ.',
+      'Každá ingrediencia je defaultne <b>DON\'T DO</b> — kuchár si položky na dnes zapína, namiesto čistenia plného zoznamu. 🚩 vlajka sa objaví, keď ON HAND klesne pod minimum ingrediencie. Hlavička (sekcie + počty stavov) ostáva pripnutá pri skrolovaní.',
+      '<b>Cena chatu v konverzácii rastie.</b> Chef\'s Assistant momentálne posiela s každou novou otázkou <i>celú</i> históriu správ (bez orezania, bez prompt cachingu) — správa č. 1 stojí zlomok centu, správa č. 10 viac, lebo Claude si konverzáciu vždy prečíta celú. Pri občasných otázkach zanedbateľné; pri dlhých výmenách sa to sčítava.'
+    ],
+    stats: ['<b>15+</b><span>Obrazoviek</span>', '<b>183</b><span>Receptov v knižnici</span>', '<b>2,005</b><span>Ingrediencií (naživo)</span>', '<b>7</b><span>AI funkcií</span>'],
+  };
+  function setEl(el, val){
+    if(!el) return;
+    if(!el.dataset.enHtml) el.dataset.enHtml = el.innerHTML;
+    el.innerHTML = (window.__guideLang === 'sk' && val) ? val : el.dataset.enHtml;
+  }
+  window.applyGuideContent = function(lang){
+    window.__guideLang = lang;
+    const q = sel => Array.from(document.querySelectorAll(sel));
+    setEl(document.querySelector('.doc-lede'), GSK.lede);
+    q('.doc-section-num').forEach((el,i)=>setEl(el, GSK.nums[i]));
+    q('.doc-section-title').forEach((el,i)=>setEl(el, GSK.titles[i]));
+    q('.doc-section-desc').forEach((el,i)=>setEl(el, GSK.descs[i]));
+    q('.doc-note').forEach((el,i)=>setEl(el, GSK.notes[i]));
+    q('.doc-stat').forEach((el,i)=>setEl(el, GSK.stats[i]));
+  };
+  const orig = window.chefosToggleLang;
+  function hook(){ window.applyGuideContent(localStorage.getItem('chefos_doc_lang') || 'sk'); }
+  if(typeof orig === 'function'){ window.chefosToggleLang = function(){ orig(); hook(); }; }
+  hook();
 })();
 </script>
 </body>
