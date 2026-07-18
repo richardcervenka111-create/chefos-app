@@ -160,6 +160,14 @@ const SPEND_ITEMS = [
     events:[ { date:'2026-07-15', chf:5 } ],
     note_sk:'Jednorazovo 15.7.2026; ďalší výdavok príde pri obnove (~15 CHF/rok).',
     note_en:'One-off Jul 15, 2026; next spend at renewal (~CHF 15/year).' },
+  { key:'domain_sautero', color:'#4FD1B8',
+    sk:'Domény sautero.ch + sautero.com (Hostpoint, 1. rok)', en:'Domains sautero.ch + sautero.com (Hostpoint, year 1)',
+    meta_sk:'18.7.2026 — kúpené Richardom pri rebrande na Sautero',
+    meta_en:'Jul 18, 2026 — bought by Richard for the Sautero rebrand',
+    amount:'CHF 15.00',
+    events:[ { date:'2026-07-18', chf:15 } ],
+    note_sk:'Jednorazovo 18.7.2026, obe domény spolu; obnova nasledujúci rok.',
+    note_en:'One-off Jul 18, 2026, both domains together; renews next year.' },
   { key:'agent', color:'var(--danger)',
     sk:'Denný ingredient agent', en:'Daily ingredient agent',
     meta_sk:'strop CHF 30/mesiac, denný log: docs/ingredient_agent_log.md',
@@ -201,7 +209,7 @@ function renderSpendRows(){
       <div class="spend-amount">${it.amount}</div>
     </div>`).join('') + `
     <div class="spend-total">
-      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 281 (vrátane 1. mesiaca Supabase) · s časom zakladateľa ~CHF 4 466 · plánované nákupy ~CHF 255','Cash to date ~CHF 281 (incl. first Supabase month) · incl. founder time ~CHF 4,466 · planned purchases ~CHF 255')}</div>
+      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 296 (vrátane 1. mesiaca Supabase + domén sautero.ch/.com) · s časom zakladateľa ~CHF 4 481 · plánované nákupy ~CHF 255','Cash to date ~CHF 296 (incl. first Supabase month + sautero.ch/.com domains) · incl. founder time ~CHF 4,481 · planned purchases ~CHF 255')}</div>
     </div>`;
 }
 

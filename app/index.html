@@ -3749,6 +3749,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="itemActionsTitle"></div>
+    <button class="save-btn" onclick="itemActionsEdit()">✏️ Edit name</button>
     <button class="save-btn" onclick="itemActionsInfo()">ℹ️ Info &amp; recorded times</button>
     <button class="danger-btn" onclick="itemActionsDelete()">✕ Delete this item</button>
     <button class="sheet-cancel" onclick="closeItemActionsMenu()">Cancel</button>
@@ -15274,6 +15275,11 @@ window.addEventListener('scroll', handleBackToTopScroll, { passive: true });
    were specific to the hotel Richard prototyped Sautero features against, not a universal
    default; they still exist as real data inside his own "Development" project (db/94 backfill),
    just no longer offered as empty starter tabs to every new project. */
+/* DEFAULT_STATIONS: NOT auto-seeded into any project's Check List anymore (Richard, 18.7. —
+   a brand-new project used to show 5 empty tiles nobody asked for). Kept only as a plain
+   name suggestion list for the Recipe form's Station field and as a sensible fallback default
+   station id elsewhere (Order List, print/order dialogs) — those are independent of what
+   sections a given Check List project actually has. */
 const DEFAULT_STATIONS = ['Hot Line','Entremetier','BQT','Desserts','Extra'];
 /* Stations listed here get the dish-grouped prep sheet (Item / On Hand / Priority / Time to
    prep) instead of the normal flat task checklist — built to match Richard's real paper prep
@@ -15285,15 +15291,13 @@ const PREP_SHEET_STATIONS = ['SKY', 'Hot Line', 'Garde Manger', 'Desserts', 'Lob
    dish-grouped stations for THIS project already surface via _prepDishes, which is already
    project-filtered. */
 function getStations(){
-  return ["All", ...Array.from(new Set([...DEFAULT_STATIONS, ..._tasks.map(t=>t.station).filter(Boolean), ..._prepDishes.map(d=>d.station).filter(Boolean)]))];
+  return ["All", ...Array.from(new Set([..._tasks.map(t=>t.station).filter(Boolean), ..._prepDishes.map(d=>d.station).filter(Boolean)]))];
 }
-/* Prep-sheet-style stations actually relevant to the CURRENT project: the trimmed generic
-   defaults (always offered, even before any dish exists yet) plus any dish-grouped station
-   this project actually has real dishes under. Deliberately never the raw PREP_SHEET_STATIONS
-   list directly — that's a global style registry spanning every project/kitchen this session
-   has ever loaded data for, not this project's real content. */
+/* Prep-sheet-style stations actually relevant to the CURRENT project: only dish-grouped
+   stations this project actually has real dishes under (Richard, 18.7.: no more forced
+   defaults before a dish exists — a new project starts with just "All" + "+ New Section"). */
 function projectPrepSheetStations(){
-  return Array.from(new Set([...DEFAULT_STATIONS, ..._prepDishes.map(d=>d.station).filter(Boolean)])).filter(st=>PREP_SHEET_STATIONS.includes(st));
+  return Array.from(new Set(_prepDishes.map(d=>d.station).filter(Boolean))).filter(st=>PREP_SHEET_STATIONS.includes(st));
 }
 
 async function renderActiveStationView(){
@@ -15323,9 +15327,10 @@ async function renderActiveStationView(){
 /* Everything that shows under the "All" tile — a real cross-station view, not just the
    old flat `tasks` table (which is mostly unused now that every default station is a
    prep sheet). Two parts: a per-station strip showing each station's own outstanding time
-   (click one to jump straight into that station), and below it one flat, priority-agnostic
-   worklist of every non-DONT-DO item across every prep-sheet station, longest job first —
-   so "what's the single biggest thing left to do anywhere in the kitchen" is one glance. */
+   (click one to jump straight into that station), and below it one flat worklist of every
+   non-DONT-DO item across every prep-sheet station, sorted by priority first (same order as
+   a single station's flat filtered list) with longest job first as the tie-breaker — Richard,
+   18.7.: priority order must hold under "All" exactly like it does inside one station. */
 function getActivePrepItemsAllStations(){
   loadHiddenStationTiles();
   const items = [];
@@ -15379,7 +15384,7 @@ function renderAllStationsView(){
   } else {
     const allItems = getActivePrepItemsAllStations()
       .filter(it=> prepFilterStatuses.has(it.status || 'dontdo'))
-      .sort((a,b)=> getItemMinutes(b) - getItemMinutes(a));
+      .sort((a,b)=> (a.priority - b.priority) || (getItemMinutes(b) - getItemMinutes(a)));
     const labels = [...prepFilterStatuses].map(s=>prepStatusLabel(s)).join('", "');
     listEl.innerHTML = allItems.length
       ? allItems.map(it=> renderPrepItemRow(it, `${stationIcon(it._station)} ${it._station} · ${it._dishName}`, it._station)).join('')
@@ -16185,6 +16190,18 @@ function itemActionsInfo(){
   closeItemActionsMenu();
   openPrepItemInfo(id);
 }
+/* Richard, 18.7.: renaming a mis-typed or mis-scanned ingredient had no path other than
+   delete + re-add, which threw away its status/on-hand/priority/notes history. Same simple
+   prompt() pattern as renaming a dish or a project (itemContextRename above). */
+function itemActionsEdit(){
+  const id = _itemActionsId;
+  const item = _prepItems.find(i=>i.id===id);
+  closeItemActionsMenu();
+  if(!item) return;
+  const newName = prompt('Rename this ingredient:', item.name);
+  if(!newName || !newName.trim() || newName.trim() === item.name) return;
+  updatePrepItem(id, 'name', newName.trim());
+}
 
 /* Hiding lives in one place: tap a dish's name to see every item in it and pick which ones
    are hidden, or hide the whole dish — instead of a per-item hide button scattered in every
@@ -16498,7 +16515,10 @@ async function updatePrepItem(id, field, value){
   if(!item) return;
   const oldValue = item[field];
   item[field] = value;
-  if(field === 'status'){ renderPrepSheet(); renderTaskChips(); }
+  // renderActiveStationView() (not renderPrepSheet() directly) — it dispatches to whichever
+  // view is actually open (single station's prep sheet, or the "All" cross-station flat list),
+  // so a status change or rename re-renders correctly from either place.
+  if(field === 'status' || field === 'name'){ await renderActiveStationView(); renderTaskChips(); }
   setSyncStatus('saving');
   const { error } = await sb.from('prep_items').update({ [field]: value }).eq('id', id);
   setSyncStatus(error ? 'offline' : 'saved');
@@ -21245,7 +21265,7 @@ async function sendChefMessage(){
    ============================================================ */
 function showQuickList(){
   const stationSelect = document.getElementById('ql_station');
-  const stations = DEFAULT_STATIONS;
+  const stations = getStations().filter(s=>s!=='All');
   const preselect = (taskActiveStation !== 'All') ? taskActiveStation : stations[0];
   stationSelect.innerHTML = stations.map(s=>`<option value="${s}" ${s===preselect?'selected':''}>${s}</option>`).join('');
   document.getElementById('ql_text').value = '';
