@@ -19043,6 +19043,10 @@ function handleInvoiceScanFile(input){
   const file = input.files && input.files[0];
   input.value = '';
   if(!file) return;
+  // Capture the target shelf at scan START (Richard, 18.7. bod 3) — same rule as the
+  // add-ingredients scan: navigating away during the background scan must not change
+  // where the results land.
+  _pendingScanTargetFilter = ingredientSourceFilter;
   readFileForScan(file, (base64, mediaType, fileName)=>{ runInvoiceScan(base64, mediaType, fileName); });
 }
 async function runInvoiceScan(base64, mediaType, fileName){
@@ -19109,7 +19113,7 @@ async function runInvoiceScan(base64, mediaType, fileName){
     });
     if(!updates.length && !adds.length) throw new Error('No usable priced items found on this invoice.');
     const preview = [...updates.map(u=>'↺ ' + u.row.name), ...adds.map(a=>'+ ' + a.name)].slice(0, 10).join('\n');
-    if(!confirm(`Invoice read (${currency})${supplier ? ' from ' + supplier : ''}: update ${updates.length} price(s), add ${adds.length} new ingredient(s) to ${currentIngredientListName()}.${supplier ? `\n\nSupplier "${supplier}" will be set on every item from this invoice.` : ''}\n\n${preview}${updates.length + adds.length > 10 ? '\n…' : ''}\n\nApply?`)) return;
+    if(!confirm(`Invoice read (${currency})${supplier ? ' from ' + supplier : ''}: update ${updates.length} price(s), add ${adds.length} new ingredient(s) to ${scanTargetListName()}.${supplier ? `\n\nSupplier "${supplier}" will be set on every item from this invoice.` : ''}\n\n${preview}${updates.length + adds.length > 10 ? '\n…' : ''}\n\nApply?`)) return;
     const nowIso = new Date().toISOString();
     const history = [];
     for(const u of updates){
@@ -19125,8 +19129,10 @@ async function runInvoiceScan(base64, mediaType, fileName){
     }
     let addedCount = 0;
     if(adds.length){
-      const listId = (ingredientSourceFilter !== 'chefos' && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null;
-      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: true, list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
+      // Target shelf captured at scan start — see handleInvoiceScanFile (18.7. bod 3).
+      const target = scanTargetFilter();
+      const listId = (target !== 'chefos' && target !== 'mine') ? target : null;
+      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: target !== 'chefos', list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
       const { data: ins, error } = await sb.from('ingredients').insert(rows).select();
       if(error) throw error;
       (ins || []).forEach(x=>{
@@ -19239,9 +19245,23 @@ async function saveCustomIngredientReview(){
    is_personal to match whichever shelf (ChefOS / My Ingredients) they were on when they
    triggered the scan. Reuses callClaudeCustomIngredientVision as-is — the extraction itself
    isn't specific to the custom_ingredients table, only where the result gets saved differs. */
+/* Target shelf is CAPTURED when the scan starts (Richard, 18.7. bod 3): scans run in the
+   background and the person can navigate elsewhere meanwhile — reading ingredientSourceFilter
+   only at SAVE time meant items landed on whatever shelf was open at that moment (typically
+   ChefOS/company) instead of the list the scan was started from. */
+let _pendingScanTargetFilter = null;
 function triggerIngredientScan(){
+  _pendingScanTargetFilter = ingredientSourceFilter;
   document.getElementById('ingredientScanInput').value = '';
   document.getElementById('ingredientScanInput').click();
+}
+function scanTargetFilter(){ return _pendingScanTargetFilter || ingredientSourceFilter; }
+function scanTargetListName(){
+  const f = scanTargetFilter();
+  if(f === 'mine') return '👤 My Ingredients';
+  if(f === 'chefos') return '✨ ChefOS Ingredients';
+  const l = _ingredientLists.find(x=>x.id === f);
+  return l ? ('📋 ' + l.name) : currentIngredientListName();
 }
 function handleIngredientScanFileSelected(e){
   const file = e.target.files && e.target.files[0];
@@ -19293,7 +19313,7 @@ let _pendingScanSupplier = null;
 function openIngredientScanReview(input){
   _pendingScanIngredients = (input.ingredients || []).map(x=>({ ...x, _include:true }));
   _pendingScanSupplier = (input.supplier || '').trim() || null;
-  document.getElementById('isr_shelf_label').textContent = (ingredientSourceFilter === 'chefos' ? 'ChefOS (shared with your kitchen)' : currentIngredientListName() + ' (private)') + (_pendingScanSupplier ? ` · supplier: ${_pendingScanSupplier}` : '');
+  document.getElementById('isr_shelf_label').textContent = (scanTargetFilter() === 'chefos' ? 'ChefOS (shared with your kitchen)' : scanTargetListName() + ' (private)') + (_pendingScanSupplier ? ` · supplier: ${_pendingScanSupplier}` : '');
   renderIngredientScanReviewList();
   document.getElementById('ingredientScanReviewOverlay').classList.add('open');
 }
@@ -19319,8 +19339,10 @@ async function saveIngredientScanReview(){
   const toSave = _pendingScanIngredients.filter(x=>x._include && x.name && x.name.trim());
   if(!toSave.length){ statusEl.textContent = 'Nothing selected.'; return; }
   statusEl.textContent = 'Saving…';
-  const isPersonal = ingredientSourceFilter !== 'chefos';
-  const listId = (isPersonal && ingredientSourceFilter !== 'mine') ? ingredientSourceFilter : null;
+  // Save into the shelf the scan was STARTED from, not wherever the person navigated meanwhile.
+  const target = scanTargetFilter();
+  const isPersonal = target !== 'chefos';
+  const listId = (isPersonal && target !== 'mine') ? target : null;
   let saved = 0, skipped = 0;
   // One at a time, not a bulk insert: a name that already exists on this shelf hits the unique
   // index (ingredients_shared_name_uidx / ingredients_personal_name_uidx) and must not sink the
