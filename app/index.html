@@ -14287,10 +14287,14 @@ function ingredientOnCurrentShelf(ing){
   if(ingredientSourceFilter === 'public') return !!ing.is_public;
   // All other shelves are MY kitchen only — foreign shared rows never appear on them.
   if(ing._foreign) return false;
-  // Sautero = seeded library (created_by null); Company = the kitchen's own shared additions
-  // (created_by set) — exact mirror of the recipes shelves (Richard, 18.7.: parity rule).
+  // Sautero = seeded library (created_by null). Company = the kitchen's WHOLE working set of
+  // its own ingredients — the shared additions AND everything filed into any custom list
+  // (Richard, 18.7., "aj z nového zoznamu": items you put in a new list must also count as
+  // Company Ingredients). A list is a sub-grouping OF Company Ingredients, not a thing beside
+  // it — so a list item (is_personal + list_id, team-visible via db/146) shows here too, and
+  // also under its own list tile. Only truly private My Ingredients (list_id null) stay out.
   if(ingredientSourceFilter === 'chefos') return !ing.is_personal && !ing.created_by;
-  if(ingredientSourceFilter === 'company') return !ing.is_personal && !!ing.created_by;
+  if(ingredientSourceFilter === 'company') return !!ing.created_by && (!ing.is_personal || !!ing.list_id);
   if(ingredientSourceFilter === 'mine') return !!ing.is_personal && !ing.list_id;
   return ing.list_id === ingredientSourceFilter;
 }
