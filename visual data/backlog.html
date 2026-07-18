@@ -524,7 +524,51 @@ function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
   localStorage.setItem('chefos_doc_lang', _lang);
   applyLang();
+  applyTaskLang();
 }
+/* t174 (18.7.): every roadmap task is bilingual. TASKS_EN is keyed by the task checkbox id
+   (t1…t174) with {t: title, d: description, r: role} — the walker stashes the Slovak
+   innerHTML on first run and swaps. New tasks MUST be added here too. */
+const TASKS_EN = {
+ t1:{t:"Clarify IP ownership vs. the employer (Hotel Schweizerhof)", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> the Schweizerhof data (schedule, prep sheets built on its menu) leaves the app entirely — the pilot runs on Burrito Bandito &amp; Lido instead, so this specific IP risk falls away. The general advice (check IP clauses in the employment contract) still applies to the new employer too — see below.", r:"Resolved"},
+ t2:{t:"Decide what the pilot kitchen becomes after leaving Schweizerhof", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> the pilot kitchen is Burrito Bandito &amp; Lido — one company, two venues. The IP clauses in the new contract are still worth checking, but that's ordinary caution, not an acute blocker.", r:"Resolved"},
+ t3:{t:"Reassess capacity realistically: a new full-time job + Sautero + RC Studio", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> RC Studio goes aside — capacity splits only between the new job and Sautero. Deadlines (incl. the 1 Aug trial) still need continuous checking against genuinely available hours.", r:"Resolved"},
+ t4:{t:"A written pilot agreement with every test kitchen", d:"<b style=\"color:var(--v2);\">First draft done 13 Jul</b> — saved as docs/PILOT_AGREEMENT.md. Still needed: translate/adapt to each venue's language and get it confirmed as legally sound before relying on it.", r:"Founder + legal"},
+ t5:{t:"Verify the sending domain in Resend / switch to the Supabase mailer", d:"A hard public-trial blocker — external addresses can't sign in."},
+ t6:{t:"Put all code in Git (GitHub, private repo) — immediately", d:"<b style=\"color:var(--accent);\">Fully resolved 13 Jul:</b> the local git repo connected to Richard's existing chefos-app repository (it was managed on GitHub by manual drag-and-drop uploads). A GitHub Actions workflow added that deploys app/ automatically on every push.", r:"Resolved"},
+ t7:{t:"Enable/verify automatic Supabase database backups + test a restore", d:"The free tier has limited backups. The DB already holds real pilot data (173 recipes, prep data, attendance). A backup you've never restored isn't a backup.", r:"CTO"},
+ t8:{t:"Create a staging environment (a second Supabase project) — stop running SQL straight on production", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> the \"chefos-staging\" project created, the whole schema + data (173 recipes, 1,315 ingredients, the whole Check List) loaded via db/_staging_bootstrap.sql, verified live (no RLS error). From now on: every new SQL change goes here first, then to production.", r:"Resolved"},
+ t9:{t:"Move the Anthropic API key server-side (a Supabase Edge Function)", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> supabase/functions/claude-proxy done, all 9 call sites in the app rewired through it. You still need to run <code style=\"background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:4px;\">supabase functions deploy claude-proxy</code>.", r:"Resolved (awaiting deploy)"},
+ t10:{t:"A cost cap + alert on the Anthropic account", d:"Know about an overrun before the invoice arrives."},
+ t11:{t:"Check the Supabase free-tier limits before the trial", d:"Free projects pause after 7 days of inactivity and carry DB size/request limits. With 25 users consider the Pro tier (~USD 25/mo) at least for the trial — cheap insurance against the \"app is gone\" embarrassment.", r:"CTO"},
+ t12:{t:"Run the pending SQL migrations (46–53: supplier prices, currency, RLS fixes, realtime, error/usage logs, invite expiry)", d:"After staging exists — there first, then prod."},
+ t13:{t:"Define trial success criteria IN ADVANCE — what \"it works\" means", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul — agreed with Richard:</b><br>• Active use: 40%+ of invited teams open the Check List at least 3× in week two<br>• Retention: at least half of the teams that started are active in week 2 (not just day 1)<br>• Willingness to pay: at least 5 of 25 say yes to \"would you pay X CHF/month\"<br>• Reliability: fewer than 10 critical errors logged during the trial<br>• Feedback: at least 3 unprompted positive + 3 critical pieces collected", r:"Resolved"},
+ t14:{t:"Add basic usage analytics (at least: who signed in, which module they opened)", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> db/52_usage_events.sql, logs login + every main module open. The admin can read it directly in the Supabase Table Editor, no UI needed yet.", r:"Resolved"},
+ t15:{t:"Error tracking — capture users' JS errors", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> db/51_error_logs.sql + a window.onerror/unhandledrejection handler, capped at 20 logs/session.", r:"Resolved"},
+ t16:{t:"Write a regression-test checklist and walk it before every bigger deploy", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul:</b> docs/REGRESSION_CHECKLIST.md. You must walk it yourself on a real device before the trial — I can't do that for you.", r:"Resolved (document), the test awaits you"},
+ t17:{t:"Test on a device matrix: an older iPhone, Android, a tablet — not just your phone", d:"25 strangers = 25 different devices. At minimum: iOS Safari (2 versions), Android Chrome, one tablet. Kitchen reality: wet fingers, gloves, glare — verify touch-target sizes.", r:"QA + UX Lead"},
+ t18:{t:"Decide the language strategy: the app is English, Bern kitchens speak German", d:"The UI was deliberately translated into English — but the target market is canton Bern. At minimum verify during the trial whether English is a barrier for a commis/casserolier; German localisation may matter more than another feature.", r:"UX Lead + PM"},
+ t19:{t:"A manual live test of the whole app + the \"create a kitchen → QR → a stranger joins\" flow", d:"From v1 — with a real second person, not yourself."},
+ t20:{t:"Onboarding copy + a feedback channel + the Terms/Privacy page", d:"<b style=\"color:var(--accent);\">Resolved 13 Jul (autonomously, overnight):</b> app/legal.html — a Privacy &amp; Terms page in the app's style, covers Working Time attendance data (nDSG), AI data, error/usage logs, explicitly marked as not yet lawyer-verified. Linked from the sign-in screen.", r:"Resolved"},
+};
+function applyTaskLang(){
+  document.querySelectorAll('.task').forEach(el=>{
+    const inp = el.querySelector('input[id]'); if(!inp) return;
+    const tr = TASKS_EN[inp.id];
+    const tt = el.querySelector('.task-title'), dd = el.querySelector('.task-desc'), rr = el.querySelector('.role');
+    [tt,dd,rr].forEach(x=>{ if(x && !x.dataset.skHtml) x.dataset.skHtml = x.innerHTML; });
+    if(_lang === 'sk' || !tr){
+      if(tt) tt.innerHTML = tt.dataset.skHtml;
+      if(dd) dd.innerHTML = dd.dataset.skHtml;
+      if(rr) rr.innerHTML = rr.dataset.skHtml;
+    } else {
+      if(tt && tr.t) tt.innerHTML = tr.t;
+      if(dd && tr.d) dd.innerHTML = tr.d;
+      if(rr && tr.r) rr.innerHTML = tr.r;
+    }
+  });
+}
+applyTaskLang();
 function L(sk, en){ return _lang === 'sk' ? sk : en; }
 
 /* ---------- Checkbox persistence — SAME localStorage keys as the original app/backlog.html
