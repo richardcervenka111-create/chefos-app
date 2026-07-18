@@ -14756,6 +14756,31 @@ function attachLongPress(el, onLongPress){
   el.addEventListener('mouseleave', cancel);
   el.addEventListener('contextmenu', (e)=>{ e.preventDefault(); cancel(); onLongPress(e); });
 }
+/* iOS ghost-click guard (Richard, 18.7. — the "phantom Delete dialog" incident, twice on his
+   iPad, the second time it actually deleted a dish): when a bottom sheet / modal / scan overlay
+   closes, iOS Safari can re-dispatch the same tap ~300ms later at the same screen coordinates —
+   which now land on whatever sits underneath (the dish header row, in his case). For 450ms
+   after ANY overlay closes, clicks outside an overlay are swallowed. Capture phase, so it runs
+   before every onclick= handler in the app. */
+let _ghostClickGuardUntil = 0;
+new MutationObserver((muts)=>{
+  muts.forEach(m=>{
+    const el = m.target;
+    if(!el.classList) return;
+    const isOverlay = el.classList.contains('sheet-overlay') || el.classList.contains('modal-backdrop') || el.classList.contains('scan-overlay');
+    if(!isOverlay) return;
+    const wasOpen = (m.oldValue || '').split(/\s+/).includes('open');
+    const isOpen = el.classList.contains('open');
+    if(wasOpen && !isOpen) _ghostClickGuardUntil = Date.now() + 450;
+  });
+}).observe(document.body, { subtree:true, attributes:true, attributeFilter:['class'], attributeOldValue:true });
+document.addEventListener('click', (e)=>{
+  if(Date.now() < _ghostClickGuardUntil && !e.target.closest('.sheet-overlay, .modal-backdrop, .scan-overlay')){
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}, true);
+
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
 function openItemContextMenu(type, id, name, hidden, shared){
   _contextMenuTarget = { type, id, name, hidden: !!hidden, shared: !!shared };
@@ -14765,7 +14790,10 @@ function openItemContextMenu(type, id, name, hidden, shared){
   // — the two buttons disappear entirely instead of failing later.
   const isFixedShelf = type === 'recipeShelf' || type === 'ingredientShelf';
   document.getElementById('itemContextRenameBtn').style.display = isFixedShelf ? 'none' : '';
-  document.getElementById('itemContextDeleteBtn').style.display = isFixedShelf ? 'none' : '';
+  // Kitchen-wide content (a whole prep dish / a whole Check List project) is admin-only to
+  // delete (Richard, 18.7.) — members don't even see the option; Hide stays for everyone.
+  const adminGated = (type === 'prepDish' || type === 'project') && !canDeletePrepContent();
+  document.getElementById('itemContextDeleteBtn').style.display = (isFixedShelf || adminGated) ? 'none' : '';
   // Sharing (bod 4, 16.7. večer — db/114): custom ingredient lists — and the My Recipes fixed
   // shelf keeps its long-press Share-My-Recipes entry here ('shared' doubles as that flag).
   const shareBtn = document.getElementById('itemContextShareBtn');
@@ -14836,6 +14864,12 @@ async function itemContextToggleHide(){
 async function itemContextDelete(){
   const t = _contextMenuTarget;
   if(!t) return;
+  // Belt-and-braces behind the hidden button (Richard, 18.7.): kitchen-wide content is
+  // admin-only to delete even if this function is ever reached another way.
+  if((t.type === 'prepDish' || t.type === 'project') && !canDeletePrepContent()){
+    alert('Only your kitchen admin can delete this. You can hide it instead.');
+    return;
+  }
   const warning = (t.type === 'ingredientList' || t.type === 'recipeList')
     ? `Delete the list "${t.name}" AND everything in it? This can't be undone.`
     : t.type === 'project'
@@ -15626,7 +15660,7 @@ function renderManageSectionsList(){
       </div>
       <div class="task-status-group">
         <button class="save-btn" style="margin-top:0;" onclick="openEditStation('${st.replace(/'/g,"\\'")}')">✏️ Edit</button>
-        <button class="danger-btn" style="margin-top:0;" onclick="deleteStationFromManager('${st.replace(/'/g,"\\'")}')">✕ Delete</button>
+        ${canDeletePrepContent() ? `<button class="danger-btn" style="margin-top:0;" onclick="deleteStationFromManager('${st.replace(/'/g,"\\'")}')">✕ Delete</button>` : ''}
       </div>
     </div>
   `).join('');
@@ -16250,7 +16284,6 @@ function renderPrepSheet(){
           ${dish.price != null ? `<span class="prep-dish-price">${dish.price} CHF</span>` : ''}
           <button class="task-status-btn" title="Choose which items are hidden" onclick="openDishVisibilityPicker('${dish.id}')">👁️</button>
           <button class="task-status-btn" title="Add an item to this dish" onclick="openAddPrepItem('${dish.id}')">+ Add Item</button>
-          <button class="task-status-btn status-danger" title="Delete this dish" onclick="deletePrepDish('${dish.id}')">🗑️ Delete</button>
         </div>
       </div>
       ${(expanded && items.length) ? `
@@ -16295,7 +16328,7 @@ function renderPrepSheet(){
   sectionBtnRow.style.marginTop = '18px';
   sectionBtnRow.innerHTML = `
     <button class="save-btn" onclick="hideStation('${taskActiveStation.replace(/'/g,"\\'")}')">Hide this whole section</button>
-    <button class="danger-btn" onclick="deleteStation('${taskActiveStation.replace(/'/g,"\\'")}')">Delete this whole section</button>
+    ${canDeletePrepContent() ? `<button class="danger-btn" onclick="deleteStation('${taskActiveStation.replace(/'/g,"\\'")}')">Delete this whole section</button>` : ''}
   `;
   container.appendChild(sectionBtnRow);
 }
@@ -16478,26 +16511,13 @@ async function restorePrepItem(id){
   renderTaskChips();
 }
 
-async function deletePrepDish(id){
-  if(!confirm('Delete this whole dish and everything in it? You can restore it afterwards from "N deleted".')) return;
-  setSyncStatus('saving');
-  const { data, error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', id).select();
-  if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
-  if(!data || !data.length){
-    logClientError('deletePrepDish: update matched 0 rows for id ' + id);
-    alert("That didn't go through — reloading to get back in sync.");
-    setSyncStatus('offline');
-    await loadAppData();
-    renderPrepSheet();
-    renderTaskChips();
-    return;
-  }
-  const dish = _prepDishes.find(d=>d.id===id);
-  if(dish) dish.deleted = true;
-  setSyncStatus('saved');
-  renderPrepSheet();
-  renderTaskChips();
-}
+/* Dish/section deletion is ADMIN-ONLY (Richard, 18.7., after twice nearly losing a dish to a
+   stray tablet tap — the second time it actually deleted: "to je len member a tí na to právo
+   nemajú"). Members can Hide; only Head Admin / the kitchen's company admin can delete. The
+   always-visible header 🗑️ Delete button is gone for EVERYONE (that button was the stray-tap
+   target both times) — deletion now lives only behind the long-press context menu on the dish
+   name (openItemContextMenu → itemContextDelete), where a stray tap can't reach it. */
+function canDeletePrepContent(){ return currentIsAdmin || !!currentAdminPerms.company_admin; }
 async function restorePrepDish(id){
   setSyncStatus('saving');
   const { error } = await sb.from('prep_dishes').update({ deleted: false }).eq('id', id);
@@ -16515,6 +16535,7 @@ async function restorePrepDish(id){
    dish); the station name stays discoverable since loadAppData() re-syncs PREP_SHEET_STATIONS
    from real prep_dishes rows regardless of their deleted flag. */
 async function deleteStation(station){
+  if(!canDeletePrepContent()){ alert('Only your kitchen admin can delete a whole section. You can hide it instead.'); return; }
   if(!confirm(`Delete the entire "${station}" section — every dish and item in it? You can restore it afterwards from "N deleted".`)) return;
   setSyncStatus('saving');
   const { data, error } = await sb.from('prep_dishes').update({ deleted: true }).eq('station', station).eq('project_id', currentProjectId).select();
@@ -17545,11 +17566,22 @@ let orderListGroupBySection = true;
 let _orderListSelectedIds = new Set();
 
 let _profilesById = {};
+/* Personal vs company context (Richard, 18.7., CRITICAL — db/156): a team member's kitchen_id
+   points at the COMPANY kitchen even in personal mode, so every Order List read/write must
+   carry the mode explicitly. Personal mode = ONLY my own private rows (home shopping, invisible
+   to colleagues/admin — RLS enforces this server-side too); company mode = only shared rows. */
+function orderListIsPersonal(){ return currentAccountType === 'personal'; }
+function orderListModeFilter(q){
+  q = q.eq('is_personal', orderListIsPersonal());
+  if(orderListIsPersonal()) q = q.eq('created_by', currentUser.id);
+  return q;
+}
 async function loadAndRenderOrderListSummary(){
   setOrderListStatus('saving');
-  const queries = [ sb.from('order_list_items').select('*').eq('kitchen_id', currentKitchenId).order('station') ];
+  const queries = [ orderListModeFilter(sb.from('order_list_items').select('*').eq('kitchen_id', currentKitchenId)).order('station') ];
   // Only admins ever see the per-person breakdown (bod 4), so only admins pay for this extra
-  // fetch — everyone else just sees the summed total.
+  // fetch — everyone else just sees the summed total. Meaningless in personal mode (all rows
+  // are your own), and the mode filter above already keeps personal rows out of company view.
   if(currentIsAdmin) queries.push(sb.from('profiles').select('id, full_name').eq('kitchen_id', currentKitchenId));
   const [{ data, error }, teamRes] = await Promise.all(queries);
   if(error){ setOrderListStatus('offline'); return; }
@@ -17772,8 +17804,8 @@ function renderOrderListChips(){
 
 async function loadOrderListForStation(){
   setOrderListStatus('saving');
-  const { data, error } = await sb.from('order_list_items').select('*')
-    .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation);
+  const { data, error } = await orderListModeFilter(sb.from('order_list_items').select('*')
+    .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation));
   if(error){ setOrderListStatus('offline'); return; }
   // The checkbox reflects only what I personally ordered (one row per person per ingredient
   // now, db/76) — everyone else's rows for the same ingredient are folded into
@@ -17862,12 +17894,14 @@ document.getElementById('orderListSearch').addEventListener('input', (e)=>{
 async function saveOrderList(){
   const checked = Object.entries(_orderListSelections).filter(([id, sel])=> sel.checked);
   setOrderListStatus('saving');
-  // Only ever delete/replace THIS person's own rows for this station — order_list_items now
-  // has one row per (kitchen, station, ingredient, created_by), so a teammate's rows for the
-  // same station are never touched. Used to delete the whole station for the whole kitchen
-  // before saving, which silently wiped out whatever anyone else had ordered (db/76).
+  // Only ever delete/replace THIS person's own rows for this station AND this mode — one row
+  // per (kitchen, station, ingredient, created_by, is_personal) since db/156, so a teammate's
+  // rows are never touched, and saving in personal mode can't wipe your own company rows (or
+  // vice versa). Used to delete the whole station for the whole kitchen before saving, which
+  // silently wiped out whatever anyone else had ordered (db/76).
   const { error: delErr } = await sb.from('order_list_items').delete()
-    .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation).eq('created_by', currentUser.id);
+    .eq('kitchen_id', currentKitchenId).eq('station', orderListActiveStation)
+    .eq('created_by', currentUser.id).eq('is_personal', orderListIsPersonal());
   if(delErr){ alert('Could not save: ' + delErr.message); setOrderListStatus('offline'); return; }
   if(checked.length){
     const rows = checked.map(([id, sel])=>({
@@ -17877,7 +17911,8 @@ async function saveOrderList(){
       quantity: sel.quantity !== '' ? parseFloat(sel.quantity) : null,
       unit: sel.unit,
       notes: sel.notes || null,
-      created_by: currentUser.id
+      created_by: currentUser.id,
+      is_personal: orderListIsPersonal()
     }));
     const { error: insErr } = await sb.from('order_list_items').insert(rows);
     if(insErr){ alert('Could not save: ' + insErr.message); setOrderListStatus('offline'); return; }
@@ -17933,8 +17968,8 @@ async function saveOrderDialog(){
 
   const { error } = await sb.from('order_list_items').upsert({
     kitchen_id: currentKitchenId, station, ingredient_id: ing.id,
-    quantity, unit, notes, created_by: currentUser.id
-  }, { onConflict: 'kitchen_id,station,ingredient_id,created_by' });
+    quantity, unit, notes, created_by: currentUser.id, is_personal: orderListIsPersonal()
+  }, { onConflict: 'kitchen_id,station,ingredient_id,created_by,is_personal' });
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   closeOrderDialog();
 }
@@ -18579,7 +18614,7 @@ async function renderMonthOrdersLabels(monthIndex, dayHours){
         .eq('kitchen_id', currentKitchenId).eq('printed_by', currentUser.id)
         .gte('printed_at', monthStart.toISOString()).lt('printed_at', monthEnd.toISOString()).limit(3000),
       sb.from('order_list_items').select('station, updated_at')
-        .eq('kitchen_id', currentKitchenId).eq('created_by', currentUser.id)
+        .eq('kitchen_id', currentKitchenId).eq('created_by', currentUser.id).eq('is_personal', false)
         .gte('updated_at', monthStart.toISOString()).lt('updated_at', monthEnd.toISOString()).limit(3000)
     ]);
     (labelRows || []).forEach(r=>{
@@ -18953,7 +18988,7 @@ async function renderDayDetailActivity(dayStart, dayEnd, totalHours){
   }
   const [{ data: orders }, { data: labels }] = await Promise.all([
     sb.from('order_list_items').select('station, quantity, unit, ingredient_id')
-      .eq('created_by', currentUser.id).gte('updated_at', dayStart).lt('updated_at', dayEnd),
+      .eq('created_by', currentUser.id).eq('is_personal', false).gte('updated_at', dayStart).lt('updated_at', dayEnd),
     sb.from('print_label_log').select('name, qty, station')
       .eq('printed_by', currentUser.id).gte('printed_at', dayStart).lt('printed_at', dayEnd)
   ]);
