@@ -1803,6 +1803,67 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="home-grid" id="haccpGrid"></div>
 </div>
 
+<!-- Events (Richard, 18.7. — t172): banquets/functions that haven't happened yet. New Event
+     manually, or Scan a photographed order/e-mail/contract (same AI-vision pattern as Invoice
+     Scan). Today | Tomorrow side by side, further days listed below, nearest first. -->
+<div id="eventsView" style="display:none;">
+  <div class="topbar">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <p class="kicker">Banquets &amp; Functions</p>
+      <button class="icon-btn" onclick="showHome()" title="Back to Home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <h1 class="title display">🎪 Events</h1>
+  </div>
+  <div class="wrap" style="padding:14px 16px 100px 16px;">
+    <div class="sheet-row">
+      <button class="save-btn" style="width:100%;" onclick="openEventForm()">+ New Event</button>
+      <button class="task-status-btn" style="width:auto; padding:0 16px;" onclick="document.getElementById('eventScanFile').click()" id="eventScanBtn">📷 Scan</button>
+    </div>
+    <input type="file" id="eventScanFile" accept="image/*,application/pdf" style="display:none;" onchange="handleEventScanFile(this)">
+    <div id="eventsBanners" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px;"></div>
+    <div id="eventsLater" style="margin-top:18px;"></div>
+  </div>
+</div>
+
+<!-- New/Edit Event form (Richard, 18.7. — t172): same single-form-for-add-and-edit pattern as
+     the task form (renderTaskForm) — _editingEventId null = creating, set = editing. -->
+<div id="eventFormOverlay" class="sheet-overlay" onclick="if(event.target===this) closeEventForm()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="eventFormTitle">New Event</div>
+    <label class="form-label">What is it? *</label>
+    <input class="form-field" id="ev_title" type="text" placeholder="e.g. Wedding banquet, corporate lunch">
+    <label class="form-label">For whom / client</label>
+    <input class="form-field" id="ev_client" type="text" placeholder="e.g. Müller family, Acme AG">
+    <label class="form-label">How many people</label>
+    <input class="form-field" id="ev_headcount" type="number" inputmode="numeric" min="0" placeholder="e.g. 35">
+    <label class="form-label">Menu</label>
+    <textarea class="form-field" id="ev_menu" rows="3" placeholder="e.g. 3-course set menu — soup, veal, tart"></textarea>
+    <label class="form-label">Price</label>
+    <input class="form-field" id="ev_price" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g. 2500">
+    <div class="sheet-row">
+      <div style="flex:1;">
+        <label class="form-label">Date *</label>
+        <input class="form-field" id="ev_date" type="date">
+      </div>
+      <div style="flex:1;">
+        <label class="form-label">Time</label>
+        <input class="form-field" id="ev_time" type="time">
+      </div>
+    </div>
+    <label class="form-label">Notes</label>
+    <textarea class="form-field" id="ev_notes" rows="2" placeholder="Anything else worth remembering"></textarea>
+    <div class="form-status" id="eventFormStatus"></div>
+    <div class="sheet-row">
+      <button class="save-btn" onclick="saveEventForm()">Save</button>
+      <button class="sheet-cancel" onclick="closeEventForm()">Cancel</button>
+    </div>
+    <button class="danger-btn" style="width:100%; margin-top:8px; display:none;" id="eventDeleteBtn" onclick="deleteEventForm()">🗑️ Delete this event</button>
+  </div>
+</div>
+
 <!-- Working Time hub (Richard, 17.7.) — COMPANY accounts land here first: My Working Time
      (the personal attendance screen) or Schedule (build the team's roster). Personal accounts
      skip the hub and open Working Time directly, exactly as before. -->
@@ -10508,7 +10569,10 @@ async function approveAuditItem(i){
   if(!name){ alert('Give the ingredient a name.'); return; }
   const unit = document.getElementById(`auditUnit_${i}`).value;
   const category = document.getElementById(`auditCategory_${i}`).value.trim();
-  const row = { kitchen_id: currentKitchenId, name, unit };
+  // Personal + owned by whoever's approving (same RLS bug as saveOrderDialog, 18.7.: missing
+  // is_personal/created_by defaulted this to a SHARED insert, which db/105 only allows admins
+  // to do — Ingredient Audit isn't admin-gated, so this silently blocked every non-admin.
+  const row = { kitchen_id: currentKitchenId, name, unit, is_personal: true, created_by: currentUser.id };
   if(category) row.category = category;
   if(name.toLowerCase() !== m.name.toLowerCase()) row.aliases = [m.name];
   const { data, error } = await sb.from('ingredients').insert(row).select();
@@ -10918,7 +10982,7 @@ function refreshCustomCategoryState(){
   CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
 }
 
-const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','adminTeamMembersView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView','workingTimeHubView'];
+const ALL_VIEW_IDS = ['homeView','recipesHomeView','listView','detailView','formView','ingredientsHomeView','ingredientsView','ingredientFormView','teamJoinView','tasksView','taskFormView','prepDishFormView','orderListView','quickListView','scheduleView','fridgesView','fridgeLogView','fridgeFormView','staffFormView','chefAssistantView','teamGateView','teamInviteView','adminRequestsView','printLabelsView','workingTimeView','workingTimeChartsView','haccpView','haccpMeasurementView','haccpChecklistView','labelExpiryView','settingsView','connectionsView','scanQrView','adminView','adminDirectoryView','adminTeamMembersView','friendsRecipesView','friendRecipeDetailView','checkListProjectsView','workingTimeHubView','eventsView'];
 
 /* ---------- Home tile order — device-local personal preference (localStorage), not shared
    kitchen-wide: what order you like your own icons in has nothing to do with anyone else's
@@ -10930,6 +10994,9 @@ const HOME_TILE_DEFS = [
   { key:'ingredients', icon:'🧂', labelKey:'ingredients', staticLabel:'Ingredients', onclick:'showIngredientsHome()' },
   { key:'checkList', icon:'📋', labelKey:'checkList', staticLabel:'Check List', onclick:'showCheckListProjects()' },
   { key:'orderList', icon:'🛒', labelKey:'orderList', staticLabel:'Order List', onclick:'showOrderList()' },
+  /* Events (Richard, 18.7. — t172): banquets/functions not yet happened — New Event manually
+     or by photo/e-mail scan, Today | Tomorrow banners + further days below. */
+  { key:'events', icon:'🎪', staticLabel:'Events', onclick:'showEvents()' },
   /* HACCP hub (15.7.) — Fridge Temp moved in here (see HACCP_TILE_DEFS below) alongside the
      rest of food-safety self-monitoring, instead of sitting alone on the main menu. */
   /* HACCP visibility (Richard, 18.7.: "Haccp musí mať každý účet") — reopened to every account,
@@ -17834,8 +17901,14 @@ async function saveOrderDialog(){
   statusEl.textContent = 'Saving…';
   let ing = _ingredientLookup[normalizeIngredientText(_orderDialogName)];
   if(!ing){
+    // Personal + owned by whoever's ordering (Richard, 18.7. bug report: "could not save — new
+    // row violates row-level security policy for table ingredients"). This on-the-fly row was
+    // missing is_personal/created_by, so it defaulted to a SHARED ingredient insert — RLS
+    // (db/105) only allows that for admins, silently blocking every non-admin's first order of
+    // anything not already in the price book. My Ingredients is open to everyone, so this now
+    // matches the comment's own intent: any chef ordering something new must not be blocked.
     const { data: newIng, error: ingErr } = await sb.from('ingredients')
-      .insert({ kitchen_id: currentKitchenId, name: _orderDialogName, unit })
+      .insert({ kitchen_id: currentKitchenId, name: _orderDialogName, unit, is_personal: true, created_by: currentUser.id })
       .select().single();
     if(ingErr){ statusEl.textContent = 'Could not save: ' + ingErr.message; return; }
     ing = newIng;
@@ -22150,6 +22223,200 @@ async function deactivateHaccpChecklistItem(id){
   await sb.from('haccp_checklist_items').update({ active:false }).eq('id', id);
   await loadHaccpChecklist();
   renderHaccpChecklistManageList();
+}
+
+/* ============================================================
+   EVENTS (Richard, 18.7. — t172): banquets/functions not yet happened. New Event manually, or
+   Scan a photographed order/e-mail/contract — same AI-vision pattern as Invoice Scan
+   (callClaudeAPI + claudeScanSourceBlock + a single tool_choice). Today | Tomorrow banners side
+   by side, further days listed below, nearest first. db/153.
+   ============================================================ */
+let _events = [];
+let _editingEventId = null;
+
+function eventDateKey(d){ return d; } // events.event_date already comes back as 'YYYY-MM-DD'
+function todayKey(){ return new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(new Date()); }
+function tomorrowKey(){ const d = new Date(); d.setDate(d.getDate()+1); return new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(d); }
+
+/* Demo starter content, same one-time-only pattern as the HACCP cleaning checklist (db/149) —
+   a kitchen that has never touched Events (zero rows ever, so deleting the demo doesn't bring
+   it back) gets one realistic example a few days out instead of an empty screen. */
+async function seedDemoEventIfEmpty(){
+  const { count } = await sb.from('events').select('id', { count:'exact', head:true }).eq('kitchen_id', currentKitchenId);
+  if(count) return;
+  const d = new Date(); d.setDate(d.getDate() + 4);
+  const demoDate = new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(d);
+  await sb.from('events').insert({
+    kitchen_id: currentKitchenId, created_by: currentUser.id, is_demo: true,
+    title: '🎉 Demo: Company anniversary dinner', client: 'Acme AG', headcount: 35,
+    menu: '3-course set menu — soup, veal with seasonal veg, tart', price: 2500,
+    event_date: demoDate, event_time: '19:00',
+    notes: 'This is a demo event so the screen isn\'t empty — edit or delete it freely.'
+  });
+}
+async function showEvents(){
+  logEvent('view_opened', {view:'events'});
+  hideAllViews();
+  document.getElementById('eventsView').style.display = 'block';
+  window.scrollTo(0,0);
+  await seedDemoEventIfEmpty();
+  await loadEvents();
+}
+async function loadEvents(){
+  const { data, error } = await sb.from('events').select('*')
+    .eq('kitchen_id', currentKitchenId).order('event_date').order('event_time', { nullsFirst:false });
+  if(error){ document.getElementById('eventsBanners').innerHTML = `<div class="empty-state">Could not load: ${error.message}</div>`; return; }
+  _events = data || [];
+  renderEvents();
+}
+function eventRowHtml(ev){
+  const time = ev.event_time ? ev.event_time.slice(0,5) : null;
+  return `
+    <div class="task-row" onclick="openEventForm('${ev.id}')" style="cursor:pointer;">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(ev.title||'').replace(/</g,'&lt;')}${ev.is_demo ? ' <span class="meta">(demo)</span>' : ''}</div>
+          <div class="meta">${[time, ev.client, ev.headcount ? ev.headcount + ' people' : null].filter(Boolean).map(s=>String(s).replace(/</g,'&lt;')).join(' · ') || '—'}</div>
+        </div>
+        ${ev.price != null ? `<div class="task-priority-badge priority-3">${formatMoney(ev.price)}</div>` : ''}
+      </div>
+    </div>`;
+}
+function renderEvents(){
+  const today = todayKey(), tomorrow = tomorrowKey();
+  const todays = _events.filter(e=>e.event_date === today);
+  const tomorrows = _events.filter(e=>e.event_date === tomorrow);
+  const later = _events.filter(e=>e.event_date > tomorrow);
+  const past = _events.filter(e=>e.event_date < today);
+  const bannerCol = (label, list)=>`
+    <div style="background:var(--paper-raised); border:1px solid var(--rule); border-radius:14px; padding:12px;">
+      <div class="section-label" style="padding:0 0 8px 0;">${label} · ${list.length}</div>
+      ${list.length ? list.map(eventRowHtml).join('') : `<div class="empty-state" style="padding:10px 0;">Nothing yet</div>`}
+    </div>`;
+  document.getElementById('eventsBanners').innerHTML = bannerCol('Today', todays) + bannerCol('Tomorrow', tomorrows);
+  const laterEl = document.getElementById('eventsLater');
+  let laterHtml = '';
+  if(later.length){
+    laterHtml += `<div class="section-label">Coming up</div>` + later.map(eventRowHtml).join('');
+  }
+  if(past.length){
+    laterHtml += `<div class="section-label" style="margin-top:14px;">Past</div>` + past.slice(-10).reverse().map(eventRowHtml).join('');
+  }
+  laterEl.innerHTML = laterHtml;
+}
+function openEventForm(id){
+  _editingEventId = id || null;
+  const ev = id ? _events.find(e=>e.id===id) : null;
+  document.getElementById('eventFormTitle').textContent = ev ? 'Edit Event' : 'New Event';
+  document.getElementById('ev_title').value = ev ? ev.title || '' : '';
+  document.getElementById('ev_client').value = ev ? ev.client || '' : '';
+  document.getElementById('ev_headcount').value = ev && ev.headcount != null ? ev.headcount : '';
+  document.getElementById('ev_menu').value = ev ? ev.menu || '' : '';
+  document.getElementById('ev_price').value = ev && ev.price != null ? Math.round(ev.price * (CURRENCY_INFO[currentKitchenCurrency]||CURRENCY_INFO.EUR).fromEur * 100)/100 : '';
+  document.getElementById('ev_date').value = ev ? ev.event_date : todayKey();
+  document.getElementById('ev_time').value = ev && ev.event_time ? ev.event_time.slice(0,5) : '';
+  document.getElementById('ev_notes').value = ev ? ev.notes || '' : '';
+  document.getElementById('eventFormStatus').textContent = '';
+  document.getElementById('eventDeleteBtn').style.display = ev ? '' : 'none';
+  document.getElementById('eventFormOverlay').classList.add('open');
+}
+function closeEventForm(){
+  document.getElementById('eventFormOverlay').classList.remove('open');
+  _editingEventId = null;
+}
+async function saveEventForm(){
+  const statusEl = document.getElementById('eventFormStatus');
+  const title = document.getElementById('ev_title').value.trim();
+  const date = document.getElementById('ev_date').value;
+  if(!title){ statusEl.textContent = 'What is this event?'; return; }
+  if(!date){ statusEl.textContent = 'Give it a date.'; return; }
+  const priceRaw = document.getElementById('ev_price').value.trim();
+  const priceEur = priceRaw ? parseFloat(priceRaw) / (CURRENCY_INFO[currentKitchenCurrency]||CURRENCY_INFO.EUR).fromEur : null;
+  const headcountRaw = document.getElementById('ev_headcount').value.trim();
+  const payload = {
+    title, client: document.getElementById('ev_client').value.trim() || null,
+    headcount: headcountRaw ? parseInt(headcountRaw, 10) : null,
+    menu: document.getElementById('ev_menu').value.trim() || null,
+    price: priceEur, event_date: date,
+    event_time: document.getElementById('ev_time').value || null,
+    notes: document.getElementById('ev_notes').value.trim() || null
+  };
+  statusEl.textContent = 'Saving…';
+  let error;
+  if(_editingEventId){
+    ({ error } = await sb.from('events').update(payload).eq('id', _editingEventId));
+  } else {
+    ({ error } = await sb.from('events').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id }));
+  }
+  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
+  closeEventForm();
+  await loadEvents();
+}
+async function deleteEventForm(){
+  if(!_editingEventId || !confirm('Delete this event? This can\'t be undone.')) return;
+  const { error } = await sb.from('events').delete().eq('id', _editingEventId);
+  if(error){ document.getElementById('eventFormStatus').textContent = 'Could not delete: ' + error.message; return; }
+  closeEventForm();
+  await loadEvents();
+}
+
+/* Scan an order/e-mail/contract photo — same vision pattern as Invoice Scan (runInvoiceScan
+   above): one tool_choice call, a single structured extraction, review via confirm() before
+   writing. Pre-fills the manual form rather than saving straight away, so a mis-read field
+   (a common OCR risk on handwritten orders) gets caught before it's on the books. */
+function handleEventScanFile(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  readFileForScan(file, (base64, mediaType, fileName)=>{ runEventScan(base64, mediaType, fileName); });
+}
+async function runEventScan(base64, mediaType, fileName){
+  const btn = document.getElementById('eventScanBtn');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '📷 Reading…';
+  try{
+    const tool = {
+      name: 'record_event',
+      description: 'Extract a banquet/function booking from a photographed order, e-mail or contract.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          title: { type:'string', description:'What kind of event/action this is, e.g. "Wedding banquet", "Corporate lunch". Required.' },
+          client: { type:'string', description:'Who it is for — client or company name.' },
+          headcount: { type:'integer', description:'Number of people.' },
+          menu: { type:'string', description:'The menu, as described — course list or summary.' },
+          price: { type:'number', description:'Total price, as a plain number (no currency symbol).' },
+          event_date: { type:'string', description:'Date in YYYY-MM-DD format. Required — infer the year if not printed, using the nearest future occurrence of the given day/month.' },
+          event_time: { type:'string', description:'Time in 24h HH:MM format, if shown.' },
+          notes: { type:'string', description:'Anything else worth keeping that does not fit the other fields.' }
+        },
+        required: ['title','event_date']
+      }
+    };
+    const data = await callClaudeAPI({
+      model: 'claude-sonnet-5', max_tokens: 2048, tools:[tool], tool_choice:{ type:'tool', name:'record_event' },
+      messages: [{ role:'user', content: [
+        claudeScanSourceBlock(base64, mediaType, fileName),
+        { type:'text', text:'This is a photographed order, e-mail or contract for a restaurant/kitchen booking a banquet or function. IT MAY BE IN ANY LANGUAGE — read it regardless, but translate free-text fields (title, menu, notes) into English. Extract the details using the record_event tool. If today\'s date is needed to resolve a partial date, assume the booking is upcoming, not in the past.' }
+      ] }]
+    });
+    const toolUse = (data.content || []).find(b=>b.type==='tool_use');
+    if(!toolUse || !toolUse.input.title || !toolUse.input.event_date) throw new Error('Could not read an event from this — try a clearer photo, or add it manually.');
+    openEventForm(null);
+    document.getElementById('ev_title').value = toolUse.input.title || '';
+    document.getElementById('ev_client').value = toolUse.input.client || '';
+    document.getElementById('ev_headcount').value = toolUse.input.headcount != null ? toolUse.input.headcount : '';
+    document.getElementById('ev_menu').value = toolUse.input.menu || '';
+    document.getElementById('ev_price').value = toolUse.input.price != null ? toolUse.input.price : '';
+    document.getElementById('ev_date').value = toolUse.input.event_date || todayKey();
+    document.getElementById('ev_time').value = toolUse.input.event_time || '';
+    document.getElementById('ev_notes').value = toolUse.input.notes || '';
+    document.getElementById('eventFormStatus').textContent = 'Read from scan — check the fields, then Save.';
+  } catch(err){
+    alert(err.message || 'Could not read that file.');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
 }
 
 /* ============================================================
