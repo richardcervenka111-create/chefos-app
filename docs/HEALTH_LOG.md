@@ -22,7 +22,7 @@ coming_soon = ON (zámer do trialu); 1 aktívna pozvánka na hlavnú kuchyňu (o
 — ak nie je jeho dnešná, odvolať); RLS test receptov „Moje" z 2 účtov ešte čaká (ingrediencie
 už potvrdené testom „Tajná marináda").
 
-## 🩺 Deep health check v2 — 17. 7. 2026, 08:39 (po nasadení redesignu)
+## 🩺 Deep health check v2 — 18. 7. 2026, ráno (opravený dátum — kontrola bežala po polnoci) (po nasadení redesignu)
 
 **Stav:** auditory čisté (144 migrácií, 48 tabuliek), obe edge funkcie ACTIVE (claude-proxy v8,
 notify-access-request v1), **0 chýb v error_logs za 3 h po nasadení novej témy**, ai_usage 9
