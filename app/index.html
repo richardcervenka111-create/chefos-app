@@ -2678,6 +2678,23 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
+<!-- Add Team Member (Richard, 18.7. — db/145): join code + QR + link + email for the CURRENT
+     kitchen. For kitchen admins whose kitchen already exists — Create Team above is Head Admin
+     only. Opening this sheet mints a FRESH code (server stores only the hash), which quietly
+     invalidates any earlier one — said plainly in the sheet. -->
+<div id="addTeamMemberOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAddTeamMember()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">➕ Add Team Member</div>
+    <p class="sheet-text" id="atmKitchenName" style="text-align:center; font-weight:600;"></p>
+    <div id="atmBody" style="text-align:center;">
+      <p class="sheet-text">Loading a fresh join code…</p>
+    </div>
+    <div class="form-status" id="atmStatus"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAddTeamMember()">Close</button>
+  </div>
+</div>
+
 <!-- Team Join landing page (bod 1, 16.7. — db/97). Shown the first time an account switches to
      Company (profiles.team_join_seen = false). Two ways in, same as the friend-QR pattern
      already used elsewhere: scan (reuses the existing camera+jsQR flow, scanQrView) or type the
@@ -7831,6 +7848,63 @@ async function submitCreateTeam(){
   document.getElementById('createTeamEmailField').value = '';
   document.getElementById('createTeamEmailStatus').textContent = '';
 }
+/* ---------- Add Team Member (Richard, 18.7. — db/145) ----------
+   A kitchen admin's kitchen already exists, so what they need isn't "create" — it's bringing
+   people IN. Mints a fresh join code for the CURRENT kitchen and presents all four ways to
+   share it: 6-char code, QR, copyable link, email send. Reuses the exact ?team=CODE join flow
+   (confirm sheet, LEAVE warning, URL-param handling) that team codes already go through. */
+let _atmJoinUrl = null;
+async function openAddTeamMember(){
+  document.getElementById('atmKitchenName').textContent = '';
+  document.getElementById('atmBody').innerHTML = '<p class="sheet-text">Loading a fresh join code…</p>';
+  document.getElementById('atmStatus').textContent = '';
+  document.getElementById('addTeamMemberOverlay').classList.add('open');
+  const { data: kRow } = await sb.from('kitchens').select('name').eq('id', currentKitchenId).single();
+  const kitchenName = (kRow && kRow.name) || 'your kitchen';
+  document.getElementById('atmKitchenName').textContent = '🏠 ' + kitchenName;
+  const { data: code, error } = await sb.rpc('regenerate_join_code', { p_kitchen_id: currentKitchenId });
+  if(error || !code){
+    document.getElementById('atmBody').innerHTML = `<p class="sheet-text" style="color:var(--danger);">Could not get a join code: ${error ? error.message.replace(/</g,'&lt;') : 'unknown error'} — has db/145 been run?</p>`;
+    return;
+  }
+  _atmJoinUrl = location.origin + location.pathname + '?team=' + code;
+  const qr = qrcode(0, 'M');
+  qr.addData(_atmJoinUrl);
+  qr.make();
+  document.getElementById('atmBody').innerHTML = `
+    <p class="sheet-text">Join code for this kitchen:</p>
+    <p style="font-size:28px; font-weight:700; letter-spacing:.08em; margin:6px 0 12px;">${code}</p>
+    <div style="display:flex; justify-content:center; margin-bottom:10px;">${qr.createSvgTag({ cellSize: 4, margin: 2 })}</div>
+    <p class="sheet-text">They scan the QR, open the link, or type the code in Settings → Account Type → Company.</p>
+    <button class="add-row-btn" style="width:100%; margin-top:6px;" onclick="atmCopyLink()">🔗 Copy join link</button>
+    <label class="form-label" style="margin-top:16px; text-align:left; display:block;">Or send it by email</label>
+    <p class="sheet-text" style="margin-bottom:6px;">They'll get a login email with the join built in — one tap and they're in this team.</p>
+    <input class="form-field" id="atmEmailField" type="email" placeholder="their@email.com">
+    <button class="save-btn" style="width:100%; margin-top:8px;" onclick="atmSendEmail()">Send invite email</button>
+    <div class="form-status" id="atmEmailStatus"></div>
+    <p class="sheet-text" style="color:var(--ink-faint); margin-top:12px;">ℹ️ Opening this sheet mints a fresh code — links/codes you shared earlier stop working. Share this one with everyone you're adding right now.</p>`;
+}
+function closeAddTeamMember(){ document.getElementById('addTeamMemberOverlay').classList.remove('open'); }
+async function atmCopyLink(){
+  if(!_atmJoinUrl) return;
+  try{ await navigator.clipboard.writeText(_atmJoinUrl); document.getElementById('atmStatus').textContent = 'Link copied.'; }
+  catch(e){ prompt('Copy this join link:', _atmJoinUrl); }
+}
+async function atmSendEmail(){
+  const emailField = document.getElementById('atmEmailField');
+  const statusEl = document.getElementById('atmEmailStatus');
+  const email = emailField.value.trim();
+  if(!email){ statusEl.textContent = 'Enter an email address first.'; return; }
+  statusEl.textContent = 'Sending…';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true, emailRedirectTo: _atmJoinUrl }
+  });
+  if(error){ statusEl.textContent = 'Could not send: ' + friendlyAuthErrorMessage(error); return; }
+  statusEl.textContent = 'Sent to ' + email + ' — they can tap the link on their phone.';
+  emailField.value = '';
+}
+
 /* Send by email (bod 1, 16.7.) — same passwordless pattern as the existing kitchen invite
    email (sendInviteByEmail), just pointed at this team's ?team=CODE join link instead of a
    ?invite= one. Whoever gets it taps the link, signs in, and lands on Team Join already primed
@@ -11295,12 +11369,12 @@ const ADMIN_TILE_DEFS = [
   { key:'teamMembers', icon:'👥', staticLabel:'Team Members', onclick:'showAdminTeamMembers()', adminOnly:()=> currentIsAdmin || !!currentAdminPerms.company_admin || hasAdminPerm('manage_team') },
   { key:'accessRequests', icon:'📨', staticLabel:'Access Requests', onclick:'showAdminRequests()', adminOnly:()=>hasAdminPerm('approve_access') },
   { key:'emailContacts', icon:'📧', staticLabel:'Email Contacts', onclick:'openEmailContacts()', adminOnly:()=>hasAdminPerm('view_email_contacts') },
-  /* Create Team (bod 1+5, 16.7. — db/97/db/109) — kitchen MAIN admins only (company_admin,
-     granted by accepting an Add Company invite), deliberately NOT Richard/Head Admin anymore
-     per his explicit 16.7. instruction: he onboards companies via Add Company below, their
-     own admin mints the team join codes. Direct perm check, not hasAdminPerm() — that helper
-     returns true for Head Admin, which is exactly what's being excluded here. */
-  { key:'createTeam', icon:'🏗️', staticLabel:'Create Team', onclick:'openCreateTeam()', adminOnly:()=> !!(currentAdminPerms.company_admin || currentAdminPerms.create_teams) },
+  /* Add Team Member (Richard, 18.7. — db/145): a kitchen admin's kitchen ALREADY EXISTS, so
+     "Create Team" made no sense there — what they need is to bring people INTO it. This sheet
+     mints a join code for the CURRENT kitchen (6-char code + QR + link + email send). Creating
+     brand-new kitchens stays with the Head Admin (Create Team / Add Company below). */
+  { key:'addTeamMember', icon:'➕', staticLabel:'Add Team Member', onclick:'openAddTeamMember()', adminOnly:()=> !!(currentAdminPerms.company_admin || currentAdminPerms.create_teams || currentIsAdmin) },
+  { key:'createTeam', icon:'🏗️', staticLabel:'Create Team', onclick:'openCreateTeam()', adminOnly:()=> currentIsAdmin },
   /* Add Company (bod 5, 16.7. — db/109) — Richard's side of onboarding a new restaurant:
      names the company, sends ONE single-use invite email; whoever accepts becomes that
      kitchen's Company Admin automatically. */
@@ -19133,7 +19207,16 @@ async function runInvoiceScan(base64, mediaType, fileName){
     const supplier = (toolUse.input.supplier || '').trim() || null;
     const currency = String(toolUse.input.currency || 'CHF').toUpperCase();
     const rate = (CURRENCY_INFO[currency] || CURRENCY_INFO.EUR).fromEur; // stored prices are EUR-based
-    const shelfRows = _ingredients.filter(i=>ingredientOnCurrentShelf(i));
+    // Match against the TARGET shelf's whole unique namespace, not whatever shelf happens to
+    // be open at save time (Richard, 18.7.): shared targets (Sautero/Company) share ONE
+    // per-kitchen namespace, so an invoice "Onion" must match the library copy — otherwise it
+    // becomes an add, hits the unique index, and sinks the whole batch.
+    const target = scanTargetFilter();
+    const targetShared = ingredientShelfIsShared(target);
+    const targetListId = (!targetShared && target !== 'mine') ? target : null;
+    const shelfRows = _ingredients.filter(i => !i._foreign && (targetShared
+      ? !i.is_personal
+      : (i.is_personal && i.created_by === currentUser.id && (i.list_id || null) === (targetListId || null))));
     const byName = {};
     shelfRows.forEach(i=>{
       byName[normalizeIngredientText(i.name)] = i;
@@ -19163,6 +19246,10 @@ async function runInvoiceScan(base64, mediaType, fileName){
       const patch = { price: u.priceEur, price_updated_at: nowIso };
       if(supplier) patch.supplier = supplier;
       if(u.category && !u.row.category) patch.category = u.category;
+      // Scanned from the 🏢 Company shelf (Richard, 18.7.): items you actually buy move from
+      // the seeded library onto YOUR Company shelf (created_by set = company semantics) — the
+      // only way they can show there, since the unique index forbids a second same-name row.
+      if(target === 'company' && !u.row.is_personal && !u.row.created_by) patch.created_by = currentUser.id;
       const { error } = await sb.from('ingredients').update(patch).eq('id', u.row.id);
       if(error) continue;
       Object.assign(u.row, patch);
@@ -19171,9 +19258,7 @@ async function runInvoiceScan(base64, mediaType, fileName){
     let addedCount = 0;
     if(adds.length){
       // Target shelf captured at scan start — see handleInvoiceScanFile (18.7. bod 3).
-      const target = scanTargetFilter();
-      const listId = (!ingredientShelfIsShared(target) && target !== 'mine') ? target : null;
-      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: !ingredientShelfIsShared(target), list_id: listId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
+      const rows = adds.map(a=>({ kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: !targetShared, list_id: targetListId, name: a.name, unit: a.unit, price: a.priceEur, price_updated_at: nowIso, supplier: supplier || null, category: a.category || null, aliases: (a.aliases && a.aliases.length) ? a.aliases : [] }));
       const { data: ins, error } = await sb.from('ingredients').insert(rows).select();
       if(error) throw error;
       (ins || []).forEach(x=>{
@@ -19428,6 +19513,9 @@ async function saveIngredientScanReview(){
     if(x.category && !match.category) patch.category = x.category;
     const mergedAliases = Array.from(new Set([...(match.aliases || []), ...aliases]));
     if(mergedAliases.length !== (match.aliases || []).length) patch.aliases = mergedAliases;
+    // Scanned onto the 🏢 Company shelf (Richard, 18.7.): a matched library row moves onto the
+    // Company shelf (created_by set) so the scanned item actually shows where he aimed it.
+    if(target === 'company' && !match.is_personal && !match.created_by) patch.created_by = currentUser.id;
     if(!Object.keys(patch).length){ skipped++; continue; }
     const { error: upErr } = await sb.from('ingredients').update(patch).eq('id', match.id);
     if(upErr){ skipped++; continue; }
