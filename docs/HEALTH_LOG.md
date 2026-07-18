@@ -40,3 +40,10 @@ namiesto slepej hlášky.
 (wt-dot/bar-absence, fridge-status-dot.none) — po premapovaní premenných na 9% hairline by boli
 v Novej téme takmer neviditeľné; dostali pevnú vrstvu nv-3. (.sheet-handle bol pokrytý už
 v celku 2.)
+
+**Poučenie z 18.7. ráno (od Richarda):** deep health check v2 nenašiel regresiu „v Company
+režime sa nedá vytvoriť zoznam ingrediencií", ktorú som sám zaviedol večer predtým — lebo
+kontroloval iba server/štruktúru, nie správanie UI podľa profilu. Od teraz je súčasťou
+každého deep health checku aj **UI paritný prieklik Personal ↔ Company** (sekcia pridaná do
+docs/REGRESSION_CHECKLIST.md). Chybu našiel Richard pri používaní; opravená okamžite
+(zosúladenie s receptami — v Company zmizne len My Ingredients, zoznamy a New List ostávajú).

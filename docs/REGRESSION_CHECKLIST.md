@@ -61,3 +61,18 @@ Check each box on a real device, not just by reading the code. ~15-20 minutes en
 - [ ] No JS errors in the browser console on any of the above (or check `error_logs` in Supabase
       afterward — should be empty for a clean run)
 - [ ] Test on at least one device that isn't your own primary phone
+
+## Parita Personal ↔ Company (doplnené 18.7.2026 — poučenie z chýbajúceho „New List")
+
+Štrukturálne kontroly (auditory, error_logs, RLS) túto triedu chýb NIKDY nechytia — chýbajúce
+tlačidlo nevyhodí chybu. Preto pri každom deep health checku a po každej zmene režimovej
+logiky preklikať OBA režimy (ideálne protonmail účet) a porovnať:
+
+- [ ] **Recipes home:** Personal = Moje + ChefOS + Public + projekty + Add Project;
+      Company = ChefOS + Public + Company + projekty + Add Project (bez „My Recipes")
+- [ ] **Ingredients home:** Personal = ChefOS + My Ingredients + Public + zoznamy + New List;
+      Company = ChefOS + Public + zoznamy + New List (bez „My Ingredients")
+- [ ] **Pravidlo parity:** čo sa dá vytvoriť v jednom module (projekt/zoznam/sekcia), musí sa
+      dať vytvoriť v druhom module v ROVNAKÝCH režimoch — akákoľvek asymetria je bug
+- [ ] HACCP: Personal skryté, Company viditeľné; Home dlaždice sedia s account_type
+- [ ] Prepnúť režim tam a späť — police sa vrátia presne do pôvodného stavu
