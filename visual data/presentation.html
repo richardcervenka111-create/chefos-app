@@ -357,7 +357,7 @@
     <div class="disclaimer" data-sk='<b>Zobrazené ceny sú ilustračné</b>, nie finálne ani schválené investormi. Zatiaľ neexistujú žiadni platiaci zákazníci — produkt je overovaný na jednej pilotnej kuchyni, zatiaľ nemonetizovaný.' data-en='<b>Pricing shown is illustrative</b>, not finalized or investor-approved. No paying customers exist yet — the product is validated against one pilot kitchen, not yet monetized.'></div>
 
     <div class="chart-card" style="margin-top:24px;">
-      <div class="chart-legend"><span><i class="legend-dot" style="background:var(--gold);"></i>Illustrative ARR (CHF), 2026–2030 — canton Bern first</span></div>
+      <div class="chart-legend"><span><i class="legend-dot" style="background:var(--gold);"></i><span data-sk="Ilustračné ARR (CHF), 2026–2030 — najprv kantón Bern" data-en="Illustrative ARR (CHF), 2026–2030 — canton Bern first"></span></span></div>
       <div class="revenue-layout">
         <div id="revenueChartWrap"></div>
         <div class="revenue-callout">
@@ -385,56 +385,56 @@
 const GENERATED = '2026-07-18';
 
 const MARKET = [
-  { num:'~32,000', label:'F&B establishments, Switzerland', note:'GastroSuisse Branchenspiegel 2025' },
-  { num:'CHF 25–28bn', label:'Swiss foodservice revenue / year', note:'GastroSuisse Branchenspiegel 2025' },
-  { num:'~3,500', label:'F&B establishments, canton Bern', note:'population-share estimate, not official' },
-  { num:'1', label:'Pilot kitchen live today', note:'Burrito Bandito & Lido (one group, two venues)' },
+  { num:'~32,000', label:'F&B establishments, Switzerland', label_sk:'F&B podnikov, Švajčiarsko', note:'GastroSuisse Branchenspiegel 2025', note_sk:'GastroSuisse Branchenspiegel 2025' },
+  { num:'CHF 25–28bn', label:'Swiss foodservice revenue / year', label_sk:'tržby švajčiarskej gastronómie / rok', note:'GastroSuisse Branchenspiegel 2025', note_sk:'GastroSuisse Branchenspiegel 2025' },
+  { num:'~3,500', label:'F&B establishments, canton Bern', label_sk:'F&B podnikov, kantón Bern', note:'population-share estimate, not official', note_sk:'odhad podľa podielu populácie, nie oficiálne číslo' },
+  { num:'1', label:'Pilot kitchen live today', label_sk:'pilotná kuchyňa naživo dnes', note:'Burrito Bandito & Lido (one group, two venues)', note_sk:'Burrito Bandito & Lido (jedna skupina, dve prevádzky)' },
 ];
 
 /* Same 10 facts as before, now grouped by what each one proves — content depth, AI
    capability, real-world traction, infrastructure — instead of one flat, undifferentiated wall. */
 const KPI_GROUPS = [
-  { group:'Content depth', items:[
-    { num:'183', label:'Library recipes', note:'full 20-field format, every one enriched to Michelin depth (equipment, chef notes, storage, plating)' },
-    { num:'2,005', label:'Ingredients priced', note:'Sautero price book live in production, cost-matching engine (prices estimated, not yet market-verified)' },
-    { num:'8', label:'Kitchen stations', note:'dish-grouped prep sheets' },
+  { group:'Content depth', group_sk:'Hĺbka obsahu', items:[
+    { num:'183', label:'Library recipes', label_sk:'receptov v knižnici', note:'full 20-field format, every one enriched to Michelin depth (equipment, chef notes, storage, plating)', note_sk:'plný 20-poľový formát, každý obohatený do Michelin hĺbky (vybavenie, poznámky šéfkuchára, skladovanie, plating)' },
+    { num:'2,005', label:'Ingredients priced', label_sk:'nacenených ingrediencií', note:'Sautero price book live in production, cost-matching engine (prices estimated, not yet market-verified)', note_sk:'Sautero cenník naživo v produkcii, cost-matching engine (ceny odhadované, zatiaľ neoverené trhom)' },
+    { num:'8', label:'Kitchen stations', label_sk:'kuchynských staníc', note:'dish-grouped prep sheets', note_sk:'prep sheety zoskupené podľa jedál' },
   ]},
-  { group:'AI & reach', items:[
-    { num:'7', label:'AI features live', note:'photo/HTML/PDF recipe scan · method generation · Chef\'s Assistant · translate · invoice scan · menu-from-URL · duplicate check' },
-    { num:'5', label:'UI languages', note:'EN/DE/FR/IT/SK, partial coverage' },
-    { num:'Live', label:'Per-user AI metering', note:'every AI call logged per user & feature, admin dashboard with cost split' },
+  { group:'AI & reach', group_sk:'AI a dosah', items:[
+    { num:'7', label:'AI features live', label_sk:'AI funkcií naživo', note:'photo/HTML/PDF recipe scan · method generation · Chef\'s Assistant · translate · invoice scan · menu-from-URL · duplicate check', note_sk:'sken receptu z fotky/HTML/PDF · generovanie postupu · Chef\'s Assistant · preklad · sken faktúry · menu z URL · kontrola duplicít' },
+    { num:'5', label:'UI languages', label_sk:'jazykov rozhrania', note:'EN/DE/FR/IT/SK, partial coverage', note_sk:'EN/DE/FR/IT/SK, čiastočné pokrytie' },
+    { num:'Live', label:'Per-user AI metering', label_sk:'AI meranie per užívateľ', note:'every AI call logged per user & feature, admin dashboard with cost split', note_sk:'každé AI volanie logované per užívateľ a funkcia, admin prehľad s rozdelením nákladov' },
   ]},
-  { group:'Traction', items:[
-    { num:'1', label:'Pilot kitchen', note:'Burrito Bandito & Lido (one group, two venues)' },
-    { num:'13', label:'Accounts on the platform', note:'10 real external users + 3 founder test accounts, invite-only' },
-    { num:'0', label:'Paying customers', note:'pre-monetization' },
-    { num:'Aug 1', label:'Public trial target', note:'25 users, multi-team via QR invite' },
+  { group:'Traction', group_sk:'Trakcia', items:[
+    { num:'1', label:'Pilot kitchen', label_sk:'pilotná kuchyňa', note:'Burrito Bandito & Lido (one group, two venues)', note_sk:'Burrito Bandito & Lido (jedna skupina, dve prevádzky)' },
+    { num:'13', label:'Accounts on the platform', label_sk:'účtov na platforme', note:'10 real external users + 3 founder test accounts, invite-only', note_sk:'10 reálnych externých + 3 zakladateľské testovacie účty, len na pozvánku' },
+    { num:'0', label:'Paying customers', label_sk:'platiacich zákazníkov', note:'pre-monetization', note_sk:'pred monetizáciou' },
+    { num:'Aug 1', label:'Public trial target', label_sk:'cieľ verejného trialu', note:'25 users, multi-team via QR invite', note_sk:'25 užívateľov, multi-team cez QR pozvánku' },
   ]},
-  { group:'Infrastructure', items:[
-    { num:'chefos.ch', label:'Own domain live', note:'custom SMTP, no third-party branding — migrating to sautero.ch after the 18 Jul rebrand' },
+  { group:'Infrastructure', group_sk:'Infraštruktúra', items:[
+    { num:'app.sautero.ch', label:'Own domain live', label_sk:'vlastná doména naživo', note:'custom SMTP, no third-party branding — migrated to app.sautero.ch on 18 Jul (rebrand day)', note_sk:'vlastný SMTP, žiadny cudzí branding — 18.7. zmigrované na app.sautero.ch (deň rebrandu)' },
   ]},
 ];
 /* Flat view for the hero's 3 headline numbers — most convincing "this is real" proof at a glance. */
 const HEADLINE_STATS = [
-  { num:'183', label:'Library recipes, Michelin-enriched' },
-  { num:'2,005', label:'Ingredients priced in production' },
-  { num:'7', label:'AI features live today' },
+  { num:'183', label:'Library recipes, Michelin-enriched', label_sk:'receptov v knižnici, Michelin-obohatené' },
+  { num:'2,005', label:'Ingredients priced in production', label_sk:'nacenených ingrediencií v produkcii' },
+  { num:'7', label:'AI features live today', label_sk:'AI funkcií naživo dnes' },
 ];
 
 /* The 3 pillars are a real operational sequence (execute prep → know stock → reorder), so a
    numbered process makes sense here — not decoration. */
 const PROCESS = [
   {
-    icon:'📋', title:'Line-cook workflow (Check List)', status:'live',
-    desc:'Dish-grouped prep sheets per station (TO DO / CHECK / FINISH / DON\'T DO), a live cross-station "All" view, and an overload flag once a station exceeds 3.5h of outstanding work. Not a ticket/KDS system — cross-team visibility into shared prep state.'
+    icon:'📋', title:'Line-cook workflow (Check List)', title_sk:'Workflow kuchára na linke (Check List)', status:'live',
+    desc:'Dish-grouped prep sheets per station (TO DO / CHECK / FINISH / DON\'T DO), a live cross-station "All" view, and an overload flag once a station exceeds 3.5h of outstanding work. Not a ticket/KDS system — cross-team visibility into shared prep state.', desc_sk:'Prep sheety zoskupené podľa jedál per stanica (TO DO / CHECK / FINISH / DON\'T DO), živý pohľad „All" naprieč stanicami a overload vlajka, keď stanica prekročí 3,5 h nevybavenej práce. Nie je to ticket/KDS systém — je to tímová viditeľnosť zdieľaného stavu prípravy.'
   },
   {
-    icon:'📦', title:'Inventory awareness', status:'live',
-    desc:'Per-item on-hand counts, minimum-required thresholds with an automatic shortfall flag, and a station-by-station Order List built off the same priced ingredient table used for recipe costing.'
+    icon:'📦', title:'Inventory awareness', title_sk:'Prehľad o zásobách', status:'live',
+    desc:'Per-item on-hand counts, minimum-required thresholds with an automatic shortfall flag, and a station-by-station Order List built off the same priced ingredient table used for recipe costing.', desc_sk:'Skladové počty per položka, minimálne prahy s automatickou vlajkou nedostatku a Order List po staniciach postavený nad tou istou nacenenou tabuľkou ingrediencií, z ktorej sa počíta food cost receptov.'
   },
   {
-    icon:'🤝', title:'Supplier collaboration', status:'vision',
-    desc:'Not built. Vision: connect the Ingredients/Order List data to real Swiss foodservice supplier feeds (e.g. Transgourmet, Prodega) and order submission — the monetizable B2B layer referenced in Financials below.'
+    icon:'🤝', title:'Supplier collaboration', title_sk:'Spolupráca s dodávateľmi', status:'vision',
+    desc:'Not built. Vision: connect the Ingredients/Order List data to real Swiss foodservice supplier feeds (e.g. Transgourmet, Prodega) and order submission — the monetizable B2B layer referenced in Financials below.', desc_sk:'Nepostavené. Vízia: prepojiť dáta Ingrediencií/Order Listu na reálne feedy švajčiarskych gastro dodávateľov (napr. Transgourmet, Prodega) a odosielanie objednávok — monetizovateľná B2B vrstva spomínaná nižšie vo Financiách.'
   },
 ];
 
@@ -447,30 +447,30 @@ function monthsBetween(dateStr){
   return (d.getFullYear()-ROADMAP_START.getFullYear())*12 + (d.getMonth()-ROADMAP_START.getMonth()) + (d.getDate()-1)/30;
 }
 const ROADMAP = [
-  { label:'Phase 0 — Foundation & Validation', start:'2026-07-08', end:'2026-07-08', shipped:true },
-  { label:'Phase 1a — Recipe engine + data foundation', start:'2026-07-09', end:'2026-07-09', shipped:true },
-  { label:'Phase 1b — AI recipe import', start:'2026-07-09', end:'2026-07-09', shipped:true },
-  { label:'Ingredients, nutrition, Order List, Schedule, Fridge Temp', start:'2026-07-09', end:'2026-07-09', shipped:true },
-  { label:'Check List (8-station prep sheets) + Kitchen Flow v1', start:'2026-07-09', end:'2026-07-10', shipped:true },
-  { label:'Multi-language UI v1 + Ingredients expansion (1,263)', start:'2026-07-10', end:'2026-07-10', shipped:true },
-  { label:'Check List polish: cross-station "All" view, swipe-back, per-item notes, busiest-first sort', start:'2026-07-10', end:'2026-07-10', shipped:true },
-  { label:'Multi-team access gate, soft-delete, Order List redesign, Print Labels, Working Time (check-in/out + contract scan)', start:'2026-07-11', end:'2026-07-12', shipped:true },
-  { label:'Engineering discipline: Git, staging environment, RLS audit + critical fix, error/usage tracking, audit log, trial success criteria', start:'2026-07-12', end:'2026-07-13', shipped:true },
-  { label:'Ingredients expanded to 2,000 (staging) + production reliability fixes: AI features restored, Check List delete silent-failure fixed', start:'2026-07-13', end:'2026-07-13', shipped:true },
-  { label:'Own domain live, critical signup-bug fix, Order List data-loss fix, 3-way recipe filter, background AI scanning, menu scan from URL, password + Face ID login, HACCP module waves 1+2, invite-only lockdown, mandatory password, Connections rebuild', start:'2026-07-14', end:'2026-07-15', shipped:true },
-  { label:'Real data privacy + team join codes + Kitchen Reports + AI subscription gate + Privacy consent gate, then real team membership enforcement, role-based admin, long-press content management, custom ingredient lists, branded print v2 + always-on nav header, HACCP/Team Meetings gated to company accounts, central AI billing key, branded auth emails', start:'2026-07-16', end:'2026-07-16', shipped:true },
-  { label:'Community layer: Public shelves for recipes & ingredients across every kitchen, per-item sharing (publicly / with chef friends), cross-kitchen comments with counts, supplier field + Invoice Scan v2 (reads vendor, translates any language), per-screen tutorials — plus a full security review (private contract storage, XSS hardening, permanent auditor guards)', start:'2026-07-17', end:'2026-07-17', shipped:true },
-  { label:'Rebrand to Sautero (clean name, .ch + .com free) + per-friend recipe sharing, per-user AI usage metering with admin dashboard, Michelin enrichment of all 183 library recipes, Company Ingredients shelf + scan-target fix, HTML/text invoice & recipe scanning, new UI theme (founder beta)', start:'2026-07-18', end:'2026-07-18', shipped:true },
-  { label:'Public trial prep — polish Check List, Chef\'s Assistant, Ingredients, Recipes; multi-team QR invites; email login for any address', start:'2026-07-11', end:'2026-07-31', shipped:false },
-  { label:'Public trial — 25 users, multiple restaurants, own team per kitchen', start:'2026-08-01', end:'2026-08-01', shipped:false },
-  { label:'Phase 2 — Kitchen Flow full (multi-user roles, pilot live test)', start:'2026-09-01', end:'2026-11-30', shipped:false },
-  { label:'Phase 3 — Inventory & food cost (real stock, Swiss supplier feeds)', start:'2026-11-01', end:'2027-02-28', shipped:false },
-  { label:'Phase 4 — Production planning & reports', start:'2027-02-01', end:'2027-05-31', shipped:false },
-  { label:'Phase 5 — Intelligence layer (AI prep recommendations)', start:'2027-05-01', end:'2027-09-30', shipped:false },
-  { label:'Phase 6 — Native mobile + offline mode', start:'2027-09-01', end:'2028-03-31', shipped:false },
-  { label:'Phase 7 — Go-to-market: canton Bern (first paying kitchens)', start:'2028-03-01', end:'2028-12-31', shipped:false },
-  { label:'Expansion — neighbouring cantons (Fribourg, Solothurn, Vaud, Neuchâtel)', start:'2029-01-01', end:'2029-12-31', shipped:false },
-  { label:'Expansion — German-speaking Switzerland (Zürich, Basel, Lucerne, Aargau)', start:'2030-01-01', end:'2030-12-31', shipped:false },
+  { label:'Phase 0 — Foundation & Validation', label_sk:'Fáza 0 — Základy & validácia', start:'2026-07-08', end:'2026-07-08', shipped:true },
+  { label:'Phase 1a — Recipe engine + data foundation', label_sk:'Fáza 1a — Receptový engine + dátový základ', start:'2026-07-09', end:'2026-07-09', shipped:true },
+  { label:'Phase 1b — AI recipe import', label_sk:'Fáza 1b — AI import receptov', start:'2026-07-09', end:'2026-07-09', shipped:true },
+  { label:'Ingredients, nutrition, Order List, Schedule, Fridge Temp', label_sk:'Ingrediencie, nutrície, Order List, Schedule, Fridge Temp', start:'2026-07-09', end:'2026-07-09', shipped:true },
+  { label:'Check List (8-station prep sheets) + Kitchen Flow v1', label_sk:'Check List (prep sheety 8 staníc) + Kitchen Flow v1', start:'2026-07-09', end:'2026-07-10', shipped:true },
+  { label:'Multi-language UI v1 + Ingredients expansion (1,263)', label_sk:'Viacjazyčné UI v1 + rozšírenie ingrediencií (1 263)', start:'2026-07-10', end:'2026-07-10', shipped:true },
+  { label:'Check List polish: cross-station "All" view, swipe-back, per-item notes, busiest-first sort', label_sk:'Check List polish: pohľad „All" naprieč stanicami, swipe-back, poznámky per položka, triedenie od najvyťaženejších', start:'2026-07-10', end:'2026-07-10', shipped:true },
+  { label:'Multi-team access gate, soft-delete, Order List redesign, Print Labels, Working Time (check-in/out + contract scan)', label_sk:'Multi-team prístupová brána, soft-delete, redesign Order Listu, Print Labels, Working Time (check-in/out + sken zmluvy)', start:'2026-07-11', end:'2026-07-12', shipped:true },
+  { label:'Engineering discipline: Git, staging environment, RLS audit + critical fix, error/usage tracking, audit log, trial success criteria', label_sk:'Inžinierska disciplína: Git, staging prostredie, RLS audit + kritická oprava, error/usage tracking, audit log, kritériá úspechu trialu', start:'2026-07-12', end:'2026-07-13', shipped:true },
+  { label:'Ingredients expanded to 2,000 (staging) + production reliability fixes: AI features restored, Check List delete silent-failure fixed', label_sk:'Ingrediencie rozšírené na 2 000 (staging) + opravy spoľahlivosti produkcie: AI funkcie obnovené, tiché zlyhanie mazania v Check Liste opravené', start:'2026-07-13', end:'2026-07-13', shipped:true },
+  { label:'Own domain live, critical signup-bug fix, Order List data-loss fix, 3-way recipe filter, background AI scanning, menu scan from URL, password + Face ID login, HACCP module waves 1+2, invite-only lockdown, mandatory password, Connections rebuild', label_sk:'Vlastná doména naživo, oprava kritického signup bugu, oprava straty dát Order Listu, 3-cestný filter receptov, AI skenovanie na pozadí, sken menu z URL, heslo + Face ID login, HACCP vlny 1+2, invite-only lockdown, povinné heslo, prestavba Connections', start:'2026-07-14', end:'2026-07-15', shipped:true },
+  { label:'Real data privacy + team join codes + Kitchen Reports + AI subscription gate + Privacy consent gate, then real team membership enforcement, role-based admin, long-press content management, custom ingredient lists, branded print v2 + always-on nav header, HACCP/Team Meetings gated to company accounts, central AI billing key, branded auth emails', label_sk:'Skutočné súkromie dát + tímové join kódy + Kitchen Reports + AI predplatné brána + Privacy consent, potom vynútené reálne členstvo v tíme, rolový admin, long-press správa obsahu, vlastné zoznamy ingrediencií, branded print v2 + stály nav header, HACCP/Team Meetings len pre firemné účty, centrálny AI kľúč, brandované auth e-maily', start:'2026-07-16', end:'2026-07-16', shipped:true },
+  { label:'Community layer: Public shelves for recipes & ingredients across every kitchen, per-item sharing (publicly / with chef friends), cross-kitchen comments with counts, supplier field + Invoice Scan v2 (reads vendor, translates any language), per-screen tutorials — plus a full security review (private contract storage, XSS hardening, permanent auditor guards)', label_sk:'Komunitná vrstva: verejné police receptov a ingrediencií naprieč kuchyňami, zdieľanie po položkách (verejne / chef-priateľom), komentáre naprieč kuchyňami s počítadlami, pole dodávateľa + Invoice Scan v2 (číta dodávateľa, prekladá akýkoľvek jazyk), tutoriály per obrazovka — plus plná bezpečnostná revízia (privátne úložisko zmlúv, XSS hardening, trvalé auditorské stráže)', start:'2026-07-17', end:'2026-07-17', shipped:true },
+  { label:'Rebrand to Sautero (clean name, .ch + .com free) + per-friend recipe sharing, per-user AI usage metering with admin dashboard, Michelin enrichment of all 183 library recipes, Company Ingredients shelf + scan-target fix, HTML/text invoice & recipe scanning, new UI theme (founder beta)', label_sk:'Rebrand na Sautero (čisté meno, .ch + .com voľné) + zdieľanie receptov per priateľ, AI meranie per užívateľ s admin prehľadom, Michelin obohatenie všetkých 183 receptov knižnice, polica Company Ingredients + oprava cieľa skenu, HTML/text sken faktúr aj receptov, nová UI téma (beta pre zakladateľa)', start:'2026-07-18', end:'2026-07-18', shipped:true },
+  { label:'Public trial prep — polish Check List, Chef\'s Assistant, Ingredients, Recipes; multi-team QR invites; email login for any address', label_sk:'Príprava verejného trialu — polish Check Listu, Chef\'s Assistanta, Ingrediencií, Receptov; multi-team QR pozvánky; email login pre každú adresu', start:'2026-07-11', end:'2026-07-31', shipped:false },
+  { label:'Public trial — 25 users, multiple restaurants, own team per kitchen', label_sk:'Verejný trial — 25 užívateľov, viac reštaurácií, vlastný tím per kuchyňa', start:'2026-08-01', end:'2026-08-01', shipped:false },
+  { label:'Phase 2 — Kitchen Flow full (multi-user roles, pilot live test)', label_sk:'Fáza 2 — Kitchen Flow naplno (multi-user roly, živý test pilotu)', start:'2026-09-01', end:'2026-11-30', shipped:false },
+  { label:'Phase 3 — Inventory & food cost (real stock, Swiss supplier feeds)', label_sk:'Fáza 3 — Sklad & food cost (reálne zásoby, švajčiarski dodávatelia)', start:'2026-11-01', end:'2027-02-28', shipped:false },
+  { label:'Phase 4 — Production planning & reports', label_sk:'Fáza 4 — Plánovanie výroby & reporty', start:'2027-02-01', end:'2027-05-31', shipped:false },
+  { label:'Phase 5 — Intelligence layer (AI prep recommendations)', label_sk:'Fáza 5 — Inteligentná vrstva (AI odporúčania prípravy)', start:'2027-05-01', end:'2027-09-30', shipped:false },
+  { label:'Phase 6 — Native mobile + offline mode', label_sk:'Fáza 6 — Natívny mobil + offline režim', start:'2027-09-01', end:'2028-03-31', shipped:false },
+  { label:'Phase 7 — Go-to-market: canton Bern (first paying kitchens)', label_sk:'Fáza 7 — Go-to-market: kantón Bern (prvé platiace kuchyne)', start:'2028-03-01', end:'2028-12-31', shipped:false },
+  { label:'Expansion — neighbouring cantons (Fribourg, Solothurn, Vaud, Neuchâtel)', label_sk:'Expanzia — susedné kantóny (Fribourg, Solothurn, Vaud, Neuchâtel)', start:'2029-01-01', end:'2029-12-31', shipped:false },
+  { label:'Expansion — German-speaking Switzerland (Zürich, Basel, Lucerne, Aargau)', label_sk:'Expanzia — nemecky hovoriace Švajčiarsko (Zürich, Basel, Luzern, Aargau)', start:'2030-01-01', end:'2030-12-31', shipped:false },
 ];
 
 /* Illustrative only — see disclaimer in the page. Bottom-up: hypothetical paying-kitchen
@@ -479,6 +479,7 @@ const ROADMAP = [
    or actual figure — zero paying customers exist today. */
 const REVENUE_YEARS = ['2026','2027','2028','2029','2030'];
 const REVENUE_REGION = ['Pilot only', 'Canton Bern', 'Canton Bern', 'Bern + neighbours', 'German-speaking CH'];
+const REVENUE_REGION_SK = ['Len pilot', 'Kantón Bern', 'Kantón Bern', 'Bern + susedia', 'Nemecky hovoriace CH'];
 const REVENUE_KITCHENS = [0, 20, 80, 250, 600];
 const BLENDED_ARPU_MONTHLY_CHF = 89; // 60% Chef Pro (49) + 40% Restaurant (149)
 const REVENUE_ILLUSTRATIVE_CHF = REVENUE_KITCHENS.map(k => k * BLENDED_ARPU_MONTHLY_CHF * 12);
@@ -524,9 +525,17 @@ function hoursBarDetail(i){
 
 /* ============================================================ RENDER ============================================================ */
 
+/* t174 (18.7.): deck data bilingual — every JS-rendered item may carry *_sk fields; the SK
+   view uses them with the EN base as fallback. New data must land with both languages. */
+let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+function DL(en, sk){ return (_lang==='sk' && sk) ? sk : en; }
+function rerenderDeck(){
+  renderHeadlineStats(); renderMarket(); renderKPIGroups(); renderMaturity(); renderHoursBars();
+  renderProcess(); renderGantt(); renderRevenueChart(); renderAssumptionsTable();
+}
 function renderHeadlineStats(){
   document.getElementById('headlineStats').innerHTML = HEADLINE_STATS.map(s=>`
-    <div class="headline-stat"><div class="num">${s.num}</div><div class="lbl">${s.label}</div></div>
+    <div class="headline-stat"><div class="num">${s.num}</div><div class="lbl">${DL(s.label, s.label_sk)}</div></div>
   `).join('');
 }
 
@@ -534,21 +543,21 @@ function renderMarket(){
   document.getElementById('marketGrid').innerHTML = MARKET.map(k=>`
     <div class="kpi-card">
       <div class="kpi-num">${k.num}</div>
-      <div class="kpi-label">${k.label}</div>
-      <div class="kpi-note">${k.note}</div>
+      <div class="kpi-label">${DL(k.label, k.label_sk)}</div>
+      <div class="kpi-note">${DL(k.note, k.note_sk)}</div>
     </div>
   `).join('');
 }
 
 function renderKPIGroups(){
   document.getElementById('kpiGroups').innerHTML = KPI_GROUPS.map(g => `
-    <div class="group-label">${g.group}</div>
+    <div class="group-label">${DL(g.group, g.group_sk)}</div>
     <div class="kpi-grid">
       ${g.items.map(k=>`
         <div class="kpi-card">
           <div class="kpi-num">${k.num}</div>
-          <div class="kpi-label">${k.label}</div>
-          <div class="kpi-note">${k.note}</div>
+          <div class="kpi-label">${DL(k.label, k.label_sk)}</div>
+          <div class="kpi-note">${DL(k.note, k.note_sk)}</div>
         </div>
       `).join('')}
     </div>
@@ -563,9 +572,9 @@ function renderMaturity(){
   const legend = document.getElementById('maturityLegend');
   if(!svg || !legend) return;
   const SEGS = [
-    { key:'working', label:'Working, verified live', color:'#4ADE80' },
-    { key:'testing', label:'Built, awaiting live test', color:'#FB923C' },
-    { key:'planned', label:'Planned, not built yet', color:'#FF7A68' },
+    { key:'working', label:'Working, verified live', label_sk:'Funkčné, overené naživo', color:'#4ADE80' },
+    { key:'testing', label:'Built, awaiting live test', label_sk:'Postavené, čaká na živý test', color:'#FB923C' },
+    { key:'planned', label:'Planned, not built yet', label_sk:'Naplánované, nepostavené', color:'#FF7A68' },
   ];
   const total = SEGS.reduce((s,x)=>s + MATURITY[x.key], 0);
   const R = 44, C = 2 * Math.PI * R;
@@ -574,14 +583,14 @@ function renderMaturity(){
     const frac = MATURITY[s.key] / total;
     const c = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${s.color}" stroke-width="16"
       stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}" stroke-dashoffset="${(-off*C).toFixed(2)}"
-      transform="rotate(-90 60 60)"><title>${s.label}: ${MATURITY[s.key]}</title></circle>`;
+      transform="rotate(-90 60 60)"><title>${DL(s.label, s.label_sk)}: ${MATURITY[s.key]}</title></circle>`;
     off += frac;
     return c;
   }).join('') +
     `<text x="60" y="58" text-anchor="middle" font-size="24" font-weight="700">${total}</text>` +
-    `<text x="60" y="72" text-anchor="middle" font-size="6.5" fill="var(--ink-dim)">FEATURES TOTAL</text>`;
-  legend.innerHTML = SEGS.map(s=>`<div class="mrow"><span class="mdot" style="background:${s.color};"></span>${s.label} — <b>${MATURITY[s.key]}</b></div>`).join('') +
-    `<div class="mrow" style="font-size:11px; color:var(--ink-faint);">Live counts from the internal feature map (feature_status), not estimates.</div>`;
+    `<text x="60" y="72" text-anchor="middle" font-size="6.5" fill="var(--ink-dim)">${_lang==='sk' ? 'FUNKCIÍ SPOLU' : 'FEATURES TOTAL'}</text>`;
+  legend.innerHTML = SEGS.map(s=>`<div class="mrow"><span class="mdot" style="background:${s.color};"></span>${DL(s.label, s.label_sk)} — <b>${MATURITY[s.key]}</b></div>`).join('') +
+    `<div class="mrow" style="font-size:11px; color:var(--ink-faint);">${_lang==='sk' ? 'Živé počty z internej mapy funkcií (feature_status), nie odhady.' : 'Live counts from the internal feature map (feature_status), not estimates.'}</div>`;
 }
 
 function renderProcess(){
@@ -590,9 +599,9 @@ function renderProcess(){
       <div class="process-card ${b.status}">
         <div class="process-step">${i+1}</div>
         <div class="process-icon">${b.icon}</div>
-        <div class="process-title">${b.title}</div>
-        <div class="process-desc">${b.desc}</div>
-        <span class="process-status ${b.status}">${b.status === 'live' ? 'Live' : 'Vision'}</span>
+        <div class="process-title">${DL(b.title, b.title_sk)}</div>
+        <div class="process-desc">${DL(b.desc, b.desc_sk)}</div>
+        <span class="process-status ${b.status}">${b.status === 'live' ? (_lang==='sk'?'Naživo':'Live') : (_lang==='sk'?'Vízia':'Vision')}</span>
       </div>
     `).join('')
   }</div>`;
@@ -618,9 +627,9 @@ function renderGantt(){
     const dateText = r.start === r.end ? r.start : `${r.start} → ${r.end}`;
     return `
       <div class="gantt-row">
-        <div class="gantt-label" title="${r.label.replace(/"/g,'&quot;')}">${r.label}</div>
+        <div class="gantt-label" title="${DL(r.label, r.label_sk).replace(/"/g,'&quot;')}">${DL(r.label, r.label_sk)}</div>
         <div class="gantt-track" style="width:${trackWidth}px;">
-          <div class="gantt-bar ${cls}" style="left:${left}px; width:${width}px;" title="${r.label.replace(/"/g,'&quot;')} (${dateText})"></div>
+          <div class="gantt-bar ${cls}" style="left:${left}px; width:${width}px;" title="${DL(r.label, r.label_sk).replace(/"/g,'&quot;')} (${dateText})"></div>
         </div>
       </div>
     `;
@@ -693,14 +702,14 @@ function renderAssumptionsTable(){
   const rows = REVENUE_YEARS.map((y,i)=> `
     <tr>
       <td>${y}</td>
-      <td class="region">${REVENUE_REGION[i]}</td>
+      <td class="region">${DL(REVENUE_REGION[i], REVENUE_REGION_SK[i])}</td>
       <td>${REVENUE_KITCHENS[i].toLocaleString('en-CH')}</td>
       <td>CHF ${BLENDED_ARPU_MONTHLY_CHF}/mo</td>
       <td>CHF ${REVENUE_ILLUSTRATIVE_CHF[i].toLocaleString('en-CH')}</td>
     </tr>
   `).join('');
   document.getElementById('assumptionsTable').innerHTML = `
-    <thead><tr><th>Year</th><th>Region</th><th>Paying kitchens</th><th>Blended ARPU</th><th>ARR</th></tr></thead>
+    <thead><tr><th>${DL('Year','Rok')}</th><th>${DL('Region','Región')}</th><th>${DL('Paying kitchens','Platiace kuchyne')}</th><th>${DL('Blended ARPU','Blended ARPU')}</th><th>ARR</th></tr></thead>
     <tbody>${rows}</tbody>
   `;
 }
@@ -753,7 +762,9 @@ initPageNav();
   window.chefosToggleLang = function(){
     lang = lang === 'sk' ? 'en' : 'sk';
     localStorage.setItem('chefos_doc_lang', lang);
+    if(typeof _lang !== 'undefined'){ _lang = lang; }
     apply();
+    if(typeof rerenderDeck === 'function') rerenderDeck();
   };
   apply();
 })();
