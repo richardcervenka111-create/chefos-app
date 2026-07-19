@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sautero — Kompletná kontrola funkcií</title>
+<style>
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper2:#0E2138; --ink:#FFFFFF; --ink-dim:#9C949E;
+    --ink-faint:#5E6B7A; --rule:#223d57; --accent:#34F7D7; --gold:#E8C468; --danger:#FF7A68;
+    --mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,monospace;
+  }
+  *{ box-sizing:border-box; min-width:0; }
+  html,body{ overflow-x:hidden; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; padding:20px 16px 80px 16px; }
+  .wrap{ max-width:920px; margin:0 auto; }
+  h1{ font-size:24px; margin:0 0 4px 0; }
+  .lede{ font-size:13px; color:var(--ink-dim); line-height:1.55; margin:0 0 18px 0; }
+  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
+  .section-label{ display:flex; align-items:center; gap:10px; margin:26px 0 10px 0; }
+  .section-label .n{ font-family:var(--mono); font-size:11px; color:var(--accent); }
+  .section-label h2{ font-size:15px; margin:0; }
+  .section-label .rule{ flex:1; height:1px; background:var(--rule); }
+  .card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px; }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .stat-tile{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 12px; text-align:center; }
+  .stat-tile .v{ font-family:var(--mono); font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .stat-tile .k{ font-size:10.5px; color:var(--ink-dim); margin-top:3px; text-transform:uppercase; letter-spacing:.04em; }
+  .stat-tile.done .v{ color:var(--accent); }
+  .stat-tile.progress .v{ color:var(--gold); }
+  .stat-tile.todo .v{ color:var(--ink-faint); }
+
+  .bar-wrap{ display:flex; height:22px; border-radius:999px; overflow:hidden; margin-top:14px; background:var(--paper2); border:1px solid var(--rule); }
+  .bar-wrap div{ height:100%; }
+  .bar-legend{ display:flex; gap:16px; margin-top:10px; font-size:11.5px; color:var(--ink-dim); flex-wrap:wrap; }
+  .bar-legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .bar-legend i{ width:9px; height:9px; border-radius:3px; display:inline-block; }
+
+  .sec-grid{ display:flex; flex-direction:column; gap:8px; }
+  .sec-row{ display:flex; align-items:flex-start; gap:12px; padding:12px; border-radius:10px; background:var(--paper2); border:1px solid var(--rule); }
+  .sec-row .num{ font-family:var(--mono); font-size:11px; color:var(--ink-faint); flex:none; width:22px; padding-top:2px; }
+  .sec-row .body{ flex:1; }
+  .sec-row .title{ font-size:13.5px; font-weight:700; }
+  .sec-row .note{ font-size:12px; color:var(--ink-dim); margin-top:3px; line-height:1.5; }
+  .pill{ flex:none; font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+  .pill.done{ background:rgba(52,247,215,.16); color:var(--accent); border:1px solid rgba(52,247,215,.4); }
+  .pill.progress{ background:rgba(232,196,104,.16); color:var(--gold); border:1px solid rgba(232,196,104,.4); }
+  .pill.todo{ background:rgba(94,107,122,.16); color:var(--ink-faint); border:1px solid var(--rule); }
+
+  .bug-row{ display:flex; gap:10px; padding:11px 0; border-top:1px solid var(--rule); align-items:flex-start; }
+  .bug-row:first-child{ border-top:none; }
+  .bug-row .icon{ flex:none; font-size:15px; padding-top:1px; }
+  .bug-row .body{ flex:1; font-size:12.5px; line-height:1.55; }
+  .bug-row .body b{ color:var(--ink); }
+  .bug-row .body .meta{ display:block; color:var(--ink-dim); margin-top:2px; }
+  .tag{ display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; margin-left:6px; vertical-align:1px; }
+  .tag.fixed{ background:rgba(52,247,215,.16); color:var(--accent); }
+  .tag.open{ background:rgba(255,122,104,.16); color:var(--danger); }
+
+  .q-row{ padding:12px; border-radius:10px; background:var(--paper2); border:1px dashed var(--gold); margin-bottom:8px; }
+  .q-row .q-title{ font-size:13px; font-weight:700; color:var(--gold); margin-bottom:4px; }
+  .q-row .q-body{ font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
+
+  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
+  @media (max-width:520px){ .stat-row{ grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
+<div class="wrap">
+
+  <h1 data-sk="🔍 Kompletná kontrola funkcií" data-en="🔍 Complete feature verification"></h1>
+  <p class="lede" data-sk="Živý tracker sweepu, ktorý Richard nariadil 19.7.2026 v noci: „keď sa zobudím, ideme na kompletnú kontrolu všetkých funkcií, dlaždicu po dlaždici.“ Plný zoznam kontrolných bodov je v docs/FEATURE_VERIFICATION_CHECKLIST.md — táto stránka ukazuje, kde presne sme, čo sa už našlo a opravilo, a čo čaká na Richardovu odpoveď. Aktualizuje sa priebežne počas sweepu." data-en="A live tracker for the sweep Richard ordered on the night of 19 Jul 2026: “when I wake up, we go through a complete check of every feature, tile by tile.” The full checklist lives in docs/FEATURE_VERIFICATION_CHECKLIST.md — this page shows exactly where we are, what's already been found and fixed, and what's waiting on Richard's answer. Updated live as the sweep progresses."></p>
+
+  <div class="section-label"><span class="n">01</span><h2 data-sk="Postup naprieč 16 oblasťami" data-en="Progress across 16 areas"></h2><div class="rule"></div></div>
+  <div class="stat-row">
+    <div class="stat-tile done"><div class="v" id="statDone">–</div><div class="k" data-sk="Hotovo" data-en="Done"></div></div>
+    <div class="stat-tile progress"><div class="v" id="statProgress">–</div><div class="k" data-sk="Rozbehnuté" data-en="In progress"></div></div>
+    <div class="stat-tile todo"><div class="v" id="statTodo">–</div><div class="k" data-sk="Čaká" data-en="Not started"></div></div>
+    <div class="stat-tile"><div class="v" id="statBugs">–</div><div class="k" data-sk="Nájdených chýb dnes" data-en="Bugs found today"></div></div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <div class="bar-wrap" id="progressBar"></div>
+    <div class="bar-legend">
+      <span><i style="background:var(--accent);"></i><span data-sk="Hotovo" data-en="Done"></span></span>
+      <span><i style="background:var(--gold);"></i><span data-sk="Rozbehnuté" data-en="In progress"></span></span>
+      <span><i style="background:var(--ink-faint);"></i><span data-sk="Čaká" data-en="Not started"></span></span>
+    </div>
+  </div>
+
+  <div class="section-label"><span class="n">02</span><h2 data-sk="Stav po oblastiach" data-en="Status by area"></h2><div class="rule"></div></div>
+  <div class="card"><div class="sec-grid" id="secGrid"></div></div>
+
+  <div class="section-label"><span class="n">03</span><h2 data-sk="Nájdené a opravené dnes" data-en="Found and fixed today"></h2><div class="rule"></div></div>
+  <div class="card" id="bugList"></div>
+
+  <div class="section-label"><span class="n">04</span><h2 data-sk="Otvorené otázky pre Richarda" data-en="Open questions for Richard"></h2><div class="rule"></div></div>
+  <div id="questionList"></div>
+
+</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, ráno" data-en="🔄 Sautero state as of Jul 19, 2026, morning">🔄 Stav Sautero k 19. 7. 2026, ráno</div>
+
+<script>
+let _lang = 'sk';
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _lang;
+  document.querySelectorAll('[data-sk]').forEach(el=>{
+    const v = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
+    if(v !== null) el.textContent = v;
+  });
+  renderAll();
+}
+
+// STATUS: 'done' | 'progress' | 'todo'
+const SECTIONS = [
+  { n:'§0', sk:'Login a brány', en:'Login & gates', status:'todo',
+    sk_note:'Zatiaľ neprejdené v tomto sweepe.', en_note:'Not walked yet in this sweep.' },
+  { n:'§1', sk:'Home', en:'Home', status:'done',
+    sk_note:'Všetkých 13 dlaždíc na iPhone potvrdených. „Team Meetings“ vysvetlené ako zámerný placeholder (nie bug).',
+    en_note:'All 13 tiles on iPhone confirmed. "Team Meetings" explained as a deliberate placeholder (not a bug).' },
+  { n:'§2', sk:'Check List', en:'Check List', status:'todo',
+    sk_note:'Personal/company súkromie projektov opravené pred sweepom (db/159) — samotný checklist ešte neprešiel.',
+    en_note:'Personal/company project privacy fixed before the sweep (db/159) — the checklist walk itself is still pending.' },
+  { n:'§3', sk:'Order List', en:'Order List', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§4', sk:'Recepty', en:'Recipes', status:'todo', sk_note:'Ďalšia dlaždica v poradí.', en_note:'Next tile in line.' },
+  { n:'§5', sk:'Ingrediencie', en:'Ingredients', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§6', sk:'Events', en:'Events', status:'todo', sk_note:'Zatiaľ neprejdené — prvý plný živý test čaká.', en_note:'Not walked yet — first full live test pending.' },
+  { n:'§7', sk:'HACCP', en:'HACCP', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§8', sk:'Working Time', en:'Working Time', status:'progress',
+    sk_note:'Check-in/out + forgot-checkin ✅. Živá Break stopka postavená a potvrdená ✅. Denný detail Orders & Labels rozpísaný (aj v demo) ✅. Poznámka ku dňu ✅, fotka opravená (knižnica) — čaká na re-test. Schedule demo postavené a videom potvrdené na iPhone (fiktívny tím + ochrana proti úprave) ✅. Zostáva: Charts, nahranie zmluvy, sken rozpisu, member (iPad) porovnanie.',
+    en_note:'Check-in/out + forgot-checkin ✅. Live Break stopwatch built and confirmed ✅. Day-detail Orders & Labels itemized (incl. demo) ✅. Day note ✅, photo fixed (library) — awaiting re-test. Schedule demo built and video-confirmed on iPhone (fake team + edit guards) ✅. Remaining: Charts, contract upload, schedule scan, member (iPad) comparison.' },
+  { n:'§9', sk:'Connections', en:'Connections', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§10', sk:'Print Labels', en:'Print Labels', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§11', sk:"Chef's Assistant", en:"Chef's Assistant", status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§12', sk:'Nastavenia', en:'Settings', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§13', sk:'Admin', en:'Admin', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+  { n:'§14', sk:'Dokumenty', en:'Documents', status:'progress',
+    sk_note:'Tento dokument je súčasťou §14 — buduje sa práve teraz.', en_note:'This document is itself part of §14 — being built right now.' },
+  { n:'§15', sk:'Prierezové kontroly', en:'Cross-cutting sweeps', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
+];
+
+const BUGS = [
+  { icon:'🔧', tag:'fixed',
+    sk:'<b>Working Time Break</b> bol len tichý súčet čísla — postavená živá „🔵 On break“ stopka + presné časy v detaile (db/160).',
+    en:'<b>Working Time Break</b> was just a silent number addition — built a live "🔵 On break" stopwatch + exact times in day detail (db/160).' },
+  { icon:'🔧', tag:'fixed',
+    sk:'<b>Orders &amp; Labels v demo režime</b> ukazovali len graf, žiadny rozpis — doplnený presný zoznam položiek/štítkov, rovnako ako v reálnom režime.',
+    en:'<b>Orders &amp; Labels in demo mode</b> only showed the chart, no breakdown — added the exact item/label list, matching real mode.' },
+  { icon:'🎭', tag:'fixed',
+    sk:'<b>Schedule nemal demo režim vôbec</b> — postavený nový 🎭 prepínač s fiktívnym tímom a rozvrhom.',
+    en:'<b>Schedule had no demo mode at all</b> — built a new 🎭 toggle with a fake team and roster.' },
+  { icon:'🔐', tag:'fixed',
+    sk:'<b>Demo prepínače boli podľa role (admin)</b> — zjednotené na demoModeAllowed(), 3 konkrétne testovacie účty, nie rola.',
+    en:'<b>Demo toggles were role-based (admin)</b> — unified onto demoModeAllowed(), 3 named test accounts instead of role.' },
+  { icon:'📷', tag:'fixed',
+    sk:'<b>Fotka ku dňu</b> šla len z fotoaparátu (capture="environment" blokoval knižnicu) — odstránené, teraz ide oboje.',
+    en:'<b>Day-note photo</b> only opened the camera (capture="environment" blocked the library) — removed, now both work.' },
+  { icon:'✅', tag:'fixed',
+    sk:'<b>Schedule demo na iPhone</b> — pôvodné hlásenie bolo z chvíle pred nasadením gating opravy; po nej overené video: fiktívny tím sa zobrazuje správne, ochrana pred úpravou (meno aj „+ Add staff“) funguje presne podľa návrhu.',
+    en:'<b>Schedule demo on iPhone</b> — the original report predated the gating fix going live; a follow-up video confirms: the fake team renders correctly, edit guards (staff name and "+ Add staff") work exactly as designed.' },
+];
+
+const QUESTIONS = [
+  { sk_t:'Working Time — čo presne je „ostatné“ overené', en_t:'Working Time — what exactly "the rest" covers',
+    sk_b:'Skúšal si aj Working Time Charts, nahranie zmluvy + AI poznámku, sken rozpisu do Schedule, alebo len check-in/out + break + poznámky? Chcem mať checklist presný, nie odhadovaný.',
+    en_b:'Did you also try Working Time Charts, contract upload + AI note, schedule scan into Schedule, or just check-in/out + break + notes? I want the checklist accurate, not guessed.' },
+];
+
+function renderAll(){
+  const done = SECTIONS.filter(s=>s.status==='done').length;
+  const progress = SECTIONS.filter(s=>s.status==='progress').length;
+  const todo = SECTIONS.filter(s=>s.status==='todo').length;
+  const total = SECTIONS.length;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statProgress').textContent = progress;
+  document.getElementById('statTodo').textContent = todo;
+  document.getElementById('statBugs').textContent = BUGS.length;
+
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = `
+    <div style="width:${done/total*100}%; background:var(--accent);"></div>
+    <div style="width:${progress/total*100}%; background:var(--gold);"></div>
+    <div style="width:${todo/total*100}%; background:var(--ink-faint);"></div>
+  `;
+
+  const pillLabel = { done: _lang==='sk'?'Hotovo':'Done', progress: _lang==='sk'?'Rozbehnuté':'In progress', todo: _lang==='sk'?'Čaká':'Not started' };
+  document.getElementById('secGrid').innerHTML = SECTIONS.map(s=>`
+    <div class="sec-row">
+      <div class="num">${s.n}</div>
+      <div class="body">
+        <div class="title">${_lang==='sk'?s.sk:s.en}</div>
+        <div class="note">${_lang==='sk'?s.sk_note:s.en_note}</div>
+      </div>
+      <div class="pill ${s.status}">${pillLabel[s.status]}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('bugList').innerHTML = BUGS.map(b=>`
+    <div class="bug-row">
+      <div class="icon">${b.icon}</div>
+      <div class="body">${_lang==='sk'?b.sk:b.en}<span class="tag ${b.tag}">${b.tag==='fixed' ? (_lang==='sk'?'OPRAVENÉ':'FIXED') : (_lang==='sk'?'OTVORENÉ':'OPEN')}</span></div>
+    </div>
+  `).join('');
+
+  document.getElementById('questionList').innerHTML = QUESTIONS.map(q=>`
+    <div class="q-row">
+      <div class="q-title">${_lang==='sk'?q.sk_t:q.en_t}</div>
+      <div class="q-body">${_lang==='sk'?q.sk_b:q.en_b}</div>
+    </div>
+  `).join('');
+}
+renderAll();
+</script>
+</body>
+</html>
