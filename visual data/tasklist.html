@@ -649,7 +649,11 @@ const DAYS=[
     '🎪 Events dlaždica naživo (db/153): manuál + AI scan objednávky, Dnes|Zajtra, 🎭 demo prepínač (nový štandard pre demá); 6-bodová dávka: admin zámky časov (db/150), vlastné labely tlačidiel (db/151), sync časov, HACCP pre všetkých + kto odškrtol + demo (db/149), rozbaľovacie jedlá, Add Company = okamžitý admin (db/148)',
     '🆕 Nové pravidlo: Claude púšťa SQL v Supabase sám (cez prihlásený Chrome, staging-first, každá migrácia overená spätne); nález: staging je prázdna mŕtva kópia → resync do plánu',
     '🗄️ Konsolidácia: CLAUDE.md + SUPABASE_CONSOLIDATION_PLAN.md (49→~24), Fáza 1 (db/157) + krok 2.1 (db/158, ikony→JSONB 20+3 presne) hotové; AI Details + Invoice Scan vrátené adminom na Sautero policu',
-    '🔍 Pripravená kompletná kontrola všetkých funkcií: docs/FEATURE_VERIFICATION_CHECKLIST.md (15 sekcií × 4 perspektívy) — štartuje hneď po Richardovom zobudení'
+    '🔍 Nočný sweep: 398-položkový 🔍 Kompletná kontrola dokument postavený naostro (16 modulov, klikateľné detaily, samostatný Personal/Company/👥 Interakcia prepínač lebo obe verzie appky majú iný rozsah funkcií)',
+    '🔐 Ďalších 5+1 privacy únikov nájdených a opravených tým istým vzorom ako Order List: Events (db/161), zoznamy ingrediencií aj receptov (db/162 — vyriešilo Richardov starší nahlásený bug „nová kategória v personal vidí každý"), jedlá/úlohy VNÚTRI osobného Check List projektu + história cien osobnej ingrediencie (db/163, najzávažnejšie — dovtedy ich mohol nielen vidieť, ale aj upraviť či vymazať ktokoľvek v kuchyni); prekontrolovaných všetkých 38 tabuliek s kitchen_id, žiadny ďalší únik nenájdený; každá oprava overená tenant_isolation_test.sql naživo na produkcii',
+    '☕ Working Time: reálne bežiace stopky na prestávku (5/10/15/30 min) s presným zápisom do detailu dňa; 🎭 demo mód zjednotený na 3 testovacie účty (nie jeden globálny prepínač — každá dlaždica má svoj vlastný)',
+    '👤 Admin v demo Schedule klikne na člena tímu a vidí jeho posledných 30 dní (objednávky, vytlačené štítky, pridané recepty, odstopovaný čas v Check List)',
+    '🩺 Zabudnutý HACCP admin-gate bug opravený — blokoval bežných členov napriek tomu, že HACCP je od 18.7. pre všetkých'
   ]}
 ];
 /* t174 (18.7.): the timeline is bilingual via DAYS_I18N — days 08-13 were written in EN,
@@ -816,7 +820,11 @@ const DAYS_I18N = {
     '🎪 The Events tile live (db/153): manual + AI order scan, Today|Tomorrow, the 🎭 demo toggle (the new standard for demos); the 6-point batch: admin time locks (db/150), custom button labels (db/151), time sync, HACCP for everyone + who ticked + demo (db/149), collapsible dishes, Add Company = instant admin (db/148)',
     '🆕 New rule: Claude runs SQL in Supabase itself (via the logged-in Chrome, staging-first, every migration verified afterwards); finding: staging is an empty dead copy → resync into the plan',
     '🗄️ Consolidation: CLAUDE.md + SUPABASE_CONSOLIDATION_PLAN.md (49→~24), Phase 1 (db/157) + step 2.1 (db/158, icons→JSONB, 20+3 exact) done; AI Details + Invoice Scan restored for admins on the Sautero shelf',
-    '🔍 The complete feature verification prepared: docs/FEATURE_VERIFICATION_CHECKLIST.md (15 sections × 4 perspectives) — starts the moment Richard wakes up'
+    '🔍 Night sweep: the 398-item 🔍 Complete Check document built for real (16 modules, tap-for-detail, a separate Personal/Company/👥 Interaction toggle since the two app modes have a different feature count)',
+    '🔐 5+1 more privacy leaks found and fixed with the same pattern as Order List: Events (db/161), ingredient lists and recipe lists (db/162 — resolved Richard\'s earlier reported bug "a new category in personal mode is visible to everyone"), dishes/tasks INSIDE a personal Check List project plus a personal ingredient\'s price history (db/163, the worst one — until now anyone in the kitchen could not just see but edit or delete them); all 38 kitchen_id tables checked, no further leak found; every fix verified with tenant_isolation_test.sql live on production',
+    '☕ Working Time: a real running break stopwatch (5/10/15/30 min) logged precisely into the day detail; 🎭 demo mode unified across 3 test accounts (not one global switch — every tile keeps its own)',
+    '👤 Admin in demo Schedule can tap a team member and see their last 30 days (orders, printed labels, recipes added, time stopped in Check List)',
+    '🩺 A forgotten HACCP admin-gate bug fixed — it blocked regular members even though HACCP has been open to everyone since Jul 18'
   ]},
 };
 function dayHeadline(day){
@@ -919,7 +927,7 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-16', ok:43, test:39, plan:4 },
   { date:'2026-07-17', ok:77, test:25, plan:7 },
   { date:'2026-07-18', ok:77, test:26, plan:8 },
-  { date:'2026-07-19', ok:87, test:29, plan:8 },
+  { date:'2026-07-19', ok:89, test:29, plan:8 },
 ];
 /* Hours worked per day (Richard, 17.7.) — measured from git commit sessions by
    scripts/work_hours.py (run it and paste its output here on every doc-sync). Days before
@@ -935,8 +943,8 @@ const WORK_HOURS = {
   '2026-07-15': 11.6,
   '2026-07-16': 14.8,
   '2026-07-17': 6.4,
-  '2026-07-18': 11.8,
-  '2026-07-19': 2.0,
+  '2026-07-18': 12.4,
+  '2026-07-19': 3.7,
 };
 const WORK_HOURS_MEASURED_FROM = '2026-07-13';
 function isEstimatedHours(d){ return d < WORK_HOURS_MEASURED_FROM; }
