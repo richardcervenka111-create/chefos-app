@@ -4090,6 +4090,29 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
+<!-- Member Activity (19.7., Richard — Schedule: "chcem vidieť jeho posledných 30 dní... aké
+     items objednal, aké etikety vytlačil, koľko a aké recepty pridal do sekcií, koľko odstopoval
+     v check liste úloh, koľko check list sekcií vytvoril"). Admin-only, reached by tapping a
+     team member's name in Schedule. Two stacked sheets: this one lists the last 30 days, tapping
+     a day opens memberActivityDayOverlay with the 5 metrics for that specific day. -->
+<div id="memberActivityOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMemberActivity()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="memberActivityTitle"></div>
+    <p class="sheet-text" data-i18n-skip>Last 30 days — tap a day for detail.</p>
+    <div id="memberActivityDays"></div>
+    <button class="sheet-cancel" onclick="closeMemberActivity()">Close</button>
+  </div>
+</div>
+<div id="memberActivityDayOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMemberActivityDay()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="memberActivityDayTitle"></div>
+    <div id="memberActivityDayBody"></div>
+    <button class="sheet-cancel" onclick="closeMemberActivityDay()">Close</button>
+  </div>
+</div>
+
 <!-- Working Time: personal data — save a backup file to the phone, restore one, or delete
      everything. First place in the app this "save/upload/delete your own data" pattern exists
      — Richard asked for the same treatment everywhere eventually; this is the concrete first
@@ -16950,6 +16973,22 @@ async function saveAddTimeForItem(){
   const wasFromTimer = _addTimeFromTimer;
   const itemName = item.name;
   const itemStation = stationForItem(item);
+  // Member Activity (19.7.) — timer stops weren't attributable to anyone before (the value
+  // above is a running average with no owner/date). This reuses check_list_audit_log — same
+  // table, new field value, no migration — purely so "koľko odstopoval" becomes answerable
+  // going forward. Fire-and-forget, exact same pattern as logCheckListAudit.
+  if(wasFromTimer){
+    try{
+      const dish = _prepDishes.find(d=>d.id===item.dish_id);
+      sb.from('check_list_audit_log').insert({
+        kitchen_id: typeof currentKitchenId !== 'undefined' ? currentKitchenId : null,
+        item_id: item.id, item_name: itemName, dish_name: dish ? dish.name : null, station: itemStation,
+        field: 'timer_stop', old_value: null, new_value: String(minutes),
+        changed_by: typeof currentUser !== 'undefined' && currentUser ? currentUser.id : null,
+        changed_by_name: typeof currentUserName !== 'undefined' ? currentUserName : null
+      }).then(()=>{}, ()=>{});
+    } catch(e){ /* logging itself must never throw */ }
+  }
   closeAddTimeForItem();
   renderPrepSheet();
   if(wasFromTimer) openPrintQuantityPrompt(itemName, itemStation);
@@ -21937,7 +21976,10 @@ function renderScheduleGrid(){
   sectionOrder.forEach(sec=>{
     tbody += `<tr class="section-row"><td colspan="8">${sec}</td></tr>`;
     grouped[sec].forEach(person=>{
-      tbody += `<tr><td class="name-col" onclick="showEditStaffForm('${person.id}')">${person.name}</td>`;
+      // 19.7.: tapping the name now opens that person's activity (last 30 days) — the more
+      // common admin need per Richard ("chcem vidieť jeho posledných 30 dní"). Renaming moved
+      // to the small ✏️ so it's still one tap away, not lost.
+      tbody += `<tr><td class="name-col"><div style="display:flex; align-items:center; justify-content:space-between; gap:6px;"><span onclick="openMemberActivity('${person.id}','${person.name.replace(/'/g,"\\'")}')" style="flex:1;">${person.name}</span><button class="icon-btn" style="flex:none; padding:2px;" onclick="event.stopPropagation(); showEditStaffForm('${person.id}')" title="Rename / edit">✏️</button></div></td>`;
       dates.forEach(d=>{
         const a = _assignments[person.id + '_' + d];
         const code = a && a.shift_code_id ? _shiftCodesById[a.shift_code_id] : null;
@@ -22065,6 +22107,120 @@ function renderStaffForm(data){
 }
 
 function cancelStaffForm(){ showSchedule(); }
+
+/* ---------- Member Activity (19.7.) ----------
+   Admin taps a team member's name in Schedule → last 30 days, tap a day → 5 real metrics for
+   THAT person on THAT day: orders touched, labels printed, dishes added to sections, sections
+   created, and check-list timer stops. All 5 are real queries against tables that already
+   record created_by/printed_by/changed_by + a timestamp — nothing new except timer stops
+   (logged from now on into the existing check_list_audit_log via field:'timer_stop', see
+   saveAddTimeForItem — no new table). In Schedule demo mode, a demo (is_demo) staff member
+   gets fully invented activity instead, same seeded-random pattern as everywhere else. */
+let _memberActivityUserId = null;
+let _memberActivityUserName = null;
+let _memberActivityIsDemo = false;
+
+function openMemberActivity(userId, userName){
+  // Admin-only (19.7.) — this surfaces what a colleague personally ordered/printed/added each
+  // day, a step beyond the Schedule roster's shift codes that any member can already see.
+  if(!currentIsAdmin){ alert('Only an admin can view a team member\'s activity.'); return; }
+  _memberActivityUserId = userId;
+  _memberActivityUserName = userName;
+  _memberActivityIsDemo = _scheduleDemoMode && userId.indexOf('demo-staff-') === 0;
+  document.getElementById('memberActivityTitle').textContent = `👤 ${userName}`;
+  renderMemberActivityDays();
+  document.getElementById('memberActivityOverlay').classList.add('open');
+}
+function closeMemberActivity(){
+  document.getElementById('memberActivityOverlay').classList.remove('open');
+}
+function renderMemberActivityDays(){
+  const el = document.getElementById('memberActivityDays');
+  const days = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for(let i = 0; i < 30; i++){
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    days.push(isoDate(d));
+  }
+  el.innerHTML = days.map(d=>{
+    const label = new Date(d + 'T00:00:00').toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
+    return `<div class="wt-settings-row" style="cursor:pointer;" onclick="openMemberActivityDay('${d}')"><div>${label}</div><div class="wt-vacation-days">›</div></div>`;
+  }).join('');
+}
+const MEMBER_ACTIVITY_DEMO_POOL = WT_DEMO_ITEM_POOL; // same fake ingredient/station pool as Working Time demo
+function memberActivityDemoDataForDay(userId, dayStr){
+  const rnd = _wtDemoRand('member-activity-' + userId + '-' + dayStr);
+  const pick = ()=>MEMBER_ACTIVITY_DEMO_POOL[Math.floor(rnd() * MEMBER_ACTIVITY_DEMO_POOL.length)];
+  const n = (max, zeroChance)=> rnd() < zeroChance ? 0 : Math.floor(rnd() * max) + 1;
+  const orders = Array.from({ length: n(6, 0.4) }, ()=>{ const it = pick(); return { name: it.name, station: it.station, quantity: Math.floor(rnd()*5)+1, unit: rnd()<0.5?'kg':'pcs' }; });
+  const labels = Array.from({ length: n(4, 0.4) }, ()=>{ const it = pick(); return { name: it.name, station: it.station, qty: Math.floor(rnd()*6)+1 }; });
+  const dishes = Array.from({ length: n(3, 0.55) }, ()=>{ const it = pick(); return { name: it.name + (rnd()<0.3?' (special)':''), station: it.station }; });
+  const sections = Array.from({ length: n(1, 0.9) }, ()=>({ station: ['Grill','Cold','Pastry','Sauce'][Math.floor(rnd()*4)] }));
+  const timerStops = Array.from({ length: n(5, 0.35) }, ()=>{ const it = pick(); return { item_name: it.name, dish_name: null, station: it.station, minutes: Math.floor(rnd()*20)+3 }; });
+  return { orders, labels, dishes, sections, timerStops };
+}
+async function openMemberActivityDay(dayStr){
+  const dateObj = new Date(dayStr + 'T00:00:00');
+  document.getElementById('memberActivityDayTitle').textContent = `${_memberActivityUserName} · ${dateObj.toLocaleDateString(undefined,{ weekday:'long', day:'numeric', month:'long' })}`;
+  const bodyEl = document.getElementById('memberActivityDayBody');
+  bodyEl.innerHTML = `<p class="sheet-text">Loading…</p>`;
+  document.getElementById('memberActivityDayOverlay').classList.add('open');
+
+  let orders, labels, dishes, sections, timerStops, isDemoNote = '';
+  if(_memberActivityIsDemo){
+    const demo = memberActivityDemoDataForDay(_memberActivityUserId, dayStr);
+    orders = demo.orders; labels = demo.labels; dishes = demo.dishes; sections = demo.sections; timerStops = demo.timerStops;
+    isDemoNote = `<div class="sheet-text" style="opacity:.65; margin-bottom:10px;">🎭 Illustration data — invented, for demo purposes only.</div>`;
+  } else {
+    const dayStart = dateObj.toISOString();
+    const dayEnd = new Date(dateObj.getTime() + 86400000).toISOString();
+    const uid = _memberActivityUserId;
+    const [ordersRes, labelsRes, dishesRes, sectionsRes, timerRes] = await Promise.all([
+      sb.from('order_list_items').select('station, quantity, unit, ingredient_id').eq('created_by', uid).eq('is_personal', false).gte('updated_at', dayStart).lt('updated_at', dayEnd),
+      sb.from('print_label_log').select('name, qty, station').eq('printed_by', uid).gte('printed_at', dayStart).lt('printed_at', dayEnd),
+      sb.from('prep_dishes').select('name, station').eq('created_by', uid).gte('created_at', dayStart).lt('created_at', dayEnd),
+      sb.from('station_icons').select('station, icon').eq('created_by', uid).gte('created_at', dayStart).lt('created_at', dayEnd),
+      sb.from('check_list_audit_log').select('item_name, dish_name, station, new_value').eq('changed_by', uid).eq('field', 'timer_stop').gte('created_at', dayStart).lt('created_at', dayEnd)
+    ]);
+    orders = (ordersRes.data || []).map(o=>({ name: (_ingredients.find(i=>i.id===o.ingredient_id) || {}).name || 'Unknown', station: o.station, quantity: o.quantity, unit: o.unit }));
+    labels = labelsRes.data || [];
+    dishes = dishesRes.data || [];
+    sections = sectionsRes.data || [];
+    timerStops = (timerRes.data || []).map(t=>({ item_name: t.item_name, dish_name: t.dish_name, station: t.station, minutes: Number(t.new_value) || 0 }));
+  }
+
+  const total = orders.length + labels.length + dishes.length + sections.length + timerStops.length;
+  let html = isDemoNote;
+  if(total === 0){
+    html += `<p class="sheet-text">No activity this day.</p>`;
+  } else {
+    if(orders.length){
+      html += `<label class="form-label">🛒 Order List touched</label>`;
+      html += orders.map(o=>`<div class="wt-settings-row"><div>${o.name} · ${o.station||''}</div><div class="wt-vacation-days">${o.quantity ?? ''} ${o.unit||''}</div></div>`).join('');
+    }
+    if(labels.length){
+      html += `<label class="form-label" style="margin-top:14px;">🏷️ Labels printed</label>`;
+      html += labels.map(l=>`<div class="wt-settings-row"><div>${l.name} · ${l.station||''}</div><div class="wt-vacation-days">×${l.qty}</div></div>`).join('');
+    }
+    if(dishes.length){
+      html += `<label class="form-label" style="margin-top:14px;">🍽️ Dishes added to sections</label>`;
+      html += dishes.map(d=>`<div class="wt-settings-row"><div>${d.name}</div><div class="wt-vacation-days">${d.station||''}</div></div>`).join('');
+    }
+    if(sections.length){
+      html += `<label class="form-label" style="margin-top:14px;">📁 Sections created</label>`;
+      html += sections.map(s=>`<div class="wt-settings-row"><div>${s.icon||''} ${s.station}</div><div class="wt-vacation-days"></div></div>`).join('');
+    }
+    if(timerStops.length){
+      const totalMin = timerStops.reduce((s,t)=>s+t.minutes, 0);
+      html += `<label class="form-label" style="margin-top:14px;">⏱️ Timer stops (${timerStops.length}, ${totalMin} min total)</label>`;
+      html += timerStops.map(t=>`<div class="wt-settings-row"><div>${t.item_name}${t.dish_name?' · '+t.dish_name:''}</div><div class="wt-vacation-days">${t.minutes} min</div></div>`).join('');
+    }
+  }
+  bodyEl.innerHTML = html;
+}
+function closeMemberActivityDay(){
+  document.getElementById('memberActivityDayOverlay').classList.remove('open');
+}
 
 async function saveStaffForm(){
   const name = document.getElementById('st_name').value.trim();
