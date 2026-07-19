@@ -11142,8 +11142,10 @@ const HACCP_TILE_DEFS = [
   { key:'haccpReport', icon:'📊', staticLabel:'Report', onclick:"openPausedFeature('📊 HACCP Report', 'Coming soon — one summary screen across everything here, for inspections.')" }
 ];
 function showHACCP(){
-  // Same gate as the Home tile — belt-and-braces for any stray entry path.
-  if(!(currentIsAdmin || currentAccountType === 'company')){ showHome(); return; }
+  // 19.7. bug found during the feature-verification sweep: this gate contradicted the Home
+  // tile (which has no adminOnly condition) and the 18.7. change that opened HACCP to every
+  // account including Personal — a non-admin Personal user could see the tile but tapping it
+  // silently bounced them back to Home. Removed.
   hideAllViews();
   document.getElementById('haccpView').style.display = 'block';
   maybeShowViewTutorial('haccp');
@@ -22750,14 +22752,19 @@ async function showEvents(){
   window.scrollTo(0,0);
   await loadEvents();
 }
+/* Personal/company split (db/161, 19.7. — found during the feature-verification sweep, same
+   class as db/156 order_list_items and db/159 projects). Mirrors projectsIsPersonalMode/
+   projectsModeFilter exactly. */
+function eventsIsPersonalMode(){ return currentAccountType === 'personal'; }
 async function loadEvents(){
   if(_eventsDemoMode){
     _events = eventsDemoData();
     renderEvents();
     return;
   }
-  const { data, error } = await sb.from('events').select('*')
-    .eq('kitchen_id', currentKitchenId).order('event_date').order('event_time', { nullsFirst:false });
+  let q = sb.from('events').select('*').eq('kitchen_id', currentKitchenId).eq('is_personal', eventsIsPersonalMode());
+  if(eventsIsPersonalMode()) q = q.eq('created_by', currentUser.id);
+  const { data, error } = await q.order('event_date').order('event_time', { nullsFirst:false });
   if(error){ document.getElementById('eventsBanners').innerHTML = `<div class="empty-state">Could not load: ${error.message}</div>`; return; }
   _events = data || [];
   renderEvents();
@@ -22842,7 +22849,7 @@ async function saveEventForm(){
   if(_editingEventId){
     ({ error } = await sb.from('events').update(payload).eq('id', _editingEventId));
   } else {
-    ({ error } = await sb.from('events').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id }));
+    ({ error } = await sb.from('events').insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_personal: eventsIsPersonalMode() }));
   }
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   closeEventForm();
