@@ -4079,8 +4079,12 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <label class="form-label">Note</label>
     <textarea class="form-field" id="dayDetailNote" rows="3" placeholder="Anything worth remembering about this day…" onchange="saveDayDetailNote()"></textarea>
     <div id="dayDetailPhotoWrap" style="margin-top:10px;"></div>
-    <input type="file" id="dayDetailPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="handleDayDetailPhotoSelected(event)">
-    <button class="task-status-btn" style="margin-top:8px;" onclick="document.getElementById('dayDetailPhotoInput').click()">📷 Add / retake photo</button>
+    <!-- No `capture` attribute (19.7., Richard: "potrebujeme aj pridať z knižnice") — capture
+         forces iOS/Android straight into the camera with no way to pick an existing photo.
+         Without it, mobile browsers show their native sheet with BOTH "Take Photo" and
+         "Photo Library" options. -->
+    <input type="file" id="dayDetailPhotoInput" accept="image/*" style="display:none;" onchange="handleDayDetailPhotoSelected(event)">
+    <button class="task-status-btn" style="margin-top:8px;" onclick="document.getElementById('dayDetailPhotoInput').click()">📷 Add / choose photo</button>
     <div class="sheet-status" id="dayDetailStatus"></div>
     <button class="sheet-cancel" onclick="closeDayDetail()">Close</button>
   </div>
