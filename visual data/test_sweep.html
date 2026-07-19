@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Sautero — Kompletná kontrola funkcií</title>
 <style>
   :root{
@@ -19,7 +22,11 @@
     --mono:"SF Mono",Menlo,Consolas,monospace;
   }
   *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; overflow-x:hidden; }
+  /* No overflow-x:hidden here (19.7. bug found live) — it silently breaks position:sticky on
+     any descendant, since it turns body into the sticky-positioning scroll container and every
+     engine's sticky implementation misbehaves against a hidden-overflow ancestor. Nothing in
+     this layout (flex/grid cards, no tables) can overflow horizontally anyway. */
+  html,body{ margin:0; padding:0; }
   body{ background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; -webkit-font-smoothing:antialiased; line-height:1.5; padding-bottom:80px; }
   .wrap{ max-width:1180px; margin:0 auto; padding:0 20px 100px 20px; }
   .hero{ background:linear-gradient(180deg, var(--bg-2), var(--bg)); border-bottom:1px solid var(--rule); padding:26px 0 30px 0; }
@@ -32,6 +39,21 @@
   .acct-toggle button{ background:none; border:none; color:var(--ink-dim); font:inherit; font-size:12.5px; font-weight:700; padding:6px 13px; border-radius:8px; cursor:pointer; }
   .acct-toggle button.active{ background:var(--accent); color:#0A1A2F; }
   .lang-toggle{ position:fixed; top:12px; right:12px; z-index:60; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
+
+  /* Sticky progress bar (19.7., Richard: "chcem aby si na vrch prilepil lištu") — always
+     visible while scrolling through the 398 checks, so the running Personal/Company toggle +
+     % + counts never disappear off-screen. */
+  .sticky-bar{ position:sticky; top:0; z-index:45; background:rgba(10,26,47,0.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--rule); }
+  .sticky-bar-inner{ max-width:1180px; margin:0 auto; padding:9px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .sticky-pct{ font-family:var(--mono); font-size:17px; font-weight:700; color:var(--ink); flex:none; }
+  .sticky-pct .lbl{ font-size:9.5px; color:var(--ink-faint); font-weight:400; text-transform:uppercase; letter-spacing:.04em; margin-left:5px; }
+  .sticky-pills{ display:flex; gap:7px; flex-wrap:wrap; margin-left:auto; }
+  .sticky-pill{ display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--ink-dim); background:var(--paper); border:1px solid var(--rule); border-radius:999px; padding:4px 10px; white-space:nowrap; }
+  .sticky-pill b{ color:var(--ink); font-family:var(--mono); }
+  .sticky-pill.ok{ border-color:var(--ok-dim); } .sticky-pill.ok b{ color:var(--ok); }
+  .sticky-pill.test{ border-color:var(--test-dim); } .sticky-pill.test b{ color:var(--test); }
+  .sticky-pill.plan{ border-color:var(--rule); }
+  @media (max-width:560px){ .sticky-pills{ margin-left:0; width:100%; } .sticky-bar-inner{ padding:8px 14px; } }
   .kicker{ color:var(--accent); font-size:12px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
   h1{ font-size:24px; margin:0 0 8px 0; }
   .lede{ color:var(--ink-dim); font-size:13.5px; max-width:72ch; line-height:1.6; margin:0; }
@@ -89,7 +111,6 @@
   .acct-tag.personal{ background:var(--accent-wash); color:var(--accent); }
   .acct-tag.company{ background:var(--gold-wash); color:var(--gold); }
   .acct-tag.admin{ background:var(--gold-wash); color:var(--gold); }
-  .feature-card.dim{ opacity:.32; }
 
   .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.72); display:none; align-items:center; justify-content:center; padding:20px; z-index:100; }
   .modal-backdrop.open{ display:flex; }
@@ -112,18 +133,29 @@
 <body>
 <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
 
+<div class="sticky-bar">
+  <div class="sticky-bar-inner">
+    <div class="acct-toggle">
+      <button id="acctPersonalBtn" onclick="setAcctView('personal')" data-sk="Personal" data-en="Personal">Personal</button>
+      <button id="acctCompanyBtn" class="active" onclick="setAcctView('company')" data-sk="Company" data-en="Company">Company</button>
+    </div>
+    <div class="sticky-pct"><span id="stickyPct">0%</span><span class="lbl" data-sk="hotovo" data-en="done"></span></div>
+    <div class="sticky-pills">
+      <span class="sticky-pill ok"><b id="stickyOk">0</b><span data-sk="Hotovo" data-en="Done"></span></span>
+      <span class="sticky-pill test"><b id="stickyTest">0</b><span data-sk="Rozbehnuté" data-en="In progress"></span></span>
+      <span class="sticky-pill plan"><b id="stickyPlan">0</b><span data-sk="Čaká" data-en="Not started"></span></span>
+    </div>
+  </div>
+</div>
+
 <div class="hero">
   <div class="hero-inner">
     <div class="topline">
       <div class="brandmark"><span class="mark">🔍</span><span class="word">Sautero</span></div>
-      <div class="acct-toggle">
-        <button id="acctPersonalBtn" onclick="setAcctView('personal')" data-sk="Personal" data-en="Personal">Personal</button>
-        <button id="acctCompanyBtn" class="active" onclick="setAcctView('company')" data-sk="Company" data-en="Company">Company</button>
-      </div>
     </div>
     <div class="kicker" data-sk="19.7.2026 sweep" data-en="19 Jul 2026 sweep"></div>
     <h1 data-sk="Kompletná kontrola funkcií" data-en="Complete feature verification"></h1>
-    <p class="lede" data-sk="Každá jednotlivá vec, ktorú treba na telefóne osobne odklikať a potvrdiť — dlaždica po dlaždici, presne ako mapa funkcií. Klikni na ktorúkoľvek kartu pre detail. Prepínač Personal/Company hore stlmí kontroly, ktoré sa v danom režime netýkajú." data-en="Every single thing that needs to be personally tapped through and confirmed on a phone — tile by tile, exactly like the feature map. Tap any card for detail. The Personal/Company switch above dims checks that don't apply in that mode."></p>
+    <p class="lede" data-sk="Každá jednotlivá vec, ktorú treba na telefóne osobne odklikať a potvrdiť — dlaždica po dlaždici, presne ako mapa funkcií. Klikni na ktorúkoľvek kartu pre detail. Prepínač Personal/Company hore ukazuje len to, čo sa v danom režime naozaj týka — a väčšina kontrol má NEZÁVISLÝ stav pre každý režim: overenie v Company nikdy automaticky neoznačí Personal ako hotové, a naopak." data-en="Every single thing that needs to be personally tapped through and confirmed on a phone — tile by tile, exactly like the feature map. Tap any card for detail. The Personal/Company switch above shows only what genuinely applies to that mode — and most checks carry an INDEPENDENT status per mode: verifying it in Company never silently marks Personal as done, and vice versa."></p>
     <div class="legend" id="legendRow"></div>
     <div class="donut-row">
       <svg id="sweepDonut" width="120" height="120" viewBox="0 0 120 120"></svg>
@@ -155,278 +187,278 @@
    inak sa v okne ukáže len názov. New modules/items must land with BOTH languages. */
 const MODULES = [
 { icon:'🔑', title:'Prihlásenie a brány', title_en:'Login & gates', items:[
- {n:'E-mail + jednorazový kód — poslať, prijať, zadať',ne:'Email + one-time code — send, receive, enter',s:'plan'},
- {n:'Rate-limit pri príliš veľa žiadostiach o kód',ne:'Rate-limit on requesting too many codes',s:'plan'},
- {n:'"Mám heslo" prepínač odhalí pole na heslo',ne:'"Have a password" toggle reveals the password field',s:'plan'},
- {n:'Prihlásenie e-mail + heslo',ne:'Sign in with email + password',s:'plan'},
- {n:'Face ID/Touch ID tlačidlo sa zobrazí len keď existuje',ne:'Face ID/Touch ID button appears only when a device credential exists',s:'plan'},
- {n:'Face ID prihlásenie — celý tok',ne:'Face ID sign-in — full flow',s:'plan'},
- {n:'Face ID na zariadení bez zhodujúcej biometrie zlyhá bezpečne',ne:'Face ID on a device with no matching biometric fails safely',s:'plan'},
- {n:'Face ID s neplatným tokenom sa vráti na e-mail',ne:'Face ID with an invalidated token falls back to email',s:'plan'},
+ {n:'E-mail + jednorazový kód — poslať, prijať, zadať',ne:'Email + one-time code — send, receive, enter',sc:'plan',sp:'plan'},
+ {n:'Rate-limit pri príliš veľa žiadostiach o kód',ne:'Rate-limit on requesting too many codes',sc:'plan',sp:'plan'},
+ {n:'"Mám heslo" prepínač odhalí pole na heslo',ne:'"Have a password" toggle reveals the password field',sc:'plan',sp:'plan'},
+ {n:'Prihlásenie e-mail + heslo',ne:'Sign in with email + password',sc:'plan',sp:'plan'},
+ {n:'Face ID/Touch ID tlačidlo sa zobrazí len keď existuje',ne:'Face ID/Touch ID button appears only when a device credential exists',sc:'plan',sp:'plan'},
+ {n:'Face ID prihlásenie — celý tok',ne:'Face ID sign-in — full flow',sc:'plan',sp:'plan'},
+ {n:'Face ID na zariadení bez zhodujúcej biometrie zlyhá bezpečne',ne:'Face ID on a device with no matching biometric fails safely',sc:'plan',sp:'plan'},
+ {n:'Face ID s neplatným tokenom sa vráti na e-mail',ne:'Face ID with an invalidated token falls back to email',sc:'plan',sp:'plan'},
  {n:'"Coming soon" stena pre cudzí prístup bez pozvánky',a:'company',s:'plan'},
  {n:'Stena sa obíde pri ?invite/?join/?friend odkaze',a:'company',s:'plan'},
- {n:'Nový účet — automatická žiadosť o prístup + "Waiting for approval"',s:'plan'},
- {n:'Zamietnutá žiadosť — jasná koncová správa',s:'plan'},
- {n:'Súhlas s ochranou súkromia — povinný, verziovaný',s:'plan'},
- {n:'Nesúhlas s ochranou súkromia — čisté odhlásenie',s:'plan'},
- {n:'Súhlas s dôvernosťou — povinný, verziovaný',s:'plan'},
- {n:'Nesúhlas s dôvernosťou — čisté odhlásenie',s:'plan'},
- {n:'Povinné nastavenie hesla pri prvom vstupe',s:'plan'},
- {n:'Profil brána — meno/vek/pohlavie, Uložiť',s:'plan'},
- {n:'Profil brána — Preskočiť',s:'plan'},
- {n:'Prvá voľba Personal vs Company',s:'plan'},
+ {n:'Nový účet — automatická žiadosť o prístup + "Waiting for approval"',sc:'plan',sp:'plan'},
+ {n:'Zamietnutá žiadosť — jasná koncová správa',sc:'plan',sp:'plan'},
+ {n:'Súhlas s ochranou súkromia — povinný, verziovaný',sc:'plan',sp:'plan'},
+ {n:'Nesúhlas s ochranou súkromia — čisté odhlásenie',sc:'plan',sp:'plan'},
+ {n:'Súhlas s dôvernosťou — povinný, verziovaný',sc:'plan',sp:'plan'},
+ {n:'Nesúhlas s dôvernosťou — čisté odhlásenie',sc:'plan',sp:'plan'},
+ {n:'Povinné nastavenie hesla pri prvom vstupe',sc:'plan',sp:'plan'},
+ {n:'Profil brána — meno/vek/pohlavie, Uložiť',sc:'plan',sp:'plan'},
+ {n:'Profil brána — Preskočiť',sc:'plan',sp:'plan'},
+ {n:'Prvá voľba Personal vs Company',sc:'plan',sp:'plan'},
  {n:'Voľba Company bez tímu → Team Join obrazovka',a:'company',s:'plan'},
  {n:'Team Join — Preskočiť',a:'company',s:'plan'},
  {n:'Team Join — ručné zadanie kódu tímu + varovanie "opustíš súčasnú kuchyňu"',a:'company',s:'plan'},
  {n:'Scan QR — naskenovanie ?team= kódu → potvrdenie',a:'company',s:'plan'},
  {n:'Scan QR — naskenovanie pozvánky do kuchyne → potvrdenie',a:'company',s:'plan'},
  {n:'Scan QR — pozvánka do kuchyne kde už si → "už si člen"',a:'company',s:'plan'},
- {n:'Scan QR — cudzí QR text → slušná chyba',s:'plan'},
- {n:'Vlastný priateľský QR + odkaz (Add Friend)',s:'plan'},
- {n:'Poslať pozvánku priateľovi e-mailom',s:'plan'},
- {n:'Naskenovanie cudzieho priateľského QR → potvrdenie',s:'plan'},
- {n:'Naskenovanie vlastného QR → "to je tvoj vlastný kód"',s:'plan'},
- {n:'Nový účet cez ?friend= odkaz — vlastná kuchyňa sa založí automaticky',s:'plan'},
+ {n:'Scan QR — cudzí QR text → slušná chyba',sc:'plan',sp:'plan'},
+ {n:'Vlastný priateľský QR + odkaz (Add Friend)',sc:'plan',sp:'plan'},
+ {n:'Poslať pozvánku priateľovi e-mailom',sc:'plan',sp:'plan'},
+ {n:'Naskenovanie cudzieho priateľského QR → potvrdenie',sc:'plan',sp:'plan'},
+ {n:'Naskenovanie vlastného QR → "to je tvoj vlastný kód"',sc:'plan',sp:'plan'},
+ {n:'Nový účet cez ?friend= odkaz — vlastná kuchyňa sa založí automaticky',sc:'plan',sp:'plan'},
  {n:'Add Company pozvánka — nový účet dostane rovno Company Admin',a:'admin',s:'plan'},
  {n:'Add Team Member pozvánka (kód/QR/link/email) vedie do správnej kuchyne',a:'admin',s:'plan'},
- {n:'Odhlásenie z Profilu vráti na čistú prihlasovaciu obrazovku',s:'plan'},
+ {n:'Odhlásenie z Profilu vráti na čistú prihlasovaciu obrazovku',sc:'plan',sp:'plan'},
 ]},
 { icon:'🏠', title:'Home', title_en:'Home', items:[
- {n:'Všetkých 13 dlaždíc prítomných a v správnom poradí',ne:'All 13 tiles present, correct order',s:'ok'},
- {n:'"Team Meetings" vysvetlené ako zámerný placeholder, nie bug',ne:'"Team Meetings" confirmed as a deliberate placeholder, not a bug',s:'ok'},
- {n:'Personal/Company odznak + rýchly prepínač',s:'plan'},
- {n:'Poradie dlaždíc sa dá zmeniť a ostáva uložené',s:'plan'},
- {n:'Prepínač jazyka funguje',s:'plan'},
+ {n:'Všetkých 13 dlaždíc prítomných a v správnom poradí',ne:'All 13 tiles present, correct order',sc:'ok',sp:'ok'},
+ {n:'"Team Meetings" vysvetlené ako zámerný placeholder, nie bug',ne:'"Team Meetings" confirmed as a deliberate placeholder, not a bug',sc:'ok',sp:'ok'},
+ {n:'Personal/Company odznak + rýchly prepínač',sc:'plan',sp:'plan'},
+ {n:'Poradie dlaždíc sa dá zmeniť a ostáva uložené',sc:'plan',sp:'plan'},
+ {n:'Prepínač jazyka funguje',sc:'plan',sp:'plan'},
 ]},
 { icon:'✅', title:'Check List', title_en:'Check List', items:[
  {n:'Výber projektu — Personal vidí len svoje, Company len tímové (db/159)',a:'both',s:'test'},
  {n:'Nový projekt — v Personal každý, v Company len admin',a:'admin',s:'test'},
- {n:'Ikona projektu (8 farebných kníh) sa uloží a zobrazí',s:'plan'},
- {n:'Dlhé podržanie projektu → Premenovať',s:'plan'},
- {n:'Dlhé podržanie projektu → Skryť/Odkryť',s:'plan'},
+ {n:'Ikona projektu (8 farebných kníh) sa uloží a zobrazí',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie projektu → Premenovať',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie projektu → Skryť/Odkryť',sc:'plan',sp:'plan'},
  {n:'Dlhé podržanie projektu → Vymazať (len admin)',a:'admin',s:'plan'},
- {n:'"Zobraziť N skrytých projektov" prepínač',s:'plan'},
- {n:'Otvorenie projektu vedie na sekcie/stanice',s:'plan'},
- {n:'Nová sekcia — meno + ikona',s:'plan'},
- {n:'Manage Sections → premenovanie sekcie (prepíše všetky jedlá)',s:'plan'},
+ {n:'"Zobraziť N skrytých projektov" prepínač',sc:'plan',sp:'plan'},
+ {n:'Otvorenie projektu vedie na sekcie/stanice',sc:'plan',sp:'plan'},
+ {n:'Nová sekcia — meno + ikona',sc:'plan',sp:'plan'},
+ {n:'Manage Sections → premenovanie sekcie (prepíše všetky jedlá)',sc:'plan',sp:'plan'},
  {n:'Manage Sections → vymazanie sekcie (len admin), obnoviteľné',a:'admin',s:'plan'},
- {n:'Viditeľnosť sekcie — device-local prepínač',s:'plan'},
- {n:'"All" prierezový pohľad — pruh zostávajúceho času, 🔥 preťaženie nad 3,5h',s:'plan'},
- {n:'"All" — kombinovanie filtrov To Do/Check/Finish naraz',s:'plan'},
- {n:'Karty jedál sa zbaľujú/rozbaľujú klikom',s:'plan'},
+ {n:'Viditeľnosť sekcie — device-local prepínač',sc:'plan',sp:'plan'},
+ {n:'"All" prierezový pohľad — pruh zostávajúceho času, 🔥 preťaženie nad 3,5h',sc:'plan',sp:'plan'},
+ {n:'"All" — kombinovanie filtrov To Do/Check/Finish naraz',sc:'plan',sp:'plan'},
+ {n:'Karty jedál sa zbaľujú/rozbaľujú klikom',sc:'plan',sp:'plan'},
  {n:'Dlhé podržanie jedla → Premenovať/Skryť/Vymazať (mazanie len admin)',a:'admin',s:'plan'},
- {n:'Pridať jedlo ručne (stanica + meno + cena + zoznam)',s:'plan'},
- {n:'Pridať jedlo skenom fotky/PDF prep listu',s:'plan'},
- {n:'Pridať jednu položku do existujúceho jedla',s:'plan'},
- {n:'On Hand počítadlo zásoby (0–13)',s:'plan'},
- {n:'Priority výber (1–5)',s:'plan'},
- {n:'Stavové tlačidlá sa synchronizujú naprieč rovnako pomenovanými položkami',s:'plan'},
- {n:'Dlhé podržanie stavu → vlastný názov len pre tú položku',s:'plan'},
- {n:'Poznámka k položke — autoukladanie',s:'plan'},
- {n:'Odznak duplicity ukáže kde všade sa položka opakuje',s:'plan'},
- {n:'Časovač položky — štart/stop, prežije zamknutú obrazovku',s:'plan'},
- {n:'Ručný zápis času (priemer, synchronizuje sa naprieč duplicitami)',s:'plan'},
+ {n:'Pridať jedlo ručne (stanica + meno + cena + zoznam)',sc:'plan',sp:'plan'},
+ {n:'Pridať jedlo skenom fotky/PDF prep listu',sc:'plan',sp:'plan'},
+ {n:'Pridať jednu položku do existujúceho jedla',sc:'plan',sp:'plan'},
+ {n:'On Hand počítadlo zásoby (0–13)',sc:'plan',sp:'plan'},
+ {n:'Priority výber (1–5)',sc:'plan',sp:'plan'},
+ {n:'Stavové tlačidlá sa synchronizujú naprieč rovnako pomenovanými položkami',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie stavu → vlastný názov len pre tú položku',sc:'plan',sp:'plan'},
+ {n:'Poznámka k položke — autoukladanie',sc:'plan',sp:'plan'},
+ {n:'Odznak duplicity ukáže kde všade sa položka opakuje',sc:'plan',sp:'plan'},
+ {n:'Časovač položky — štart/stop, prežije zamknutú obrazovku',sc:'plan',sp:'plan'},
+ {n:'Ručný zápis času (priemer, synchronizuje sa naprieč duplicitami)',sc:'plan',sp:'plan'},
  {n:'Admin zámok času fázy — nedá sa prepísať novým priemerom',a:'admin',s:'plan'},
- {n:'Tlačidlo 🛒 Order pridá položku do Order Listu',s:'plan'},
- {n:'Tlačidlo 🖨️ Print — množstvo + trvanlivosť',s:'plan'},
- {n:'⋮ menu — Premenovať/Vymazať/Info',s:'plan'},
- {n:'Info panel — história časov + audit log kto čo zmenil',s:'plan'},
- {n:'Viditeľnosť jedla — skryť celé jedlo alebo jednotlivé položky',s:'plan'},
- {n:'"Zobraziť skryté" a "obnoviť vymazané" prepínače',s:'plan'},
+ {n:'Tlačidlo 🛒 Order pridá položku do Order Listu',sc:'plan',sp:'plan'},
+ {n:'Tlačidlo 🖨️ Print — množstvo + trvanlivosť',sc:'plan',sp:'plan'},
+ {n:'⋮ menu — Premenovať/Vymazať/Info',sc:'plan',sp:'plan'},
+ {n:'Info panel — história časov + audit log kto čo zmenil',sc:'plan',sp:'plan'},
+ {n:'Viditeľnosť jedla — skryť celé jedlo alebo jednotlivé položky',sc:'plan',sp:'plan'},
+ {n:'"Zobraziť skryté" a "obnoviť vymazané" prepínače',sc:'plan',sp:'plan'},
  {n:'Skryť/vymazať celú sekciu (mazanie len admin)',a:'admin',s:'plan'},
- {n:'Vyhľadávanie surovín naprieč celou kuchyňou (3+ znaky)',s:'plan'},
+ {n:'Vyhľadávanie surovín naprieč celou kuchyňou (3+ znaky)',sc:'plan',sp:'plan'},
  {n:'Language Audit — AI preklad cudzojazyčných názvov (len admin)',a:'admin',s:'plan'},
- {n:'Quick List — viacriadkové rýchle zadanie úloh',s:'plan'},
- {n:'"Pridať jednu úlohu s detailmi" — plný formulár',s:'plan'},
- {n:'Recepty s rovnakou stanicou automaticky naplnia To Do úlohu',s:'plan'},
- {n:'Tutorial (?) ikonka otvorí návod',s:'plan'},
+ {n:'Quick List — viacriadkové rýchle zadanie úloh',sc:'plan',sp:'plan'},
+ {n:'"Pridať jednu úlohu s detailmi" — plný formulár',sc:'plan',sp:'plan'},
+ {n:'Recepty s rovnakou stanicou automaticky naplnia To Do úlohu',sc:'plan',sp:'plan'},
+ {n:'Tutorial (?) ikonka otvorí návod',sc:'plan',sp:'plan'},
 ]},
 { icon:'🛒', title:'Order List', title_en:'Order List', items:[
- {n:'Súhrn — Personal vidí len svoje súkromné riadky, Company len zdieľané (db/156)',s:'test'},
- {n:'Prázdny stav s návodom',s:'plan'},
- {n:'Tlač Order Listu',s:'plan'},
- {n:'"Send to Supplier" — zobrazí sa "coming soon" pásik',s:'plan'},
- {n:'"By device" — zobrazí sa "coming soon" alert',s:'plan'},
- {n:'Výber viacerých + hromadné vymazanie',s:'plan'},
- {n:'Prepínač zoskupenia — podľa sekcie vs abecedne',s:'plan'},
- {n:'"✕ Remove mine" vymaže len môj príspevok',s:'plan'},
+ {n:'Súhrn — Personal vidí len svoje súkromné riadky, Company len zdieľané (db/156)',sc:'test',sp:'test'},
+ {n:'Prázdny stav s návodom',sc:'plan',sp:'plan'},
+ {n:'Tlač Order Listu',sc:'plan',sp:'plan'},
+ {n:'"Send to Supplier" — zobrazí sa "coming soon" pásik',sc:'plan',sp:'plan'},
+ {n:'"By device" — zobrazí sa "coming soon" alert',sc:'plan',sp:'plan'},
+ {n:'Výber viacerých + hromadné vymazanie',sc:'plan',sp:'plan'},
+ {n:'Prepínač zoskupenia — podľa sekcie vs abecedne',sc:'plan',sp:'plan'},
+ {n:'"✕ Remove mine" vymaže len môj príspevok',sc:'plan',sp:'plan'},
  {n:'Rozpis podľa osoby keď rovnaké objednali viacerí (len admin)',a:'admin',s:'plan'},
- {n:'"+" FAB otvorí Picker (stanice, prehľadávanie)',s:'plan'},
- {n:'Picker — prepínanie staníc prenačíta stav',s:'plan'},
- {n:'Picker — vyhľadávanie surovín podľa mena/aliasu',s:'plan'},
- {n:'Picker — zaškrtnutie + množstvo + jednotka',s:'plan'},
- {n:'Picker — "👥 už X od N kolegov" hint',s:'plan'},
- {n:'Uloženie z Pickeru nikdy nezmaže riadky iného člena (db/76)',s:'plan'},
- {n:'Rýchle 🛒 Order z Check List položky — člen bez ceny objedná bez chyby (db/154)',ne:'Quick 🛒 Order from a Check List item — a member without a price orders without error (db/154)',s:'ok'},
- {n:'Objednávkový dialóg — stanica, množstvo, jednotka, poznámka sa uloží',s:'plan'},
- {n:'Tutorial (?) ikonka',s:'plan'},
+ {n:'"+" FAB otvorí Picker (stanice, prehľadávanie)',sc:'plan',sp:'plan'},
+ {n:'Picker — prepínanie staníc prenačíta stav',sc:'plan',sp:'plan'},
+ {n:'Picker — vyhľadávanie surovín podľa mena/aliasu',sc:'plan',sp:'plan'},
+ {n:'Picker — zaškrtnutie + množstvo + jednotka',sc:'plan',sp:'plan'},
+ {n:'Picker — "👥 už X od N kolegov" hint',sc:'plan',sp:'plan'},
+ {n:'Uloženie z Pickeru nikdy nezmaže riadky iného člena (db/76)',sc:'plan',sp:'plan'},
+ {n:'Rýchle 🛒 Order z Check List položky — člen bez ceny objedná bez chyby (db/154)',ne:'Quick 🛒 Order from a Check List item — a member without a price orders without error (db/154)',sc:'ok',sp:'ok'},
+ {n:'Objednávkový dialóg — stanica, množstvo, jednotka, poznámka sa uloží',sc:'plan',sp:'plan'},
+ {n:'Tutorial (?) ikonka',sc:'plan',sp:'plan'},
 ]},
 { icon:'📖', title:'Recepty', title_en:'Recipes', items:[
- {n:'Police: My Recipes / Sautero / Public / Company / vlastné projekty',s:'plan'},
- {n:'Dlhé podržanie pevnej police → Skryť/Odkryť',s:'plan'},
- {n:'Dlhé podržanie vlastného projektu → Premenovať/Skryť/Vymazať',s:'plan'},
- {n:'"Add Project" — nová zbierka receptov + ikona',s:'plan'},
- {n:'"Zobraziť N skrytých políc"',s:'plan'},
- {n:'Favorites je predvolená sekcia, padá na All ak je prázdna',s:'plan'},
- {n:'Mriežka kategórií — prepínanie, počty naživo',s:'plan'},
- {n:'Nová kategória s ikonou',s:'plan'},
- {n:'Manage Categories → premenovanie/ikonka',s:'plan'},
- {n:'Manage Categories → vymazanie (recepty idú do Uncategorized)',s:'plan'},
- {n:'Viditeľnosť kategórie — device-local',s:'plan'},
- {n:'Hľadanie a filter — text, diéta, alergény, sekcia',s:'plan'},
- {n:'"Opýtať sa Chef\'s Assistant" — generátor nápadov na recept',s:'plan'},
- {n:'Chef Challenge — nápady podľa max. ceny suroviny',s:'plan'},
- {n:'Pridať recept ručne',s:'plan'},
- {n:'Sken fotky — jeden recept',s:'plan'},
- {n:'Sken fotky — celé menu (viac jedál naraz)',s:'plan'},
- {n:'Sken menu z URL webstránky',s:'plan'},
- {n:'Formulár receptu — AI vyplnenie jednotlivých polí',s:'plan'},
- {n:'Formulár — "✨ Generovať postup s AI"',s:'plan'},
- {n:'Formulár — pridanie/odobratie riadkov surovín a krokov',s:'plan'},
- {n:'Detail — Obľúbené prepínač',s:'plan'},
- {n:'Detail — škálovanie 0,5×/1×/2×/3×/4×',s:'plan'},
- {n:'Detail — vlastné škálovanie na počet porcií',s:'plan'},
- {n:'Detail — škálovanie podľa jednej dostupnej suroviny',s:'plan'},
- {n:'Detail — odznaky alergénov sa počítajú správne',s:'plan'},
- {n:'Detail — cena + rozpis "i"',s:'plan'},
- {n:'Detail — "Pridať všetky suroviny do mojej databázy"',s:'plan'},
- {n:'Detail — nutričné hodnoty + rozpis "i"',s:'plan'},
- {n:'Detail — "Used In" krížové odkazy',s:'plan'},
- {n:'Detail — moje poznámky, autoukladanie',s:'plan'},
- {n:'Detail — vymazanie receptu',s:'plan'},
- {n:'Detail — Edit skrytý pre cudzie recepty (Public/priateľ)',s:'plan'},
+ {n:'Police: My Recipes / Sautero / Public / Company / vlastné projekty',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie pevnej police → Skryť/Odkryť',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie vlastného projektu → Premenovať/Skryť/Vymazať',sc:'plan',sp:'plan'},
+ {n:'"Add Project" — nová zbierka receptov + ikona',sc:'plan',sp:'plan'},
+ {n:'"Zobraziť N skrytých políc"',sc:'plan',sp:'plan'},
+ {n:'Favorites je predvolená sekcia, padá na All ak je prázdna',sc:'plan',sp:'plan'},
+ {n:'Mriežka kategórií — prepínanie, počty naživo',sc:'plan',sp:'plan'},
+ {n:'Nová kategória s ikonou',sc:'plan',sp:'plan'},
+ {n:'Manage Categories → premenovanie/ikonka',sc:'plan',sp:'plan'},
+ {n:'Manage Categories → vymazanie (recepty idú do Uncategorized)',sc:'plan',sp:'plan'},
+ {n:'Viditeľnosť kategórie — device-local',sc:'plan',sp:'plan'},
+ {n:'Hľadanie a filter — text, diéta, alergény, sekcia',sc:'plan',sp:'plan'},
+ {n:'"Opýtať sa Chef\'s Assistant" — generátor nápadov na recept',sc:'plan',sp:'plan'},
+ {n:'Chef Challenge — nápady podľa max. ceny suroviny',sc:'plan',sp:'plan'},
+ {n:'Pridať recept ručne',sc:'plan',sp:'plan'},
+ {n:'Sken fotky — jeden recept',sc:'plan',sp:'plan'},
+ {n:'Sken fotky — celé menu (viac jedál naraz)',sc:'plan',sp:'plan'},
+ {n:'Sken menu z URL webstránky',sc:'plan',sp:'plan'},
+ {n:'Formulár receptu — AI vyplnenie jednotlivých polí',sc:'plan',sp:'plan'},
+ {n:'Formulár — "✨ Generovať postup s AI"',sc:'plan',sp:'plan'},
+ {n:'Formulár — pridanie/odobratie riadkov surovín a krokov',sc:'plan',sp:'plan'},
+ {n:'Detail — Obľúbené prepínač',sc:'plan',sp:'plan'},
+ {n:'Detail — škálovanie 0,5×/1×/2×/3×/4×',sc:'plan',sp:'plan'},
+ {n:'Detail — vlastné škálovanie na počet porcií',sc:'plan',sp:'plan'},
+ {n:'Detail — škálovanie podľa jednej dostupnej suroviny',sc:'plan',sp:'plan'},
+ {n:'Detail — odznaky alergénov sa počítajú správne',sc:'plan',sp:'plan'},
+ {n:'Detail — cena + rozpis "i"',sc:'plan',sp:'plan'},
+ {n:'Detail — "Pridať všetky suroviny do mojej databázy"',sc:'plan',sp:'plan'},
+ {n:'Detail — nutričné hodnoty + rozpis "i"',sc:'plan',sp:'plan'},
+ {n:'Detail — "Used In" krížové odkazy',sc:'plan',sp:'plan'},
+ {n:'Detail — moje poznámky, autoukladanie',sc:'plan',sp:'plan'},
+ {n:'Detail — vymazanie receptu',sc:'plan',sp:'plan'},
+ {n:'Detail — Edit skrytý pre cudzie recepty (Public/priateľ)',sc:'plan',sp:'plan'},
  {n:'Publikovanie na Public policu (len Personal)',a:'personal',s:'plan'},
  {n:'Zdieľanie s konkrétnymi priateľmi (len Personal)',a:'personal',s:'plan'},
  {n:'"Zdieľať VŠETKY recepty" hlavný prepínač',a:'personal',s:'plan'},
- {n:'Komentáre — naprieč kuchyňami, mazanie len vlastných',s:'plan'},
- {n:'Odznak počtu komentárov sa aktualizuje',s:'plan'},
+ {n:'Komentáre — naprieč kuchyňami, mazanie len vlastných',sc:'plan',sp:'plan'},
+ {n:'Odznak počtu komentárov sa aktualizuje',sc:'plan',sp:'plan'},
  {n:'🔔 Notifikácia na nový komentár k vlastnému/obľúbenému receptu',a:'personal',s:'plan'},
- {n:'"Pridať do Check Listu" — výber projektu a stanice',s:'plan'},
- {n:'Tlač brandovanej receptovej karty',s:'plan'},
- {n:'Ingredient Audit — chýbajúce suroviny naprieč receptami',s:'plan'},
- {n:'Zobrazenie zdieľaného receptu priateľa (read-only)',s:'plan'},
+ {n:'"Pridať do Check Listu" — výber projektu a stanice',sc:'plan',sp:'plan'},
+ {n:'Tlač brandovanej receptovej karty',sc:'plan',sp:'plan'},
+ {n:'Ingredient Audit — chýbajúce suroviny naprieč receptami',sc:'plan',sp:'plan'},
+ {n:'Zobrazenie zdieľaného receptu priateľa (read-only)',sc:'plan',sp:'plan'},
 ]},
 { icon:'🧂', title:'Ingrediencie', title_en:'Ingredients', items:[
- {n:'Police: Sautero / Company / My / Public / vlastné zoznamy',s:'plan'},
- {n:'Dlhé podržanie pevnej police → Skryť/Odkryť',s:'plan'},
- {n:'Dlhé podržanie vlastného zoznamu → Premenovať/Skryť/Vymazať/Zdieľať',s:'plan'},
- {n:'"New List" — nový zoznam s ikonou',s:'plan'},
- {n:'"Zobraziť N skrytých políc"',s:'plan'},
+ {n:'Police: Sautero / Company / My / Public / vlastné zoznamy',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie pevnej police → Skryť/Odkryť',sc:'plan',sp:'plan'},
+ {n:'Dlhé podržanie vlastného zoznamu → Premenovať/Skryť/Vymazať/Zdieľať',sc:'plan',sp:'plan'},
+ {n:'"New List" — nový zoznam s ikonou',sc:'plan',sp:'plan'},
+ {n:'"Zobraziť N skrytých políc"',sc:'plan',sp:'plan'},
  {n:'Add Ingredient FAB skrytý na zdieľaných policiach bez oprávnenia',a:'admin',s:'plan'},
- {n:'Plný formulár — meno, kuchyňa, kategória, dodávateľ, cena, výťažnosť, alergény, sezóna...',s:'plan'},
- {n:'Úprava — cudzie (Public) ingrediencie len na čítanie',s:'plan'},
- {n:'Vymazanie ingrediencie',s:'plan'},
- {n:'Zmena ceny sa zapíše do histórie cien',s:'plan'},
- {n:'Hľadanie a filter — text, kuchyňa, kategória, cena, sezóna, skladovanie',s:'plan'},
- {n:'"Zobraziť skryté ingrediencie" vo filtri',s:'plan'},
- {n:'Počet zhôd naživo vo filtri aj v lište',s:'plan'},
- {n:'Hromadné vymazanie (podľa dátumu alebo všetko)',s:'plan'},
- {n:'"✨ Generovať detaily s AI" — dávkové doplnenie kategórie/sezóny/výživy',s:'plan'},
- {n:'📎 Sken zoznamu od dodávateľa',s:'plan'},
- {n:'Invoice Scan — sken faktúry, aktualizácia cien + história',s:'plan'},
+ {n:'Plný formulár — meno, kuchyňa, kategória, dodávateľ, cena, výťažnosť, alergény, sezóna...',sc:'plan',sp:'plan'},
+ {n:'Úprava — cudzie (Public) ingrediencie len na čítanie',sc:'plan',sp:'plan'},
+ {n:'Vymazanie ingrediencie',sc:'plan',sp:'plan'},
+ {n:'Zmena ceny sa zapíše do histórie cien',sc:'plan',sp:'plan'},
+ {n:'Hľadanie a filter — text, kuchyňa, kategória, cena, sezóna, skladovanie',sc:'plan',sp:'plan'},
+ {n:'"Zobraziť skryté ingrediencie" vo filtri',sc:'plan',sp:'plan'},
+ {n:'Počet zhôd naživo vo filtri aj v lište',sc:'plan',sp:'plan'},
+ {n:'Hromadné vymazanie (podľa dátumu alebo všetko)',sc:'plan',sp:'plan'},
+ {n:'"✨ Generovať detaily s AI" — dávkové doplnenie kategórie/sezóny/výživy',sc:'plan',sp:'plan'},
+ {n:'📎 Sken zoznamu od dodávateľa',sc:'plan',sp:'plan'},
+ {n:'Invoice Scan — sken faktúry, aktualizácia cien + história',sc:'plan',sp:'plan'},
  {n:'Custom Ingredients staging panel (len admin)',a:'admin',s:'plan'},
  {n:'AI nástroje na zdieľaných policiach — vrátené adminom aj na Sautero polici',ne:'AI tools on shared shelves — restored for admins even on the Sautero shelf',a:'admin',s:'ok'},
  {n:'Zdieľanie na Public/Priateľom (len Personal)',a:'personal',s:'plan'},
  {n:'Ochrana pred duplicitou pri publikovaní (presná zhoda + AI cudzí jazyk)',a:'personal',s:'plan'},
- {n:'Info panel ingrediencie z receptu (pôvod/sezóna/náhrady)',s:'plan'},
- {n:'Ingredient Audit — chýbajúce položky naprieč receptami a Check Listom',s:'plan'},
- {n:'Zobrazenie zdieľaného zoznamu priateľa (read-only)',s:'plan'},
+ {n:'Info panel ingrediencie z receptu (pôvod/sezóna/náhrady)',sc:'plan',sp:'plan'},
+ {n:'Ingredient Audit — chýbajúce položky naprieč receptami a Check Listom',sc:'plan',sp:'plan'},
+ {n:'Zobrazenie zdieľaného zoznamu priateľa (read-only)',sc:'plan',sp:'plan'},
  {n:'Pridávanie na zdieľanú policu len pre adminov, My Ingredients otvorené všetkým',a:'admin',s:'plan'},
 ]},
 { icon:'🎪', title:'Events', title_en:'Events', items:[
- {n:'Zoznam — Dnes / Zajtra bannery + Coming up + Posledných 10',s:'plan'},
- {n:'Prázdny stav v každej sekcii',s:'plan'},
- {n:'Nová akcia ručne (titul, klient, počet, menu, cena, dátum, čas)',s:'plan'},
- {n:'Úprava existujúcej akcie',s:'plan'},
- {n:'Vymazanie akcie (potvrdenie)',s:'plan'},
- {n:'Prepočet ceny do meny kuchyne',s:'plan'},
- {n:'Sken objednávky/e-mailu/zmluvy — AI predvyplní formulár na kontrolu',s:'plan'},
- {n:'Povinné polia — titul a dátum',s:'plan'},
+ {n:'Zoznam — Dnes / Zajtra bannery + Coming up + Posledných 10',sc:'plan',sp:'plan'},
+ {n:'Prázdny stav v každej sekcii',sc:'plan',sp:'plan'},
+ {n:'Nová akcia ručne (titul, klient, počet, menu, cena, dátum, čas)',sc:'plan',sp:'plan'},
+ {n:'Úprava existujúcej akcie',sc:'plan',sp:'plan'},
+ {n:'Vymazanie akcie (potvrdenie)',sc:'plan',sp:'plan'},
+ {n:'Prepočet ceny do meny kuchyne',sc:'plan',sp:'plan'},
+ {n:'Sken objednávky/e-mailu/zmluvy — AI predvyplní formulár na kontrolu',sc:'plan',sp:'plan'},
+ {n:'Povinné polia — titul a dátum',sc:'plan',sp:'plan'},
  {n:'🎭 Demo prepínač — 4 fiktívne akcie, nič sa neuloží',a:'both',s:'ok'},
  {n:'Klik na demo riadok → "New Event (from demo)", uloženie je REÁLNE',a:'both',s:'plan'},
- {n:'Personal/company súkromie — osobná akcia nikdy neunikne do firemnej (db/161)',ne:'Personal/company privacy — a personal event never leaks into the company view (db/161)',s:'test'},
+ {n:'Personal/company súkromie — osobná akcia nikdy neunikne do firemnej (db/161)',ne:'Personal/company privacy — a personal event never leaks into the company view (db/161)',sc:'test',sp:'test'},
 ]},
 { icon:'🧼', title:'HACCP', title_en:'HACCP', items:[
- {n:'Otvorenie dlaždice funguje pre KAŽDÝ účet vrátane Personal (bug opravený 19.7.)',ne:'Opening the tile works for EVERY account incl. Personal (bug fixed 19 Jul)',s:'test'},
- {n:'Fridge Temp — pridať/upraviť/vymazať chladničku',s:'plan'},
- {n:'Fridge Temp — zápis novej teploty',s:'plan'},
- {n:'Fridge Temp — farebné bodky ok/warn/nikdy-nekontrolované',s:'plan'},
- {n:'Fridge Temp — detail s históriou, mimo-rozsahu označené',s:'plan'},
- {n:'Goods Receiving — zápis OK aj Problem',s:'plan'},
- {n:'Core Cooking Temp — zápis OK aj Problem',s:'plan'},
- {n:'Cooling Log — zápis OK aj Problem',s:'plan'},
- {n:'Fryer Oil — zápis OK aj Problem',s:'plan'},
- {n:'Cleaning Checklist — prvá návšteva automaticky naseje 5 úloh',s:'plan'},
- {n:'Cleaning Checklist — označiť ✅ OK',s:'plan'},
- {n:'Cleaning Checklist — označiť ⚠️ Problem s poznámkou',s:'plan'},
+ {n:'Otvorenie dlaždice funguje pre KAŽDÝ účet vrátane Personal (bug opravený 19.7.)',ne:'Opening the tile works for EVERY account incl. Personal (bug fixed 19 Jul)',sc:'test',sp:'test'},
+ {n:'Fridge Temp — pridať/upraviť/vymazať chladničku',sc:'plan',sp:'plan'},
+ {n:'Fridge Temp — zápis novej teploty',sc:'plan',sp:'plan'},
+ {n:'Fridge Temp — farebné bodky ok/warn/nikdy-nekontrolované',sc:'plan',sp:'plan'},
+ {n:'Fridge Temp — detail s históriou, mimo-rozsahu označené',sc:'plan',sp:'plan'},
+ {n:'Goods Receiving — zápis OK aj Problem',sc:'plan',sp:'plan'},
+ {n:'Core Cooking Temp — zápis OK aj Problem',sc:'plan',sp:'plan'},
+ {n:'Cooling Log — zápis OK aj Problem',sc:'plan',sp:'plan'},
+ {n:'Fryer Oil — zápis OK aj Problem',sc:'plan',sp:'plan'},
+ {n:'Cleaning Checklist — prvá návšteva automaticky naseje 5 úloh',sc:'plan',sp:'plan'},
+ {n:'Cleaning Checklist — označiť ✅ OK',sc:'plan',sp:'plan'},
+ {n:'Cleaning Checklist — označiť ⚠️ Problem s poznámkou',sc:'plan',sp:'plan'},
  {n:'Cleaning Checklist — pridať/odobrať úlohu (admin panel)',a:'admin',s:'plan'},
- {n:'Cleaning Checklist — "due" sa správne resetuje podľa frekvencie',s:'plan'},
+ {n:'Cleaning Checklist — "due" sa správne resetuje podľa frekvencie',sc:'plan',sp:'plan'},
  {n:'Admin vidí KTO úlohu odškrtol, člen len že je hotová',a:'admin',s:'plan'},
- {n:'Personal Hygiene Checklist — samostatné dáta od Cleaning',s:'plan'},
- {n:'Pest Control Checklist — samostatné dáta od ostatných',s:'plan'},
- {n:'Label Expiry — prázdny stav kým sa nič nevytlačí',s:'plan'},
- {n:'Label Expiry — expirované v červenom koši',s:'plan'},
- {n:'Label Expiry — dnes/zajtra v žltom koši',s:'plan'},
- {n:'Label Expiry — "✓ Použité" odstráni riadok',s:'plan'},
- {n:'Staff Training a HACCP Report — "coming soon" pásiky',s:'plan'},
+ {n:'Personal Hygiene Checklist — samostatné dáta od Cleaning',sc:'plan',sp:'plan'},
+ {n:'Pest Control Checklist — samostatné dáta od ostatných',sc:'plan',sp:'plan'},
+ {n:'Label Expiry — prázdny stav kým sa nič nevytlačí',sc:'plan',sp:'plan'},
+ {n:'Label Expiry — expirované v červenom koši',sc:'plan',sp:'plan'},
+ {n:'Label Expiry — dnes/zajtra v žltom koši',sc:'plan',sp:'plan'},
+ {n:'Label Expiry — "✓ Použité" odstráni riadok',sc:'plan',sp:'plan'},
+ {n:'Staff Training a HACCP Report — "coming soon" pásiky',sc:'plan',sp:'plan'},
 ]},
 { icon:'⏱️', title:'Working Time', title_en:'Working Time', items:[
- {n:'Check In tlačidlo',ne:'Check In button',s:'ok'},
- {n:'Check Out tlačidlo',ne:'Check Out button',s:'ok'},
- {n:'"Zabudol som sa prihlásiť" tok',ne:'"Forgot to check in" flow',s:'ok'},
- {n:'"Zabudol som sa odhlásiť" tok',ne:'"Forgot to check out" flow',s:'ok'},
- {n:'GPS snímka pri prihlásení/odhlásení (📍 odkazy)',s:'plan'},
- {n:'Živá Break stopka (5/10/15/30 min, odpočet, pauzuje Working Time)',ne:'Live Break stopwatch (5/10/15/30 min, countdown, pauses Working Time)',s:'ok'},
- {n:'Presné časy prestávok v dennom detaile',ne:'Exact break times in day detail',s:'ok'},
- {n:'Mesačný prehľad / história dní',s:'plan'},
- {n:'Denný detail — graf hodín (bežné vs nadčas)',s:'plan'},
- {n:'Denný detail — rozpísané Orders & Labels (reálny režim)',s:'plan'},
- {n:'Poznámka ku dňu (text)',ne:'Day note (text)',s:'ok'},
- {n:'Fotka ku dňu — z fotoaparátu',s:'plan'},
- {n:'Fotka ku dňu — z knižnice (bug opravený 19.7., čaká re-test)',ne:'Day note photo — from the library (bug fixed 19 Jul, awaiting re-test)',s:'test'},
- {n:'Working Time Charts (samostatná obrazovka grafov)',s:'plan'},
- {n:'Nahranie zmluvy + AI poznámka',s:'plan'},
- {n:'Sken rozpisu/rozvrhu → automatické zmeny',s:'plan'},
- {n:'Schedule poddlaždica — týždenná mriežka',s:'plan'},
- {n:'Schedule — + Add staff',s:'plan'},
- {n:'Schedule — úprava člena (✏️ ikonka)',s:'plan'},
- {n:'Schedule — priradenie kódu zmeny do bunky',s:'plan'},
- {n:'Schedule — vymazanie priradenia z bunky',s:'plan'},
- {n:'Schedule 🎭 Demo — fiktívny tím, funguje aj na iPhone aj iPade',ne:'Schedule 🎭 Demo — fake team, confirmed working on both iPhone and iPad',s:'ok'},
- {n:'Schedule Demo — ochrana pri klepnutí na meno/bunku/+Add staff',ne:'Schedule Demo — guards on tapping name/cell/+Add staff',s:'ok'},
+ {n:'Check In tlačidlo',ne:'Check In button',sc:'ok',sp:'ok'},
+ {n:'Check Out tlačidlo',ne:'Check Out button',sc:'ok',sp:'ok'},
+ {n:'"Zabudol som sa prihlásiť" tok',ne:'"Forgot to check in" flow',sc:'ok',sp:'ok'},
+ {n:'"Zabudol som sa odhlásiť" tok',ne:'"Forgot to check out" flow',sc:'ok',sp:'ok'},
+ {n:'GPS snímka pri prihlásení/odhlásení (📍 odkazy)',sc:'plan',sp:'plan'},
+ {n:'Živá Break stopka (5/10/15/30 min, odpočet, pauzuje Working Time)',ne:'Live Break stopwatch (5/10/15/30 min, countdown, pauses Working Time)',sc:'ok',sp:'ok'},
+ {n:'Presné časy prestávok v dennom detaile',ne:'Exact break times in day detail',sc:'ok',sp:'ok'},
+ {n:'Mesačný prehľad / história dní',sc:'plan',sp:'plan'},
+ {n:'Denný detail — graf hodín (bežné vs nadčas)',sc:'plan',sp:'plan'},
+ {n:'Denný detail — rozpísané Orders & Labels (reálny režim)',sc:'plan',sp:'plan'},
+ {n:'Poznámka ku dňu (text)',ne:'Day note (text)',sc:'ok',sp:'ok'},
+ {n:'Fotka ku dňu — z fotoaparátu',sc:'plan',sp:'plan'},
+ {n:'Fotka ku dňu — z knižnice (bug opravený 19.7., čaká re-test)',ne:'Day note photo — from the library (bug fixed 19 Jul, awaiting re-test)',sc:'test',sp:'test'},
+ {n:'Working Time Charts (samostatná obrazovka grafov)',sc:'plan',sp:'plan'},
+ {n:'Nahranie zmluvy + AI poznámka',sc:'plan',sp:'plan'},
+ {n:'Sken rozpisu/rozvrhu → automatické zmeny',sc:'plan',sp:'plan'},
+ {n:'Schedule poddlaždica — týždenná mriežka',sc:'plan',sp:'plan'},
+ {n:'Schedule — + Add staff',sc:'plan',sp:'plan'},
+ {n:'Schedule — úprava člena (✏️ ikonka)',sc:'plan',sp:'plan'},
+ {n:'Schedule — priradenie kódu zmeny do bunky',sc:'plan',sp:'plan'},
+ {n:'Schedule — vymazanie priradenia z bunky',sc:'plan',sp:'plan'},
+ {n:'Schedule 🎭 Demo — fiktívny tím, funguje aj na iPhone aj iPade',ne:'Schedule 🎭 Demo — fake team, confirmed working on both iPhone and iPad',sc:'ok',sp:'ok'},
+ {n:'Schedule Demo — ochrana pri klepnutí na meno/bunku/+Add staff',ne:'Schedule Demo — guards on tapping name/cell/+Add staff',sc:'ok',sp:'ok'},
  {n:'Member Activity — zoznam posledných 30 dní (nové)',a:'admin',ne:'Member Activity — last-30-days list (new)',s:'test'},
  {n:'Member Activity — denný detail: objednávky',a:'admin',s:'test'},
  {n:'Member Activity — denný detail: štítky',a:'admin',s:'test'},
  {n:'Member Activity — denný detail: pridané jedlá',a:'admin',s:'test'},
  {n:'Member Activity — denný detail: vytvorené sekcie',a:'admin',s:'test'},
  {n:'Member Activity — denný detail: timer stopy (sledovanie začalo dnes)',a:'admin',s:'test'},
- {n:'Osobné objednávky vylúčené zo štatistiky práce (kód overený, netestované naživo)',s:'test'},
- {n:'Porovnanie pohľadu admin vs člen (iPhone vs iPad)',s:'plan'},
- {n:'Dáta — záloha na telefón',s:'plan'},
- {n:'Dáta — obnova zo zálohy',s:'plan'},
- {n:'Dáta — vymazanie všetkého',s:'plan'},
+ {n:'Osobné objednávky vylúčené zo štatistiky práce (kód overený, netestované naživo)',sc:'test',sp:'test'},
+ {n:'Porovnanie pohľadu admin vs člen (iPhone vs iPad)',sc:'plan',sp:'plan'},
+ {n:'Dáta — záloha na telefón',sc:'plan',sp:'plan'},
+ {n:'Dáta — obnova zo zálohy',sc:'plan',sp:'plan'},
+ {n:'Dáta — vymazanie všetkého',sc:'plan',sp:'plan'},
 ]},
 { icon:'🔗', title:'Connections', title_en:'Connections', items:[
- {n:'Hub — všetkých 5 dlaždíc prítomných',s:'plan'},
- {n:'Scan QR — kamera sa spustí správne',s:'plan'},
- {n:'Scan QR — priateľský QR → potvrdenie',s:'plan'},
- {n:'Scan QR — vlastný QR → "to je tvoj vlastný kód"',s:'plan'},
- {n:'Scan QR — potvrdenie naozaj vytvorí spojenie',s:'plan'},
- {n:'Scan QR — tímová pozvánka → potvrdenie, aj chyba pri expirovanej',s:'plan'},
- {n:'Scan QR — pozvánka do tímu kde už si → "už si člen"',s:'plan'},
- {n:'Scan QR — join kód tímu → "Pripojiť sa k tímu X?"',s:'plan'},
- {n:'Scan QR — necudzí QR → jasná chyba',s:'plan'},
- {n:'Invite Friend — vlastný QR sa vykreslí',s:'plan'},
- {n:'Invite Friend — pozvánka e-mailom funguje',s:'plan'},
- {n:'Invite Friend — sken NEpridá do tímu, len priateľ',s:'plan'},
+ {n:'Hub — všetkých 5 dlaždíc prítomných',sc:'plan',sp:'plan'},
+ {n:'Scan QR — kamera sa spustí správne',sc:'plan',sp:'plan'},
+ {n:'Scan QR — priateľský QR → potvrdenie',sc:'plan',sp:'plan'},
+ {n:'Scan QR — vlastný QR → "to je tvoj vlastný kód"',sc:'plan',sp:'plan'},
+ {n:'Scan QR — potvrdenie naozaj vytvorí spojenie',sc:'plan',sp:'plan'},
+ {n:'Scan QR — tímová pozvánka → potvrdenie, aj chyba pri expirovanej',sc:'plan',sp:'plan'},
+ {n:'Scan QR — pozvánka do tímu kde už si → "už si člen"',sc:'plan',sp:'plan'},
+ {n:'Scan QR — join kód tímu → "Pripojiť sa k tímu X?"',sc:'plan',sp:'plan'},
+ {n:'Scan QR — necudzí QR → jasná chyba',sc:'plan',sp:'plan'},
+ {n:'Invite Friend — vlastný QR sa vykreslí',sc:'plan',sp:'plan'},
+ {n:'Invite Friend — pozvánka e-mailom funguje',sc:'plan',sp:'plan'},
+ {n:'Invite Friend — sken NEpridá do tímu, len priateľ',sc:'plan',sp:'plan'},
  {n:'Share My Recipe — na Company blokované, na Personal otvorí picker',a:'personal',s:'plan'},
  {n:'Share My Recipe — jednotlivé zaškrtnutie priateľov',a:'personal',s:'plan'},
  {n:'Share My Recipe — "zdieľať VŠETKO" hlavný prepínač',a:'personal',s:'plan'},
- {n:'Chef Friends — zoznam a otvorenie profilu priateľa',s:'plan'},
- {n:'Profil priateľa — jeho zdieľané recepty (read-only)',s:'plan'},
- {n:'Profil priateľa — zdieľaný zoznam ingrediencií',s:'plan'},
- {n:'Profil priateľa — jednotlivo zdieľané ingrediencie',s:'plan'},
- {n:'Profil priateľa — prázdny stav keď nič nezdieľa',s:'plan'},
+ {n:'Chef Friends — zoznam a otvorenie profilu priateľa',sc:'plan',sp:'plan'},
+ {n:'Profil priateľa — jeho zdieľané recepty (read-only)',sc:'plan',sp:'plan'},
+ {n:'Profil priateľa — zdieľaný zoznam ingrediencií',sc:'plan',sp:'plan'},
+ {n:'Profil priateľa — jednotlivo zdieľané ingrediencie',sc:'plan',sp:'plan'},
+ {n:'Profil priateľa — prázdny stav keď nič nezdieľa',sc:'plan',sp:'plan'},
  {n:'My Team — prázdny stav bez tímu + "Create a team of friends" (coming soon)',a:'personal',s:'plan'},
  {n:'My Team — ✏️ premenovanie kuchyne (admin)',a:'admin',s:'plan'},
  {n:'My Team — invite link + QR + Copy Link',a:'admin',s:'plan'},
@@ -439,67 +471,67 @@ const MODULES = [
  {n:'My Team — vymazanie člena (potvrdenie, člen dostane vlastnú kuchyňu)',a:'admin',s:'plan'},
 ]},
 { icon:'🏷️', title:'Print Labels', title_en:'Print Labels', items:[
- {n:'Prázdny front s ručným poľom',s:'plan'},
- {n:'🖨️ ikonka na položke otvorí dialóg množstva + trvanlivosti',s:'plan'},
- {n:'Prvé nastavenie trvanlivosti (ktokoľvek)',s:'plan'},
+ {n:'Prázdny front s ručným poľom',sc:'plan',sp:'plan'},
+ {n:'🖨️ ikonka na položke otvorí dialóg množstva + trvanlivosti',sc:'plan',sp:'plan'},
+ {n:'Prvé nastavenie trvanlivosti (ktokoľvek)',sc:'plan',sp:'plan'},
  {n:'Zmena trvanlivosti po prvýkrát — len admin (over solo Personal účet)',ne:'Changing shelf life after the first save — admin-only (verify for a solo Personal account)',a:'admin',s:'plan'},
- {n:'Koniec timera na položke automaticky otvorí tlač',s:'plan'},
- {n:'"Add to list" pridá/zvýši množstvo vo fronte',s:'plan'},
- {n:'Ručné pole s live návrhmi z Check Listu',s:'plan'},
- {n:'Klik na návrh pridá rovno do frontu',s:'plan'},
- {n:'Úprava množstva +1/-1 vo fronte',s:'plan'},
- {n:'Odstránenie jedného štítku z frontu',s:'plan'},
- {n:'"Zoskupiť podľa sekcie" prepínač',s:'plan'},
- {n:'Výber viacerých — zaškrtávanie',s:'plan'},
- {n:'Hromadné vymazanie vybraných',s:'plan'},
- {n:'"Vybrať všetko" skratka',s:'plan'},
- {n:'"Vymazať zoznam" — celý front',s:'plan'},
- {n:'"🖨️ Print All" — tlačový dialóg, formát 5×3cm',s:'plan'},
- {n:'Tlač zapíše do print_label_log → prejaví sa v Label Expiry',s:'plan'},
- {n:'Odznak na Home s množstvom vo fronte sa aktualizuje',s:'plan'},
- {n:'Front prežije reload appky na tom istom zariadení',s:'plan'},
+ {n:'Koniec timera na položke automaticky otvorí tlač',sc:'plan',sp:'plan'},
+ {n:'"Add to list" pridá/zvýši množstvo vo fronte',sc:'plan',sp:'plan'},
+ {n:'Ručné pole s live návrhmi z Check Listu',sc:'plan',sp:'plan'},
+ {n:'Klik na návrh pridá rovno do frontu',sc:'plan',sp:'plan'},
+ {n:'Úprava množstva +1/-1 vo fronte',sc:'plan',sp:'plan'},
+ {n:'Odstránenie jedného štítku z frontu',sc:'plan',sp:'plan'},
+ {n:'"Zoskupiť podľa sekcie" prepínač',sc:'plan',sp:'plan'},
+ {n:'Výber viacerých — zaškrtávanie',sc:'plan',sp:'plan'},
+ {n:'Hromadné vymazanie vybraných',sc:'plan',sp:'plan'},
+ {n:'"Vybrať všetko" skratka',sc:'plan',sp:'plan'},
+ {n:'"Vymazať zoznam" — celý front',sc:'plan',sp:'plan'},
+ {n:'"🖨️ Print All" — tlačový dialóg, formát 5×3cm',sc:'plan',sp:'plan'},
+ {n:'Tlač zapíše do print_label_log → prejaví sa v Label Expiry',sc:'plan',sp:'plan'},
+ {n:'Odznak na Home s množstvom vo fronte sa aktualizuje',sc:'plan',sp:'plan'},
+ {n:'Front prežije reload appky na tom istom zariadení',sc:'plan',sp:'plan'},
 ]},
 { icon:'🎩', title:"Chef's Assistant", title_en:"Chef's Assistant", items:[
- {n:'Prvé otvorenie — uvítacia bublina',s:'plan'},
- {n:'Odoslanie správy tlačidlom Send',s:'plan'},
- {n:'Enter odošle, Shift+Enter nový riadok',s:'plan'},
- {n:'"…" bublina počas čakania na odpoveď',s:'plan'},
- {n:'Reálna odpoveď sa správne vykreslí',s:'plan'},
- {n:'Zlyhané volanie ukáže chybu, appka nespadne',s:'plan'},
- {n:'Automatický scroll na najnovšiu správu',s:'plan'},
- {n:'Dlhá konverzácia stále funguje',s:'plan'},
- {n:'"?" tutorial ikonka',s:'plan'},
- {n:'Prvá automatická nápoveda pri prvej návšteve',s:'plan'},
+ {n:'Prvé otvorenie — uvítacia bublina',sc:'plan',sp:'plan'},
+ {n:'Odoslanie správy tlačidlom Send',sc:'plan',sp:'plan'},
+ {n:'Enter odošle, Shift+Enter nový riadok',sc:'plan',sp:'plan'},
+ {n:'"…" bublina počas čakania na odpoveď',sc:'plan',sp:'plan'},
+ {n:'Reálna odpoveď sa správne vykreslí',sc:'plan',sp:'plan'},
+ {n:'Zlyhané volanie ukáže chybu, appka nespadne',sc:'plan',sp:'plan'},
+ {n:'Automatický scroll na najnovšiu správu',sc:'plan',sp:'plan'},
+ {n:'Dlhá konverzácia stále funguje',sc:'plan',sp:'plan'},
+ {n:'"?" tutorial ikonka',sc:'plan',sp:'plan'},
+ {n:'Prvá automatická nápoveda pri prvej návšteve',sc:'plan',sp:'plan'},
  {n:'Personal účet s minutým AI kreditom — blokovaná správa s vysvetlením',a:'personal',s:'plan'},
- {n:'Späť tlačidlo vedie na Home',s:'plan'},
- {n:'História chatu sa po reloade/odhlásení nezachová (over že je to zámer)',s:'plan'},
+ {n:'Späť tlačidlo vedie na Home',sc:'plan',sp:'plan'},
+ {n:'História chatu sa po reloade/odhlásení nezachová (over že je to zámer)',sc:'plan',sp:'plan'},
 ]},
 { icon:'⚙️', title:'Nastavenia', title_en:'Settings', items:[
- {n:'Môj profil — meno/vek/pohlavie/rola/telefón/bio, uloženie',s:'plan'},
- {n:'Môj profil — prvé nastavenie hesla',s:'plan'},
- {n:'Môj profil — zmena hesla',s:'plan'},
- {n:'Môj profil — zapnutie Face ID/Touch ID',s:'plan'},
- {n:'Môj profil — odobratie Face ID',s:'plan'},
- {n:'Môj profil — read-only polia (e-mail/tím/rola) sedia',s:'plan'},
- {n:'AI & Scan nastavenia — jazyk skenu/prekladu',s:'plan'},
- {n:'Prepínač jazyka appky',s:'plan'},
- {n:'Svetlý/tmavý režim',s:'plan'},
- {n:'Classic vs New UI (len testovacie účty)',s:'plan'},
+ {n:'Môj profil — meno/vek/pohlavie/rola/telefón/bio, uloženie',sc:'plan',sp:'plan'},
+ {n:'Môj profil — prvé nastavenie hesla',sc:'plan',sp:'plan'},
+ {n:'Môj profil — zmena hesla',sc:'plan',sp:'plan'},
+ {n:'Môj profil — zapnutie Face ID/Touch ID',sc:'plan',sp:'plan'},
+ {n:'Môj profil — odobratie Face ID',sc:'plan',sp:'plan'},
+ {n:'Môj profil — read-only polia (e-mail/tím/rola) sedia',sc:'plan',sp:'plan'},
+ {n:'AI & Scan nastavenia — jazyk skenu/prekladu',sc:'plan',sp:'plan'},
+ {n:'Prepínač jazyka appky',sc:'plan',sp:'plan'},
+ {n:'Svetlý/tmavý režim',sc:'plan',sp:'plan'},
+ {n:'Classic vs New UI (len testovacie účty)',sc:'plan',sp:'plan'},
  {n:'Prepínač meny kuchyne (len admin)',a:'admin',s:'plan'},
  {n:'Account Type — prepnutie Personal ↔ Company s potvrdením',a:'company',s:'plan'},
  {n:'Account Type — "Zadať/zmeniť kód tímu"',a:'company',s:'plan'},
  {n:'Account Type — "aj moje osobné recepty tu" prepínač',a:'company',s:'plan'},
- {n:'Account Type — bez reálneho tímu → "Company Locked"',s:'plan'},
+ {n:'Account Type — bez reálneho tímu → "Company Locked"',sc:'plan',sp:'plan'},
  {n:'Preview as Normal User (admin) — vstup aj výstup funguje',a:'admin',s:'plan'},
- {n:'Poradie dlaždíc na Home',s:'plan'},
- {n:'Poradie dlaždíc v Nastaveniach',s:'plan'},
- {n:'Viditeľnosť kategórií receptov',s:'plan'},
- {n:'"Pridať na plochu" návod',s:'plan'},
- {n:'Znovu-otvorenie tutoriálu',s:'plan'},
- {n:'Poslať spätnú väzbu',s:'plan'},
- {n:'"Zdieľať moje hodiny s adminom" prepínač',s:'plan'},
- {n:'Súkromie a podmienky — otvorí legal.html',s:'plan'},
- {n:'Odhlásenie s potvrdením',s:'plan'},
+ {n:'Poradie dlaždíc na Home',sc:'plan',sp:'plan'},
+ {n:'Poradie dlaždíc v Nastaveniach',sc:'plan',sp:'plan'},
+ {n:'Viditeľnosť kategórií receptov',sc:'plan',sp:'plan'},
+ {n:'"Pridať na plochu" návod',sc:'plan',sp:'plan'},
+ {n:'Znovu-otvorenie tutoriálu',sc:'plan',sp:'plan'},
+ {n:'Poslať spätnú väzbu',sc:'plan',sp:'plan'},
+ {n:'"Zdieľať moje hodiny s adminom" prepínač',sc:'plan',sp:'plan'},
+ {n:'Súkromie a podmienky — otvorí legal.html',sc:'plan',sp:'plan'},
+ {n:'Odhlásenie s potvrdením',sc:'plan',sp:'plan'},
 ]},
 { icon:'🛡️', title:'Admin', title_en:'Admin', items:[
  {n:'Access Requests — čakajúci zoznam',a:'admin',s:'plan'},
@@ -546,43 +578,43 @@ const MODULES = [
  {n:'Internal Docs — viditeľné len Richardovmu e-mailu, otvára 11 dokumentov',a:'admin',s:'plan'},
 ]},
 { icon:'📄', title:'Dokumenty', title_en:'Documents', items:[
- {n:'Tento dokument (test_sweep.html) sa otvára a vykresľuje',s:'ok'},
- {n:'Produkt (Mapa funkcií + História) — 2 taby',s:'plan'},
- {n:'Plán (Teraz + Denník + Roadmapa) — 3 taby',s:'plan'},
- {n:'Biznis (Monetizácia + Automatizácie + Náklady) — 3 taby',s:'plan'},
- {n:'Značka & vízia (Deck + Manifest + Guide) — 3 taby',s:'plan'},
- {n:'Poznámky — živý zápisník',s:'plan'},
- {n:'Gronda research — samostatný dokument',s:'plan'},
- {n:'Názov & značka — samostatný dokument',s:'plan'},
- {n:'Aare Ventures research — samostatný dokument',s:'plan'},
- {n:'Critical Review — najnovší audit',s:'plan'},
+ {n:'Tento dokument (test_sweep.html) sa otvára a vykresľuje',sc:'ok',sp:'ok'},
+ {n:'Produkt (Mapa funkcií + História) — 2 taby',sc:'plan',sp:'plan'},
+ {n:'Plán (Teraz + Denník + Roadmapa) — 3 taby',sc:'plan',sp:'plan'},
+ {n:'Biznis (Monetizácia + Automatizácie + Náklady) — 3 taby',sc:'plan',sp:'plan'},
+ {n:'Značka & vízia (Deck + Manifest + Guide) — 3 taby',sc:'plan',sp:'plan'},
+ {n:'Poznámky — živý zápisník',sc:'plan',sp:'plan'},
+ {n:'Gronda research — samostatný dokument',sc:'plan',sp:'plan'},
+ {n:'Názov & značka — samostatný dokument',sc:'plan',sp:'plan'},
+ {n:'Aare Ventures research — samostatný dokument',sc:'plan',sp:'plan'},
+ {n:'Critical Review — najnovší audit',sc:'plan',sp:'plan'},
  {n:'Zatvorenie Internal Docs okna neblokuje Admin pod ním',a:'admin',s:'plan'},
 ]},
 { icon:'👥', title:'Interakcia medzi účtami', title_en:'Cross-account interactions', items:[
- {n:'Admin pozve člena → člen sa pripojí → admin ho vidí v Team Members',s:'plan'},
- {n:'Admin schváli Access Request → nový účet sa naozaj prihlási',s:'plan'},
- {n:'Admin vymaže člena → člen dostane vlastnú osobnú kuchyňu',s:'plan'},
- {n:'Admin premenuje kuchyňu → všetci členovia vidia nové meno hneď',s:'plan'},
- {n:'Admin povýši niekoho na Kitchen/Head Admin → jeho VLASTNÝ účet sa aktualizuje',s:'plan'},
- {n:'Admin prepne jedno konkrétne oprávnenie → UI sa objaví/zmizne danej osobe',s:'plan'},
- {n:'Kitchen Admin skúsi akciu len pre Head Admina → správne zablokované',s:'plan'},
- {n:'Člen vytvorí obsah v Company režime → admin ho hneď vidí',s:'plan'},
- {n:'Osobný obsah člena A je neviditeľný pre člena B v tom istom tíme (db/159/156/161)',s:'plan'},
- {n:'Dve rôzne firmy (icloud vs proton kuchyňa) — nulový únik dát oboma smermi',s:'plan'},
- {n:'Priateľský QR: A pozve → B príjme → obaja sa vidia v Chef Friends',s:'plan'},
- {n:'Zdieľanie receptov s priateľmi — priateľ vidí, cudzí nie',s:'plan'},
- {n:'Verejný recept: A publikuje → B (iná kuchyňa) môže obľúbiť/komentovať',s:'plan'},
- {n:'Komentár na Sautero recepte je viditeľný naprieč rôznymi kuchyňami',s:'plan'},
- {n:'Add Company — nová firma je úplne oddelená od pozývajúcej kuchyne',s:'plan'},
- {n:'Objednávka člena je viditeľná a spravovateľná adminom v súhrne',s:'plan'},
- {n:'Tlač člena sa správne priradí v admin Member Activity/Reports',s:'plan'},
- {n:'"Zdieľať hodiny s adminom" — zapnuté/vypnuté sa prejaví v Kitchen Reports',s:'plan'},
- {n:'Akcia vytvorená jedným účtom je viditeľná celému tímu',s:'plan'},
- {n:'HACCP — admin vidí KTO úlohu odškrtol, menom',s:'plan'},
- {n:'Pozvánkový odkaz stále varuje "opustíš kuchyňu" aj keď si už inde',s:'plan'},
- {n:'Add Company predschválenie viaže sa presne na pozvaný e-mail',s:'plan'},
+ {n:'Admin pozve člena → člen sa pripojí → admin ho vidí v Team Members',sc:'plan',sp:'plan'},
+ {n:'Admin schváli Access Request → nový účet sa naozaj prihlási',sc:'plan',sp:'plan'},
+ {n:'Admin vymaže člena → člen dostane vlastnú osobnú kuchyňu',sc:'plan',sp:'plan'},
+ {n:'Admin premenuje kuchyňu → všetci členovia vidia nové meno hneď',sc:'plan',sp:'plan'},
+ {n:'Admin povýši niekoho na Kitchen/Head Admin → jeho VLASTNÝ účet sa aktualizuje',sc:'plan',sp:'plan'},
+ {n:'Admin prepne jedno konkrétne oprávnenie → UI sa objaví/zmizne danej osobe',sc:'plan',sp:'plan'},
+ {n:'Kitchen Admin skúsi akciu len pre Head Admina → správne zablokované',sc:'plan',sp:'plan'},
+ {n:'Člen vytvorí obsah v Company režime → admin ho hneď vidí',sc:'plan',sp:'plan'},
+ {n:'Osobný obsah člena A je neviditeľný pre člena B v tom istom tíme (db/159/156/161)',sc:'plan',sp:'plan'},
+ {n:'Dve rôzne firmy (icloud vs proton kuchyňa) — nulový únik dát oboma smermi',sc:'plan',sp:'plan'},
+ {n:'Priateľský QR: A pozve → B príjme → obaja sa vidia v Chef Friends',sc:'plan',sp:'plan'},
+ {n:'Zdieľanie receptov s priateľmi — priateľ vidí, cudzí nie',sc:'plan',sp:'plan'},
+ {n:'Verejný recept: A publikuje → B (iná kuchyňa) môže obľúbiť/komentovať',sc:'plan',sp:'plan'},
+ {n:'Komentár na Sautero recepte je viditeľný naprieč rôznymi kuchyňami',sc:'plan',sp:'plan'},
+ {n:'Add Company — nová firma je úplne oddelená od pozývajúcej kuchyne',sc:'plan',sp:'plan'},
+ {n:'Objednávka člena je viditeľná a spravovateľná adminom v súhrne',sc:'plan',sp:'plan'},
+ {n:'Tlač člena sa správne priradí v admin Member Activity/Reports',sc:'plan',sp:'plan'},
+ {n:'"Zdieľať hodiny s adminom" — zapnuté/vypnuté sa prejaví v Kitchen Reports',sc:'plan',sp:'plan'},
+ {n:'Akcia vytvorená jedným účtom je viditeľná celému tímu',sc:'plan',sp:'plan'},
+ {n:'HACCP — admin vidí KTO úlohu odškrtol, menom',sc:'plan',sp:'plan'},
+ {n:'Pozvánkový odkaz stále varuje "opustíš kuchyňu" aj keď si už inde',sc:'plan',sp:'plan'},
+ {n:'Add Company predschválenie viaže sa presne na pozvaný e-mail',sc:'plan',sp:'plan'},
  {n:'Member Activity (nové) — admin naozaj číta reálne akcie iného člena',a:'admin',s:'plan'},
- {n:'Sken tímového QR niekým kto je už člen → "už si v tomto tíme"',s:'plan'},
+ {n:'Sken tímového QR niekým kto je už člen → "už si v tomto tíme"',sc:'plan',sp:'plan'},
 ]},
 ];
 
@@ -638,6 +670,25 @@ function toggleModule(mi){
   renderModules();
 }
 
+/* Mode-aware status (19.7., Richard: "ak kontrolujeme niečo na company režime tak v
+   personálnom režime sa bude označovať ako hotové iba to, čo naozaj má alebo nemá spolu
+   interagovať") — testing a dual-mode item in Company must NEVER silently mark it done for
+   Personal too. Items with a fixed acct (personal/company/admin) have one ground-truth status
+   (`s`) and simply don't apply to the other mode — those are EXCLUDED from that mode's counts
+   entirely, not just dimmed, since you cannot even test a Company-only screen from a Personal
+   account. Items with no acct tag are genuinely dual-mode and carry independent `sc`/`sp`
+   statuses — each mode's number only moves when THAT mode was actually verified. Items
+   explicitly tagged a:'both' (an RLS check already proven to hold identically across modes,
+   e.g. the order-list privacy split) legitimately share one status. */
+function itemApplies(it, acct){
+  if(it.a === 'personal') return acct === 'personal';
+  if(it.a === 'company' || it.a === 'admin') return acct === 'company';
+  return true; // both / dual-mode
+}
+function itemStatus(it, acct){
+  if(it.sc !== undefined) return acct === 'personal' ? it.sp : it.sc;
+  return it.s;
+}
 function renderModules(){
   const wrap = document.getElementById('modulesWrap');
   const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
@@ -645,17 +696,18 @@ function renderModules(){
   wrap.innerHTML = MODULES.map((mod, mi)=>{
     let mOk=0, mTest=0, mPlan=0;
     const cards = mod.items.map((it, ii)=>{
-      if(it.s==='ok') ok++; else if(it.s==='test') test++; else plan++;
-      if(it.s==='ok') mOk++; else if(it.s==='test') mTest++; else mPlan++;
-      if(!activeStatuses.has(it.s)) return null;
-      const dimmed = it.a && it.a !== 'both' && it.a !== acct;
+      if(!itemApplies(it, acct)) return null;
+      const st = itemStatus(it, acct);
+      if(st==='ok'){ ok++; mOk++; } else if(st==='test'){ test++; mTest++; } else { plan++; mPlan++; }
+      if(!activeStatuses.has(st)) return null;
       return `
-        <div class="feature-card status-${it.s}${dimmed?' dim':''}" onclick="openModal(${mi},${ii})">
-          <div class="fname"><span class="status-dot ${it.s}"></span>${IN(it)}</div>
+        <div class="feature-card status-${st}" onclick="openModal(${mi},${ii})">
+          <div class="fname"><span class="status-dot ${st}"></span>${IN(it)}</div>
           <div>
             ${it.a==='personal' ? `<span class="acct-tag personal">Personal</span>` : ''}
             ${it.a==='company' ? `<span class="acct-tag company">Company</span>` : ''}
             ${it.a==='admin' ? `<span class="acct-tag admin">🛡️ Admin</span>` : ''}
+            ${it.sc !== undefined ? `<span class="acct-tag ${acct}">${acct==='personal'?'Personal':'Company'} stav</span>` : ''}
           </div>
         </div>
       `;
@@ -684,6 +736,15 @@ function renderModules(){
   document.getElementById('legendCount_plan') && (document.getElementById('legendCount_plan').textContent = plan);
   renderPulse(ok, test, plan);
   renderDonut(ok, test, plan);
+  renderStickyBar(ok, test, plan);
+}
+function renderStickyBar(ok, test, plan){
+  const total = ok+test+plan;
+  const pct = total ? Math.round(ok/total*100) : 0;
+  document.getElementById('stickyPct').textContent = pct + '%';
+  document.getElementById('stickyOk').textContent = ok;
+  document.getElementById('stickyTest').textContent = test;
+  document.getElementById('stickyPlan').textContent = plan;
 }
 function renderPulse(ok, test, plan){
   const total = ok+test+plan;
@@ -728,17 +789,26 @@ function renderDonut(ok, test, plan){
 }
 function openModal(mi, ii){
   const mod = MODULES[mi], it = mod.items[ii];
+  const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
   document.getElementById('mModule').textContent = mod.icon + ' ' + (_lang==='en' && mod.title_en ? mod.title_en : mod.title);
   document.getElementById('mName').textContent = IN(it);
   const st = document.getElementById('mStatus');
-  st.className = 'm-status ' + it.s;
-  st.textContent = STATUS_LABELS[it.s];
-  document.getElementById('mDesc').textContent = '';
+  const curStatus = itemStatus(it, acct);
+  st.className = 'm-status ' + curStatus;
+  st.textContent = STATUS_LABELS[curStatus] + (it.sc !== undefined ? ` — ${acct==='personal'?(_lang==='sk'?'Personal stav':'Personal status'):(_lang==='sk'?'Company stav':'Company status')}` : '');
+  // Dual-mode items show BOTH statuses side by side — the whole point of splitting sc/sp is
+  // that testing one mode must never look like it silently confirmed the other.
+  document.getElementById('mDesc').textContent = (it.sc !== undefined)
+    ? (_lang==='sk'
+        ? `Personal: ${STATUS_LABELS_I18N.sk[it.sp]} · Company: ${STATUS_LABELS_I18N.sk[it.sc]}`
+        : `Personal: ${STATUS_LABELS_I18N.en[it.sp]} · Company: ${STATUS_LABELS_I18N.en[it.sc]}`)
+    : '';
   document.getElementById('mTags').innerHTML =
     (it.a==='personal' ? `<span class="acct-tag personal">${_lang==='sk'?'Len Personal účty':'Personal accounts only'}</span>` : '') +
     (it.a==='company' ? `<span class="acct-tag company">${_lang==='sk'?'Len Company účty':'Company accounts only'}</span>` : '') +
     (it.a==='admin' ? `<span class="acct-tag admin">🛡️ ${_lang==='sk'?'Len Admin':'Admin only'}</span>` : '') +
-    (it.a==='both' ? `<span class="acct-tag personal">Personal</span><span class="acct-tag company">Company</span>` : '');
+    (it.a==='both' ? `<span class="acct-tag personal">Personal</span><span class="acct-tag company">Company</span>` : '') +
+    (it.sc !== undefined ? `<span class="acct-tag personal">Personal</span><span class="acct-tag company">Company</span>` : '');
   document.getElementById('modalBackdrop').classList.add('open');
 }
 function closeModal(){ document.getElementById('modalBackdrop').classList.remove('open'); }

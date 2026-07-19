@@ -112,6 +112,9 @@ def build_one(spec):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Sautero — {spec['title']}</title>
 <style>
   :root{{ --bg:#0A1A2F; --paper:#122845; --ink:#fff; --ink-dim:#9C949E; --rule:#223d57; --accent:#34F7D7; }}
