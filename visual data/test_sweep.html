@@ -6,104 +6,597 @@
 <title>Sautero — Kompletná kontrola funkcií</title>
 <style>
   :root{
-    --bg:#0A1A2F; --paper:#122845; --paper2:#0E2138; --ink:#FFFFFF; --ink-dim:#9C949E;
-    --ink-faint:#5E6B7A; --rule:#223d57; --accent:#34F7D7; --gold:#E8C468; --danger:#FF7A68;
-    --mono:'SF Mono',SFMono-Regular,ui-monospace,Menlo,monospace;
+    --bg:#0A1A2F; --bg-2:#0d2036; --paper:#122845; --paper-raised:#0f2340; --paper-hi:#16304f;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --rule-soft:#1a3149;
+    --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4); --accent-wash:rgba(52,247,215,0.08);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4); --gold-wash:rgba(247,201,72,0.08);
+    --danger:#FF7A68; --danger-dim:rgba(255,122,104,0.4); --danger-wash:rgba(255,122,104,0.08);
+    --ok:#4ADE80; --ok-dim:rgba(74,222,128,0.4); --ok-wash:rgba(74,222,128,0.09);
+    --test:#FB923C; --test-dim:rgba(251,146,60,0.5); --test-wash:rgba(251,146,60,0.14);
+    --plan:#8891A0; --plan-dim:rgba(136,145,160,0.4); --plan-wash:rgba(136,145,160,0.08);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+    --mono:"SF Mono",Menlo,Consolas,monospace;
   }
-  *{ box-sizing:border-box; min-width:0; }
-  html,body{ overflow-x:hidden; }
-  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; padding:20px 16px 80px 16px; }
-  .wrap{ max-width:920px; margin:0 auto; }
-  h1{ font-size:24px; margin:0 0 4px 0; }
-  .lede{ font-size:13px; color:var(--ink-dim); line-height:1.55; margin:0 0 18px 0; }
-  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
-  .section-label{ display:flex; align-items:center; gap:10px; margin:26px 0 10px 0; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; overflow-x:hidden; }
+  body{ background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; -webkit-font-smoothing:antialiased; line-height:1.5; padding-bottom:80px; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 20px 100px 20px; }
+  .hero{ background:linear-gradient(180deg, var(--bg-2), var(--bg)); border-bottom:1px solid var(--rule); padding:26px 0 30px 0; }
+  .hero-inner{ position:relative; max-width:1180px; margin:0 auto; padding:0 20px; }
+  .topline{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+  .brandmark{ display:flex; align-items:center; gap:9px; }
+  .brandmark .mark{ font-size:20px; }
+  .brandmark .word{ font-size:15px; font-weight:700; letter-spacing:.02em; color:var(--accent); font-style:italic; font-family:Georgia,'Times New Roman',serif; }
+  .acct-toggle{ display:flex; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:3px; gap:2px; }
+  .acct-toggle button{ background:none; border:none; color:var(--ink-dim); font:inherit; font-size:12.5px; font-weight:700; padding:6px 13px; border-radius:8px; cursor:pointer; }
+  .acct-toggle button.active{ background:var(--accent); color:#0A1A2F; }
+  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:60; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; margin-bottom:8px; }
+  h1{ font-size:24px; margin:0 0 8px 0; }
+  .lede{ color:var(--ink-dim); font-size:13.5px; max-width:72ch; line-height:1.6; margin:0; }
+  .legend{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+  .legend-item{ display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:8px 13px; font-size:12.5px; color:var(--ink-dim); cursor:pointer; user-select:none; transition:opacity .15s, border-color .15s; }
+  .legend-item.active{ border-color:var(--accent-dim); }
+  .legend-item:not(.active){ opacity:.38; border-style:dashed; }
+  .legend-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
+  .legend-item b{ color:var(--ink); font-weight:700; }
+  .donut-row{ display:flex; align-items:center; gap:22px; margin-top:20px; flex-wrap:wrap; }
+  #sweepDonut{ flex:none; }
+  .seg{ cursor:pointer; transition:opacity .15s; } .seg.off{ opacity:.15; }
+  .center-num{ font-family:var(--mono); font-size:24px; font-weight:700; fill:var(--ink); cursor:pointer; }
+  .center-lbl{ font-size:8.5px; fill:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em; }
+  .pulse-strip{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; margin-top:20px; background:var(--rule); border:1px solid var(--rule); border-radius:16px; overflow:hidden; }
+  @media (min-width:640px){ .pulse-strip{ grid-template-columns:repeat(5,1fr); } }
+  .pulse-cell{ background:var(--paper); padding:14px 16px 12px 16px; }
+  .pulse-cell .num{ font-family:var(--mono); font-size:23px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums; }
+  .pulse-cell .lbl{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-dim); margin-top:6px; display:flex; align-items:center; gap:6px; }
+  .pulse-cell .lbl::before{ content:''; width:7px; height:7px; border-radius:50%; flex:none; }
+  .pulse-cell.ok .lbl::before{ background:var(--ok); } .pulse-cell.ok .num{ color:var(--ok); }
+  .pulse-cell.test .lbl::before{ background:var(--test); } .pulse-cell.test .num{ color:var(--test); }
+  .pulse-cell.plan .lbl::before{ background:var(--plan); } .pulse-cell.plan .num{ color:var(--ink-dim); }
+  .pulse-cell.total .lbl::before{ background:var(--gold); } .pulse-cell.total .num{ color:var(--gold); }
+  .pulse-cell.time .lbl::before{ background:var(--accent); } .pulse-cell.time .num{ color:var(--accent); }
+
+  .section-label{ display:flex; align-items:center; gap:10px; margin:34px 0 12px 0; }
   .section-label .n{ font-family:var(--mono); font-size:11px; color:var(--accent); }
   .section-label h2{ font-size:15px; margin:0; }
   .section-label .rule{ flex:1; height:1px; background:var(--rule); }
-  .card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:16px; }
 
-  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-  .stat-tile{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:14px 12px; text-align:center; }
-  .stat-tile .v{ font-family:var(--mono); font-size:26px; font-weight:700; font-variant-numeric:tabular-nums; }
-  .stat-tile .k{ font-size:10.5px; color:var(--ink-dim); margin-top:3px; text-transform:uppercase; letter-spacing:.04em; }
-  .stat-tile.done .v{ color:var(--accent); }
-  .stat-tile.progress .v{ color:var(--gold); }
-  .stat-tile.todo .v{ color:var(--ink-faint); }
+  .module{ margin-top:30px; }
+  .module-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:14px; cursor:pointer; }
+  .module-icon{ width:34px; height:34px; border-radius:10px; background:var(--paper-raised); display:flex; align-items:center; justify-content:center; font-size:17px; flex:none; }
+  .module-title{ font-size:17px; font-weight:800; flex:1; }
+  .module-count{ font-size:12px; color:var(--ink-faint); font-family:var(--mono); white-space:nowrap; }
+  .module-bar{ display:flex; height:6px; border-radius:999px; overflow:hidden; margin:0 0 14px 0; background:var(--rule-soft); }
+  .module-bar div{ height:100%; }
+  .module-chevron{ font-size:12px; color:var(--ink-faint); transition:transform .15s; flex:none; }
+  .module.collapsed .module-chevron{ transform:rotate(-90deg); }
+  .module.collapsed .feature-grid, .module.collapsed .module-bar{ display:none; }
 
-  .bar-wrap{ display:flex; height:22px; border-radius:999px; overflow:hidden; margin-top:14px; background:var(--paper2); border:1px solid var(--rule); }
-  .bar-wrap div{ height:100%; }
-  .bar-legend{ display:flex; gap:16px; margin-top:10px; font-size:11.5px; color:var(--ink-dim); flex-wrap:wrap; }
-  .bar-legend span{ display:inline-flex; align-items:center; gap:6px; }
-  .bar-legend i{ width:9px; height:9px; border-radius:3px; display:inline-block; }
+  .feature-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:9px; }
+  .feature-card{ background:var(--paper); border:1px solid var(--rule); border-left:3px solid var(--ok); border-radius:11px; padding:11px 13px; cursor:pointer; transition:border-color .15s, transform .05s; }
+  .feature-card:hover{ border-color:var(--accent-dim); }
+  .feature-card:active{ transform:scale(.985); }
+  .feature-card.status-test{ border-left-color:var(--test); background:var(--test-wash); }
+  .feature-card.status-plan{ border-left-color:var(--plan); }
+  .feature-card .fname{ font-size:12.5px; font-weight:700; display:flex; align-items:flex-start; gap:7px; line-height:1.4; }
+  .status-dot{ width:8px; height:8px; border-radius:50%; flex:none; margin-top:4px; }
+  .status-dot.ok{ background:var(--ok); }
+  .status-dot.test{ background:var(--test); }
+  .status-dot.plan{ background:var(--plan); }
+  .acct-tag{ display:inline-block; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:2px 6px; border-radius:7px; margin-top:7px; margin-right:4px; }
+  .acct-tag.personal{ background:var(--accent-wash); color:var(--accent); }
+  .acct-tag.company{ background:var(--gold-wash); color:var(--gold); }
+  .acct-tag.admin{ background:var(--gold-wash); color:var(--gold); }
+  .feature-card.dim{ opacity:.32; }
 
-  .sec-grid{ display:flex; flex-direction:column; gap:8px; }
-  .sec-row{ display:flex; align-items:flex-start; gap:12px; padding:12px; border-radius:10px; background:var(--paper2); border:1px solid var(--rule); }
-  .sec-row .num{ font-family:var(--mono); font-size:11px; color:var(--ink-faint); flex:none; width:22px; padding-top:2px; }
-  .sec-row .body{ flex:1; }
-  .sec-row .title{ font-size:13.5px; font-weight:700; }
-  .sec-row .note{ font-size:12px; color:var(--ink-dim); margin-top:3px; line-height:1.5; }
-  .pill{ flex:none; font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; }
-  .pill.done{ background:rgba(52,247,215,.16); color:var(--accent); border:1px solid rgba(52,247,215,.4); }
-  .pill.progress{ background:rgba(232,196,104,.16); color:var(--gold); border:1px solid rgba(232,196,104,.4); }
-  .pill.todo{ background:rgba(94,107,122,.16); color:var(--ink-faint); border:1px solid var(--rule); }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.72); display:none; align-items:center; justify-content:center; padding:20px; z-index:100; }
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background:var(--paper); border:1px solid var(--rule); border-radius:18px; max-width:440px; width:100%; padding:20px 22px 16px 22px; box-shadow:var(--shadow); }
+  .modal .m-module{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--ink-faint); }
+  .modal .m-name{ font-size:17px; font-weight:800; margin:6px 0 10px 0; line-height:1.35; }
+  .modal .m-status{ display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; padding:4px 11px; border-radius:9px; border:1px solid; }
+  .modal .m-status.ok{ color:var(--ok); border-color:var(--ok-dim); background:var(--ok-wash); }
+  .modal .m-status.test{ color:var(--test); border-color:var(--test-dim); background:var(--test-wash); }
+  .modal .m-status.plan{ color:var(--ink-dim); border-color:var(--plan-dim); background:var(--plan-wash); }
+  .modal .m-desc{ font-size:13px; color:var(--ink-dim); line-height:1.6; margin:14px 0 4px 0; }
+  .modal .m-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .modal .m-close{ display:block; width:100%; margin-top:16px; background:none; border:1px solid var(--rule); border-radius:10px; color:var(--ink-dim); font:inherit; font-size:13px; padding:9px 0; cursor:pointer; }
+  .modal .m-close:hover{ border-color:var(--accent-dim); color:var(--ink); }
 
-  .bug-row{ display:flex; gap:10px; padding:11px 0; border-top:1px solid var(--rule); align-items:flex-start; }
-  .bug-row:first-child{ border-top:none; }
-  .bug-row .icon{ flex:none; font-size:15px; padding-top:1px; }
-  .bug-row .body{ flex:1; font-size:12.5px; line-height:1.55; }
-  .bug-row .body b{ color:var(--ink); }
-  .bug-row .body .meta{ display:block; color:var(--ink-dim); margin-top:2px; }
-  .tag{ display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:6px; margin-left:6px; vertical-align:1px; }
-  .tag.fixed{ background:rgba(52,247,215,.16); color:var(--accent); }
-  .tag.open{ background:rgba(255,122,104,.16); color:var(--danger); }
-
-  .q-row{ padding:12px; border-radius:10px; background:var(--paper2); border:1px dashed var(--gold); margin-bottom:8px; }
-  .q-row .q-title{ font-size:13px; font-weight:700; color:var(--gold); margin-bottom:4px; }
-  .q-row .q-body{ font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
-
-  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
-  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
-  @media (max-width:520px){ .stat-row{ grid-template-columns:repeat(2,1fr); } }
+  .chefos-stamp{ text-align:center; font-size:12px; color:var(--ink-faint); margin-top:50px; padding-top:20px; border-top:1px solid var(--rule); }
+  @media print{ .lang-toggle{ display:none; } }
 </style>
 </head>
 <body>
 <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
-<div class="wrap">
 
-  <h1 data-sk="🔍 Kompletná kontrola funkcií" data-en="🔍 Complete feature verification"></h1>
-  <p class="lede" data-sk="Živý tracker sweepu, ktorý Richard nariadil 19.7.2026 v noci: „keď sa zobudím, ideme na kompletnú kontrolu všetkých funkcií, dlaždicu po dlaždici.“ Plný zoznam kontrolných bodov je v docs/FEATURE_VERIFICATION_CHECKLIST.md — táto stránka ukazuje, kde presne sme, čo sa už našlo a opravilo, a čo čaká na Richardovu odpoveď. Aktualizuje sa priebežne počas sweepu." data-en="A live tracker for the sweep Richard ordered on the night of 19 Jul 2026: “when I wake up, we go through a complete check of every feature, tile by tile.” The full checklist lives in docs/FEATURE_VERIFICATION_CHECKLIST.md — this page shows exactly where we are, what's already been found and fixed, and what's waiting on Richard's answer. Updated live as the sweep progresses."></p>
-
-  <div class="section-label"><span class="n">01</span><h2 data-sk="Postup naprieč 16 oblasťami" data-en="Progress across 16 areas"></h2><div class="rule"></div></div>
-  <div class="stat-row">
-    <div class="stat-tile done"><div class="v" id="statDone">–</div><div class="k" data-sk="Hotovo" data-en="Done"></div></div>
-    <div class="stat-tile progress"><div class="v" id="statProgress">–</div><div class="k" data-sk="Rozbehnuté" data-en="In progress"></div></div>
-    <div class="stat-tile todo"><div class="v" id="statTodo">–</div><div class="k" data-sk="Čaká" data-en="Not started"></div></div>
-    <div class="stat-tile"><div class="v" id="statBugs">–</div><div class="k" data-sk="Nájdených chýb dnes" data-en="Bugs found today"></div></div>
-  </div>
-  <div class="card" style="margin-top:12px;">
-    <div class="bar-wrap" id="progressBar"></div>
-    <div class="bar-legend">
-      <span><i style="background:var(--accent);"></i><span data-sk="Hotovo" data-en="Done"></span></span>
-      <span><i style="background:var(--gold);"></i><span data-sk="Rozbehnuté" data-en="In progress"></span></span>
-      <span><i style="background:var(--ink-faint);"></i><span data-sk="Čaká" data-en="Not started"></span></span>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="topline">
+      <div class="brandmark"><span class="mark">🔍</span><span class="word">Sautero</span></div>
+      <div class="acct-toggle">
+        <button id="acctPersonalBtn" onclick="setAcctView('personal')" data-sk="Personal" data-en="Personal">Personal</button>
+        <button id="acctCompanyBtn" class="active" onclick="setAcctView('company')" data-sk="Company" data-en="Company">Company</button>
+      </div>
+    </div>
+    <div class="kicker" data-sk="19.7.2026 sweep" data-en="19 Jul 2026 sweep"></div>
+    <h1 data-sk="Kompletná kontrola funkcií" data-en="Complete feature verification"></h1>
+    <p class="lede" data-sk="Každá jednotlivá vec, ktorú treba na telefóne osobne odklikať a potvrdiť — dlaždica po dlaždici, presne ako mapa funkcií. Klikni na ktorúkoľvek kartu pre detail. Prepínač Personal/Company hore stlmí kontroly, ktoré sa v danom režime netýkajú." data-en="Every single thing that needs to be personally tapped through and confirmed on a phone — tile by tile, exactly like the feature map. Tap any card for detail. The Personal/Company switch above dims checks that don't apply in that mode."></p>
+    <div class="legend" id="legendRow"></div>
+    <div class="donut-row">
+      <svg id="sweepDonut" width="120" height="120" viewBox="0 0 120 120"></svg>
+      <div class="pulse-strip" id="pulseStrip"></div>
     </div>
   </div>
-
-  <div class="section-label"><span class="n">02</span><h2 data-sk="Stav po oblastiach" data-en="Status by area"></h2><div class="rule"></div></div>
-  <div class="card"><div class="sec-grid" id="secGrid"></div></div>
-
-  <div class="section-label"><span class="n">03</span><h2 data-sk="Nájdené a opravené dnes" data-en="Found and fixed today"></h2><div class="rule"></div></div>
-  <div class="card" id="bugList"></div>
-
-  <div class="section-label"><span class="n">04</span><h2 data-sk="Otvorené otázky pre Richarda" data-en="Open questions for Richard"></h2><div class="rule"></div></div>
-  <div id="questionList"></div>
-
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, ráno" data-en="🔄 Sautero state as of Jul 19, 2026, morning">🔄 Stav Sautero k 19. 7. 2026, ráno</div>
+
+<div class="wrap">
+  <div id="modulesWrap"></div>
+  <div class="chefos-stamp" id="stamp">🔄 Stav Sautero k 19. 7. 2026</div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <div class="m-module" id="mModule"></div>
+    <div class="m-name" id="mName"></div>
+    <span class="m-status" id="mStatus"></span>
+    <p class="m-desc" id="mDesc"></p>
+    <div class="m-tags" id="mTags"></div>
+    <button class="m-close" onclick="closeModal()" data-sk="Zavrieť" data-en="Close">Zavrieť</button>
+  </div>
+</div>
 
 <script>
+/* status: 'ok' (živo otestované a potvrdené Richardom) | 'test' (postavené/skontrolované v kóde,
+   čaká na živý test na telefóne) | 'plan' (ešte sa vôbec nezačalo). acct: 'personal'|'company'|
+   null (oboje). role:'admin' = viditeľné/dostupné len adminom. desc = voliteľná poznámka,
+   inak sa v okne ukáže len názov. New modules/items must land with BOTH languages. */
+const MODULES = [
+{ icon:'🔑', title:'Prihlásenie a brány', title_en:'Login & gates', items:[
+ {n:'E-mail + jednorazový kód — poslať, prijať, zadať',ne:'Email + one-time code — send, receive, enter',s:'plan'},
+ {n:'Rate-limit pri príliš veľa žiadostiach o kód',ne:'Rate-limit on requesting too many codes',s:'plan'},
+ {n:'"Mám heslo" prepínač odhalí pole na heslo',ne:'"Have a password" toggle reveals the password field',s:'plan'},
+ {n:'Prihlásenie e-mail + heslo',ne:'Sign in with email + password',s:'plan'},
+ {n:'Face ID/Touch ID tlačidlo sa zobrazí len keď existuje',ne:'Face ID/Touch ID button appears only when a device credential exists',s:'plan'},
+ {n:'Face ID prihlásenie — celý tok',ne:'Face ID sign-in — full flow',s:'plan'},
+ {n:'Face ID na zariadení bez zhodujúcej biometrie zlyhá bezpečne',ne:'Face ID on a device with no matching biometric fails safely',s:'plan'},
+ {n:'Face ID s neplatným tokenom sa vráti na e-mail',ne:'Face ID with an invalidated token falls back to email',s:'plan'},
+ {n:'"Coming soon" stena pre cudzí prístup bez pozvánky',a:'company',s:'plan'},
+ {n:'Stena sa obíde pri ?invite/?join/?friend odkaze',a:'company',s:'plan'},
+ {n:'Nový účet — automatická žiadosť o prístup + "Waiting for approval"',s:'plan'},
+ {n:'Zamietnutá žiadosť — jasná koncová správa',s:'plan'},
+ {n:'Súhlas s ochranou súkromia — povinný, verziovaný',s:'plan'},
+ {n:'Nesúhlas s ochranou súkromia — čisté odhlásenie',s:'plan'},
+ {n:'Súhlas s dôvernosťou — povinný, verziovaný',s:'plan'},
+ {n:'Nesúhlas s dôvernosťou — čisté odhlásenie',s:'plan'},
+ {n:'Povinné nastavenie hesla pri prvom vstupe',s:'plan'},
+ {n:'Profil brána — meno/vek/pohlavie, Uložiť',s:'plan'},
+ {n:'Profil brána — Preskočiť',s:'plan'},
+ {n:'Prvá voľba Personal vs Company',s:'plan'},
+ {n:'Voľba Company bez tímu → Team Join obrazovka',a:'company',s:'plan'},
+ {n:'Team Join — Preskočiť',a:'company',s:'plan'},
+ {n:'Team Join — ručné zadanie kódu tímu + varovanie "opustíš súčasnú kuchyňu"',a:'company',s:'plan'},
+ {n:'Scan QR — naskenovanie ?team= kódu → potvrdenie',a:'company',s:'plan'},
+ {n:'Scan QR — naskenovanie pozvánky do kuchyne → potvrdenie',a:'company',s:'plan'},
+ {n:'Scan QR — pozvánka do kuchyne kde už si → "už si člen"',a:'company',s:'plan'},
+ {n:'Scan QR — cudzí QR text → slušná chyba',s:'plan'},
+ {n:'Vlastný priateľský QR + odkaz (Add Friend)',s:'plan'},
+ {n:'Poslať pozvánku priateľovi e-mailom',s:'plan'},
+ {n:'Naskenovanie cudzieho priateľského QR → potvrdenie',s:'plan'},
+ {n:'Naskenovanie vlastného QR → "to je tvoj vlastný kód"',s:'plan'},
+ {n:'Nový účet cez ?friend= odkaz — vlastná kuchyňa sa založí automaticky',s:'plan'},
+ {n:'Add Company pozvánka — nový účet dostane rovno Company Admin',a:'admin',s:'plan'},
+ {n:'Add Team Member pozvánka (kód/QR/link/email) vedie do správnej kuchyne',a:'admin',s:'plan'},
+ {n:'Odhlásenie z Profilu vráti na čistú prihlasovaciu obrazovku',s:'plan'},
+]},
+{ icon:'🏠', title:'Home', title_en:'Home', items:[
+ {n:'Všetkých 13 dlaždíc prítomných a v správnom poradí',ne:'All 13 tiles present, correct order',s:'ok'},
+ {n:'"Team Meetings" vysvetlené ako zámerný placeholder, nie bug',ne:'"Team Meetings" confirmed as a deliberate placeholder, not a bug',s:'ok'},
+ {n:'Personal/Company odznak + rýchly prepínač',s:'plan'},
+ {n:'Poradie dlaždíc sa dá zmeniť a ostáva uložené',s:'plan'},
+ {n:'Prepínač jazyka funguje',s:'plan'},
+]},
+{ icon:'✅', title:'Check List', title_en:'Check List', items:[
+ {n:'Výber projektu — Personal vidí len svoje, Company len tímové (db/159)',a:'both',s:'test'},
+ {n:'Nový projekt — v Personal každý, v Company len admin',a:'admin',s:'test'},
+ {n:'Ikona projektu (8 farebných kníh) sa uloží a zobrazí',s:'plan'},
+ {n:'Dlhé podržanie projektu → Premenovať',s:'plan'},
+ {n:'Dlhé podržanie projektu → Skryť/Odkryť',s:'plan'},
+ {n:'Dlhé podržanie projektu → Vymazať (len admin)',a:'admin',s:'plan'},
+ {n:'"Zobraziť N skrytých projektov" prepínač',s:'plan'},
+ {n:'Otvorenie projektu vedie na sekcie/stanice',s:'plan'},
+ {n:'Nová sekcia — meno + ikona',s:'plan'},
+ {n:'Manage Sections → premenovanie sekcie (prepíše všetky jedlá)',s:'plan'},
+ {n:'Manage Sections → vymazanie sekcie (len admin), obnoviteľné',a:'admin',s:'plan'},
+ {n:'Viditeľnosť sekcie — device-local prepínač',s:'plan'},
+ {n:'"All" prierezový pohľad — pruh zostávajúceho času, 🔥 preťaženie nad 3,5h',s:'plan'},
+ {n:'"All" — kombinovanie filtrov To Do/Check/Finish naraz',s:'plan'},
+ {n:'Karty jedál sa zbaľujú/rozbaľujú klikom',s:'plan'},
+ {n:'Dlhé podržanie jedla → Premenovať/Skryť/Vymazať (mazanie len admin)',a:'admin',s:'plan'},
+ {n:'Pridať jedlo ručne (stanica + meno + cena + zoznam)',s:'plan'},
+ {n:'Pridať jedlo skenom fotky/PDF prep listu',s:'plan'},
+ {n:'Pridať jednu položku do existujúceho jedla',s:'plan'},
+ {n:'On Hand počítadlo zásoby (0–13)',s:'plan'},
+ {n:'Priority výber (1–5)',s:'plan'},
+ {n:'Stavové tlačidlá sa synchronizujú naprieč rovnako pomenovanými položkami',s:'plan'},
+ {n:'Dlhé podržanie stavu → vlastný názov len pre tú položku',s:'plan'},
+ {n:'Poznámka k položke — autoukladanie',s:'plan'},
+ {n:'Odznak duplicity ukáže kde všade sa položka opakuje',s:'plan'},
+ {n:'Časovač položky — štart/stop, prežije zamknutú obrazovku',s:'plan'},
+ {n:'Ručný zápis času (priemer, synchronizuje sa naprieč duplicitami)',s:'plan'},
+ {n:'Admin zámok času fázy — nedá sa prepísať novým priemerom',a:'admin',s:'plan'},
+ {n:'Tlačidlo 🛒 Order pridá položku do Order Listu',s:'plan'},
+ {n:'Tlačidlo 🖨️ Print — množstvo + trvanlivosť',s:'plan'},
+ {n:'⋮ menu — Premenovať/Vymazať/Info',s:'plan'},
+ {n:'Info panel — história časov + audit log kto čo zmenil',s:'plan'},
+ {n:'Viditeľnosť jedla — skryť celé jedlo alebo jednotlivé položky',s:'plan'},
+ {n:'"Zobraziť skryté" a "obnoviť vymazané" prepínače',s:'plan'},
+ {n:'Skryť/vymazať celú sekciu (mazanie len admin)',a:'admin',s:'plan'},
+ {n:'Vyhľadávanie surovín naprieč celou kuchyňou (3+ znaky)',s:'plan'},
+ {n:'Language Audit — AI preklad cudzojazyčných názvov (len admin)',a:'admin',s:'plan'},
+ {n:'Quick List — viacriadkové rýchle zadanie úloh',s:'plan'},
+ {n:'"Pridať jednu úlohu s detailmi" — plný formulár',s:'plan'},
+ {n:'Recepty s rovnakou stanicou automaticky naplnia To Do úlohu',s:'plan'},
+ {n:'Tutorial (?) ikonka otvorí návod',s:'plan'},
+]},
+{ icon:'🛒', title:'Order List', title_en:'Order List', items:[
+ {n:'Súhrn — Personal vidí len svoje súkromné riadky, Company len zdieľané (db/156)',s:'test'},
+ {n:'Prázdny stav s návodom',s:'plan'},
+ {n:'Tlač Order Listu',s:'plan'},
+ {n:'"Send to Supplier" — zobrazí sa "coming soon" pásik',s:'plan'},
+ {n:'"By device" — zobrazí sa "coming soon" alert',s:'plan'},
+ {n:'Výber viacerých + hromadné vymazanie',s:'plan'},
+ {n:'Prepínač zoskupenia — podľa sekcie vs abecedne',s:'plan'},
+ {n:'"✕ Remove mine" vymaže len môj príspevok',s:'plan'},
+ {n:'Rozpis podľa osoby keď rovnaké objednali viacerí (len admin)',a:'admin',s:'plan'},
+ {n:'"+" FAB otvorí Picker (stanice, prehľadávanie)',s:'plan'},
+ {n:'Picker — prepínanie staníc prenačíta stav',s:'plan'},
+ {n:'Picker — vyhľadávanie surovín podľa mena/aliasu',s:'plan'},
+ {n:'Picker — zaškrtnutie + množstvo + jednotka',s:'plan'},
+ {n:'Picker — "👥 už X od N kolegov" hint',s:'plan'},
+ {n:'Uloženie z Pickeru nikdy nezmaže riadky iného člena (db/76)',s:'plan'},
+ {n:'Rýchle 🛒 Order z Check List položky — člen bez ceny objedná bez chyby (db/154)',ne:'Quick 🛒 Order from a Check List item — a member without a price orders without error (db/154)',s:'ok'},
+ {n:'Objednávkový dialóg — stanica, množstvo, jednotka, poznámka sa uloží',s:'plan'},
+ {n:'Tutorial (?) ikonka',s:'plan'},
+]},
+{ icon:'📖', title:'Recepty', title_en:'Recipes', items:[
+ {n:'Police: My Recipes / Sautero / Public / Company / vlastné projekty',s:'plan'},
+ {n:'Dlhé podržanie pevnej police → Skryť/Odkryť',s:'plan'},
+ {n:'Dlhé podržanie vlastného projektu → Premenovať/Skryť/Vymazať',s:'plan'},
+ {n:'"Add Project" — nová zbierka receptov + ikona',s:'plan'},
+ {n:'"Zobraziť N skrytých políc"',s:'plan'},
+ {n:'Favorites je predvolená sekcia, padá na All ak je prázdna',s:'plan'},
+ {n:'Mriežka kategórií — prepínanie, počty naživo',s:'plan'},
+ {n:'Nová kategória s ikonou',s:'plan'},
+ {n:'Manage Categories → premenovanie/ikonka',s:'plan'},
+ {n:'Manage Categories → vymazanie (recepty idú do Uncategorized)',s:'plan'},
+ {n:'Viditeľnosť kategórie — device-local',s:'plan'},
+ {n:'Hľadanie a filter — text, diéta, alergény, sekcia',s:'plan'},
+ {n:'"Opýtať sa Chef\'s Assistant" — generátor nápadov na recept',s:'plan'},
+ {n:'Chef Challenge — nápady podľa max. ceny suroviny',s:'plan'},
+ {n:'Pridať recept ručne',s:'plan'},
+ {n:'Sken fotky — jeden recept',s:'plan'},
+ {n:'Sken fotky — celé menu (viac jedál naraz)',s:'plan'},
+ {n:'Sken menu z URL webstránky',s:'plan'},
+ {n:'Formulár receptu — AI vyplnenie jednotlivých polí',s:'plan'},
+ {n:'Formulár — "✨ Generovať postup s AI"',s:'plan'},
+ {n:'Formulár — pridanie/odobratie riadkov surovín a krokov',s:'plan'},
+ {n:'Detail — Obľúbené prepínač',s:'plan'},
+ {n:'Detail — škálovanie 0,5×/1×/2×/3×/4×',s:'plan'},
+ {n:'Detail — vlastné škálovanie na počet porcií',s:'plan'},
+ {n:'Detail — škálovanie podľa jednej dostupnej suroviny',s:'plan'},
+ {n:'Detail — odznaky alergénov sa počítajú správne',s:'plan'},
+ {n:'Detail — cena + rozpis "i"',s:'plan'},
+ {n:'Detail — "Pridať všetky suroviny do mojej databázy"',s:'plan'},
+ {n:'Detail — nutričné hodnoty + rozpis "i"',s:'plan'},
+ {n:'Detail — "Used In" krížové odkazy',s:'plan'},
+ {n:'Detail — moje poznámky, autoukladanie',s:'plan'},
+ {n:'Detail — vymazanie receptu',s:'plan'},
+ {n:'Detail — Edit skrytý pre cudzie recepty (Public/priateľ)',s:'plan'},
+ {n:'Publikovanie na Public policu (len Personal)',a:'personal',s:'plan'},
+ {n:'Zdieľanie s konkrétnymi priateľmi (len Personal)',a:'personal',s:'plan'},
+ {n:'"Zdieľať VŠETKY recepty" hlavný prepínač',a:'personal',s:'plan'},
+ {n:'Komentáre — naprieč kuchyňami, mazanie len vlastných',s:'plan'},
+ {n:'Odznak počtu komentárov sa aktualizuje',s:'plan'},
+ {n:'🔔 Notifikácia na nový komentár k vlastnému/obľúbenému receptu',a:'personal',s:'plan'},
+ {n:'"Pridať do Check Listu" — výber projektu a stanice',s:'plan'},
+ {n:'Tlač brandovanej receptovej karty',s:'plan'},
+ {n:'Ingredient Audit — chýbajúce suroviny naprieč receptami',s:'plan'},
+ {n:'Zobrazenie zdieľaného receptu priateľa (read-only)',s:'plan'},
+]},
+{ icon:'🧂', title:'Ingrediencie', title_en:'Ingredients', items:[
+ {n:'Police: Sautero / Company / My / Public / vlastné zoznamy',s:'plan'},
+ {n:'Dlhé podržanie pevnej police → Skryť/Odkryť',s:'plan'},
+ {n:'Dlhé podržanie vlastného zoznamu → Premenovať/Skryť/Vymazať/Zdieľať',s:'plan'},
+ {n:'"New List" — nový zoznam s ikonou',s:'plan'},
+ {n:'"Zobraziť N skrytých políc"',s:'plan'},
+ {n:'Add Ingredient FAB skrytý na zdieľaných policiach bez oprávnenia',a:'admin',s:'plan'},
+ {n:'Plný formulár — meno, kuchyňa, kategória, dodávateľ, cena, výťažnosť, alergény, sezóna...',s:'plan'},
+ {n:'Úprava — cudzie (Public) ingrediencie len na čítanie',s:'plan'},
+ {n:'Vymazanie ingrediencie',s:'plan'},
+ {n:'Zmena ceny sa zapíše do histórie cien',s:'plan'},
+ {n:'Hľadanie a filter — text, kuchyňa, kategória, cena, sezóna, skladovanie',s:'plan'},
+ {n:'"Zobraziť skryté ingrediencie" vo filtri',s:'plan'},
+ {n:'Počet zhôd naživo vo filtri aj v lište',s:'plan'},
+ {n:'Hromadné vymazanie (podľa dátumu alebo všetko)',s:'plan'},
+ {n:'"✨ Generovať detaily s AI" — dávkové doplnenie kategórie/sezóny/výživy',s:'plan'},
+ {n:'📎 Sken zoznamu od dodávateľa',s:'plan'},
+ {n:'Invoice Scan — sken faktúry, aktualizácia cien + história',s:'plan'},
+ {n:'Custom Ingredients staging panel (len admin)',a:'admin',s:'plan'},
+ {n:'AI nástroje na zdieľaných policiach — vrátené adminom aj na Sautero polici',ne:'AI tools on shared shelves — restored for admins even on the Sautero shelf',a:'admin',s:'ok'},
+ {n:'Zdieľanie na Public/Priateľom (len Personal)',a:'personal',s:'plan'},
+ {n:'Ochrana pred duplicitou pri publikovaní (presná zhoda + AI cudzí jazyk)',a:'personal',s:'plan'},
+ {n:'Info panel ingrediencie z receptu (pôvod/sezóna/náhrady)',s:'plan'},
+ {n:'Ingredient Audit — chýbajúce položky naprieč receptami a Check Listom',s:'plan'},
+ {n:'Zobrazenie zdieľaného zoznamu priateľa (read-only)',s:'plan'},
+ {n:'Pridávanie na zdieľanú policu len pre adminov, My Ingredients otvorené všetkým',a:'admin',s:'plan'},
+]},
+{ icon:'🎪', title:'Events', title_en:'Events', items:[
+ {n:'Zoznam — Dnes / Zajtra bannery + Coming up + Posledných 10',s:'plan'},
+ {n:'Prázdny stav v každej sekcii',s:'plan'},
+ {n:'Nová akcia ručne (titul, klient, počet, menu, cena, dátum, čas)',s:'plan'},
+ {n:'Úprava existujúcej akcie',s:'plan'},
+ {n:'Vymazanie akcie (potvrdenie)',s:'plan'},
+ {n:'Prepočet ceny do meny kuchyne',s:'plan'},
+ {n:'Sken objednávky/e-mailu/zmluvy — AI predvyplní formulár na kontrolu',s:'plan'},
+ {n:'Povinné polia — titul a dátum',s:'plan'},
+ {n:'🎭 Demo prepínač — 4 fiktívne akcie, nič sa neuloží',a:'both',s:'ok'},
+ {n:'Klik na demo riadok → "New Event (from demo)", uloženie je REÁLNE',a:'both',s:'plan'},
+ {n:'Personal/company súkromie — osobná akcia nikdy neunikne do firemnej (db/161)',ne:'Personal/company privacy — a personal event never leaks into the company view (db/161)',s:'test'},
+]},
+{ icon:'🧼', title:'HACCP', title_en:'HACCP', items:[
+ {n:'Otvorenie dlaždice funguje pre KAŽDÝ účet vrátane Personal (bug opravený 19.7.)',ne:'Opening the tile works for EVERY account incl. Personal (bug fixed 19 Jul)',s:'test'},
+ {n:'Fridge Temp — pridať/upraviť/vymazať chladničku',s:'plan'},
+ {n:'Fridge Temp — zápis novej teploty',s:'plan'},
+ {n:'Fridge Temp — farebné bodky ok/warn/nikdy-nekontrolované',s:'plan'},
+ {n:'Fridge Temp — detail s históriou, mimo-rozsahu označené',s:'plan'},
+ {n:'Goods Receiving — zápis OK aj Problem',s:'plan'},
+ {n:'Core Cooking Temp — zápis OK aj Problem',s:'plan'},
+ {n:'Cooling Log — zápis OK aj Problem',s:'plan'},
+ {n:'Fryer Oil — zápis OK aj Problem',s:'plan'},
+ {n:'Cleaning Checklist — prvá návšteva automaticky naseje 5 úloh',s:'plan'},
+ {n:'Cleaning Checklist — označiť ✅ OK',s:'plan'},
+ {n:'Cleaning Checklist — označiť ⚠️ Problem s poznámkou',s:'plan'},
+ {n:'Cleaning Checklist — pridať/odobrať úlohu (admin panel)',a:'admin',s:'plan'},
+ {n:'Cleaning Checklist — "due" sa správne resetuje podľa frekvencie',s:'plan'},
+ {n:'Admin vidí KTO úlohu odškrtol, člen len že je hotová',a:'admin',s:'plan'},
+ {n:'Personal Hygiene Checklist — samostatné dáta od Cleaning',s:'plan'},
+ {n:'Pest Control Checklist — samostatné dáta od ostatných',s:'plan'},
+ {n:'Label Expiry — prázdny stav kým sa nič nevytlačí',s:'plan'},
+ {n:'Label Expiry — expirované v červenom koši',s:'plan'},
+ {n:'Label Expiry — dnes/zajtra v žltom koši',s:'plan'},
+ {n:'Label Expiry — "✓ Použité" odstráni riadok',s:'plan'},
+ {n:'Staff Training a HACCP Report — "coming soon" pásiky',s:'plan'},
+]},
+{ icon:'⏱️', title:'Working Time', title_en:'Working Time', items:[
+ {n:'Check In tlačidlo',ne:'Check In button',s:'ok'},
+ {n:'Check Out tlačidlo',ne:'Check Out button',s:'ok'},
+ {n:'"Zabudol som sa prihlásiť" tok',ne:'"Forgot to check in" flow',s:'ok'},
+ {n:'"Zabudol som sa odhlásiť" tok',ne:'"Forgot to check out" flow',s:'ok'},
+ {n:'GPS snímka pri prihlásení/odhlásení (📍 odkazy)',s:'plan'},
+ {n:'Živá Break stopka (5/10/15/30 min, odpočet, pauzuje Working Time)',ne:'Live Break stopwatch (5/10/15/30 min, countdown, pauses Working Time)',s:'ok'},
+ {n:'Presné časy prestávok v dennom detaile',ne:'Exact break times in day detail',s:'ok'},
+ {n:'Mesačný prehľad / história dní',s:'plan'},
+ {n:'Denný detail — graf hodín (bežné vs nadčas)',s:'plan'},
+ {n:'Denný detail — rozpísané Orders & Labels (reálny režim)',s:'plan'},
+ {n:'Poznámka ku dňu (text)',ne:'Day note (text)',s:'ok'},
+ {n:'Fotka ku dňu — z fotoaparátu',s:'plan'},
+ {n:'Fotka ku dňu — z knižnice (bug opravený 19.7., čaká re-test)',ne:'Day note photo — from the library (bug fixed 19 Jul, awaiting re-test)',s:'test'},
+ {n:'Working Time Charts (samostatná obrazovka grafov)',s:'plan'},
+ {n:'Nahranie zmluvy + AI poznámka',s:'plan'},
+ {n:'Sken rozpisu/rozvrhu → automatické zmeny',s:'plan'},
+ {n:'Schedule poddlaždica — týždenná mriežka',s:'plan'},
+ {n:'Schedule — + Add staff',s:'plan'},
+ {n:'Schedule — úprava člena (✏️ ikonka)',s:'plan'},
+ {n:'Schedule — priradenie kódu zmeny do bunky',s:'plan'},
+ {n:'Schedule — vymazanie priradenia z bunky',s:'plan'},
+ {n:'Schedule 🎭 Demo — fiktívny tím, funguje aj na iPhone aj iPade',ne:'Schedule 🎭 Demo — fake team, confirmed working on both iPhone and iPad',s:'ok'},
+ {n:'Schedule Demo — ochrana pri klepnutí na meno/bunku/+Add staff',ne:'Schedule Demo — guards on tapping name/cell/+Add staff',s:'ok'},
+ {n:'Member Activity — zoznam posledných 30 dní (nové)',a:'admin',ne:'Member Activity — last-30-days list (new)',s:'test'},
+ {n:'Member Activity — denný detail: objednávky',a:'admin',s:'test'},
+ {n:'Member Activity — denný detail: štítky',a:'admin',s:'test'},
+ {n:'Member Activity — denný detail: pridané jedlá',a:'admin',s:'test'},
+ {n:'Member Activity — denný detail: vytvorené sekcie',a:'admin',s:'test'},
+ {n:'Member Activity — denný detail: timer stopy (sledovanie začalo dnes)',a:'admin',s:'test'},
+ {n:'Osobné objednávky vylúčené zo štatistiky práce (kód overený, netestované naživo)',s:'test'},
+ {n:'Porovnanie pohľadu admin vs člen (iPhone vs iPad)',s:'plan'},
+ {n:'Dáta — záloha na telefón',s:'plan'},
+ {n:'Dáta — obnova zo zálohy',s:'plan'},
+ {n:'Dáta — vymazanie všetkého',s:'plan'},
+]},
+{ icon:'🔗', title:'Connections', title_en:'Connections', items:[
+ {n:'Hub — všetkých 5 dlaždíc prítomných',s:'plan'},
+ {n:'Scan QR — kamera sa spustí správne',s:'plan'},
+ {n:'Scan QR — priateľský QR → potvrdenie',s:'plan'},
+ {n:'Scan QR — vlastný QR → "to je tvoj vlastný kód"',s:'plan'},
+ {n:'Scan QR — potvrdenie naozaj vytvorí spojenie',s:'plan'},
+ {n:'Scan QR — tímová pozvánka → potvrdenie, aj chyba pri expirovanej',s:'plan'},
+ {n:'Scan QR — pozvánka do tímu kde už si → "už si člen"',s:'plan'},
+ {n:'Scan QR — join kód tímu → "Pripojiť sa k tímu X?"',s:'plan'},
+ {n:'Scan QR — necudzí QR → jasná chyba',s:'plan'},
+ {n:'Invite Friend — vlastný QR sa vykreslí',s:'plan'},
+ {n:'Invite Friend — pozvánka e-mailom funguje',s:'plan'},
+ {n:'Invite Friend — sken NEpridá do tímu, len priateľ',s:'plan'},
+ {n:'Share My Recipe — na Company blokované, na Personal otvorí picker',a:'personal',s:'plan'},
+ {n:'Share My Recipe — jednotlivé zaškrtnutie priateľov',a:'personal',s:'plan'},
+ {n:'Share My Recipe — "zdieľať VŠETKO" hlavný prepínač',a:'personal',s:'plan'},
+ {n:'Chef Friends — zoznam a otvorenie profilu priateľa',s:'plan'},
+ {n:'Profil priateľa — jeho zdieľané recepty (read-only)',s:'plan'},
+ {n:'Profil priateľa — zdieľaný zoznam ingrediencií',s:'plan'},
+ {n:'Profil priateľa — jednotlivo zdieľané ingrediencie',s:'plan'},
+ {n:'Profil priateľa — prázdny stav keď nič nezdieľa',s:'plan'},
+ {n:'My Team — prázdny stav bez tímu + "Create a team of friends" (coming soon)',a:'personal',s:'plan'},
+ {n:'My Team — ✏️ premenovanie kuchyne (admin)',a:'admin',s:'plan'},
+ {n:'My Team — invite link + QR + Copy Link',a:'admin',s:'plan'},
+ {n:'My Team — natívne zdieľanie',a:'admin',s:'plan'},
+ {n:'My Team — pozvánka e-mailom',a:'admin',s:'plan'},
+ {n:'My Team — "Revoke & get new link" zneplatní starý',a:'admin',s:'plan'},
+ {n:'My Team — člen vidí len zoznam, žiadne nástroje',a:'company',s:'plan'},
+ {n:'My Team — role a "(ty)" značka správne zoradené',a:'company',s:'plan'},
+ {n:'My Team — "⭐ Make Assistant" na člena',a:'admin',s:'plan'},
+ {n:'My Team — vymazanie člena (potvrdenie, člen dostane vlastnú kuchyňu)',a:'admin',s:'plan'},
+]},
+{ icon:'🏷️', title:'Print Labels', title_en:'Print Labels', items:[
+ {n:'Prázdny front s ručným poľom',s:'plan'},
+ {n:'🖨️ ikonka na položke otvorí dialóg množstva + trvanlivosti',s:'plan'},
+ {n:'Prvé nastavenie trvanlivosti (ktokoľvek)',s:'plan'},
+ {n:'Zmena trvanlivosti po prvýkrát — len admin (over solo Personal účet)',ne:'Changing shelf life after the first save — admin-only (verify for a solo Personal account)',a:'admin',s:'plan'},
+ {n:'Koniec timera na položke automaticky otvorí tlač',s:'plan'},
+ {n:'"Add to list" pridá/zvýši množstvo vo fronte',s:'plan'},
+ {n:'Ručné pole s live návrhmi z Check Listu',s:'plan'},
+ {n:'Klik na návrh pridá rovno do frontu',s:'plan'},
+ {n:'Úprava množstva +1/-1 vo fronte',s:'plan'},
+ {n:'Odstránenie jedného štítku z frontu',s:'plan'},
+ {n:'"Zoskupiť podľa sekcie" prepínač',s:'plan'},
+ {n:'Výber viacerých — zaškrtávanie',s:'plan'},
+ {n:'Hromadné vymazanie vybraných',s:'plan'},
+ {n:'"Vybrať všetko" skratka',s:'plan'},
+ {n:'"Vymazať zoznam" — celý front',s:'plan'},
+ {n:'"🖨️ Print All" — tlačový dialóg, formát 5×3cm',s:'plan'},
+ {n:'Tlač zapíše do print_label_log → prejaví sa v Label Expiry',s:'plan'},
+ {n:'Odznak na Home s množstvom vo fronte sa aktualizuje',s:'plan'},
+ {n:'Front prežije reload appky na tom istom zariadení',s:'plan'},
+]},
+{ icon:'🎩', title:"Chef's Assistant", title_en:"Chef's Assistant", items:[
+ {n:'Prvé otvorenie — uvítacia bublina',s:'plan'},
+ {n:'Odoslanie správy tlačidlom Send',s:'plan'},
+ {n:'Enter odošle, Shift+Enter nový riadok',s:'plan'},
+ {n:'"…" bublina počas čakania na odpoveď',s:'plan'},
+ {n:'Reálna odpoveď sa správne vykreslí',s:'plan'},
+ {n:'Zlyhané volanie ukáže chybu, appka nespadne',s:'plan'},
+ {n:'Automatický scroll na najnovšiu správu',s:'plan'},
+ {n:'Dlhá konverzácia stále funguje',s:'plan'},
+ {n:'"?" tutorial ikonka',s:'plan'},
+ {n:'Prvá automatická nápoveda pri prvej návšteve',s:'plan'},
+ {n:'Personal účet s minutým AI kreditom — blokovaná správa s vysvetlením',a:'personal',s:'plan'},
+ {n:'Späť tlačidlo vedie na Home',s:'plan'},
+ {n:'História chatu sa po reloade/odhlásení nezachová (over že je to zámer)',s:'plan'},
+]},
+{ icon:'⚙️', title:'Nastavenia', title_en:'Settings', items:[
+ {n:'Môj profil — meno/vek/pohlavie/rola/telefón/bio, uloženie',s:'plan'},
+ {n:'Môj profil — prvé nastavenie hesla',s:'plan'},
+ {n:'Môj profil — zmena hesla',s:'plan'},
+ {n:'Môj profil — zapnutie Face ID/Touch ID',s:'plan'},
+ {n:'Môj profil — odobratie Face ID',s:'plan'},
+ {n:'Môj profil — read-only polia (e-mail/tím/rola) sedia',s:'plan'},
+ {n:'AI & Scan nastavenia — jazyk skenu/prekladu',s:'plan'},
+ {n:'Prepínač jazyka appky',s:'plan'},
+ {n:'Svetlý/tmavý režim',s:'plan'},
+ {n:'Classic vs New UI (len testovacie účty)',s:'plan'},
+ {n:'Prepínač meny kuchyne (len admin)',a:'admin',s:'plan'},
+ {n:'Account Type — prepnutie Personal ↔ Company s potvrdením',a:'company',s:'plan'},
+ {n:'Account Type — "Zadať/zmeniť kód tímu"',a:'company',s:'plan'},
+ {n:'Account Type — "aj moje osobné recepty tu" prepínač',a:'company',s:'plan'},
+ {n:'Account Type — bez reálneho tímu → "Company Locked"',s:'plan'},
+ {n:'Preview as Normal User (admin) — vstup aj výstup funguje',a:'admin',s:'plan'},
+ {n:'Poradie dlaždíc na Home',s:'plan'},
+ {n:'Poradie dlaždíc v Nastaveniach',s:'plan'},
+ {n:'Viditeľnosť kategórií receptov',s:'plan'},
+ {n:'"Pridať na plochu" návod',s:'plan'},
+ {n:'Znovu-otvorenie tutoriálu',s:'plan'},
+ {n:'Poslať spätnú väzbu',s:'plan'},
+ {n:'"Zdieľať moje hodiny s adminom" prepínač',s:'plan'},
+ {n:'Súkromie a podmienky — otvorí legal.html',s:'plan'},
+ {n:'Odhlásenie s potvrdením',s:'plan'},
+]},
+{ icon:'🛡️', title:'Admin', title_en:'Admin', items:[
+ {n:'Access Requests — čakajúci zoznam',a:'admin',s:'plan'},
+ {n:'Access Requests — Schváliť (pošle reálny prihlasovací e-mail)',a:'admin',s:'plan'},
+ {n:'Access Requests — Zamietnuť',a:'admin',s:'plan'},
+ {n:'Access Requests — história už rozhodnutých',a:'admin',s:'plan'},
+ {n:'Access Requests — odznak počtu čakajúcich',a:'admin',s:'plan'},
+ {n:'Admin Directory — hľadanie podľa mena/e-mailu',a:'admin',s:'plan'},
+ {n:'Admin Directory — otvorenie Edit okna',a:'admin',s:'plan'},
+ {n:'Admin Directory — 9 jednotlivých oprávnení prepínateľných',a:'admin',s:'plan'},
+ {n:'Admin Directory — "Grant Kitchen Admin" preset',a:'admin',s:'plan'},
+ {n:'Admin Directory — "Grant Head Admin" preset s potvrdením',a:'admin',s:'plan'},
+ {n:'Admin Directory — priame zapnutie/vypnutie Head Admin',a:'admin',s:'plan'},
+ {n:'Admin Directory — pridanie AI kreditu Personal účtu',a:'admin',s:'plan'},
+ {n:'Team Members — zoznam (ty prvý, potom admini, potom abecedne)',a:'admin',s:'plan'},
+ {n:'Team Members — Make/Remove Assistant',a:'admin',s:'plan'},
+ {n:'Team Members — vymazanie člena s potvrdením',a:'admin',s:'plan'},
+ {n:'Email Contacts — zoznam sa načíta',a:'admin',s:'plan'},
+ {n:'Email Contacts — detail kontaktu',a:'admin',s:'plan'},
+ {n:'Email Contacts — "Copy all" do schránky',a:'admin',s:'plan'},
+ {n:'Add Team Member — nový kód pre aktuálnu kuchyňu',a:'admin',s:'plan'},
+ {n:'Add Team Member — kopírovanie odkazu',a:'admin',s:'plan'},
+ {n:'Add Team Member — QR kód funkčný',a:'admin',s:'plan'},
+ {n:'Add Team Member — pozvánka e-mailom',a:'admin',s:'plan'},
+ {n:'Add Company — založenie novej firmy + pozvánka',a:'admin',s:'plan'},
+ {n:'Add Company — kopírovanie odkazu',a:'admin',s:'plan'},
+ {n:'Add Company — QR kód',a:'admin',s:'plan'},
+ {n:'Add Company — príjem pozvánky existujúcim účtom',a:'admin',s:'plan'},
+ {n:'Add Company — príjem pozvánky úplne novým účtom',a:'admin',s:'plan'},
+ {n:'Feedback inbox — zoznam s typom/menom/časom',a:'admin',s:'plan'},
+ {n:'AI Testing Mode — globálny vypínač',a:'admin',s:'plan'},
+ {n:'AI Usage — zoznam podľa účtu (volania, tokeny, $/CHF)',a:'admin',s:'plan'},
+ {n:'AI Usage — odznak testovacích účtov',a:'admin',s:'plan'},
+ {n:'AI Usage — súhrn "By feature"',a:'admin',s:'plan'},
+ {n:'AI Usage — klik na účet → koláč podľa funkcie',a:'admin',s:'plan'},
+ {n:'Kitchen Reports 🎭 Demo — len 3 testovacie účty (demoModeAllowed)',ne:'Kitchen Reports 🎭 Demo — 3 test accounts only (demoModeAllowed)',a:'admin',s:'ok'},
+ {n:'Kitchen Reports — hlavný hub so 4 kategóriami',a:'admin',s:'plan'},
+ {n:'Kitchen Reports — "All kitchens" adresár',a:'admin',s:'plan'},
+ {n:'Kitchen Reports — pripnutie kuchyne hore',a:'admin',s:'plan'},
+ {n:'Kitchen Reports — Team Members report (graf hodín, predikcia)',a:'admin',s:'plan'},
+ {n:'Kitchen Reports — Recipes report',a:'admin',s:'plan'},
+ {n:'Kitchen Reports — Ingredients report',a:'admin',s:'plan'},
+ {n:'Kitchen Reports — Check List report',a:'admin',s:'plan'},
+ {n:'Internal Docs — viditeľné len Richardovmu e-mailu, otvára 11 dokumentov',a:'admin',s:'plan'},
+]},
+{ icon:'📄', title:'Dokumenty', title_en:'Documents', items:[
+ {n:'Tento dokument (test_sweep.html) sa otvára a vykresľuje',s:'ok'},
+ {n:'Produkt (Mapa funkcií + História) — 2 taby',s:'plan'},
+ {n:'Plán (Teraz + Denník + Roadmapa) — 3 taby',s:'plan'},
+ {n:'Biznis (Monetizácia + Automatizácie + Náklady) — 3 taby',s:'plan'},
+ {n:'Značka & vízia (Deck + Manifest + Guide) — 3 taby',s:'plan'},
+ {n:'Poznámky — živý zápisník',s:'plan'},
+ {n:'Gronda research — samostatný dokument',s:'plan'},
+ {n:'Názov & značka — samostatný dokument',s:'plan'},
+ {n:'Aare Ventures research — samostatný dokument',s:'plan'},
+ {n:'Critical Review — najnovší audit',s:'plan'},
+ {n:'Zatvorenie Internal Docs okna neblokuje Admin pod ním',a:'admin',s:'plan'},
+]},
+{ icon:'👥', title:'Interakcia medzi účtami', title_en:'Cross-account interactions', items:[
+ {n:'Admin pozve člena → člen sa pripojí → admin ho vidí v Team Members',s:'plan'},
+ {n:'Admin schváli Access Request → nový účet sa naozaj prihlási',s:'plan'},
+ {n:'Admin vymaže člena → člen dostane vlastnú osobnú kuchyňu',s:'plan'},
+ {n:'Admin premenuje kuchyňu → všetci členovia vidia nové meno hneď',s:'plan'},
+ {n:'Admin povýši niekoho na Kitchen/Head Admin → jeho VLASTNÝ účet sa aktualizuje',s:'plan'},
+ {n:'Admin prepne jedno konkrétne oprávnenie → UI sa objaví/zmizne danej osobe',s:'plan'},
+ {n:'Kitchen Admin skúsi akciu len pre Head Admina → správne zablokované',s:'plan'},
+ {n:'Člen vytvorí obsah v Company režime → admin ho hneď vidí',s:'plan'},
+ {n:'Osobný obsah člena A je neviditeľný pre člena B v tom istom tíme (db/159/156/161)',s:'plan'},
+ {n:'Dve rôzne firmy (icloud vs proton kuchyňa) — nulový únik dát oboma smermi',s:'plan'},
+ {n:'Priateľský QR: A pozve → B príjme → obaja sa vidia v Chef Friends',s:'plan'},
+ {n:'Zdieľanie receptov s priateľmi — priateľ vidí, cudzí nie',s:'plan'},
+ {n:'Verejný recept: A publikuje → B (iná kuchyňa) môže obľúbiť/komentovať',s:'plan'},
+ {n:'Komentár na Sautero recepte je viditeľný naprieč rôznymi kuchyňami',s:'plan'},
+ {n:'Add Company — nová firma je úplne oddelená od pozývajúcej kuchyne',s:'plan'},
+ {n:'Objednávka člena je viditeľná a spravovateľná adminom v súhrne',s:'plan'},
+ {n:'Tlač člena sa správne priradí v admin Member Activity/Reports',s:'plan'},
+ {n:'"Zdieľať hodiny s adminom" — zapnuté/vypnuté sa prejaví v Kitchen Reports',s:'plan'},
+ {n:'Akcia vytvorená jedným účtom je viditeľná celému tímu',s:'plan'},
+ {n:'HACCP — admin vidí KTO úlohu odškrtol, menom',s:'plan'},
+ {n:'Pozvánkový odkaz stále varuje "opustíš kuchyňu" aj keď si už inde',s:'plan'},
+ {n:'Add Company predschválenie viaže sa presne na pozvaný e-mail',s:'plan'},
+ {n:'Member Activity (nové) — admin naozaj číta reálne akcie iného člena',a:'admin',s:'plan'},
+ {n:'Sken tímového QR niekým kto je už člen → "už si v tomto tíme"',s:'plan'},
+]},
+];
+
 let _lang = 'sk';
+let activeStatuses = new Set(['ok','test','plan']);
+let _collapsedModules = new Set();
+const STATUS_LABELS_I18N = {
+  sk: { ok:'Hotovo, potvrdené naživo', test:'Postavené, čaká na živý test', plan:'Ešte sa nezačalo' },
+  en: { ok:'Done, confirmed live', test:'Built, awaiting a live test', plan:'Not started yet' },
+};
+const STATUS_LABELS = new Proxy({}, { get: (_, k) => STATUS_LABELS_I18N[_lang][k] });
+const LEGEND_SK = { ok:'Hotovo', test:'Rozbehnuté', plan:'Čaká' };
+const LEGEND_EN = { ok:'Done', test:'In progress', plan:'Not started' };
+
 function applyStaticLabels(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     const v = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
@@ -115,109 +608,149 @@ function toggleLang(){
   document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
   document.documentElement.lang = _lang;
   applyStaticLabels();
-  renderAll();
+  renderLegend();
+  renderModules();
+}
+function IN(it){ return (_lang==='en' && it.ne) ? it.ne : it.n; }
+
+function renderLegend(){
+  const L = _lang==='sk' ? LEGEND_SK : LEGEND_EN;
+  const colors = { ok:'var(--ok)', test:'var(--test)', plan:'var(--plan)' };
+  document.getElementById('legendRow').innerHTML = ['ok','test','plan'].map(k=>`
+    <div class="legend-item ${activeStatuses.has(k)?'active':''}" id="legend${k}" onclick="toggleStatusFilter('${k}')">
+      <span class="legend-dot" style="background:${colors[k]};"></span><span><b id="legendCount_${k}">0</b> ${L[k]}</span>
+    </div>
+  `).join('');
+}
+function toggleStatusFilter(k){
+  if(activeStatuses.has(k)) activeStatuses.delete(k); else activeStatuses.add(k);
+  if(activeStatuses.size===0) activeStatuses.add(k);
+  renderModules();
+}
+function resetStatusFilters(){ activeStatuses = new Set(['ok','test','plan']); renderModules(); }
+function setAcctView(type){
+  document.getElementById('acctPersonalBtn').classList.toggle('active', type==='personal');
+  document.getElementById('acctCompanyBtn').classList.toggle('active', type==='company');
+  renderModules();
+}
+function toggleModule(mi){
+  if(_collapsedModules.has(mi)) _collapsedModules.delete(mi); else _collapsedModules.add(mi);
+  renderModules();
 }
 
-// STATUS: 'done' | 'progress' | 'todo'
-const SECTIONS = [
-  { n:'§0', sk:'Login a brány', en:'Login & gates', status:'todo',
-    sk_note:'Zatiaľ neprejdené v tomto sweepe.', en_note:'Not walked yet in this sweep.' },
-  { n:'§1', sk:'Home', en:'Home', status:'done',
-    sk_note:'Všetkých 13 dlaždíc na iPhone potvrdených. „Team Meetings“ vysvetlené ako zámerný placeholder (nie bug).',
-    en_note:'All 13 tiles on iPhone confirmed. "Team Meetings" explained as a deliberate placeholder (not a bug).' },
-  { n:'§2', sk:'Check List', en:'Check List', status:'todo',
-    sk_note:'Personal/company súkromie projektov opravené pred sweepom (db/159) — samotný checklist ešte neprešiel.',
-    en_note:'Personal/company project privacy fixed before the sweep (db/159) — the checklist walk itself is still pending.' },
-  { n:'§3', sk:'Order List', en:'Order List', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§4', sk:'Recepty', en:'Recipes', status:'todo', sk_note:'Ďalšia dlaždica v poradí.', en_note:'Next tile in line.' },
-  { n:'§5', sk:'Ingrediencie', en:'Ingredients', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§6', sk:'Events', en:'Events', status:'todo', sk_note:'Zatiaľ neprejdené — prvý plný živý test čaká.', en_note:'Not walked yet — first full live test pending.' },
-  { n:'§7', sk:'HACCP', en:'HACCP', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§8', sk:'Working Time', en:'Working Time', status:'progress',
-    sk_note:'Check-in/out + forgot-checkin ✅. Živá Break stopka postavená a potvrdená ✅. Denný detail Orders & Labels rozpísaný (aj v demo) ✅. Poznámka ku dňu ✅, fotka opravená (knižnica) — čaká na re-test. Schedule demo postavené a videom potvrdené na iPhone (fiktívny tím + ochrana proti úprave) ✅. Zostáva: Charts, nahranie zmluvy, sken rozpisu, member (iPad) porovnanie.',
-    en_note:'Check-in/out + forgot-checkin ✅. Live Break stopwatch built and confirmed ✅. Day-detail Orders & Labels itemized (incl. demo) ✅. Day note ✅, photo fixed (library) — awaiting re-test. Schedule demo built and video-confirmed on iPhone (fake team + edit guards) ✅. Remaining: Charts, contract upload, schedule scan, member (iPad) comparison.' },
-  { n:'§9', sk:'Connections', en:'Connections', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§10', sk:'Print Labels', en:'Print Labels', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§11', sk:"Chef's Assistant", en:"Chef's Assistant", status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§12', sk:'Nastavenia', en:'Settings', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§13', sk:'Admin', en:'Admin', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-  { n:'§14', sk:'Dokumenty', en:'Documents', status:'progress',
-    sk_note:'Tento dokument je súčasťou §14 — buduje sa práve teraz.', en_note:'This document is itself part of §14 — being built right now.' },
-  { n:'§15', sk:'Prierezové kontroly', en:'Cross-cutting sweeps', status:'todo', sk_note:'Zatiaľ neprejdené.', en_note:'Not walked yet.' },
-];
-
-const BUGS = [
-  { icon:'🔧', tag:'fixed',
-    sk:'<b>Working Time Break</b> bol len tichý súčet čísla — postavená živá „🔵 On break“ stopka + presné časy v detaile (db/160).',
-    en:'<b>Working Time Break</b> was just a silent number addition — built a live "🔵 On break" stopwatch + exact times in day detail (db/160).' },
-  { icon:'🔧', tag:'fixed',
-    sk:'<b>Orders &amp; Labels v demo režime</b> ukazovali len graf, žiadny rozpis — doplnený presný zoznam položiek/štítkov, rovnako ako v reálnom režime.',
-    en:'<b>Orders &amp; Labels in demo mode</b> only showed the chart, no breakdown — added the exact item/label list, matching real mode.' },
-  { icon:'🎭', tag:'fixed',
-    sk:'<b>Schedule nemal demo režim vôbec</b> — postavený nový 🎭 prepínač s fiktívnym tímom a rozvrhom.',
-    en:'<b>Schedule had no demo mode at all</b> — built a new 🎭 toggle with a fake team and roster.' },
-  { icon:'🔐', tag:'fixed',
-    sk:'<b>Demo prepínače boli podľa role (admin)</b> — zjednotené na demoModeAllowed(), 3 konkrétne testovacie účty, nie rola.',
-    en:'<b>Demo toggles were role-based (admin)</b> — unified onto demoModeAllowed(), 3 named test accounts instead of role.' },
-  { icon:'📷', tag:'fixed',
-    sk:'<b>Fotka ku dňu</b> šla len z fotoaparátu (capture="environment" blokoval knižnicu) — odstránené, teraz ide oboje.',
-    en:'<b>Day-note photo</b> only opened the camera (capture="environment" blocked the library) — removed, now both work.' },
-  { icon:'✅', tag:'fixed',
-    sk:'<b>Schedule demo na iPhone</b> — pôvodné hlásenie bolo z chvíle pred nasadením gating opravy; po nej overené video: fiktívny tím sa zobrazuje správne, ochrana pred úpravou (meno aj „+ Add staff“) funguje presne podľa návrhu.',
-    en:'<b>Schedule demo on iPhone</b> — the original report predated the gating fix going live; a follow-up video confirms: the fake team renders correctly, edit guards (staff name and "+ Add staff") work exactly as designed.' },
-];
-
-const QUESTIONS = [
-  { sk_t:'Working Time — čo presne je „ostatné“ overené', en_t:'Working Time — what exactly "the rest" covers',
-    sk_b:'Skúšal si aj Working Time Charts, nahranie zmluvy + AI poznámku, sken rozpisu do Schedule, alebo len check-in/out + break + poznámky? Chcem mať checklist presný, nie odhadovaný.',
-    en_b:'Did you also try Working Time Charts, contract upload + AI note, schedule scan into Schedule, or just check-in/out + break + notes? I want the checklist accurate, not guessed.' },
-];
-
-function renderAll(){
-  const done = SECTIONS.filter(s=>s.status==='done').length;
-  const progress = SECTIONS.filter(s=>s.status==='progress').length;
-  const todo = SECTIONS.filter(s=>s.status==='todo').length;
-  const total = SECTIONS.length;
-  document.getElementById('statDone').textContent = done;
-  document.getElementById('statProgress').textContent = progress;
-  document.getElementById('statTodo').textContent = todo;
-  document.getElementById('statBugs').textContent = BUGS.length;
-
-  const bar = document.getElementById('progressBar');
-  bar.innerHTML = `
-    <div style="width:${done/total*100}%; background:var(--accent);"></div>
-    <div style="width:${progress/total*100}%; background:var(--gold);"></div>
-    <div style="width:${todo/total*100}%; background:var(--ink-faint);"></div>
-  `;
-
-  const pillLabel = { done: _lang==='sk'?'Hotovo':'Done', progress: _lang==='sk'?'Rozbehnuté':'In progress', todo: _lang==='sk'?'Čaká':'Not started' };
-  document.getElementById('secGrid').innerHTML = SECTIONS.map(s=>`
-    <div class="sec-row">
-      <div class="num">${s.n}</div>
-      <div class="body">
-        <div class="title">${_lang==='sk'?s.sk:s.en}</div>
-        <div class="note">${_lang==='sk'?s.sk_note:s.en_note}</div>
+function renderModules(){
+  const wrap = document.getElementById('modulesWrap');
+  const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
+  let ok=0, test=0, plan=0;
+  wrap.innerHTML = MODULES.map((mod, mi)=>{
+    let mOk=0, mTest=0, mPlan=0;
+    const cards = mod.items.map((it, ii)=>{
+      if(it.s==='ok') ok++; else if(it.s==='test') test++; else plan++;
+      if(it.s==='ok') mOk++; else if(it.s==='test') mTest++; else mPlan++;
+      if(!activeStatuses.has(it.s)) return null;
+      const dimmed = it.a && it.a !== 'both' && it.a !== acct;
+      return `
+        <div class="feature-card status-${it.s}${dimmed?' dim':''}" onclick="openModal(${mi},${ii})">
+          <div class="fname"><span class="status-dot ${it.s}"></span>${IN(it)}</div>
+          <div>
+            ${it.a==='personal' ? `<span class="acct-tag personal">Personal</span>` : ''}
+            ${it.a==='company' ? `<span class="acct-tag company">Company</span>` : ''}
+            ${it.a==='admin' ? `<span class="acct-tag admin">🛡️ Admin</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).filter(Boolean);
+    const mTotal = mOk+mTest+mPlan;
+    const collapsed = _collapsedModules.has(mi);
+    return `
+      <div class="module${collapsed?' collapsed':''}">
+        <div class="module-head" onclick="toggleModule(${mi})">
+          <div class="module-icon">${mod.icon}</div>
+          <div class="module-title">${_lang==='en' && mod.title_en ? mod.title_en : mod.title}</div>
+          <div class="module-count">${mOk}/${mTotal}</div>
+          <div class="module-chevron">▾</div>
+        </div>
+        <div class="module-bar">
+          <div style="width:${mTotal?mOk/mTotal*100:0}%; background:var(--ok);"></div>
+          <div style="width:${mTotal?mTest/mTotal*100:0}%; background:var(--test);"></div>
+          <div style="width:${mTotal?mPlan/mTotal*100:0}%; background:var(--plan);"></div>
+        </div>
+        <div class="feature-grid">${cards.join('') || `<div style="color:var(--ink-faint); font-size:12.5px; padding:8px 0;">${_lang==='sk'?'Nič vo filtri.':'Nothing in this filter.'}</div>`}</div>
       </div>
-      <div class="pill ${s.status}">${pillLabel[s.status]}</div>
-    </div>
-  `).join('');
-
-  document.getElementById('bugList').innerHTML = BUGS.map(b=>`
-    <div class="bug-row">
-      <div class="icon">${b.icon}</div>
-      <div class="body">${_lang==='sk'?b.sk:b.en}<span class="tag ${b.tag}">${b.tag==='fixed' ? (_lang==='sk'?'OPRAVENÉ':'FIXED') : (_lang==='sk'?'OTVORENÉ':'OPEN')}</span></div>
-    </div>
-  `).join('');
-
-  document.getElementById('questionList').innerHTML = QUESTIONS.map(q=>`
-    <div class="q-row">
-      <div class="q-title">${_lang==='sk'?q.sk_t:q.en_t}</div>
-      <div class="q-body">${_lang==='sk'?q.sk_b:q.en_b}</div>
-    </div>
+    `;
+  }).join('');
+  document.getElementById('legendCount_ok') && (document.getElementById('legendCount_ok').textContent = ok);
+  document.getElementById('legendCount_test') && (document.getElementById('legendCount_test').textContent = test);
+  document.getElementById('legendCount_plan') && (document.getElementById('legendCount_plan').textContent = plan);
+  renderPulse(ok, test, plan);
+  renderDonut(ok, test, plan);
+}
+function renderPulse(ok, test, plan){
+  const total = ok+test+plan;
+  const pct = total ? Math.round(ok/total*100) : 0;
+  const cells = [
+    { cls:'ok', num:ok, lsk:'Hotovo', len:'Done' },
+    { cls:'test', num:test, lsk:'Rozbehnuté', len:'In progress' },
+    { cls:'plan', num:plan, lsk:'Zostáva', len:'Remaining' },
+    { cls:'total', num:total, lsk:'Spolu · '+pct+'%', len:'Total · '+pct+'%' },
+    { cls:'time', num:FOUNDER_TIME_LABEL, lsk:'Čas na kontrole', len:'Time testing' },
+  ];
+  document.getElementById('pulseStrip').innerHTML = cells.map(c=>`
+    <div class="pulse-cell ${c.cls}"><div class="num">${c.num}</div><div class="lbl">${_lang==='sk'?c.lsk:c.len}</div></div>
   `).join('');
 }
+function renderDonut(ok, test, plan){
+  const svg = document.getElementById('sweepDonut');
+  const total = ok + test + plan;
+  const R = 44, C = 2 * Math.PI * R;
+  const segs = [
+    { key:'ok', val:ok, color:'var(--ok)' },
+    { key:'test', val:test, color:'var(--test)' },
+    { key:'plan', val:plan, color:'var(--plan)' },
+  ];
+  let off = 0;
+  const circles = segs.map(s=>{
+    const frac = total ? s.val / total : 0;
+    const c = `<circle class="seg${activeStatuses.has(s.key)?'':' off'}" cx="60" cy="60" r="${R}"
+      fill="none" stroke="${s.color}" stroke-width="17"
+      stroke-dasharray="${(frac*C).toFixed(2)} ${(C-frac*C).toFixed(2)}"
+      stroke-dashoffset="${(-off*C).toFixed(2)}" transform="rotate(-90 60 60)"
+      onclick="toggleStatusFilter('${s.key}')"><title>${s.val}</title></circle>`;
+    off += frac;
+    return c;
+  }).join('');
+  const filtered = activeStatuses.size < 3;
+  const shown = segs.filter(s=>activeStatuses.has(s.key)).reduce((a,s)=>a+s.val,0);
+  const pct = total ? Math.round(ok/total*100) : 0;
+  svg.innerHTML = circles +
+    `<text class="center-num" x="60" y="56" text-anchor="middle" onclick="resetStatusFilters()">${filtered ? shown : pct+'%'}</text>` +
+    `<text class="center-lbl" x="60" y="70" text-anchor="middle">${filtered ? (_lang==='sk'?'vo filtri':'in filter') : (_lang==='sk'?'hotovo':'done')}</text>`;
+}
+function openModal(mi, ii){
+  const mod = MODULES[mi], it = mod.items[ii];
+  document.getElementById('mModule').textContent = mod.icon + ' ' + (_lang==='en' && mod.title_en ? mod.title_en : mod.title);
+  document.getElementById('mName').textContent = IN(it);
+  const st = document.getElementById('mStatus');
+  st.className = 'm-status ' + it.s;
+  st.textContent = STATUS_LABELS[it.s];
+  document.getElementById('mDesc').textContent = '';
+  document.getElementById('mTags').innerHTML =
+    (it.a==='personal' ? `<span class="acct-tag personal">${_lang==='sk'?'Len Personal účty':'Personal accounts only'}</span>` : '') +
+    (it.a==='company' ? `<span class="acct-tag company">${_lang==='sk'?'Len Company účty':'Company accounts only'}</span>` : '') +
+    (it.a==='admin' ? `<span class="acct-tag admin">🛡️ ${_lang==='sk'?'Len Admin':'Admin only'}</span>` : '') +
+    (it.a==='both' ? `<span class="acct-tag personal">Personal</span><span class="acct-tag company">Company</span>` : '');
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalBackdrop').classList.remove('open'); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+/* Self-reported, not audited — same convention as costs.html. Sweep started ~15:00 Bern time
+   19.7. (first Home screenshot 15:02); updated by hand as the session continues. */
+const FOUNDER_TIME_LABEL = '~3.5h';
+
 applyStaticLabels();
-renderAll();
+renderLegend();
+renderModules();
 </script>
 </body>
 </html>
