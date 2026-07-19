@@ -104,14 +104,17 @@
 
 <script>
 let _lang = 'sk';
-function toggleLang(){
-  _lang = _lang === 'sk' ? 'en' : 'sk';
-  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
-  document.documentElement.lang = _lang;
+function applyStaticLabels(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     const v = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
     if(v !== null) el.textContent = v;
   });
+}
+function toggleLang(){
+  _lang = _lang === 'sk' ? 'en' : 'sk';
+  document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
+  document.documentElement.lang = _lang;
+  applyStaticLabels();
   renderAll();
 }
 
@@ -213,6 +216,7 @@ function renderAll(){
     </div>
   `).join('');
 }
+applyStaticLabels();
 renderAll();
 </script>
 </body>
