@@ -13103,7 +13103,7 @@ async function openAddRecipeIngredientsToDb(){
   const wrap = document.getElementById('ariOptions');
   wrap.innerHTML = '<p class="lede">Loading…</p>';
   document.getElementById('addRecipeIngredientsOverlay').classList.add('open');
-  const { data: lists } = await sb.from('ingredient_lists').select('*').order('created_at');
+  const { data: lists } = await ingredientListsModeFilter(sb.from('ingredient_lists').select('*')).order('created_at');
   const mk = (icon, label, onclick)=>`<button class="sheet-option" style="display:block; width:100%; text-align:left;" onclick="${onclick}"><div class="sheet-option-title">${icon} ${krEsc(label)}</div></button>`;
   wrap.innerHTML =
     mk('👤', 'My Ingredients', "addRecipeIngredientsTo('mine')") +
@@ -13117,7 +13117,7 @@ async function addRecipeIngredientsToNewList(){
   const name = prompt('Name the new ingredient list:');
   if(!name || !name.trim()) return;
   const { data: list, error } = await sb.from('ingredient_lists')
-    .insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim() })
+    .insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name: name.trim(), is_personal: ingredientListsIsPersonalMode() })
     .select().single();
   if(error){ document.getElementById('ariStatus').textContent = 'Could not create the list: ' + error.message; return; }
   await addRecipeIngredientsTo(list.id);
@@ -14077,7 +14077,7 @@ async function showRecipesHome(){
   document.getElementById('recipesHomeView').style.display = 'block';
   maybeShowViewTutorial('recipes');
   window.scrollTo(0,0);
-  const { data, error } = await sb.from('recipe_lists').select('*').order('created_at');
+  const { data, error } = await recipeListsModeFilter(sb.from('recipe_lists').select('*')).order('created_at');
   if(error && !/does not exist/i.test(error.message)) console.error('recipe_lists load failed', error);
   _recipeLists = data || [];
   renderRecipeShelvesGrid();
@@ -14172,7 +14172,7 @@ async function createRecipeList(){
   const statusEl = document.getElementById('newRecipeProjectStatus');
   const name = document.getElementById('newRecipeProjectName').value.trim();
   if(!name){ statusEl.textContent = 'Give the project a name.'; return; }
-  const { error } = await sb.from('recipe_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name, icon: _newRecipeProjectIcon });
+  const { error } = await sb.from('recipe_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name, icon: _newRecipeProjectIcon, is_personal: recipeListsIsPersonalMode() });
   if(error){ statusEl.textContent = 'Could not create: ' + error.message + ' — has db/120/db/123 been run?'; return; }
   closeNewRecipeProjectPrompt();
   await showRecipesHome();
@@ -14186,7 +14186,7 @@ async function showIngredientsHome(){
   document.getElementById('ingredientsHomeView').style.display = 'block';
   maybeShowViewTutorial('ingredients');
   window.scrollTo(0,0);
-  const { data, error } = await sb.from('ingredient_lists').select('*').order('created_at');
+  const { data, error } = await ingredientListsModeFilter(sb.from('ingredient_lists').select('*')).order('created_at');
   if(error && !/does not exist/i.test(error.message)) console.error('ingredient_lists load failed', error);
   _ingredientLists = data || [];
   renderIngredientListsGrid();
@@ -14273,7 +14273,7 @@ async function createIngredientList(){
   const statusEl = document.getElementById('newIngredientListStatus');
   const name = document.getElementById('newIngredientListName').value.trim();
   if(!name){ statusEl.textContent = 'Give the list a name.'; return; }
-  const { error } = await sb.from('ingredient_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name, icon: _newIngredientListIcon });
+  const { error } = await sb.from('ingredient_lists').insert({ kitchen_id: currentKitchenId, created_by: currentUser.id, name, icon: _newIngredientListIcon, is_personal: ingredientListsIsPersonalMode() });
   if(error){ statusEl.textContent = 'Could not create: ' + error.message + ' — has db/135 been run?'; return; }
   closeNewIngredientListPrompt();
   await showIngredientsHome();
@@ -15397,6 +15397,23 @@ function projectsModeFilter(q){
   return q;
 }
 function canCreateCompanyProject(){ return currentIsAdmin || !!currentAdminPerms.company_admin; }
+
+/* Same mode-scoped read/write pattern as projects above (db/162, 19.7. — the root cause of
+   Richard's "v ingredients v personal vidím niečo čo vytvoril niekto iný" report). Unlike
+   Check List projects, list/project CREATION stays open to any kitchen member — db/146/147's
+   own "parity with recipe projects" reasoning, never admin-gated. */
+function ingredientListsIsPersonalMode(){ return currentAccountType === 'personal'; }
+function ingredientListsModeFilter(q){
+  q = q.eq('is_personal', ingredientListsIsPersonalMode());
+  if(ingredientListsIsPersonalMode()) q = q.eq('created_by', currentUser.id);
+  return q;
+}
+function recipeListsIsPersonalMode(){ return currentAccountType === 'personal'; }
+function recipeListsModeFilter(q){
+  q = q.eq('is_personal', recipeListsIsPersonalMode());
+  if(recipeListsIsPersonalMode()) q = q.eq('created_by', currentUser.id);
+  return q;
+}
 
 async function showCheckListProjects(){
   logEvent('view_opened', {view:'check_list_projects'});

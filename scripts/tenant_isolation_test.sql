@@ -28,7 +28,8 @@ declare
     'recipes', 'ingredients', 'prep_items', 'prep_dishes', 'order_list_items',
     'fridges', 'fridge_logs', 'print_label_settings', 'print_label_log',
     'haccp_checklist_items', 'haccp_checklist_log', 'haccp_measurement_log',
-    'time_entries', 'projects', 'tasks', 'events', 'check_list_audit_log', 'kitchen_invites'
+    'time_entries', 'projects', 'tasks', 'events', 'check_list_audit_log', 'kitchen_invites',
+    'ingredient_lists', 'recipe_lists'
   ];
 begin
   -- two users from two DIFFERENT kitchens
