@@ -24,12 +24,14 @@ declare
   leaked bigint;
   -- schedule_entries removed 19.7. (never existed in prod — dropped by db/18; the reference
   -- here would abort the whole test on a missing table); projects/tasks/events added.
+  -- ingredient_price_history added 19.7. (db/163, same audit that found prep_dishes/tasks
+  -- weren't inheriting projects.is_personal at all).
   tenant_tables text[] := array[
     'recipes', 'ingredients', 'prep_items', 'prep_dishes', 'order_list_items',
     'fridges', 'fridge_logs', 'print_label_settings', 'print_label_log',
     'haccp_checklist_items', 'haccp_checklist_log', 'haccp_measurement_log',
     'time_entries', 'projects', 'tasks', 'events', 'check_list_audit_log', 'kitchen_invites',
-    'ingredient_lists', 'recipe_lists'
+    'ingredient_lists', 'recipe_lists', 'ingredient_price_history'
   ];
 begin
   -- two users from two DIFFERENT kitchens

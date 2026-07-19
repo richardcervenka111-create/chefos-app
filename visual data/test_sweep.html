@@ -237,6 +237,7 @@ const MODULES = [
 ]},
 { icon:'✅', title:'Check List', title_en:'Check List', items:[
  {n:'Výber projektu — Personal vidí len svoje, Company len tímové (db/159)',a:'both',s:'test'},
+ {n:'Jedlá a úlohy VNÚTRI osobného projektu už nie sú viditeľné/upraviteľné pre tím (db/163, opravené 19.7. — RLS predtým vôbec nekontrolovala rodičovský projects.is_personal)',ne:'Dishes and tasks INSIDE a personal project are no longer visible/editable by the team (db/163, fixed 19.7. — RLS previously never checked the parent projects.is_personal at all)',a:'both',s:'ok'},
  {n:'Nový projekt — v Personal každý, v Company len admin',a:'admin',s:'test'},
  {n:'Ikona projektu (8 farebných kníh) sa uloží a zobrazí',sc:'plan',sp:'plan'},
  {n:'Dlhé podržanie projektu → Premenovať',sc:'plan',sp:'plan'},
@@ -354,6 +355,7 @@ const MODULES = [
  {n:'Úprava — cudzie (Public) ingrediencie len na čítanie',sc:'plan',sp:'plan'},
  {n:'Vymazanie ingrediencie',sc:'plan',sp:'plan'},
  {n:'Zmena ceny sa zapíše do histórie cien',sc:'plan',sp:'plan'},
+ {n:'História cien osobnej ingrediencie už nie je viditeľná celej kuchyni (db/163, opravené 19.7.)',ne:'A personal ingredient’s price history is no longer visible to the whole kitchen (db/163, fixed 19.7.)',a:'both',s:'ok'},
  {n:'Hľadanie a filter — text, kuchyňa, kategória, cena, sezóna, skladovanie',sc:'plan',sp:'plan'},
  {n:'"Zobraziť skryté ingrediencie" vo filtri',sc:'plan',sp:'plan'},
  {n:'Počet zhôd naživo vo filtri aj v lište',sc:'plan',sp:'plan'},
