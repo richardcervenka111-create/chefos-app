@@ -18193,7 +18193,10 @@ async function showWorkingTime(){
   hideAllViews();
   document.getElementById('workingTimeView').style.display = 'block';
   const demoBtn = document.getElementById('wtDemoToggle');
-  demoBtn.style.display = currentIsAdmin ? '' : 'none';
+  // Opened to every account, not just Head Admin, from 19.7. — Richard wants a member device
+  // (no real data yet) able to switch on the same illustration data for side-by-side testing.
+  // Still pure display, still never writes anything.
+  demoBtn.style.display = '';
   demoBtn.textContent = _wtDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
   demoBtn.classList.toggle('active', _wtDemoMode);
   await loadWorkingTimeData();
@@ -21842,7 +21845,9 @@ async function showSchedule(){
   hideAllViews();
   document.getElementById('scheduleView').style.display = 'block';
   const demoBtn = document.getElementById('scheduleDemoToggle');
-  demoBtn.style.display = currentIsAdmin ? '' : 'none';
+  // Opened to every account, not just Head Admin, from 19.7. — same reasoning as Working
+  // Time's toggle above: a member device needs the same illustration data to compare against.
+  demoBtn.style.display = '';
   demoBtn.textContent = _scheduleDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
   demoBtn.classList.toggle('active', _scheduleDemoMode);
   maybeShowViewTutorial('schedule');
