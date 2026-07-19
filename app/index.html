@@ -8190,12 +8190,21 @@ function openKitchenReports(){
 }
 function closeKitchenReports(){ document.getElementById('kitchenReportsOverlay').classList.remove('open'); }
 
-/* Kitchen Reports illustration mode — chefos@protonmail.com ONLY (Richard's own kitchen-admin
-   test account, his explicit call: nobody else, ever). Hand-crafted varied numbers, purely for
-   display; nothing touches the database, and turning it off returns to live data instantly. */
+/* Shared illustration-mode gate (19.7., Richard: "chcem aby boli iba v mojich testovacích
+   účtoch") — every 🎭 Demo toggle in the app (Kitchen Reports, Working Time, Schedule, Events,
+   and any future one) checks this SAME allowlist, not admin role. Each tile keeps its OWN
+   toggle/state — this only decides who is allowed to see and flip it. Add an account here once
+   and every existing AND future demo toggle picks it up automatically. */
+function demoModeAllowed(){
+  const email = currentUser && currentUser.email && currentUser.email.toLowerCase();
+  return !!email && ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'].includes(email);
+}
+
+/* Kitchen Reports illustration mode — display only, nothing ever touches the database, turning
+   it off returns to live data instantly. */
 let _krDemoMode = false;
 function krDemoAllowed(){
-  return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === 'chefos@protonmail.com');
+  return demoModeAllowed();
 }
 function toggleKrDemo(){
   if(!krDemoAllowed()) return;
@@ -18193,10 +18202,9 @@ async function showWorkingTime(){
   hideAllViews();
   document.getElementById('workingTimeView').style.display = 'block';
   const demoBtn = document.getElementById('wtDemoToggle');
-  // Opened to every account, not just Head Admin, from 19.7. — Richard wants a member device
-  // (no real data yet) able to switch on the same illustration data for side-by-side testing.
-  // Still pure display, still never writes anything.
-  demoBtn.style.display = '';
+  // Gated by demoModeAllowed() (19.7.), not admin role — Richard's 3 test accounts only,
+  // so a member device can compare the same illustration data. Still pure display.
+  demoBtn.style.display = demoModeAllowed() ? '' : 'none';
   demoBtn.textContent = _wtDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
   demoBtn.classList.toggle('active', _wtDemoMode);
   await loadWorkingTimeData();
@@ -21845,9 +21853,8 @@ async function showSchedule(){
   hideAllViews();
   document.getElementById('scheduleView').style.display = 'block';
   const demoBtn = document.getElementById('scheduleDemoToggle');
-  // Opened to every account, not just Head Admin, from 19.7. — same reasoning as Working
-  // Time's toggle above: a member device needs the same illustration data to compare against.
-  demoBtn.style.display = '';
+  // Gated by demoModeAllowed() (19.7.), not admin role — same allowlist as every other toggle.
+  demoBtn.style.display = demoModeAllowed() ? '' : 'none';
   demoBtn.textContent = _scheduleDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
   demoBtn.classList.toggle('active', _scheduleDemoMode);
   maybeShowViewTutorial('schedule');
@@ -22575,7 +22582,8 @@ async function showEvents(){
   hideAllViews();
   document.getElementById('eventsView').style.display = 'block';
   const demoBtn = document.getElementById('eventsDemoToggle');
-  demoBtn.style.display = currentIsAdmin ? '' : 'none';
+  // Gated by demoModeAllowed() (19.7.), not admin role — same allowlist as every other toggle.
+  demoBtn.style.display = demoModeAllowed() ? '' : 'none';
   demoBtn.textContent = _eventsDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
   demoBtn.classList.toggle('active', _eventsDemoMode);
   window.scrollTo(0,0);
