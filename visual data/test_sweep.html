@@ -38,7 +38,11 @@
   .acct-toggle{ display:flex; background:var(--paper); border:1px solid var(--rule); border-radius:10px; padding:3px; gap:2px; }
   .acct-toggle button{ background:none; border:none; color:var(--ink-dim); font:inherit; font-size:12.5px; font-weight:700; padding:6px 13px; border-radius:8px; cursor:pointer; }
   .acct-toggle button.active{ background:var(--accent); color:#0A1A2F; }
-  .lang-toggle{ position:fixed; top:12px; right:12px; z-index:60; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
+  /* Lives inside .sticky-bar-inner as a normal flex item (19.7., Richard: "ten button na
+     jazyk zakrýva data... nechaj ho v lište") — a floating position:fixed button sat on top
+     of the last count pill on narrower screens; as a flex child it just takes its own space
+     instead of covering anything. */
+  .lang-toggle{ flex:none; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
 
   /* Sticky progress bar (19.7., Richard: "chcem aby si na vrch prilepil lištu") — always
      visible while scrolling through the 398 checks, so the running Personal/Company toggle +
@@ -131,13 +135,13 @@
 </style>
 </head>
 <body>
-<button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
 
 <div class="sticky-bar">
   <div class="sticky-bar-inner">
     <div class="acct-toggle">
       <button id="acctPersonalBtn" onclick="setAcctView('personal')" data-sk="Personal" data-en="Personal">Personal</button>
       <button id="acctCompanyBtn" class="active" onclick="setAcctView('company')" data-sk="Company" data-en="Company">Company</button>
+      <button id="acctInteractionBtn" onclick="setAcctView('interaction')" data-sk="👥 Interakcia" data-en="👥 Interaction">👥 Interakcia</button>
     </div>
     <div class="sticky-pct"><span id="stickyPct">0%</span><span class="lbl" data-sk="hotovo" data-en="done"></span></div>
     <div class="sticky-pills">
@@ -145,6 +149,7 @@
       <span class="sticky-pill test"><b id="stickyTest">0</b><span data-sk="Rozbehnuté" data-en="In progress"></span></span>
       <span class="sticky-pill plan"><b id="stickyPlan">0</b><span data-sk="Čaká" data-en="Not started"></span></span>
     </div>
+    <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
 </div>
 
@@ -155,7 +160,7 @@
     </div>
     <div class="kicker" data-sk="19.7.2026 sweep" data-en="19 Jul 2026 sweep"></div>
     <h1 data-sk="Kompletná kontrola funkcií" data-en="Complete feature verification"></h1>
-    <p class="lede" data-sk="Každá jednotlivá vec, ktorú treba na telefóne osobne odklikať a potvrdiť — dlaždica po dlaždici, presne ako mapa funkcií. Klikni na ktorúkoľvek kartu pre detail. Prepínač Personal/Company hore ukazuje len to, čo sa v danom režime naozaj týka — a väčšina kontrol má NEZÁVISLÝ stav pre každý režim: overenie v Company nikdy automaticky neoznačí Personal ako hotové, a naopak." data-en="Every single thing that needs to be personally tapped through and confirmed on a phone — tile by tile, exactly like the feature map. Tap any card for detail. The Personal/Company switch above shows only what genuinely applies to that mode — and most checks carry an INDEPENDENT status per mode: verifying it in Company never silently marks Personal as done, and vice versa."></p>
+    <p class="lede" data-sk="Každá jednotlivá vec, ktorú treba na telefóne osobne odklikať a potvrdiť — dlaždica po dlaždici, presne ako mapa funkcií. Klikni na ktorúkoľvek kartu pre detail. Prepínač Personal/Company hore ukazuje len to, čo sa v danom režime naozaj týka — a väčšina kontrol má NEZÁVISLÝ stav pre každý režim: overenie v Company nikdy automaticky neoznačí Personal ako hotové, a naopak. Tretia možnosť 👥 Interakcia ukazuje len tie kontroly, kde musia spolupracovať 2+ účty naraz (pozvánky, únik dát medzi kuchyňami, zdieľanie) — tie majú vlastný, jediný stav, lebo sa nedajú rozdeliť na Personal/Company." data-en="Every single thing that needs to be personally tapped through and confirmed on a phone — tile by tile, exactly like the feature map. Tap any card for detail. The Personal/Company switch above shows only what genuinely applies to that mode — and most checks carry an INDEPENDENT status per mode: verifying it in Company never silently marks Personal as done, and vice versa. The third option, 👥 Interaction, shows only the checks that need 2+ accounts working together (invites, cross-kitchen data leaks, sharing) — those carry their own single status, since they can't be split into Personal/Company."></p>
     <div class="legend" id="legendRow"></div>
     <div class="donut-row">
       <svg id="sweepDonut" width="120" height="120" viewBox="0 0 120 120"></svg>
@@ -590,31 +595,31 @@ const MODULES = [
  {n:'Critical Review — najnovší audit',sc:'plan',sp:'plan'},
  {n:'Zatvorenie Internal Docs okna neblokuje Admin pod ním',a:'admin',s:'plan'},
 ]},
-{ icon:'👥', title:'Interakcia medzi účtami', title_en:'Cross-account interactions', items:[
- {n:'Admin pozve člena → člen sa pripojí → admin ho vidí v Team Members',sc:'plan',sp:'plan'},
- {n:'Admin schváli Access Request → nový účet sa naozaj prihlási',sc:'plan',sp:'plan'},
- {n:'Admin vymaže člena → člen dostane vlastnú osobnú kuchyňu',sc:'plan',sp:'plan'},
- {n:'Admin premenuje kuchyňu → všetci členovia vidia nové meno hneď',sc:'plan',sp:'plan'},
- {n:'Admin povýši niekoho na Kitchen/Head Admin → jeho VLASTNÝ účet sa aktualizuje',sc:'plan',sp:'plan'},
- {n:'Admin prepne jedno konkrétne oprávnenie → UI sa objaví/zmizne danej osobe',sc:'plan',sp:'plan'},
- {n:'Kitchen Admin skúsi akciu len pre Head Admina → správne zablokované',sc:'plan',sp:'plan'},
- {n:'Člen vytvorí obsah v Company režime → admin ho hneď vidí',sc:'plan',sp:'plan'},
- {n:'Osobný obsah člena A je neviditeľný pre člena B v tom istom tíme (db/159/156/161)',sc:'plan',sp:'plan'},
- {n:'Dve rôzne firmy (icloud vs proton kuchyňa) — nulový únik dát oboma smermi',sc:'plan',sp:'plan'},
- {n:'Priateľský QR: A pozve → B príjme → obaja sa vidia v Chef Friends',sc:'plan',sp:'plan'},
- {n:'Zdieľanie receptov s priateľmi — priateľ vidí, cudzí nie',sc:'plan',sp:'plan'},
- {n:'Verejný recept: A publikuje → B (iná kuchyňa) môže obľúbiť/komentovať',sc:'plan',sp:'plan'},
- {n:'Komentár na Sautero recepte je viditeľný naprieč rôznymi kuchyňami',sc:'plan',sp:'plan'},
- {n:'Add Company — nová firma je úplne oddelená od pozývajúcej kuchyne',sc:'plan',sp:'plan'},
- {n:'Objednávka člena je viditeľná a spravovateľná adminom v súhrne',sc:'plan',sp:'plan'},
- {n:'Tlač člena sa správne priradí v admin Member Activity/Reports',sc:'plan',sp:'plan'},
- {n:'"Zdieľať hodiny s adminom" — zapnuté/vypnuté sa prejaví v Kitchen Reports',sc:'plan',sp:'plan'},
- {n:'Akcia vytvorená jedným účtom je viditeľná celému tímu',sc:'plan',sp:'plan'},
- {n:'HACCP — admin vidí KTO úlohu odškrtol, menom',sc:'plan',sp:'plan'},
- {n:'Pozvánkový odkaz stále varuje "opustíš kuchyňu" aj keď si už inde',sc:'plan',sp:'plan'},
- {n:'Add Company predschválenie viaže sa presne na pozvaný e-mail',sc:'plan',sp:'plan'},
+{ icon:'👥', title:'Interakcia medzi účtami', title_en:'Cross-account interactions', interactionOnly:true, items:[
+ {n:'Admin pozve člena → člen sa pripojí → admin ho vidí v Team Members',s:'plan'},
+ {n:'Admin schváli Access Request → nový účet sa naozaj prihlási',s:'plan'},
+ {n:'Admin vymaže člena → člen dostane vlastnú osobnú kuchyňu',s:'plan'},
+ {n:'Admin premenuje kuchyňu → všetci členovia vidia nové meno hneď',s:'plan'},
+ {n:'Admin povýši niekoho na Kitchen/Head Admin → jeho VLASTNÝ účet sa aktualizuje',s:'plan'},
+ {n:'Admin prepne jedno konkrétne oprávnenie → UI sa objaví/zmizne danej osobe',s:'plan'},
+ {n:'Kitchen Admin skúsi akciu len pre Head Admina → správne zablokované',s:'plan'},
+ {n:'Člen vytvorí obsah v Company režime → admin ho hneď vidí',s:'plan'},
+ {n:'Osobný obsah člena A je neviditeľný pre člena B v tom istom tíme (db/159/156/161)',s:'plan'},
+ {n:'Dve rôzne firmy (icloud vs proton kuchyňa) — nulový únik dát oboma smermi',s:'plan'},
+ {n:'Priateľský QR: A pozve → B príjme → obaja sa vidia v Chef Friends',s:'plan'},
+ {n:'Zdieľanie receptov s priateľmi — priateľ vidí, cudzí nie',s:'plan'},
+ {n:'Verejný recept: A publikuje → B (iná kuchyňa) môže obľúbiť/komentovať',s:'plan'},
+ {n:'Komentár na Sautero recepte je viditeľný naprieč rôznymi kuchyňami',s:'plan'},
+ {n:'Add Company — nová firma je úplne oddelená od pozývajúcej kuchyne',s:'plan'},
+ {n:'Objednávka člena je viditeľná a spravovateľná adminom v súhrne',s:'plan'},
+ {n:'Tlač člena sa správne priradí v admin Member Activity/Reports',s:'plan'},
+ {n:'"Zdieľať hodiny s adminom" — zapnuté/vypnuté sa prejaví v Kitchen Reports',s:'plan'},
+ {n:'Akcia vytvorená jedným účtom je viditeľná celému tímu',s:'plan'},
+ {n:'HACCP — admin vidí KTO úlohu odškrtol, menom',s:'plan'},
+ {n:'Pozvánkový odkaz stále varuje "opustíš kuchyňu" aj keď si už inde',s:'plan'},
+ {n:'Add Company predschválenie viaže sa presne na pozvaný e-mail',s:'plan'},
  {n:'Member Activity (nové) — admin naozaj číta reálne akcie iného člena',a:'admin',s:'plan'},
- {n:'Sken tímového QR niekým kto je už člen → "už si v tomto tíme"',sc:'plan',sp:'plan'},
+ {n:'Sken tímového QR niekým kto je už člen → "už si v tomto tíme"',s:'plan'},
 ]},
 ];
 
@@ -660,9 +665,12 @@ function toggleStatusFilter(k){
   renderModules();
 }
 function resetStatusFilters(){ activeStatuses = new Set(['ok','test','plan']); renderModules(); }
+let _acctMode = 'company';
 function setAcctView(type){
+  _acctMode = type;
   document.getElementById('acctPersonalBtn').classList.toggle('active', type==='personal');
   document.getElementById('acctCompanyBtn').classList.toggle('active', type==='company');
+  document.getElementById('acctInteractionBtn').classList.toggle('active', type==='interaction');
   renderModules();
 }
 function toggleModule(mi){
@@ -681,19 +689,22 @@ function toggleModule(mi){
    explicitly tagged a:'both' (an RLS check already proven to hold identically across modes,
    e.g. the order-list privacy split) legitimately share one status. */
 function itemApplies(it, acct){
+  if(acct === 'interaction') return true; // interactionOnly module filtering happens at module level
   if(it.a === 'personal') return acct === 'personal';
   if(it.a === 'company' || it.a === 'admin') return acct === 'company';
   return true; // both / dual-mode
 }
 function itemStatus(it, acct){
-  if(it.sc !== undefined) return acct === 'personal' ? it.sp : it.sc;
+  if(acct !== 'interaction' && it.sc !== undefined) return acct === 'personal' ? it.sp : it.sc;
   return it.s;
 }
 function renderModules(){
   const wrap = document.getElementById('modulesWrap');
-  const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
+  const acct = _acctMode;
   let ok=0, test=0, plan=0;
-  wrap.innerHTML = MODULES.map((mod, mi)=>{
+  wrap.innerHTML = MODULES.map((mod, mi)=>({mod, mi}))
+    .filter(({mod}) => acct === 'interaction' ? !!mod.interactionOnly : !mod.interactionOnly)
+    .map(({mod, mi})=>{
     let mOk=0, mTest=0, mPlan=0;
     const cards = mod.items.map((it, ii)=>{
       if(!itemApplies(it, acct)) return null;
@@ -707,7 +718,7 @@ function renderModules(){
             ${it.a==='personal' ? `<span class="acct-tag personal">Personal</span>` : ''}
             ${it.a==='company' ? `<span class="acct-tag company">Company</span>` : ''}
             ${it.a==='admin' ? `<span class="acct-tag admin">🛡️ Admin</span>` : ''}
-            ${it.sc !== undefined ? `<span class="acct-tag ${acct}">${acct==='personal'?'Personal':'Company'} stav</span>` : ''}
+            ${(acct!=='interaction' && it.sc !== undefined) ? `<span class="acct-tag ${acct}">${acct==='personal'?'Personal':'Company'} stav</span>` : ''}
           </div>
         </div>
       `;
@@ -789,7 +800,7 @@ function renderDonut(ok, test, plan){
 }
 function openModal(mi, ii){
   const mod = MODULES[mi], it = mod.items[ii];
-  const acct = document.getElementById('acctPersonalBtn').classList.contains('active') ? 'personal' : 'company';
+  const acct = _acctMode;
   document.getElementById('mModule').textContent = mod.icon + ' ' + (_lang==='en' && mod.title_en ? mod.title_en : mod.title);
   document.getElementById('mName').textContent = IN(it);
   const st = document.getElementById('mStatus');
