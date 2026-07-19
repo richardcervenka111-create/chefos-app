@@ -3422,6 +3422,9 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
         Back
       </button>
+      <!-- Illustration-data switch (19.7.) — Head Admin only, same pattern as Working Time/
+           Events: pure display, nothing ever written to staff_members/shift_codes/schedule_assignments. -->
+      <button class="task-status-btn" id="scheduleDemoToggle" style="display:none;" onclick="toggleScheduleDemo()">🎭 Demo: OFF</button>
       <button class="icon-btn" onclick="openViewTutorial('schedule')" title="How this works">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
@@ -18058,6 +18061,7 @@ let _activeTimeEntry = null;
 let _monthTimeEntries = [];
 let _workingTimeProfile = null;
 let _workingTimeTicker = null;
+let _wtBreakTicker = null;
 let _scheduleForecast = [];
 let _workingTimeDayNotes = {};
 
@@ -18140,14 +18144,41 @@ function wtDemoBetween(startIso, endIso){
 /* Demo orders/labels for one day — ONE shared generator, so the month bars, the day-detail
    donut and the KPI pills all show the same numbers for the same day (17.7.). Zero on days
    with no demo shift. */
+const WT_DEMO_ITEM_POOL = [
+  { name:'Yellow onions', station:'Prep' }, { name:'Heavy cream', station:'Pastry' },
+  { name:'Veal stock', station:'Sauce' }, { name:'Fresh thyme', station:'Garde manger' },
+  { name:'Parmesan wheel', station:'Cold' }, { name:'Butter, unsalted', station:'Pastry' },
+  { name:'Carrots', station:'Prep' }, { name:'Egg yolks', station:'Pastry' },
+  { name:'Dijon mustard', station:'Sauce' }, { name:'Salmon fillet', station:'Fish' },
+  { name:'White wine', station:'Sauce' }, { name:'Chicken breast', station:'Grill' },
+];
+/* Demo orders/labels for one day — ONE shared generator, so the month bars, the day-detail
+   donut and the KPI pills all show the same numbers for the same day (17.7.). Zero on days
+   with no demo shift. orders/labels (counts) are UNCHANGED — same rnd draw order as before, so
+   every existing caller keeps seeing the same numbers; orderItems/labelItems (19.7., Richard:
+   "chcem si vedieť rozkliknúť presne ktoré items") are new, additive, itemized breakdowns. */
 function wtDemoOrdersLabelsForDay(dayStr){
   const dayStart = new Date(dayStr + 'T00:00:00');
   const worked = wtDemoBetween(dayStart.toISOString(), new Date(dayStart.getTime() + 86400000).toISOString()).length > 0;
-  if(!worked) return { orders: 0, labels: 0 };
+  if(!worked) return { orders: 0, labels: 0, orderItems: [], labelItems: [] };
   const rnd = _wtDemoRand('wt-ol-' + dayStr);
   const orders = rnd() < 0.35 ? 0 : Math.floor(rnd() * 9) + 1;
   const labels = rnd() < 0.25 ? 0 : Math.floor(rnd() * 15) + 1;
-  return { orders, labels };
+  const pick = ()=>WT_DEMO_ITEM_POOL[Math.floor(rnd() * WT_DEMO_ITEM_POOL.length)];
+  const orderItems = Array.from({ length: orders }, ()=>{
+    const it = pick();
+    return { name: it.name, station: it.station, quantity: Math.floor(rnd()*8)+1, unit: rnd()<0.5?'kg':'pcs' };
+  });
+  const labelRowCount = labels > 0 ? Math.min(labels, 1 + Math.floor(rnd()*4)) : 0;
+  let remaining = labels;
+  const labelItems = Array.from({ length: labelRowCount }, (_,i)=>{
+    const it = pick();
+    const isLast = i === labelRowCount - 1;
+    const qty = isLast ? remaining : Math.max(1, Math.floor(rnd() * remaining));
+    remaining -= qty;
+    return { name: it.name, station: it.station, qty };
+  });
+  return { orders, labels, orderItems, labelItems };
 }
 function toggleWtDemo(){
   _wtDemoMode = !_wtDemoMode;
@@ -18289,14 +18320,13 @@ function renderWorkingTimeStatus(){
       </div>
       <button class="danger-btn" style="width:100%; margin-top:0;" onclick="checkOutWorkingTime()">■ Check Out</button>
       <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="openForgotCheckout()">Forgot to check out?</button>
-      <div class="prep-line3" style="margin-top:14px;">
-        <span class="prep-field-label" style="align-self:center;">Break</span>
-        ${[5,10,15,30].map(m=>`<button class="task-status-btn" onclick="addWorkingTimeBreak(${m})">+${m} min</button>`).join('')}
-      </div>
+      <div id="wtBreakArea" style="margin-top:14px;"></div>
     `;
+    renderWorkingTimeBreakArea();
     startWorkingTimeTicker();
   } else {
     stopWorkingTimeTicker();
+    stopWorkingTimeBreakTicker();
     el.innerHTML = `
       <button class="save-btn" style="width:100%; font-size:16px; padding:16px;" onclick="checkInWorkingTime()">▶ Check In</button>
       <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="openForgotCheckin()">Forgot to check in?</button>
@@ -18429,13 +18459,68 @@ async function confirmForgotCheckout(){
   closeForgotCheckout();
   await checkOutWorkingTimeAt(when);
 }
-async function addWorkingTimeBreak(minutes){
-  if(!_activeTimeEntry) return;
-  const newBreak = (_activeTimeEntry.break_minutes || 0) + minutes;
-  const { error } = await sb.from('time_entries').update({ break_minutes: newBreak }).eq('id', _activeTimeEntry.id);
-  if(error){ alert('Could not log break: ' + error.message); return; }
-  _activeTimeEntry.break_minutes = newBreak;
-  renderWorkingTimeStatus();
+/* Live break stopwatch (19.7., Richard: "kliknem na break a working time sa zastaví, chcem
+   presne kedy som mal prestávku"). break_minutes keeps being front-loaded at the moment a
+   break starts exactly like before — that's what already makes workingTimeHoursForEntry()
+   pause-then-resume net hours correctly with zero change to any existing hours math. `breaks`
+   is a purely additive JSONB audit trail (db/160) of {started_at, minutes} used only to (a)
+   drive this live countdown and (b) show exact per-break times in day detail. Auto-ends after
+   the picked duration — no manual "end early", per Richard's choice. */
+function activeWorkingTimeBreak(){
+  const breaks = (_activeTimeEntry && _activeTimeEntry.breaks) || [];
+  if(!breaks.length) return null;
+  const last = breaks[breaks.length - 1];
+  const endsAt = new Date(last.started_at).getTime() + last.minutes * 60000;
+  return endsAt > Date.now() ? { ...last, endsAt } : null;
+}
+async function startWorkingTimeBreak(minutes){
+  if(!_activeTimeEntry || activeWorkingTimeBreak()) return;
+  const newBreakMinutes = (_activeTimeEntry.break_minutes || 0) + minutes;
+  const newBreaks = [...(_activeTimeEntry.breaks || []), { started_at: new Date().toISOString(), minutes }];
+  const { error } = await sb.from('time_entries').update({ break_minutes: newBreakMinutes, breaks: newBreaks }).eq('id', _activeTimeEntry.id);
+  if(error){ alert('Could not start break: ' + error.message); return; }
+  _activeTimeEntry.break_minutes = newBreakMinutes;
+  _activeTimeEntry.breaks = newBreaks;
+  renderWorkingTimeBreakArea();
+}
+function renderWorkingTimeBreakArea(){
+  const el = document.getElementById('wtBreakArea');
+  if(!el) return;
+  const active = activeWorkingTimeBreak();
+  if(active){
+    el.innerHTML = `
+      <div class="wt-settings-row" style="background:var(--paper2, rgba(52,247,215,.08)); border-radius:10px; padding:10px 12px;">
+        <div>🔵 On break</div>
+        <div class="wt-vacation-days" id="wtBreakRemaining">${formatBreakRemaining(active.endsAt)}</div>
+      </div>
+    `;
+    startWorkingTimeBreakTicker(active.endsAt);
+  } else {
+    stopWorkingTimeBreakTicker();
+    el.innerHTML = `
+      <div class="prep-line3">
+        <span class="prep-field-label" style="align-self:center;">Break</span>
+        ${[5,10,15,30].map(m=>`<button class="task-status-btn" onclick="startWorkingTimeBreak(${m})">+${m} min</button>`).join('')}
+      </div>
+    `;
+  }
+}
+function formatBreakRemaining(endsAt){
+  const secLeft = Math.max(0, Math.round((endsAt - Date.now()) / 1000));
+  return `${Math.floor(secLeft/60)}:${String(secLeft%60).padStart(2,'0')} left`;
+}
+function startWorkingTimeBreakTicker(endsAt){
+  if(_wtBreakTicker) return;
+  _wtBreakTicker = setInterval(()=>{
+    if(!_activeTimeEntry){ stopWorkingTimeBreakTicker(); return; }
+    if(Date.now() >= endsAt){ stopWorkingTimeBreakTicker(); renderWorkingTimeBreakArea(); return; }
+    const remEl = document.getElementById('wtBreakRemaining');
+    if(!remEl){ stopWorkingTimeBreakTicker(); return; }
+    remEl.textContent = formatBreakRemaining(endsAt);
+  }, 1000);
+}
+function stopWorkingTimeBreakTicker(){
+  if(_wtBreakTicker){ clearInterval(_wtBreakTicker); _wtBreakTicker = null; }
 }
 
 function renderWorkingTimeSummary(){
@@ -19011,7 +19096,15 @@ async function openDayDetail(dayStr){
       const outT = e.check_out ? new Date(e.check_out).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '…';
       const inPin = (e.check_in_lat!=null && e.check_in_lng!=null) ? ` <a href="https://maps.google.com/?q=${e.check_in_lat},${e.check_in_lng}" target="_blank" rel="noopener" style="text-decoration:none;">📍</a>` : '';
       const outPin = (e.check_out_lat!=null && e.check_out_lng!=null) ? ` <a href="https://maps.google.com/?q=${e.check_out_lat},${e.check_out_lng}" target="_blank" rel="noopener" style="text-decoration:none;">📍</a>` : '';
-      return `<div class="wt-settings-row"><div>${inT}${inPin} → ${outT}${outPin}</div><div class="wt-vacation-days">${formatHoursSK(workingTimeHoursForEntry(e))} h</div></div>`;
+      // Exact break times (db/160, 19.7.) — legacy entries with no `breaks` array just show
+      // nothing here; their total is still correctly deducted via break_minutes as before.
+      const breaksHtml = (e.breaks || []).map(b=>{
+        const bStart = new Date(b.started_at);
+        const bEnd = new Date(bStart.getTime() + b.minutes * 60000);
+        const fmt = d=>d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+        return `<div class="wt-settings-row" style="padding-left:16px; opacity:.75; font-size:12.5px;"><div>🔵 Break ${fmt(bStart)} → ${fmt(bEnd)}</div><div class="wt-vacation-days">${b.minutes} min</div></div>`;
+      }).join('');
+      return `<div class="wt-settings-row"><div>${inT}${inPin} → ${outT}${outPin}</div><div class="wt-vacation-days">${formatHoursSK(workingTimeHoursForEntry(e))} h</div></div>` + breaksHtml;
     }).join('') + `<div class="wt-settings-row"><b>Total</b><b>${formatHoursSK(totalHours)} h</b></div>`
   ) : `<p class="sheet-text">No check-ins recorded this day.</p>`;
 
@@ -19049,12 +19142,26 @@ async function renderDayDetailActivity(dayStart, dayEnd, totalHours){
   if(_wtDemoMode){
     // _dayDetailDate is the LOCAL date string the day was opened with — slicing the UTC ISO
     // dayStart would shift to the previous day for any timezone east of UTC (Bern is UTC+2).
-    const { orders: o, labels: l } = wtDemoOrdersLabelsForDay(_dayDetailDate);
-    el.innerHTML = hoursDonut + (o + l > 0
-      ? `<label class="form-label" style="margin-top:14px;">🛒🏷️ Orders & labels this day</label>` +
-        krDonut([{ label:'🛒 Ordered items', value: o }, { label:'🏷️ Labels printed', value: l }])
-      : `<p class="sheet-text" style="margin-top:10px;">No orders or labels this day.</p>`) +
-      `<div class="sheet-text" style="opacity:.65;">🎭 Illustration data — invented numbers, for demo purposes only.</div>`;
+    const { orders: o, labels: l, orderItems, labelItems } = wtDemoOrdersLabelsForDay(_dayDetailDate);
+    let html = hoursDonut;
+    if(o + l > 0){
+      html += `<label class="form-label" style="margin-top:14px;">🛒🏷️ Orders & labels this day</label>` +
+        krDonut([{ label:'🛒 Ordered items', value: o }, { label:'🏷️ Labels printed', value: l }]);
+      // Itemized breakdown (19.7., Richard: "chcem rozkliknúť presne ktoré items") — same row
+      // markup as the real branch below, just fed from wtDemoOrdersLabelsForDay's fake items.
+      if(orderItems.length){
+        html += `<label class="form-label" style="margin-top:14px;">🛒 Order List touched this day</label>`;
+        html += orderItems.map(it=>`<div class="wt-settings-row"><div>${it.name} · ${it.station}</div><div class="wt-vacation-days">${it.quantity} ${it.unit}</div></div>`).join('');
+      }
+      if(labelItems.length){
+        html += `<label class="form-label" style="margin-top:14px;">🏷️ Labels printed this day</label>`;
+        html += labelItems.map(it=>`<div class="wt-settings-row"><div>${it.name} · ${it.station}</div><div class="wt-vacation-days">×${it.qty}</div></div>`).join('');
+      }
+    } else {
+      html += `<p class="sheet-text" style="margin-top:10px;">No orders or labels this day.</p>`;
+    }
+    html += `<div class="sheet-text" style="opacity:.65;">🎭 Illustration data — invented numbers, for demo purposes only.</div>`;
+    el.innerHTML = html;
     return;
   }
   const [{ data: orders }, { data: labels }] = await Promise.all([
@@ -21651,6 +21758,7 @@ let _shiftCodesById = {};
 let _assignments = {};
 let cellEditContext = null;
 let staffEditingId = null;
+let _scheduleDemoMode = false;
 
 function setScheduleStatus(state){
   const el = document.getElementById('scheduleSyncStatus');
@@ -21680,10 +21788,63 @@ function weekDates(){
   return dates;
 }
 
+/* Schedule illustration mode (19.7., Richard: "môžeš ho pridať aj k schedule") — same pattern
+   as Working Time/Events: Head Admin only, pure display, nothing ever written to staff_members
+   / shift_codes / schedule_assignments. Staff + shift codes are seeded ONCE (stable across
+   week navigation, so the same fake people/roster look consistent as you page through weeks);
+   assignments are re-seeded per visible week. */
+function scheduleDemoStaff(){
+  const rnd = _wtDemoRand('schedule-demo-staff');
+  const roster = [
+    { name:'Sofia Meier', section:'Kitchen' }, { name:'Luca Rossi', section:'Kitchen' },
+    { name:'Elena Kovač', section:'Kitchen' }, { name:'Noah Fischer', section:'Kitchen' },
+    { name:'Mia Perret', section:'Service' }, { name:'Jonas Widmer', section:'Service' },
+  ];
+  return roster.map((p,i)=>({ id:'demo-staff-'+i, kitchen_id: currentKitchenId, is_demo:true, name:p.name, section:p.section, sort_order:i, active:true, _r: rnd() }));
+}
+function scheduleDemoShiftCodes(){
+  const codes = [
+    { code:'AM', label:'Morning', is_absence:false, start_time:'07:00', end_time:'15:30' },
+    { code:'PM', label:'Evening', is_absence:false, start_time:'14:30', end_time:'23:00' },
+    { code:'SP', label:'Split', is_absence:false, start_time:'09:00', end_time:'22:00', second_start_time:null, second_end_time:null, break_note:'14–17h' },
+    { code:'OFF', label:'Day off', is_absence:true }, { code:'VAC', label:'Vacation', is_absence:true },
+  ];
+  return codes.map((c,i)=>({ id:'demo-code-'+i, kitchen_id: currentKitchenId, is_demo:true, sort_order:i, ...c }));
+}
+function scheduleDemoAssignments(staff, codes, dates){
+  const byCode = { AM: codes[0], PM: codes[1], SP: codes[2], OFF: codes[3], VAC: codes[4] };
+  const assignments = {};
+  staff.forEach(s=>{
+    const rnd = _wtDemoRand('schedule-demo-asg-' + s.id + '-' + dates[0]);
+    dates.forEach(d=>{
+      const roll = rnd();
+      let code = null;
+      if(roll < 0.16) code = byCode.OFF;
+      else if(roll < 0.19) code = byCode.VAC;
+      else if(roll < 0.55) code = byCode.AM;
+      else if(roll < 0.86) code = byCode.PM;
+      else code = byCode.SP;
+      assignments[s.id + '_' + d] = { id:'demo-asg-'+s.id+'-'+d, is_demo:true, staff_id:s.id, work_date:d, shift_code_id: code.id, note: null };
+    });
+  });
+  return assignments;
+}
+function toggleScheduleDemo(){
+  _scheduleDemoMode = !_scheduleDemoMode;
+  const btn = document.getElementById('scheduleDemoToggle');
+  btn.textContent = _scheduleDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  btn.classList.toggle('active', _scheduleDemoMode);
+  loadScheduleData();
+}
+
 async function showSchedule(){
   if(!scheduleWeekStart) scheduleWeekStart = isoDate(mondayOf(new Date()));
   hideAllViews();
   document.getElementById('scheduleView').style.display = 'block';
+  const demoBtn = document.getElementById('scheduleDemoToggle');
+  demoBtn.style.display = currentIsAdmin ? '' : 'none';
+  demoBtn.textContent = _scheduleDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  demoBtn.classList.toggle('active', _scheduleDemoMode);
   maybeShowViewTutorial('schedule');
   await loadScheduleData();
   window.scrollTo(0,0);
@@ -21700,12 +21861,23 @@ async function loadScheduleData(){
   setScheduleStatus('saving');
   const dates = weekDates();
 
+  if(_scheduleDemoMode){
+    _staff = scheduleDemoStaff();
+    _shiftCodes = scheduleDemoShiftCodes();
+    _shiftCodesById = {};
+    _shiftCodes.forEach(c=>{ _shiftCodesById[c.id] = c; });
+    _assignments = scheduleDemoAssignments(_staff, _shiftCodes, dates);
+    setScheduleStatus('saved');
+    renderScheduleGrid();
+    return;
+  }
+
   const { data: staff, error: staffErr } = await sb.from('staff_members').select('*')
     .eq('kitchen_id', currentKitchenId).eq('active', true).order('sort_order');
   if(staffErr){ setScheduleStatus('offline'); return; }
   _staff = staff || [];
 
-  if(_shiftCodes.length === 0){
+  if(_shiftCodes.length === 0 || _shiftCodes[0].is_demo){
     const { data: codes } = await sb.from('shift_codes').select('*').eq('kitchen_id', currentKitchenId).order('sort_order');
     _shiftCodes = codes || [];
     _shiftCodesById = {};
@@ -21766,6 +21938,7 @@ function renderScheduleGrid(){
 
 /* ---------- Cell edit sheet ---------- */
 function openCellEdit(staffId, date){
+  if(_scheduleDemoMode){ alert('🎭 Demo data — turn off Demo to edit the real schedule.'); return; }
   cellEditContext = { staffId, date };
   const person = _staff.find(s=>s.id===staffId);
   const existing = _assignments[staffId + '_' + date];
@@ -21832,11 +22005,13 @@ async function clearCellEdit(){
 
 /* ---------- Staff management ---------- */
 function showAddStaffForm(){
+  if(_scheduleDemoMode){ alert('🎭 Demo data — turn off Demo to manage the real staff list.'); return; }
   staffEditingId = null;
   renderStaffForm({ name:'', section:'' });
 }
 
 function showEditStaffForm(id){
+  if(_scheduleDemoMode){ alert('🎭 Demo data — turn off Demo to manage the real staff list.'); return; }
   const s = _staff.find(x=>x.id===id);
   if(!s) return;
   staffEditingId = id;
