@@ -636,6 +636,17 @@ const DAYS=[
     '🌐 Dvojjazyčnosť: mapa funkcií 112/112 kariet + 13 modulov SK/EN; nové dokumenty Poznámky (živý zápisník s Poučeniami) a Aare Ventures research — plne bilingválne; História dostala DAYS_I18N',
     '🩺 Scan diagnóza cez živú DB: kolízie s knižnicou → update namiesto tichého skoku; iOS MIME typy; Invoice Scan zlyhania sa logujú; role labely Main/Kitchen Admin; koláč mapy funkcií rešpektuje filter',
     '📄 Nové dokumenty: Poznámky ako 5. kolonka doc-navigácie, Aare Ventures (event 14.9., prihláška 23.8.), Events t172 + hlas t173 + preklady t174 do plánu'
+  ]},
+  { date:'2026-07-19', headline:'DEŇ SÚKROMIA A STABILITY: personal/company v DB, iPad opravy z videí, Events naživo, konsolidácia DB odštartovaná', accomplished:[
+    '🔐 Personal/company natvrdo v databáze: Order List (db/156) aj Check List projekty (db/159) — osobné veci vidí LEN tvorca, firemné projekty zakladá len kitchen admin; overené impersonačnými testami priamo na produkcii',
+    '🔴→✅ Objednávkový RLS bug člena (a jeho horšia prvá oprava) → db/154: zdieľaná ingrediencia cez RPC — objednávanie funguje každému aj bez cien, admin vidí všetko pomenované',
+    '🛡️ Mazanie jedál/sekcií len pre adminov; 🗑️ Delete preč z hlavičky jedla (2 skoro-straty na iPade); Zero Feature Loss protokol zapísaný ako zákon konsolidácie',
+    '📹 iPad opravy dokázané z 2 screen-recordingov: ghost-click guard (450 ms po zavretí okna), scroll-restore + prepočet dotykov po klávesnici — Richard: „super funguje to"',
+    '📄 Stohovanie horného banera v dokumentoch opravené (kotvy v srcdoc rámoch → patchInnerLinks, platí pre všetkých 5 obálok)',
+    '🎪 Events dlaždica naživo (db/153): manuál + AI scan objednávky, Dnes|Zajtra, 🎭 demo prepínač (nový štandard pre demá); 6-bodová dávka: admin zámky časov (db/150), vlastné labely tlačidiel (db/151), sync časov, HACCP pre všetkých + kto odškrtol + demo (db/149), rozbaľovacie jedlá, Add Company = okamžitý admin (db/148)',
+    '🆕 Nové pravidlo: Claude púšťa SQL v Supabase sám (cez prihlásený Chrome, staging-first, každá migrácia overená spätne); nález: staging je prázdna mŕtva kópia → resync do plánu',
+    '🗄️ Konsolidácia: CLAUDE.md + SUPABASE_CONSOLIDATION_PLAN.md (49→~24), Fáza 1 (db/157) + krok 2.1 (db/158, ikony→JSONB 20+3 presne) hotové; AI Details + Invoice Scan vrátené adminom na Sautero policu',
+    '🔍 Pripravená kompletná kontrola všetkých funkcií: docs/FEATURE_VERIFICATION_CHECKLIST.md (15 sekcií × 4 perspektívy) — štartuje hneď po Richardovom zobudení'
   ]}
 ];
 /* t174 (18.7.): the timeline is bilingual via DAYS_I18N — days 08-13 were written in EN,
@@ -793,6 +804,17 @@ const DAYS_I18N = {
     '🩺 Scan diagnosis via the live DB: library collisions → update instead of a silent skip; iOS MIME types; Invoice Scan failures now logged; Main/Kitchen Admin role labels; the feature-map pie respects the filter',
     '📄 New documents: Poznámky as the 5th doc-nav column, Aare Ventures (event 14 Sep, application 23 Aug), Events t172 + voice t173 + translations t174 into the plan'
   ]},
+  '2026-07-19': { h_en:'PRIVACY & STABILITY DAY: personal/company in the DB, iPad fixes from videos, Events live, DB consolidation kicked off', a_en:[
+    '🔐 Personal/company enforced in the database: Order List (db/156) and Check List projects (db/159) — personal things visible ONLY to their creator, company projects created only by the kitchen admin; verified with impersonation tests directly on production',
+    '🔴→✅ The member ordering RLS bug (and its worse first fix) → db/154: a shared ingredient via RPC — ordering works for everyone even without prices, the admin sees everything named',
+    '🛡️ Dish/section deletion admin-only; 🗑️ Delete gone from the dish header (2 near-losses on the iPad); the Zero Feature Loss protocol written as the law of the consolidation',
+    '📹 iPad fixes proven from 2 screen recordings: a ghost-click guard (450 ms after closing a sheet), scroll restore + tap recalibration after the keyboard — Richard: "super, it works"',
+    '📄 Top-banner stacking in the documents fixed (anchors inside srcdoc iframes → patchInnerLinks, applies to all 5 shells)',
+    '🎪 The Events tile live (db/153): manual + AI order scan, Today|Tomorrow, the 🎭 demo toggle (the new standard for demos); the 6-point batch: admin time locks (db/150), custom button labels (db/151), time sync, HACCP for everyone + who ticked + demo (db/149), collapsible dishes, Add Company = instant admin (db/148)',
+    '🆕 New rule: Claude runs SQL in Supabase itself (via the logged-in Chrome, staging-first, every migration verified afterwards); finding: staging is an empty dead copy → resync into the plan',
+    '🗄️ Consolidation: CLAUDE.md + SUPABASE_CONSOLIDATION_PLAN.md (49→~24), Phase 1 (db/157) + step 2.1 (db/158, icons→JSONB, 20+3 exact) done; AI Details + Invoice Scan restored for admins on the Sautero shelf',
+    '🔍 The complete feature verification prepared: docs/FEATURE_VERIFICATION_CHECKLIST.md (15 sections × 4 perspectives) — starts the moment Richard wakes up'
+  ]},
 };
 function dayHeadline(day){
   const alt = DAYS_I18N[day.date] || {};
@@ -894,6 +916,7 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-16', ok:43, test:39, plan:4 },
   { date:'2026-07-17', ok:77, test:25, plan:7 },
   { date:'2026-07-18', ok:77, test:26, plan:8 },
+  { date:'2026-07-19', ok:87, test:29, plan:8 },
 ];
 /* Hours worked per day (Richard, 17.7.) — measured from git commit sessions by
    scripts/work_hours.py (run it and paste its output here on every doc-sync). Days before
@@ -909,7 +932,8 @@ const WORK_HOURS = {
   '2026-07-15': 11.6,
   '2026-07-16': 14.8,
   '2026-07-17': 6.4,
-  '2026-07-18': 5.1,
+  '2026-07-18': 11.8,
+  '2026-07-19': 2.0,
 };
 const WORK_HOURS_MEASURED_FROM = '2026-07-13';
 function isEstimatedHours(d){ return d < WORK_HOURS_MEASURED_FROM; }
@@ -1053,6 +1077,6 @@ renderFeaturesOverTime();
 toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20">🔄 Stav Sautero k 18. 7. 2026, 14:20</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
 </body>
 </html>

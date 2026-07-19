@@ -195,11 +195,11 @@ const GENERATED = '2026-07-18';
 
 const TOP3 = {
   day: {
-    range: 'Sobota 18. 7. 2026',
+    range: 'Nedeľa 19. 7. 2026',
     items: [
-      { text: '🏷️ SAUTERO DEŇ D: appka naživo na app.sautero.ch (DNS+Pages+HTTPS), e-maily a odosielateľ Sautero, nové logo (teal S), 691 náhrad v dokumentoch, NAMING_RISK uzavretý s poučením', text_en: '🏷️ SAUTERO D-DAY: app live at app.sautero.ch (DNS+Pages+HTTPS), emails and sender Sautero, new logo (teal S), 691 replacements across documents, NAMING_RISK closed with the lesson', status: 'done' },
-      { text: 'Tímové funkcie: ➕ Add Team Member (db/145), tímové zoznamy aj projekty receptov (db/146-147, 👥), Company Ingredients agreguje zoznamy, sken→Company presun, roly Main/Kitchen Admin, Create Team odstránené', text_en: 'Team features: ➕ Add Team Member (db/145), team ingredient lists and recipe projects (db/146-147, 👥), Company Ingredients aggregates lists, scan→Company move, Main/Kitchen Admin roles, Create Team removed', status: 'done' },
-      { text: '🌐 Dvojjazyčnosť: mapa funkcií 112/112 SK/EN; nové dokumenty Poznámky (+ Poučenia) a Aare Ventures — plne bilingválne; trvalé pravidlo SK/EN + inventúra povrchov pri rebrande', text_en: '🌐 Bilinguality: feature map 112/112 SK/EN; new documents Notes (+ Lessons) and Aare Ventures — fully bilingual; standing rule SK/EN + a surface inventory on every rebrand', status: 'done' },
+      { text: '🔍 KOMPLETNÁ KONTROLA VŠETKÝCH FUNKCIÍ s Richardom — checklist pripravený (docs/FEATURE_VERIFICATION_CHECKLIST.md, 15 sekcií × 4 perspektívy), ideme hneď po zobudení', text_en: '🔍 COMPLETE VERIFICATION OF EVERY FEATURE with Richard — checklist ready (docs/FEATURE_VERIFICATION_CHECKLIST.md, 15 sections × 4 perspectives), starting the moment he wakes up', status: 'progress' },
+      { text: '🔐 Dokončiť personal/company split: zoznamy ingrediencií + projekty receptov (rovnaký vzor ako db/156/159) — ďalší atomický krok po kontrole', text_en: '🔐 Finish the personal/company split: ingredient lists + recipe projects (same pattern as db/156/159) — the next atomic step after the sweep', status: 'planned' },
+      { text: '📄 Nebenerwerb + Einzelfirma — TERMÍN ZAJTRA 20. 7. (oba len Richard, drafty hotové vo VYRIEŠIŤ DO 20.7.2026/)', text_en: '📄 Side-business consent + sole proprietorship — DUE TOMORROW 20 Jul (both Richard-only, drafts ready in VYRIEŠIŤ DO 20.7.2026/)', status: 'planned' },
     ]
   },
   week: {
@@ -460,6 +460,26 @@ const DAYS = [
     ],
     planned: 'Richard: kúpiť sautero.ch + sautero.com (Hostpoint, ~25 CHF prvý rok) — potom presun domény a technických identifikátorov. Overiť na iPhone: tímový join/create flow, sken do zoznamu, Company Ingredients, HTML faktúru na protonmaile, novú tému na iCloud účte.'
   },
+  {
+    date: '2026-07-19',
+    headline: '🔐 Deň súkromia a stability: personal/company natvrdo v DB, iPad opravy s dôkazmi z videí, Events naživo, štart konsolidácie DB — a pripravená kompletná kontrola funkcií',
+    accomplished: [
+      '4 body z Richardovho zoznamu nasadené a ním overené („všetko ok"): priorita v All podľa priority, nové projekty bez default sekcií, ✏️ Edit name na ingredienciách (⋮ menu), náklady doplnené o domény CHF 15',
+      '6-bodová dávka: Add Company pozvánka = okamžité admin práva (db/148 pre-approve + nájdený a zmazaný duplicitný create_company overload db/152), sync času medzi rovnako pomenovanými ingredienciami, 🔒 admin zámky časov per tlačidlo (db/150), vlastné názvy TO DO/CHECK/FINISH dlhým podržaním (db/151), HACCP pre každý účet + admin vidí kto odškrtol + demo (db/149), rozbaľovacie jedlá v Check Liste',
+      '🆕 NOVÉ PRAVIDLO: Claude smie púšťať SQL v Supabase (cez Richardov prihlásený Chrome tab, nikdy heslo) — db/148–159 aplikované samostatne, každá overená spätným dotazom; GitHub push potvrdený ako standing',
+      '🔴→✅ Objednávkový RLS bug: člen nemohol objednať neznámu položku („new row violates row-level security") — prvá oprava (osobná ingrediencia) vytvorila horší bug (admin videl „(ingredient removed)"), finálne db/154: zdieľaná ingrediencia cez SECURITY DEFINER RPC pre každého člena',
+      '🔐 Personal/company split #1: Order List (db/156) — súkromný nákupný zoznam NIKDY vo firemnom a naopak, unique constraint + RLS, staging→produkcia (nález: staging = prázdna mŕtva kópia, treba resync)',
+      '🔐 Personal/company split #2: Check List projekty (db/159) — osobný projekt vidí LEN tvorca (RLS aj cez obsah: dishes/items/tasks dedia viditeľnosť projektu), firemné projekty zakladá len kitchen admin; overené impersonačným testom priamo na produkcii (kolega vidí 0, tvorca 1, rollback)',
+      '🛡️ Mazanie jedál/sekcií len pre adminov + tlačidlo 🗑️ Delete preč z hlavičky jedla (2 skoro-incidenty na iPade, druhý reálne zmazal jedlo — obnoviteľné, soft delete); člen možnosť mazania vôbec nevidí',
+      '📹 iPad bugy diagnostikované z Richardových 2 screen-recordingov (rozklad na snímky): (1) iOS ghost-click po zavretí okna → globálny guard 450 ms, (2) Safari mieri dotyky o výšku klávesnice vedľa + obrazovka ostáva odrolovaná → blur + scroll-restore + prepočet viewportov; Richard potvrdil „super funguje to"',
+      '📄 Rekurzívne stohovanie horného banera v dokumentoch (video z iPhonu): kotva #timeline v srcdoc ráme naviguje na celý obal → patchInnerLinks v build_docs.py (kotvy skrolujú vnútri, externé linky _top) — platí pre všetkých 5 obálok',
+      '🎪 Events dlaždica NAŽIVO (t172, db/153): New Event manuálne alebo AI scanom objednávky/e-mailu (vision vzor ako Invoice Scan), Dnes|Zajtra banery, ďalšie dni najbližší hore; 🎭 demo prepínač v lište (Head Admin, len zobrazenie — nový štandard pre všetky demá, db/155 zmazal starý seed riadok)',
+      '🗄️ Konsolidácia DB: CLAUDE.md pravidlá + SUPABASE_CONSOLIDATION_PLAN.md (merané: 49 evidovaných / 47 reálne žijúcich → cieľ ~24); Fáza 1 (db/157: feedback → zz_retired, drop 26.7. s pripomienkou) + krok 2.1 (db/158: ikony → kitchens.icons JSONB, 20+3 skopírované, appka nedotknutá) pod Zero Feature Loss protokolom',
+      '🔴→✅ Večerné privacy reporty od Richarda: projekty/zoznamy viditeľné krížom cez účty a režimy — projekty opravené (db/159), zoznamy ingrediencií/receptov = ďalší krok; „chýbajúce" AI Details + Invoice Scan na Sautero polici = zámerné skrytie z 18.7., vrátené adminom',
+      '🔍 Pripravený docs/FEATURE_VERIFICATION_CHECKLIST.md — 15 sekcií, 4 perspektívy (Head Admin/člen × personal/company), vrátane známych medzier a poznámky rozhodnúť events per-mode',
+    ],
+    planned: 'Hneď po Richardovom zobudení: kompletná kontrola všetkých funkcií podľa checklistu, kus po kuse. Potom: personal split zoznamov (ingredient_lists + recipe_lists), Fáza 2.2 ikon, prekopanie Značky & vízie s infografikami (t176), Nebenerwerb + Einzelfirma (termín 20.7.!).'
+  },
 ];
 /* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
    is the key); the forEach glues headline_en/accomplished_en/planned_en onto each entry.
@@ -641,6 +661,21 @@ const DAYS_EN = [
     'Afternoon — Richard\'s scanning report on protonmail, diagnosed via the live DB: the scan added NOTHING because every name collided with the 2,005-item library (the unique index spans the whole shared side) and was skipped silently — from now on a collision UPDATES the existing row (price/supplier/empty category/alias); Invoice Scan with HTML never reached the API (0 calls in ai_usage) — the accept list gained MIME types for the iOS picker and Invoice Scan failures are now logged to error_logs (zero trace until then)',
     'Point 7 (Brand & vision): the deck updated to today\'s real data — 183 recipes (Michelin complete), 2,005 ingredients, 13 accounts (10 real), feature maturity 77-26-8, the 18 Jul roadmap row, costs ~CHF 281 cash + ~93 h ≈ CHF 4,185; a NEW day-by-day build-hours bar chart with tap detail (the maturity pie + ARR curve already existed); Manifesto and Visual Guide numbers aligned',
   ], p:'Richard: verify on the iPhone the team join/create flow, scan-to-list, Company Ingredients, the HTML invoice on protonmail, the new theme on the iCloud account. Then: the sender address to @sautero.ch (Resend verification) and continuing t174.' },
+  { h:'🔐 Privacy & stability day: personal/company enforced in the DB, iPad fixes proven from videos, Events live, DB consolidation started — and the complete feature check prepared', a:[
+    '4 items from Richard\'s list shipped and verified by him ("všetko ok"): priority order under All, new projects without default sections, ✏️ Edit name on ingredients (⋮ menu), costs updated with the CHF 15 domains',
+    'The 6-point batch: Add Company invite = instant admin rights (db/148 pre-approve + the duplicate create_company overload found and dropped, db/152), time sync across same-named ingredients, 🔒 admin time locks per button (db/150), custom TO DO/CHECK/FINISH labels via long-press (db/151), HACCP for every account + admin sees who ticked + demo (db/149), collapsible dishes in Check List',
+    '🆕 NEW RULE: Claude may run SQL in Supabase (via Richard\'s logged-in Chrome tab, never a password) — db/148–159 applied one by one, each verified with a follow-up query; GitHub push confirmed as standing',
+    '🔴→✅ The ordering RLS bug: a member couldn\'t order an unknown item ("new row violates row-level security") — the first fix (personal ingredient) created a worse bug (the admin saw "(ingredient removed)"), final db/154: a shared ingredient via a SECURITY DEFINER RPC for every member',
+    '🔐 Personal/company split #1: Order List (db/156) — a private shopping list NEVER in the company list and vice versa, unique constraint + RLS, staging→production (finding: staging is an empty dead copy, needs a resync)',
+    '🔐 Personal/company split #2: Check List projects (db/159) — a personal project is visible ONLY to its creator (RLS through the content too: dishes/items/tasks inherit project visibility), company projects created only by the kitchen admin; verified with an impersonation test directly on production (teammate sees 0, creator 1, rollback)',
+    '🛡️ Dish/section deletion admin-only + the 🗑️ Delete button gone from the dish header (2 near-incidents on the iPad, the second actually deleted a dish — recoverable, soft delete); members don\'t see a delete option at all',
+    '📹 iPad bugs diagnosed from Richard\'s 2 screen recordings (frame-by-frame): (1) iOS ghost-click after closing a sheet → a global 450 ms guard, (2) Safari aims taps a keyboard-height off + the screen stays scrolled away → blur + scroll restore + viewport recalibration; Richard confirmed "super, it works"',
+    '📄 Recursive top-banner stacking in the documents (iPhone video): a #timeline anchor inside a srcdoc iframe navigates to the whole shell → patchInnerLinks in build_docs.py (anchors scroll in place, external links _top) — applies to all 5 shells',
+    '🎪 The Events tile LIVE (t172, db/153): New Event manually or by AI-scanning an order/e-mail (the Invoice Scan vision pattern), Today|Tomorrow banners, later days nearest-first; the 🎭 demo toggle in the top bar (Head Admin, display-only — the new standard for all demos, db/155 removed the old seeded row)',
+    '🗄️ DB consolidation: CLAUDE.md rules + SUPABASE_CONSOLIDATION_PLAN.md (measured: 49 tracked / 47 actually alive → target ~24); Phase 1 (db/157: feedback → zz_retired, drop 26 Jul with a reminder) + step 2.1 (db/158: icons → kitchens.icons JSONB, 20+3 copied, the app untouched) under the Zero Feature Loss protocol',
+    '🔴→✅ Richard\'s evening privacy reports: projects/lists visible across accounts and modes — projects fixed (db/159), ingredient/recipe lists = the next step; the "missing" AI Details + Invoice Scan on the Sautero shelf = a deliberate 18 Jul hiding, restored for admins',
+    '🔍 docs/FEATURE_VERIFICATION_CHECKLIST.md prepared — 15 sections, 4 perspectives (Head Admin/member × personal/company), incl. the known gaps and a note to decide events per-mode',
+  ], p:'The moment Richard wakes up: the complete feature verification, piece by piece, per the checklist. Then: the personal split of lists (ingredient_lists + recipe_lists), icons step 2.2, the Brand & Vision overhaul with infographics (t176), the side-business consent + sole proprietorship (due 20 Jul!).' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
 
@@ -862,6 +897,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20">🔄 Stav Sautero k 18. 7. 2026, 14:20</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
 </body>
 </html>
