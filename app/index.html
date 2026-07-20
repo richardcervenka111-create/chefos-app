@@ -12033,6 +12033,7 @@ async function grantHeadAdminPreset(){
 
 /* ---------- Admin Directory: search everyone, edit permissions per person ---------- */
 let _adminDirectoryRows = [];
+let _adminKitchenNames = {};  // kitchen_id -> team name, so members show which team they're in
 async function showAdminDirectory(){
   logEvent('view_opened', {view:'admin_directory'});
   hideAllViews();
@@ -12043,6 +12044,14 @@ async function showAdminDirectory(){
   const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms, account_type, ai_credit_chf, ai_credit_ever_topped_up, kitchen_id, in_team').order('email');
   if(error){ document.getElementById('adminDirectoryList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   _adminDirectoryRows = data || [];
+  // Team names so a member's row shows which team they belong to (Richard, 21.7.). "read any
+  // kitchen name" RLS lets any signed-in user read these.
+  _adminKitchenNames = {};
+  const kIds = [...new Set(_adminDirectoryRows.filter(p=>p.in_team && p.kitchen_id).map(p=>p.kitchen_id))];
+  if(kIds.length){
+    const { data: ks } = await sb.from('kitchens').select('id, name').in('id', kIds);
+    (ks||[]).forEach(k=>{ _adminKitchenNames[k.id] = k.name; });
+  }
   renderAdminDirectory();
 }
 function renderAdminDirectory(){
@@ -12053,11 +12062,13 @@ function renderAdminDirectory(){
   if(!rows.length){ el.innerHTML = '<div class="empty-state">No one matches.</div>'; return; }
   el.innerHTML = rows.map(p=>{
     const activePerms = ADMIN_PERM_DEFS.filter(d=>!!(p.admin_perms||{})[d.key]).map(d=>d.label);
-    // "Member" is a TEAM role — only show it for someone actually in a team (Richard, 21.7.).
-    // A solo account with no admin rights and no team reads "Personal — no team", not "Member".
-    const tag = p.is_admin ? '🛡️ Main Admin'
-      : (activePerms.length ? `🛡️ Kitchen Admin (${activePerms.join(', ')})`
-      : (p.in_team ? 'Member — no admin rights' : 'Personal — no team'));
+    // "Member" is a TEAM role — only for someone actually in a team; a solo account reads
+    // "Personal — no team". And a team member's row shows WHICH team (Richard, 21.7.).
+    const teamName = (p.in_team && p.kitchen_id) ? (_adminKitchenNames[p.kitchen_id] || 'their team') : '';
+    const teamPart = teamName ? ` · 🏢 ${teamName}` : '';
+    const tag = p.is_admin ? '🛡️ Main Admin' + teamPart
+      : (activePerms.length ? `🛡️ Kitchen Admin (${activePerms.join(', ')})` + teamPart
+      : (p.in_team ? 'Member' + teamPart : 'Personal — no team'));
     // Only shown when there's an actual balance (Richard, 16.7. večer) — a CHF 0.00 tag on
     // every personal row read as clutter. Full balance always visible inside Edit.
     const subTag = (p.account_type === 'personal' && Number(p.ai_credit_chf) > 0) ? ` · 💳 CHF ${Number(p.ai_credit_chf).toFixed(2)} AI credit` : '';
