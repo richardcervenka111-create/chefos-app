@@ -145,8 +145,19 @@ def run(url: str, email: str, password: str, headed: bool) -> int:
                 # apostrophe like "Chef's Assistant" don't break the CSS parser.
                 page.locator(".home-tile", has_text=tile).first.click(timeout=8000)
                 page.wait_for_timeout(1200)  # let async loads settle
-                if step["expect_text"]:
-                    page.get_by_text(step["expect_text"], exact=False).first.wait_for(timeout=8000)
+                # "Did the tile actually do something?" — either Home was replaced by another
+                # view, or an overlay/sheet opened on top of it. This replaced a text-match
+                # assertion (run #2 lesson): get_by_text found the tile's own now-hidden Home
+                # label as the FIRST match and waited on that forever, failing 6 healthy tiles.
+                opened = page.wait_for_function(
+                    """() => {
+                        const home = document.getElementById('homeView');
+                        const homeHidden = !home || getComputedStyle(home).display === 'none';
+                        const overlayOpen = !!document.querySelector('.sheet-overlay.open, .modal-backdrop.open, .scan-overlay.open');
+                        return homeHidden || overlayOpen;
+                    }""",
+                    timeout=8000,
+                )
                 if console_errors:
                     failures.append(f"{tile}: JS error(s) — {'; '.join(console_errors[:3])}")
                     print(f"  ✗ {console_errors[0]}")
