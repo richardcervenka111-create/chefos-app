@@ -2,7 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- interactive-widget=resizes-content (Richard, 20.7. — the real fix for the Android keyboard
+     covering .sheet fields, after two JS-only attempts didn't help): without it, Chrome on
+     Android shrinks ONLY window.visualViewport on keyboard open and leaves the LAYOUT viewport
+     untouched, so every vh-based size (.sheet's max-height:80vh) and every position:fixed
+     element (.sheet-overlay's inset:0) stays sized/anchored to the full, keyboard-including
+     screen — the sheet's bottom portion (where Account & Security lives) sits directly behind
+     the keyboard no matter what gets scrolled. This directive (Chrome 108+) makes the browser
+     actually resize the layout viewport itself when the keyboard opens, exactly like iOS
+     Safari already does — every vh unit and fixed-position element in the app reacts correctly
+     with zero extra code. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <!-- Discourage the browser from serving a stale cached copy of this file (bod, 16.7.) — this
      is a single-file app with no build step and no service worker; every deploy is a brand new
      index.html, and a phone browser caching yesterday's copy is genuinely confusing (looked
@@ -14995,32 +15005,20 @@ if(window.visualViewport){
 /* Android keyboard covering the focused field (Richard, 20.7. — photo from the sautero_android
    device: tapped the password field inside My Profile's sheet, on-screen keyboard opened over
    the bottom half of the screen, and the field + Save button were left below it, invisible).
-   First attempt used plain scrollIntoView() — didn't help, because Chrome on Android (no
-   `interactive-widget` viewport directive set) shrinks window.visualViewport on keyboard open
-   but leaves the LAYOUT viewport untouched, so every layout-based API (scrollIntoView,
-   getBoundingClientRect against window.innerHeight) still thinks the full screen is visible —
-   the keyboard is just drawn on top with no signal those APIs react to. iOS Safari resizes the
-   real layout viewport instead, which is why the first fix looked fine there and did nothing
-   on Android. Fix: measure against window.visualViewport.height (the one thing that DOES
-   shrink) and manually scroll the difference, triggered by visualViewport's own resize event
-   (fires exactly when the keyboard finishes animating in — no guessed delay) with a timeout
-   fallback for the case where the keyboard was already open from a previous field. */
+   Two JS-only attempts (plain scrollIntoView, then a manual visualViewport-based scrollBy)
+   both missed the actual cause: .sheet is a position:fixed panel with its OWN internal scroll
+   (max-height:80vh; overflow-y:auto) — scrolling window did nothing, since window was never the
+   scrolling element, and 80vh doesn't shrink on keyboard-open without the interactive-widget
+   meta directive (added above), so the sheet's bottom portion sat directly behind the keyboard
+   regardless of what got scrolled. With that directive in place the layout viewport itself now
+   resizes on Android too (matching iOS), so a plain scrollIntoView on the focused field —
+   scrolling its nearest scrollable ancestor, i.e. the now correctly-sized .sheet — is enough. */
 document.addEventListener('focusin', (e)=>{
   const el = e.target;
   if(!el.matches) return;
   if(!el.matches('input, textarea, select')) return;
   if(!el.closest('.sheet, .sheet-overlay, .box')) return;
-  if(!window.visualViewport){ setTimeout(()=> el.scrollIntoView({ block:'center', behavior:'smooth' }), 300); return; }
-  const margin = 16;
-  const adjust = ()=>{
-    const rect = el.getBoundingClientRect();
-    const vh = window.visualViewport.height;
-    if(rect.bottom > vh - margin) window.scrollBy({ top: rect.bottom - vh + margin, left:0, behavior:'smooth' });
-    else if(rect.top < margin) window.scrollBy({ top: rect.top - margin, left:0, behavior:'smooth' });
-  };
-  const onResize = ()=>{ adjust(); window.visualViewport.removeEventListener('resize', onResize); };
-  window.visualViewport.addEventListener('resize', onResize);
-  setTimeout(()=>{ window.visualViewport.removeEventListener('resize', onResize); adjust(); }, 400);
+  setTimeout(()=> el.scrollIntoView({ block:'nearest', behavior:'smooth' }), 300);
 });
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
