@@ -1793,8 +1793,11 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
         <button class="icon-btn" onclick="openTutorial()" title="How this works">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
-        <button class="icon-btn" onclick="openMyProfileSettings()" title="My Profile">
+        <button class="icon-btn" onclick="openMyProfileSettings()" title="My Profile" style="position:relative;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <!-- Pending company-admin offer indicator (Richard, 21.7.) — a teal dot so the person
+               notices the offer waiting inside their Profile. -->
+          <span id="profileOfferDot" style="display:none; position:absolute; top:1px; right:1px; width:9px; height:9px; border-radius:50%; background:#34F7D7; box-shadow:0 0 0 2px #0A1A2F;"></span>
         </button>
         <!-- Account type badge (bod, 16.7.) — Richard: always visible, not buried in Settings.
              Text itself (not just an icon) on purpose, per his wording. Click reuses the same
@@ -2349,6 +2352,13 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <!-- Read-only account facts (bod 2+3, 16.7.): the signed-in email, and team status — a
          Company account shows its team's name; a Personal account never shows a kitchen name
          (that's how "Join Mr. Woof woof" leaked), just whether they're in a team at all. -->
+    <!-- Pending company-admin OFFER (Richard, 21.7.) — shown only when this user has one; accepting
+         moves them into their new company and pops the name-your-restaurant step. -->
+    <div id="companyOfferBanner" style="display:none; background:rgba(52,247,215,.12); border:1px solid #34F7D7; border-radius:12px; padding:12px 14px; margin-bottom:14px;">
+      <div style="font-weight:700; margin-bottom:4px;">🎉 You've been offered your own company</div>
+      <div style="font-size:13px; opacity:.85; margin-bottom:10px;">You can become the main admin of your own restaurant on Sautero. Accept to set it up and give it a name. Your personal recipes stay private.</div>
+      <button class="save-btn" style="width:100%;" onclick="acceptCompanyOffer()">Accept &amp; set up my restaurant</button>
+    </div>
     <label class="form-label">Signed in as</label>
     <input class="form-field" id="mps_email" type="text" readonly style="opacity:.7;">
     <!-- Personal kitchen name (Richard, 21.7.) — a per-user display label for their own personal
@@ -7094,6 +7104,7 @@ let currentAccountType = null;
 let currentSkipAccountTypeConfirm = false;
 let currentTeamJoinSeen = false;
 let currentInTeam = false;
+let currentPendingCompanyInvite = null;  // a pending company-admin OFFER awaiting this user's accept (db/167)
 let currentAiCreditChf = 0;
 let currentAiTestingMode = false;
 let currentPerformanceConsent = false;
@@ -7564,12 +7575,12 @@ async function startApp(){
   if(!user) return;
   currentUser = user;
 
-  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent, in_team').eq('id', currentUser.id).single();
+  let { data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent, in_team, pending_company_invite').eq('id', currentUser.id).single();
   if(!profile){
     // The profile row is created by a database trigger right as the account is created —
     // on a brand new signup the client can ask before that trigger has finished. One retry.
     await new Promise(res=>setTimeout(res, 800));
-    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent, in_team').eq('id', currentUser.id).single());
+    ({ data: profile } = await sb.from('profiles').select('kitchen_id, is_admin, admin_perms, full_name, account_type, skip_account_type_confirm, team_join_seen, ai_credit_chf, performance_tracking_consent, in_team, pending_company_invite').eq('id', currentUser.id).single());
   }
   currentKitchenId = profile ? profile.kitchen_id : null;
   currentIsAdmin = !!(profile && profile.is_admin);
@@ -7579,6 +7590,7 @@ async function startApp(){
   currentSkipAccountTypeConfirm = !!(profile && profile.skip_account_type_confirm);
   currentTeamJoinSeen = !!(profile && profile.team_join_seen);
   currentInTeam = !!(profile && profile.in_team);
+  currentPendingCompanyInvite = (profile && profile.pending_company_invite) || null;
   currentAiCreditChf = Number((profile && profile.ai_credit_chf) || 0);
   // AI testing-mode kill switch (bod, 16.7. — db/103). Fails OPEN on error like every other
   // gate here — but "open" for THIS particular flag means the normal credit gate stays active,
@@ -7693,6 +7705,7 @@ async function enterApp(){
   document.getElementById('homeView').style.display = 'block';
   renderHomeGrid();
   renderHomeAccountTypeBadge();
+  { const _dot = document.getElementById('profileOfferDot'); if(_dot) _dot.style.display = currentPendingCompanyInvite ? 'block' : 'none'; }
   if(shiftReminderEnabled()) startShiftReminderTicker();
 
   await loadAppData();
@@ -7774,7 +7787,7 @@ async function enterApp(){
       const { data: k } = await sb.from('kitchens').select('name').eq('id', inviteRow.kitchen_id).maybeSingle();
       const kitchenName = (k && k.name) || 'a new kitchen';
       if(confirm(`Richard invited you to become the main admin of "${kitchenName}". Accept? Your account will move to that kitchen.`)){
-        const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id, in_team: true, team_join_seen: true }).eq('id', currentUser.id);
+        const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id, in_team: true, team_join_seen: true, account_type: 'company', pending_company_invite: null }).eq('id', currentUser.id);
         if(moveErr){ alert('Could not accept: ' + moveErr.message); return; }
         const { data: claimed, error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteParam });
         // This invite WAS an admin invite — a silent no-op here is exactly how the protonmail
@@ -9081,6 +9094,8 @@ function openMyProfileSettings(){
   // (their auto-created solo kitchen is an implementation detail, not a "team" — showing its
   // name is exactly how "Mr. Woof woof" leaked to an invitee), only whether they're in a team.
   document.getElementById('mps_email').value = (currentUser && currentUser.email) || '';
+  const _offerBanner = document.getElementById('companyOfferBanner');
+  if(_offerBanner) _offerBanner.style.display = currentPendingCompanyInvite ? 'block' : 'none';
   const teamEl = document.getElementById('mps_team');
   // Team shows if the person is actually in a team — in BOTH modes (Richard, 21.7.: a team member
   // like the gmail account should see their team even while browsing in Personal mode). Someone
@@ -9133,6 +9148,29 @@ function openChangePasswordField(){
 }
 function closeMyProfileSettings(){
   document.getElementById('myProfileSettingsOverlay').classList.remove('open');
+}
+// Accept a pending company-admin offer from inside the Profile (Richard, 21.7.). Mirrors the
+// email ?invite= path: move self into the new company, claim the admin role, clear the pending
+// flag, then reload so the "Name your restaurant" gate greets them.
+async function acceptCompanyOffer(){
+  const inviteId = currentPendingCompanyInvite;
+  if(!inviteId) return;
+  const statusEl = document.getElementById('myProfileSettingsStatus');
+  statusEl.textContent = 'Setting up your restaurant…';
+  const { data: inv } = await sb.from('kitchen_invites').select('kitchen_id').eq('id', inviteId).maybeSingle();
+  if(!inv || !inv.kitchen_id){
+    statusEl.textContent = 'This offer is no longer available.';
+    const { error: clrErr } = await sb.from('profiles').update({ pending_company_invite: null }).eq('id', currentUser.id);
+    if(clrErr) console.error('clear stale company offer failed', clrErr);
+    currentPendingCompanyInvite = null;
+    document.getElementById('companyOfferBanner').style.display = 'none';
+    return;
+  }
+  const { error: mErr } = await sb.from('profiles').update({ kitchen_id: inv.kitchen_id, in_team: true, account_type: 'company', team_join_seen: true, pending_company_invite: null }).eq('id', currentUser.id);
+  if(mErr){ statusEl.textContent = 'Could not accept: ' + mErr.message; return; }
+  await sb.rpc('claim_company_admin', { p_invite: inviteId });  // grants the admin perms server-side
+  currentPendingCompanyInvite = null;
+  location.reload();  // → startApp → the Name-your-restaurant gate (blank company kitchen + company_admin)
 }
 async function saveMyProfileSettings(){
   const statusEl = document.getElementById('myProfileSettingsStatus');
@@ -12216,27 +12254,23 @@ async function saveAdminPermsEdits(){
   // exactly like Add Company. (Richard, 20.7.)
   if(startOnboarding){
     const emailAddr = (t.email || '').trim();
-    statusEl.textContent = 'Setting up their company…';
+    statusEl.textContent = 'Creating their company & sending the offer…';
     const { data: cc, error: ccErr } = await sb.rpc('create_company', { p_name: '', p_email: emailAddr || null });
     const ccRow = Array.isArray(cc) ? cc[0] : cc;
     if(ccErr || !ccRow){ statusEl.textContent = 'Role saved, but could not create their company: ' + (ccErr ? ccErr.message : 'unknown error'); renderEditAdminPermsList(); renderAdminDirectory(); return; }
-    // Put the person into their NEW (blank-named) company RIGHT NOW — no email dependency (Richard,
-    // 20.7. — Resend reported the mails "Delivered" but they never reached the inbox). We only change
-    // their TEAM (kitchen_id → the new company, in_team, company mode); their PERSONAL space is
-    // created_by-scoped, private, and untouched (Richard, 21.7.). Uses the super-admin profile-update
-    // policy (db/164). Next time they open the app the "Name your restaurant" gate greets them and
-    // they name their company — that IS the in-app confirmation.
-    const { data: joined, error: joinErr } = await sb.from('profiles').update({ kitchen_id: ccRow.kitchen_id, in_team: true, account_type: 'company' }).eq('id', t.id).select('id');
-    if(joinErr || !joined || !joined.length){ statusEl.textContent = 'Company created but could not attach the person to it (' + (joinErr ? joinErr.message : 'no rows') + ').'; renderEditAdminPermsList(); renderAdminDirectory(); return; }
-    t.kitchen_id = ccRow.kitchen_id; t.in_team = true; t.account_type = 'company';
-    // Email + backup link are now just a bonus, best-effort — the in-app gate is the real path.
+    // Do NOT move them (Richard, 21.7. — "ako sme sa dohodli"): record a PENDING OFFER on their
+    // profile instead. They accept it themselves — from a banner in their own Profile, or the
+    // welcome email link — and only THEN are they moved into the company + asked to name their
+    // restaurant. Their PERSONAL space is never touched. Uses the super-admin update (db/164).
+    const { data: pend, error: pErr } = await sb.from('profiles').update({ pending_company_invite: ccRow.invite_id }).eq('id', t.id).select('id');
+    if(pErr || !pend || !pend.length){ statusEl.textContent = 'Company created but could not record the offer (' + (pErr ? pErr.message : 'no rows') + ').'; renderEditAdminPermsList(); renderAdminDirectory(); return; }
     const inviteUrl = location.origin + location.pathname + '?invite=' + ccRow.invite_id;
     _lastOnboardingLink = inviteUrl;
     { const cb = document.getElementById('copyOnboardingLinkBtn'); if(cb) cb.style.display = 'block'; }
     let mailErr = null;
     if(emailAddr){ ({ error: mailErr } = await sb.auth.signInWithOtp({ email: emailAddr, options: { shouldCreateUser: true, emailRedirectTo: inviteUrl } })); }
-    statusEl.textContent = 'Done — they are now the main admin of a new company; their personal space is untouched. Next time they open the app they will be asked to name their restaurant (no email needed). '
-      + (emailAddr ? (mailErr ? '(A confirmation email could not be sent.) ' : 'A confirmation email was also sent. ') : '')
+    statusEl.textContent = 'Offer sent. They get a welcome email AND a notification in their own Profile — when they accept, they name their own restaurant. Their personal space stays private & untouched. '
+      + (emailAddr && mailErr ? '(The email could not be sent — use the backup link.) ' : '')
       + 'Backup link below if you want to hand it over yourself.';
     renderEditAdminPermsList();
     renderAdminDirectory();
