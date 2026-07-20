@@ -9123,6 +9123,9 @@ function openMyProfileSettings(){
   document.getElementById('mps_new_password').value = '';
   renderFaceIdSettingsBlock();
   document.getElementById('myProfileSettingsOverlay').classList.add('open');
+  // Always open at the top, not where it was last scrolled (Richard, 21.7.).
+  const _mpsSheet = document.querySelector('#myProfileSettingsOverlay .sheet');
+  if(_mpsSheet) _mpsSheet.scrollTop = 0;
 }
 function openChangePasswordField(){
   document.getElementById('passwordAlreadySetBlock').style.display = 'none';
