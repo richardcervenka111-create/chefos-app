@@ -1723,7 +1723,9 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <p class="lede" id="friendInviteLoginNotice" style="display:none; color:var(--copper); margin-bottom:12px;">🤝 A Sautero chef invited you to join as their friend — sign up below and you'll be connected automatically.</p>
       <label class="form-label" data-i18n="yourEmail">Your email</label>
       <input id="loginEmail" class="form-field" type="email" placeholder="you@restaurant.com" autocomplete="email">
-      <button class="save-btn" style="width:100%;" onclick="sendLoginCode()" data-i18n="sendCode">Send me a code</button>
+      <div id="loginCodeBlock">
+        <button class="save-btn" style="width:100%;" onclick="sendLoginCode()" data-i18n="sendCode">Send me a code</button>
+      </div>
       <p style="text-align:center; margin-top:10px;"><a href="#" onclick="togglePasswordLogin(); return false;" id="passwordLoginToggleLink" style="color:var(--ink-faint); font-size:12px;">Have a password? Sign in with it instead</a></p>
       <div id="loginPasswordBlock" style="display:none; margin-top:8px;">
         <input id="loginPassword" class="form-field" type="password" placeholder="Password" autocomplete="current-password">
@@ -7283,14 +7285,29 @@ function randomChallenge(){
 }
 
 function showLoginFromComingSoon(){
+  // Richard, 20.7.: someone tapping "Already have an account" almost certainly HAS a
+  // password (that's the whole reason they're using this button instead of an ?invite= link
+  // sent to their email) — default straight to the password field instead of making them
+  // tap through the emailed-code flow first. The toggle link still offers the code as a
+  // fallback for anyone who genuinely doesn't have a password set.
   document.getElementById('comingSoonView').style.display = 'none';
   document.getElementById('loginView').style.display = 'block';
+  document.getElementById('loginCodeBlock').style.display = 'none';
+  document.getElementById('loginPasswordBlock').style.display = 'block';
+  document.getElementById('passwordLoginToggleLink').textContent = "Don't have a password? Get a code by email instead";
 }
 function togglePasswordLogin(){
-  const block = document.getElementById('loginPasswordBlock');
-  const isOpen = block.style.display !== 'none';
-  block.style.display = isOpen ? 'none' : 'block';
-  document.getElementById('passwordLoginToggleLink').textContent = isOpen ? 'Have a password? Sign in with it instead' : 'Use the emailed code instead';
+  const codeBlock = document.getElementById('loginCodeBlock');
+  const pwBlock = document.getElementById('loginPasswordBlock');
+  const showingPassword = pwBlock.style.display !== 'none';
+  // Flips whichever is currently showing — works the same regardless of which one
+  // (code-first, the normal default, or password-first, from showLoginFromComingSoon) was
+  // active when the link was tapped.
+  codeBlock.style.display = showingPassword ? 'block' : 'none';
+  pwBlock.style.display = showingPassword ? 'none' : 'block';
+  document.getElementById('passwordLoginToggleLink').textContent = showingPassword
+    ? 'Have a password? Sign in with it instead'
+    : "Don't have a password? Get a code by email instead";
 }
 
 async function signInWithPassword(){
