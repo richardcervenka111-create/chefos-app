@@ -1798,6 +1798,10 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div style="display:flex; align-items:center; justify-content:space-between;">
       <p class="kicker">Food Safety &amp; Compliance</p>
       <div style="display:flex; align-items:center; gap:4px;">
+        <!-- Always in the top bar for allowed accounts (Richard, 19.7.: "vždy v hornej lište"),
+             covering every HACCP checklist category — not just Cleaning like the old real-row
+             seeding did. Same display-only pattern as Events/Working Time/Schedule. -->
+        <button class="task-status-btn" id="haccpDemoToggle" style="display:none;" onclick="toggleHaccpDemo()">🎭 Demo: OFF</button>
         <button class="icon-btn" onclick="openViewTutorial('haccp')" title="How this works">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
@@ -11148,9 +11152,60 @@ function showHACCP(){
   // silently bounced them back to Home. Removed.
   hideAllViews();
   document.getElementById('haccpView').style.display = 'block';
+  const demoBtn = document.getElementById('haccpDemoToggle');
+  // Gated by demoModeAllowed() (19.7.), not admin role — same allowlist as every other toggle.
+  demoBtn.style.display = demoModeAllowed() ? '' : 'none';
+  demoBtn.textContent = _haccpDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  demoBtn.classList.toggle('active', _haccpDemoMode);
   maybeShowViewTutorial('haccp');
   renderHaccpGrid();
   window.scrollTo(0,0);
+}
+let _haccpDemoMode = false;
+function toggleHaccpDemo(){
+  _haccpDemoMode = !_haccpDemoMode;
+  const btn = document.getElementById('haccpDemoToggle');
+  btn.textContent = _haccpDemoMode ? '🎭 Demo: ON' : '🎭 Demo: OFF';
+  btn.classList.toggle('active', _haccpDemoMode);
+  if(document.getElementById('haccpChecklistView').style.display === 'block' && _haccpChecklistCategory){
+    loadHaccpChecklist();
+  }
+}
+/* Illustration-data generator for the HACCP checklist screens (cleaning/hygiene/pest_control).
+   Same display-only pattern as Events/Working Time (Richard, 19.7.: replaces the old
+   seedDemoCleaningChecklistIfEmpty(), which wrote real starter rows into the live table and
+   only ever covered Cleaning — this covers every category and never touches the database). */
+function haccpChecklistDemoData(category){
+  const now = Date.now();
+  const hoursAgo = (h)=> new Date(now - h*3600000).toISOString();
+  const daysAgo = (d)=> new Date(now - d*86400000).toISOString();
+  const pools = {
+    cleaning: [
+      { station:'Hot Line', task:'Wipe down and sanitize all prep surfaces', frequency:'daily', log:{ status:'ok', at:hoursAgo(3), by:'Maria K.' } },
+      { station:'Dish Pit', task:'Sanitize sinks and drain traps', frequency:'daily', log:{ status:'ok', at:hoursAgo(5), by:'Jonas B.' } },
+      { station:'Floors', task:'Sweep and mop all kitchen floors', frequency:'daily', log:null },
+      { station:'Walk-in Fridge', task:'Clean shelves and wipe down interior', frequency:'weekly', log:{ status:'ok', at:daysAgo(2), by:'Maria K.' } },
+      { station:'Kitchen', task:'Deep clean extraction hoods and filters', frequency:'monthly', log:{ status:'issue', at:daysAgo(6), by:'Jonas B.', note:'Filter badly clogged, replacement ordered' } },
+    ],
+    hygiene: [
+      { station:'Handwash Stations', task:'Check soap and paper towels are stocked', frequency:'daily', log:{ status:'ok', at:hoursAgo(2), by:'Maria K.' } },
+      { station:'Front of House', task:'Confirm clean uniforms worn, no visible stains', frequency:'daily', log:null },
+      { station:'Kitchen', task:'Confirm nobody is working while sick or symptomatic', frequency:'daily', log:{ status:'ok', at:hoursAgo(4), by:'Jonas B.' } },
+      { station:'Kitchen', task:'Hair restraints worn, no rings or watches on hands', frequency:'weekly', log:{ status:'ok', at:daysAgo(3), by:'Maria K.' } },
+      { station:'First Aid', task:'First aid kit stocked and in date', frequency:'monthly', log:{ status:'issue', at:daysAgo(10), by:'Jonas B.', note:'Kit needs restocking — plasters and burn gel low' } },
+    ],
+    pest_control: [
+      { station:'Dry Storage', task:'Check glue traps', frequency:'weekly', log:{ status:'ok', at:daysAgo(2), by:'Maria K.' } },
+      { station:'Dish Pit', task:'Check glue traps', frequency:'weekly', log:null },
+      { station:'Delivery Door', task:'Inspect door seals for gaps', frequency:'monthly', log:{ status:'ok', at:daysAgo(9), by:'Jonas B.' } },
+      { station:'Whole Kitchen', task:'External pest control company visit', frequency:'monthly', log:{ status:'issue', at:daysAgo(15), by:'Jonas B.', note:'Technician found droppings near the bin store — follow-up visit booked' } },
+    ],
+  };
+  const pool = pools[category] || [];
+  const items = pool.map((p,i)=>({ id:'demo-'+category+'-'+i, task:p.task, station:p.station, frequency:p.frequency, active:true }));
+  const latestLog = {};
+  pool.forEach((p,i)=>{ if(p.log) latestLog['demo-'+category+'-'+i] = { status:p.log.status, completed_at:p.log.at, completed_by_name:p.log.by, note:p.log.note||null }; });
+  return { items, latestLog };
 }
 function renderHaccpGrid(){
   const wrap = document.getElementById('haccpGrid');
@@ -15480,7 +15535,7 @@ async function openProject(projectId){
 let _newProjectIcon = RECIPE_PROJECT_ICON_CHOICES[0];
 function renderAddProjectIconGrid(){
   document.getElementById('addProjectIconGrid').innerHTML = RECIPE_PROJECT_ICON_CHOICES.map(icon=>`
-    <button class="icon-choice${icon===_newProjectIcon?' active':''}" onclick="pickAddProjectIcon('${icon}')">${icon}</button>
+    <button type="button" class="icon-choice-btn${icon===_newProjectIcon?' active':''}" onclick="pickAddProjectIcon('${icon}')">${icon}</button>
   `).join('');
 }
 function pickAddProjectIcon(icon){ _newProjectIcon = icon; renderAddProjectIconGrid(); }
@@ -22576,28 +22631,14 @@ async function showHaccpChecklist(category){
   await loadHaccpChecklist();
   window.scrollTo(0,0);
 }
-/* Demo starter content (Richard, 18.7.: "treba v ňom vytvoriť cleaning check list ... + pridaj
-   demo") — a kitchen that has NEVER touched the cleaning checklist (zero rows at all, active or
-   not — so a kitchen that deliberately cleared its list never gets silently repopulated) gets a
-   realistic starter set on first visit instead of an empty "no tasks yet" screen. */
-async function seedDemoCleaningChecklistIfEmpty(){
-  const { count } = await sb.from('haccp_checklist_items').select('id', { count:'exact', head:true })
-    .eq('kitchen_id', currentKitchenId).eq('category', 'cleaning');
-  if(count) return;
-  const demo = [
-    { station:'Hot Line', task:'Wipe down and sanitize all prep surfaces', frequency:'daily' },
-    { station:'Dish Pit', task:'Sanitize sinks and drain traps', frequency:'daily' },
-    { station:'Floors', task:'Sweep and mop all kitchen floors', frequency:'daily' },
-    { station:'Walk-in Fridge', task:'Clean shelves and wipe down interior', frequency:'weekly' },
-    { station:'Kitchen', task:'Deep clean extraction hoods and filters', frequency:'monthly' },
-  ];
-  await sb.from('haccp_checklist_items').insert(demo.map(d=>({
-    kitchen_id: currentKitchenId, category:'cleaning', station:d.station, task:d.task,
-    frequency:d.frequency, created_by: currentUser.id
-  })));
-}
 async function loadHaccpChecklist(){
-  if(_haccpChecklistCategory === 'cleaning') await seedDemoCleaningChecklistIfEmpty();
+  if(_haccpDemoMode){
+    const demo = haccpChecklistDemoData(_haccpChecklistCategory);
+    _haccpChecklistItems = demo.items;
+    _haccpChecklistLatestLog = demo.latestLog;
+    renderHaccpChecklist();
+    return;
+  }
   const { data: items } = await sb.from('haccp_checklist_items').select('*')
     .eq('kitchen_id', currentKitchenId).eq('category', _haccpChecklistCategory).eq('active', true)
     .order('station', { ascending:true }).order('task', { ascending:true });
@@ -22627,11 +22668,12 @@ function haccpChecklistItemDue(item){
 }
 function renderHaccpChecklist(){
   const el = document.getElementById('haccpChecklistList');
+  const demoNote = _haccpDemoMode ? '<div class="sheet-text" style="opacity:.65; margin-bottom:8px;">🎭 Illustration data — invented, for demo purposes only.</div>' : '';
   if(!_haccpChecklistItems.length){
-    el.innerHTML = '<div class="empty-state">No tasks yet — tap the pencil above to add the first one.</div>';
+    el.innerHTML = demoNote + '<div class="empty-state">No tasks yet — tap the pencil above to add the first one.</div>';
     return;
   }
-  el.innerHTML = _haccpChecklistItems.map(item => {
+  el.innerHTML = demoNote + _haccpChecklistItems.map(item => {
     const log = _haccpChecklistLatestLog[item.id];
     const due = haccpChecklistItemDue(item);
     // Who checked it off — admin-only (Richard, 18.7.: "admin vidí kto čo odškrtne"), everyone
@@ -22657,6 +22699,7 @@ function renderHaccpChecklist(){
   }).join('');
 }
 async function logHaccpChecklistItem(itemId, status){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to log the real checklist.'); return; }
   let note = null;
   if(status === 'issue'){
     note = prompt("What's the problem? (optional)") || null;
@@ -22670,6 +22713,7 @@ async function logHaccpChecklistItem(itemId, status){
 }
 
 function openHaccpChecklistManage(){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to manage the real checklist.'); return; }
   document.getElementById('hci_task').value = '';
   document.getElementById('hci_station').value = '';
   document.getElementById('hci_frequency').value = 'daily';
