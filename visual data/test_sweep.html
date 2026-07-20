@@ -193,6 +193,7 @@
 const MODULES = [
 { icon:'🔑', title:'Prihlásenie a brány', title_en:'Login & gates', items:[
  {n:'E-mail + jednorazový kód — poslať, prijať, zadať',ne:'Email + one-time code — send, receive, enter',sc:'plan',sp:'plan'},
+ {n:'Appka sa načíta aj keď hlavná CDN zlyhá — má záložnú CDN pre Supabase knižnicu; ak zlyhajú obe, ukáže jasnú hlášku „skontroluj pripojenie + Reload", nie kryptickú chybu (bug 20.7. — Huawei/Chrome úplný lockout, potvrdené a opravené)',ne:'The app loads even if the primary CDN fails — it has a fallback CDN for the Supabase library; if both fail it shows a clear "check your connection + Reload" message, not a cryptic error (bug 20 Jul — Huawei/Chrome total lockout, confirmed and fixed)',a:'both',s:'ok'},
  {n:'Rate-limit pri príliš veľa žiadostiach o kód',ne:'Rate-limit on requesting too many codes',sc:'plan',sp:'plan'},
  {n:'"Mám heslo" prepínač odhalí pole na heslo',ne:'"Have a password" toggle reveals the password field',sc:'plan',sp:'plan'},
  {n:'Prihlásenie e-mail + heslo',ne:'Sign in with email + password',sc:'plan',sp:'plan'},
