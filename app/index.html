@@ -7200,11 +7200,18 @@ async function sendLoginCode(){
   // to join and no way back in. sendInviteByEmail() already got this right for admin-sent
   // invites; the regular self-serve "enter your email" path (used by anyone scanning their own
   // QR) never did. location.href carries the full current URL, query string included.
-  const { error } = await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true, emailRedirectTo: location.href } });
-  if(error){
-    console.error('signInWithOtp error', error);
-    statusEl.textContent = 'Could not send code: ' + friendlyAuthErrorMessage(error);
+  try {
+    const { error } = await withTimeout(sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true, emailRedirectTo: location.href } }), 20000, 'Sending the code');
+    if(error){
+      console.error('signInWithOtp error', error);
+      statusEl.textContent = 'Could not send code: ' + friendlyAuthErrorMessage(error);
+      statusEl.className = 'form-status error';
+      return;
+    }
+  } catch(err){
+    statusEl.textContent = err.message || 'Could not send the code — please try again.';
     statusEl.className = 'form-status error';
+    logClientError('sendLoginCode: ' + (err.message || err));
     return;
   }
   statusEl.textContent = '';
@@ -7310,6 +7317,19 @@ function togglePasswordLogin(){
     : "Don't have a password? Get a code by email instead";
 }
 
+/* Never let an await hang the UI forever (Richard, 20.7. — a fresh Chrome on the Huawei test
+   device left sign-in stuck on "Signing in…" indefinitely: the auth POST never completed and
+   never errored, so the old code below the await never ran and the button never recovered.
+   last_sign_in_at confirmed the request never reached the server, most likely a data-saver
+   proxy on that browser). Any promise that can be blocked by the network gets wrapped so it
+   rejects loudly after `ms` instead of hanging silently — the caller then shows a real,
+   retryable error. */
+function withTimeout(promise, ms, label){
+  return Promise.race([
+    promise,
+    new Promise((_, reject)=> setTimeout(()=> reject(new Error((label || 'This') + ' timed out — check your connection and try again. Some browsers with a data-saver or proxy mode can block sign-in; try turning that off, or use a different browser.')), ms))
+  ]);
+}
 async function signInWithPassword(){
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -7317,13 +7337,19 @@ async function signInWithPassword(){
   if(!email || !password){ statusEl.textContent = 'Enter your email and password.'; statusEl.className='form-status error'; return; }
   statusEl.className = 'form-status';
   statusEl.textContent = 'Signing in…';
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){
-    statusEl.textContent = 'Could not sign in: ' + error.message;
+  try {
+    const { error } = await withTimeout(sb.auth.signInWithPassword({ email, password }), 20000, 'Sign-in');
+    if(error){
+      statusEl.textContent = 'Could not sign in: ' + error.message;
+      statusEl.className = 'form-status error';
+      return;
+    }
+    await startApp();
+  } catch(err){
+    statusEl.textContent = err.message || 'Could not sign in — please try again.';
     statusEl.className = 'form-status error';
-    return;
+    logClientError('signInWithPassword: ' + (err.message || err));
   }
-  await startApp();
 }
 
 async function setAccountPassword(){

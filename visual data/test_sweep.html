@@ -196,6 +196,7 @@ const MODULES = [
  {n:'Rate-limit pri príliš veľa žiadostiach o kód',ne:'Rate-limit on requesting too many codes',sc:'plan',sp:'plan'},
  {n:'"Mám heslo" prepínač odhalí pole na heslo',ne:'"Have a password" toggle reveals the password field',sc:'plan',sp:'plan'},
  {n:'Prihlásenie e-mail + heslo',ne:'Sign in with email + password',sc:'plan',sp:'plan'},
+ {n:'Prihlásenie sa nikdy nezasekne na "Signing in…" — po 20s timeoute ukáže jasnú chybu s návodom (bug 20.7. — čerstvý Chrome s data-saver proxy blokoval auth request, appka nemala žiadny timeout)',ne:'Sign-in never hangs on "Signing in…" — after a 20s timeout it shows a clear, actionable error (bug 20 Jul — a fresh Chrome data-saver proxy blocked the auth request and the app had no timeout)',sc:'test',sp:'test'},
  {n:'"Zabudnuté heslo" odkaz naozaj ponúkne nastaviť nové heslo, nielen prihlási (bug nájdený a opravený 20.7. na sautero_android účte — appka nemala vôbec žiadne správanie pre recovery odkaz)',ne:'"Forgot password" link actually offers to set a new one, not just sign in (bug found and fixed 20 Jul on the sautero_android account — the app had zero handling for a recovery link at all)',sc:'test',sp:'test'},
  {n:'Face ID/Touch ID tlačidlo sa zobrazí len keď existuje',ne:'Face ID/Touch ID button appears only when a device credential exists',sc:'plan',sp:'plan'},
  {n:'Face ID prihlásenie — celý tok',ne:'Face ID sign-in — full flow',sc:'plan',sp:'plan'},
