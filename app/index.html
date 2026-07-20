@@ -14995,16 +14995,32 @@ if(window.visualViewport){
 /* Android keyboard covering the focused field (Richard, 20.7. — photo from the sautero_android
    device: tapped the password field inside My Profile's sheet, on-screen keyboard opened over
    the bottom half of the screen, and the field + Save button were left below it, invisible).
-   Chrome on Android doesn't auto-scroll a focused input above the keyboard the way iOS Safari
-   does — do it ourselves for every text field inside a sheet. The delay lets the keyboard
-   finish animating in first (same 300ms used for chefChatInput below), otherwise the browser's
-   own scroll position hasn't caught up yet and the scrollIntoView undershoots. */
+   First attempt used plain scrollIntoView() — didn't help, because Chrome on Android (no
+   `interactive-widget` viewport directive set) shrinks window.visualViewport on keyboard open
+   but leaves the LAYOUT viewport untouched, so every layout-based API (scrollIntoView,
+   getBoundingClientRect against window.innerHeight) still thinks the full screen is visible —
+   the keyboard is just drawn on top with no signal those APIs react to. iOS Safari resizes the
+   real layout viewport instead, which is why the first fix looked fine there and did nothing
+   on Android. Fix: measure against window.visualViewport.height (the one thing that DOES
+   shrink) and manually scroll the difference, triggered by visualViewport's own resize event
+   (fires exactly when the keyboard finishes animating in — no guessed delay) with a timeout
+   fallback for the case where the keyboard was already open from a previous field. */
 document.addEventListener('focusin', (e)=>{
   const el = e.target;
   if(!el.matches) return;
   if(!el.matches('input, textarea, select')) return;
   if(!el.closest('.sheet, .sheet-overlay, .box')) return;
-  setTimeout(()=> el.scrollIntoView({ block:'center', behavior:'smooth' }), 300);
+  if(!window.visualViewport){ setTimeout(()=> el.scrollIntoView({ block:'center', behavior:'smooth' }), 300); return; }
+  const margin = 16;
+  const adjust = ()=>{
+    const rect = el.getBoundingClientRect();
+    const vh = window.visualViewport.height;
+    if(rect.bottom > vh - margin) window.scrollBy({ top: rect.bottom - vh + margin, left:0, behavior:'smooth' });
+    else if(rect.top < margin) window.scrollBy({ top: rect.top - margin, left:0, behavior:'smooth' });
+  };
+  const onResize = ()=>{ adjust(); window.visualViewport.removeEventListener('resize', onResize); };
+  window.visualViewport.addEventListener('resize', onResize);
+  setTimeout(()=>{ window.visualViewport.removeEventListener('resize', onResize); adjust(); }, 400);
 });
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
