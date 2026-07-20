@@ -12002,7 +12002,7 @@ async function showAdminDirectory(){
   document.getElementById('adminDirectorySearch').value = '';
   document.getElementById('adminDirectoryList').innerHTML = '<p class="lede">Loading…</p>';
   window.scrollTo(0,0);
-  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms, account_type, ai_credit_chf, ai_credit_ever_topped_up, kitchen_id').order('email');
+  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms, account_type, ai_credit_chf, ai_credit_ever_topped_up, kitchen_id, in_team').order('email');
   if(error){ document.getElementById('adminDirectoryList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   _adminDirectoryRows = data || [];
   renderAdminDirectory();
@@ -12185,7 +12185,11 @@ async function saveAdminPermsEdits(){
   // flip the flag — we onboard them like Add Company (email invite → they name their own kitchen).
   const wasCompanyAdmin = !!(t.admin_perms || {}).company_admin;
   const nowCompanyAdmin = !!d.perms.company_admin;
-  const startOnboarding = nowCompanyAdmin && !wasCompanyAdmin && !t.kitchen_id;
+  // Onboard when Company Admin is freshly granted to someone NOT yet in a team (Richard, 21.7. —
+  // "účet, ktorý nie je členom žiadneho tímu"). Everyone auto-gets a personal kitchen, so "no
+  // kitchen" was the wrong test; the real signal is "not in a company/team yet". Their PERSONAL
+  // space is created_by-scoped and stays private + untouched — we only give them a new team.
+  const startOnboarding = nowCompanyAdmin && !wasCompanyAdmin && !t.in_team;
   // Strong confirm only for the super-admin bit, fired once at the real commit.
   if(adminChanged && d.is_admin && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
   if(adminChanged && !d.is_admin && !confirm(`Remove Head Admin from ${name}?`)) return;
@@ -12212,24 +12216,26 @@ async function saveAdminPermsEdits(){
   // exactly like Add Company. (Richard, 20.7.)
   if(startOnboarding){
     const emailAddr = (t.email || '').trim();
-    statusEl.textContent = 'Setting up their own kitchen…';
+    statusEl.textContent = 'Setting up their company…';
     const { data: cc, error: ccErr } = await sb.rpc('create_company', { p_name: '', p_email: emailAddr || null });
     const ccRow = Array.isArray(cc) ? cc[0] : cc;
-    if(ccErr || !ccRow){ statusEl.textContent = 'Role saved, but could not create their kitchen: ' + (ccErr ? ccErr.message : 'unknown error'); renderEditAdminPermsList(); renderAdminDirectory(); return; }
-    // Attach the new (blank-named) kitchen to the user RIGHT NOW — no email dependency (Richard,
-    // 20.7. — Resend reported the mails "Delivered" but they never reached the inbox). Uses the
-    // super-admin profile-update policy (db/164). Next time they open the app the "Name your
-    // restaurant" gate greets them and activates their kitchen — that IS the in-app confirmation.
-    const { data: joined, error: joinErr } = await sb.from('profiles').update({ kitchen_id: ccRow.kitchen_id, in_team: true }).eq('id', t.id).select('id');
-    if(joinErr || !joined || !joined.length){ statusEl.textContent = 'Kitchen created but could not attach it to them (' + (joinErr ? joinErr.message : 'no rows') + ').'; renderEditAdminPermsList(); renderAdminDirectory(); return; }
-    t.kitchen_id = ccRow.kitchen_id;
+    if(ccErr || !ccRow){ statusEl.textContent = 'Role saved, but could not create their company: ' + (ccErr ? ccErr.message : 'unknown error'); renderEditAdminPermsList(); renderAdminDirectory(); return; }
+    // Put the person into their NEW (blank-named) company RIGHT NOW — no email dependency (Richard,
+    // 20.7. — Resend reported the mails "Delivered" but they never reached the inbox). We only change
+    // their TEAM (kitchen_id → the new company, in_team, company mode); their PERSONAL space is
+    // created_by-scoped, private, and untouched (Richard, 21.7.). Uses the super-admin profile-update
+    // policy (db/164). Next time they open the app the "Name your restaurant" gate greets them and
+    // they name their company — that IS the in-app confirmation.
+    const { data: joined, error: joinErr } = await sb.from('profiles').update({ kitchen_id: ccRow.kitchen_id, in_team: true, account_type: 'company' }).eq('id', t.id).select('id');
+    if(joinErr || !joined || !joined.length){ statusEl.textContent = 'Company created but could not attach the person to it (' + (joinErr ? joinErr.message : 'no rows') + ').'; renderEditAdminPermsList(); renderAdminDirectory(); return; }
+    t.kitchen_id = ccRow.kitchen_id; t.in_team = true; t.account_type = 'company';
     // Email + backup link are now just a bonus, best-effort — the in-app gate is the real path.
     const inviteUrl = location.origin + location.pathname + '?invite=' + ccRow.invite_id;
     _lastOnboardingLink = inviteUrl;
     { const cb = document.getElementById('copyOnboardingLinkBtn'); if(cb) cb.style.display = 'block'; }
     let mailErr = null;
     if(emailAddr){ ({ error: mailErr } = await sb.auth.signInWithOtp({ email: emailAddr, options: { shouldCreateUser: true, emailRedirectTo: inviteUrl } })); }
-    statusEl.textContent = 'Done — they are set up as the main admin of their own kitchen. Next time they open the app they will be asked to name their restaurant (no email needed). '
+    statusEl.textContent = 'Done — they are now the main admin of a new company; their personal space is untouched. Next time they open the app they will be asked to name their restaurant (no email needed). '
       + (emailAddr ? (mailErr ? '(A confirmation email could not be sent.) ' : 'A confirmation email was also sent. ') : '')
       + 'Backup link below if you want to hand it over yourself.';
     renderEditAdminPermsList();
