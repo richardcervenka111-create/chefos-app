@@ -4526,6 +4526,19 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 </button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Fallback CDN for the Supabase library (Richard, 20.7. — confirmed root cause of a total
+     lockout on his Huawei/Chrome device: jsdelivr failed to deliver supabase-js while Firefox
+     Klar loaded it fine, so `supabase` was undefined, `const sb = supabase.createClient(...)`
+     threw during load, and everything downstream — the login itself, the language dropdown —
+     silently died with a cryptic "Cannot access 'sb' before initialization"). A single-CDN
+     dependency for the ONE library the whole app needs is a single point of failure; this
+     document.write runs synchronously during parse (before the main app script below) and
+     pulls the same library from a second CDN only if the first didn't deliver. -->
+<script>
+  if (!window.supabase) {
+    document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+  }
+</script>
 <!-- jsQR (Scan QR, Connections hub, bod 6) — decodes camera frames entirely client-side, MIT
      license, https://github.com/cozmo/jsQR. Loaded from CDN rather than vendored inline like
      the QR generator below: at ~130KB minified it would badly bloat this file, and unlike
@@ -6839,6 +6852,21 @@ var qrcode = function() {
    URL and this "publishable" key are meant to be public/client-side —
    safe to have visible in this file. Never put the "service_role" key here.
    ============================================================ */
+/* Last-resort guard (Richard, 20.7.): if BOTH CDNs above failed to deliver the Supabase
+   library, `supabase` is undefined and the next line would throw during load, leaving `sb`
+   permanently in its temporal dead zone — every later access ("Cannot access 'sb' before
+   initialization") and a half-dead page (empty language dropdown, dead login) with no
+   explanation. Show a plain, friendly full-screen message with a Reload button instead, and
+   stop cleanly. This only ever triggers when the network genuinely couldn't reach either CDN. */
+if (!window.supabase) {
+  document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;background:#0A1A2F;color:#E8EEF5;">'
+    + '<div style="max-width:340px;"><div style="font-size:40px;margin-bottom:12px;">📶</div>'
+    + '<h1 style="font-size:19px;margin:0 0 10px 0;">Couldn\'t finish loading</h1>'
+    + '<p style="font-size:14.5px;line-height:1.5;color:#9FB2C6;margin:0 0 20px 0;">Sautero couldn\'t load a component it needs — this is almost always a weak or blocked connection. Check your internet and try again.</p>'
+    + '<button onclick="location.reload()" style="background:#34F7D7;color:#0A1A2F;border:none;border-radius:10px;padding:13px 22px;font-size:15px;font-weight:600;font-family:inherit;">Reload</button>'
+    + '</div></div>';
+  throw new Error('Sautero: the Supabase library failed to load from both CDNs — cannot start.');
+}
 const SUPABASE_URL = 'https://azkhyorqnwvaugaomjvh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
 /* Switched back to localStorage (bod 3, 16.7. — was sessionStorage from 15.7., see git history
