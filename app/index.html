@@ -14998,13 +14998,14 @@ new MutationObserver((muts)=>{
     if(wasOpen && !isOpen){
       _ghostClickGuardUntil = Date.now() + 450;
       _openOverlayCount = Math.max(0, _openOverlayCount - 1);
-      // Undo any keyboard lift (_liftOpenSheetsAboveKeyboard below) — a closed overlay no
-      // longer matches its `.open` selector, so the lift's own reset would never reach it and
-      // the inline offset would still be there the next time this sheet opens.
+      // Undo any keyboard adjustment (_adjustOpenSheetsForKeyboard below) — a closed overlay
+      // no longer matches its `.open` selector, so the adjuster's own reset would never reach
+      // it and the inline offset/pin would still be there the next time this sheet opens.
       if(el.classList.contains('sheet-overlay')){
         el.style.bottom = '';
+        el.style.alignItems = '';
         const sheet = el.querySelector('.sheet');
-        if(sheet) sheet.style.maxHeight = '';
+        if(sheet){ sheet.style.maxHeight = ''; sheet.style.borderRadius = ''; }
       }
       if(_openOverlayCount === 0){
         const y = _preOverlayScrollY;
@@ -15038,44 +15039,71 @@ if(window.visualViewport){
   });
 }
 /* Android keyboard covering the focused field (Richard, 20.7. — the sautero_android device;
-   FOUR attempts, each verified against his next photo/video). The real environment, visible in
-   his screen recording: it's not Chrome at all — it's the Huawei Browser (purple address bar,
-   shield + trash icons), built on an older Chromium that ignores the interactive-widget
-   viewport directive added above (that directive stays: it's the correct native fix for
-   Chrome 108+ and costs nothing elsewhere). Root geometry problem, same on every non-resizing
-   browser: .sheet-overlay is position:fixed inset:0 sized to the LAYOUT viewport, which never
-   shrinks when the keyboard opens — its flex-end alignment pins the sheet to the true bottom
-   of the screen, i.e. directly behind the keyboard.
+   FIVE attempts, each verified against his next photo/video, because each fix assumed a
+   viewport signal his actual browser turned out not to give. The browser is Firefox Klar
+   (Gecko, not Chromium): it ignores the interactive-widget viewport directive (attempt 3,
+   kept above — correct native fix for Chrome 108+), and on Gecko/Android neither innerHeight
+   nor visualViewport.height reliably shrink when the keyboard opens — the keyboard just draws
+   over the page with NO signal at all, so both measuring attempts (2 and 4) computed a 0px
+   keyboard and did nothing. Root geometry problem underneath: .sheet-overlay is
+   position:fixed inset:0 with flex-end alignment, pinning the sheet to the true bottom of the
+   screen — directly behind any overlaid keyboard.
 
-   Universal JS fallback: window.visualViewport.height DOES shrink on every Chromium since 61,
-   including Huawei Browser. On every visualViewport resize, measure the keyboard as
-   (innerHeight − vv.height − vv.offsetTop) and lift every OPEN sheet-overlay by exactly that
-   much (style.bottom), capping the sheet's own max-height to the space that's genuinely
-   visible. On browsers where interactive-widget already works (iOS, real Chrome 108+),
-   innerHeight shrinks along with vv.height, the measured keyboard is 0, and this whole branch
-   is a no-op — no double-compensation. */
-function _liftOpenSheetsAboveKeyboard(){
-  if(!window.visualViewport) return;
+   Final strategy, layered by what the browser actually reports while an input inside a sheet
+   is focused:
+   1. visualViewport shrank (Chromium incl. Huawei Browser) → lift the sheet by the measured
+      keyboard height. Exact.
+   2. innerHeight shrank vs. the session's maximum (browsers that resize the layout viewport;
+      also Chrome 108+ with resizes-content) → the overlay already sits above the keyboard;
+      just cap the sheet's height to the shrunken viewport (vh units may not have shrunk).
+   3. NO signal at all (Firefox Klar) + Android user agent → pin the open sheet to the TOP
+      half of the screen (flex-start + max-height 45vh) — the one region no soft keyboard can
+      ever cover, with no measurement needed. Restored the moment the field loses focus.
+   iOS is untouched: Safari resizes the layout viewport natively (case 2's no-op end) and the
+   user agent guard keeps case 3 Android-only. */
+let _maxInnerH = window.innerHeight;
+window.addEventListener('resize', ()=>{ if(window.innerHeight > _maxInnerH) _maxInnerH = window.innerHeight; });
+function _sheetKeyboardMode(){
   const vv = window.visualViewport;
-  const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  const vvKb = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+  if(vvKb > 60) return { mode:'lift', kb: vvKb, visible: vv.height };
+  if(window.innerHeight < _maxInnerH - 100) return { mode:'shrunk', visible: window.innerHeight };
+  const focused = document.activeElement;
+  const typingInSheet = focused && focused.matches && focused.matches('input, textarea, select') && focused.closest('.sheet-overlay.open');
+  if(typingInSheet && /Android/i.test(navigator.userAgent)) return { mode:'pin-top' };
+  return { mode:'none' };
+}
+function _adjustOpenSheetsForKeyboard(){
+  const st = _sheetKeyboardMode();
   document.querySelectorAll('.sheet-overlay.open').forEach(ov=>{
-    ov.style.bottom = kb > 0 ? kb + 'px' : '';
     const sheet = ov.querySelector('.sheet');
-    if(sheet) sheet.style.maxHeight = kb > 0 ? Math.round(vv.height * 0.92) + 'px' : '';
+    ov.style.bottom = st.mode === 'lift' ? st.kb + 'px' : '';
+    ov.style.alignItems = st.mode === 'pin-top' ? 'flex-start' : '';
+    if(sheet){
+      sheet.style.maxHeight = st.mode === 'lift' || st.mode === 'shrunk' ? Math.round(st.visible * 0.92) + 'px'
+        : st.mode === 'pin-top' ? '45vh' : '';
+      sheet.style.borderRadius = st.mode === 'pin-top' ? '0 0 18px 18px' : '';
+    }
   });
 }
 if(window.visualViewport){
-  window.visualViewport.addEventListener('resize', _liftOpenSheetsAboveKeyboard);
-  window.visualViewport.addEventListener('scroll', _liftOpenSheetsAboveKeyboard);
+  window.visualViewport.addEventListener('resize', _adjustOpenSheetsForKeyboard);
+  window.visualViewport.addEventListener('scroll', _adjustOpenSheetsForKeyboard);
 }
+window.addEventListener('resize', _adjustOpenSheetsForKeyboard);
 document.addEventListener('focusin', (e)=>{
   const el = e.target;
   if(!el.matches) return;
   if(!el.matches('input, textarea, select')) return;
   if(!el.closest('.sheet, .sheet-overlay, .box')) return;
-  // Covers the keyboard-already-open case (tapping a second field fires no vv resize), and
-  // scrolls the field into view within the sheet's own scroll area once it's been lifted.
-  setTimeout(()=>{ _liftOpenSheetsAboveKeyboard(); el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }, 300);
+  // The 300ms delay lets the keyboard finish animating in before measuring; also covers the
+  // keyboard-already-open case (tapping a second field fires no viewport event at all).
+  setTimeout(()=>{ _adjustOpenSheetsForKeyboard(); el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }, 300);
+});
+document.addEventListener('focusout', ()=>{
+  // Wait for focus to settle — tapping from one field straight into another must not flash
+  // the sheet back to the bottom in between.
+  setTimeout(_adjustOpenSheetsForKeyboard, 150);
 });
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
