@@ -2638,6 +2638,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     </div>
     <div id="editAdminPermsList"></div>
     <div class="form-status" id="editAdminPermsStatus"></div>
+    <button class="add-row-btn" id="copyOnboardingLinkBtn" style="width:100%; margin-top:8px; display:none;" onclick="copyOnboardingLink()">🔗 Copy onboarding link (backup)</button>
     <button class="save-btn" id="editAdminPermsSaveBtn" style="width:100%; margin-top:10px; opacity:.5;" onclick="saveAdminPermsEdits()" disabled>Saved — no changes</button>
     <button class="sheet-cancel" style="margin-top:8px;" onclick="closeEditAdminPerms()">Close</button>
   </div>
@@ -12027,6 +12028,9 @@ let _editAdminPermsTarget = null;
 // and preset used to write straight to the DB. Now they only mutate this draft; nothing reaches
 // the server until "Save changes". { perms:{...}, is_admin:bool }.
 let _editAdminPermsDraft = null;
+// Backup onboarding invite link for the last company-admin onboarding — surfaced via a Copy
+// button so onboarding never hard-depends on the email actually being delivered.
+let _lastOnboardingLink = null;
 /* Quick presets inside the editor (Richard, 17.7.: Add Admin tile merged into the Directory). */
 function grantPresetFromEditor(kind){
   if(!_editAdminPermsDraft) return;
@@ -12049,6 +12053,8 @@ function openEditAdminPerms(userId){
   _editAdminPermsDraft = { perms: { ...(_editAdminPermsTarget.admin_perms || {}) }, is_admin: !!_editAdminPermsTarget.is_admin };
   document.getElementById('editAdminPermsName').textContent = _editAdminPermsTarget.full_name || _editAdminPermsTarget.email || 'Unknown';
   document.getElementById('editAdminPermsStatus').textContent = '';
+  _lastOnboardingLink = null;
+  { const cb = document.getElementById('copyOnboardingLinkBtn'); if(cb) cb.style.display = 'none'; }
   renderEditAdminPermsList();
   document.getElementById('editAdminPermsOverlay').classList.add('open');
 }
@@ -12067,6 +12073,15 @@ function closeEditAdminPerms(){
   document.getElementById('editAdminPermsOverlay').classList.remove('open');
   _editAdminPermsTarget = null;
   _editAdminPermsDraft = null;
+  _lastOnboardingLink = null;
+  { const cb = document.getElementById('copyOnboardingLinkBtn'); if(cb) cb.style.display = 'none'; }
+}
+function copyOnboardingLink(){
+  if(!_lastOnboardingLink) return;
+  const statusEl = document.getElementById('editAdminPermsStatus');
+  navigator.clipboard.writeText(_lastOnboardingLink)
+    .then(()=>{ if(statusEl) statusEl.textContent = 'Onboarding link copied — send it to them any way you like. One click and they name their own restaurant.'; })
+    .catch(()=>{ if(statusEl) statusEl.textContent = 'Copy failed — link: ' + _lastOnboardingLink; });
 }
 function renderEditAdminPermsList(){
   const el = document.getElementById('editAdminPermsList');
@@ -12188,9 +12203,15 @@ async function saveAdminPermsEdits(){
     if(ccErr || !ccRow){ statusEl.textContent = 'Role saved, but could not start onboarding: ' + (ccErr ? ccErr.message : 'unknown error'); renderEditAdminPermsList(); renderAdminDirectory(); return; }
     const inviteUrl = location.origin + location.pathname + '?invite=' + ccRow.invite_id;
     const { error: mailErr } = await sb.auth.signInWithOtp({ email: emailAddr, options: { shouldCreateUser: true, emailRedirectTo: inviteUrl } });
-    statusEl.textContent = mailErr
-      ? '⚠️ Role saved + kitchen created, but the email failed (' + friendlyAuthErrorMessage(mailErr) + '). Send them this link: ' + inviteUrl
-      : `Saved. Onboarding email sent to ${emailAddr} — one click and they'll name their own restaurant.`;
+    _lastOnboardingLink = inviteUrl;  // for the Copy button rendered below the status
+    { const cb = document.getElementById('copyOnboardingLinkBtn'); if(cb) cb.style.display = 'block'; }
+    // ALWAYS surface the link, not just on a reported failure — email delivery (Resend/DNS) can
+    // drop a message even when Supabase reports the send as OK, so the onboarding must never
+    // hard-depend on the email arriving. Same principle as Add Company always showing its link.
+    statusEl.textContent = (mailErr
+      ? '⚠️ Role saved + kitchen created, but the email could not be sent (' + friendlyAuthErrorMessage(mailErr) + ').'
+      : `Saved. Onboarding email sent to ${emailAddr}.`)
+      + ' Backup link below works even if the email never arrives — send it to them by hand.';
     renderEditAdminPermsList();
     renderAdminDirectory();
     return;
