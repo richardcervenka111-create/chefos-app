@@ -14992,6 +14992,20 @@ if(window.visualViewport){
     _lastVvH = h;
   });
 }
+/* Android keyboard covering the focused field (Richard, 20.7. — photo from the sautero_android
+   device: tapped the password field inside My Profile's sheet, on-screen keyboard opened over
+   the bottom half of the screen, and the field + Save button were left below it, invisible).
+   Chrome on Android doesn't auto-scroll a focused input above the keyboard the way iOS Safari
+   does — do it ourselves for every text field inside a sheet. The delay lets the keyboard
+   finish animating in first (same 300ms used for chefChatInput below), otherwise the browser's
+   own scroll position hasn't caught up yet and the scrollIntoView undershoots. */
+document.addEventListener('focusin', (e)=>{
+  const el = e.target;
+  if(!el.matches) return;
+  if(!el.matches('input, textarea, select')) return;
+  if(!el.closest('.sheet, .sheet-overlay, .box')) return;
+  setTimeout(()=> el.scrollIntoView({ block:'center', behavior:'smooth' }), 300);
+});
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
 function openItemContextMenu(type, id, name, hidden, shared){
