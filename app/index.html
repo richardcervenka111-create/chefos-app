@@ -22353,7 +22353,44 @@ async function showFridges(){
   window.scrollTo(0,0);
 }
 
+/* Illustration data for Fridge Temp (Richard, 20.7.: "pridaj všetky dlaždice" — extends the
+   19.7. HACCP demo pattern beyond the checklist screens). Same display-only rules: nothing is
+   ever written to fridges/fridge_logs while Demo is on. */
+function haccpFridgesDemoData(){
+  const now = Date.now();
+  const hoursAgo = (h)=> new Date(now - h*3600000).toISOString();
+  const daysAgo = (d)=> new Date(now - d*86400000).toISOString();
+  const fridges = [
+    { id:'demo-fridge-0', name:'Walk-in Fridge', target_min:0, target_max:4 },
+    { id:'demo-fridge-1', name:'Reach-in 1', target_min:0, target_max:4 },
+    { id:'demo-fridge-2', name:'Freezer', target_min:-22, target_max:-18 },
+  ];
+  const logs = {
+    'demo-fridge-0': [
+      { temperature_c:3.2, checked_at:hoursAgo(2) },
+      { temperature_c:3.5, checked_at:hoursAgo(10) },
+      { temperature_c:3.1, checked_at:daysAgo(1) },
+    ],
+    'demo-fridge-1': [
+      { temperature_c:6.8, checked_at:hoursAgo(1) },
+      { temperature_c:3.9, checked_at:hoursAgo(9) },
+      { temperature_c:3.6, checked_at:daysAgo(1) },
+    ],
+    'demo-fridge-2': [
+      { temperature_c:-19.5, checked_at:hoursAgo(3) },
+      { temperature_c:-20.1, checked_at:daysAgo(1) },
+    ],
+  };
+  return { fridges, logs };
+}
 async function loadFridges(){
+  if(_haccpDemoMode){
+    const demo = haccpFridgesDemoData();
+    _fridges = demo.fridges;
+    _fridgeLogs = demo.logs;
+    renderFridges();
+    return;
+  }
   setFridgesStatus('saving');
   const { data: fridges, error } = await sb.from('fridges').select('*').eq('kitchen_id', currentKitchenId).order('created_at');
   if(error){ setFridgesStatus('offline'); return; }
@@ -22380,11 +22417,12 @@ function fridgeStatus(fridge){
 
 function renderFridges(){
   const container = document.getElementById('fridgesContainer');
+  const demoNote = _haccpDemoMode ? '<div class="sheet-text" style="opacity:.65; margin-bottom:8px;">🎭 Illustration data — invented, for demo purposes only.</div>' : '';
   if(_fridges.length === 0){
-    container.innerHTML = '<div class="empty-state">No fridges or freezers added yet — tap below to add your first one.</div>';
+    container.innerHTML = demoNote + '<div class="empty-state">No fridges or freezers added yet — tap below to add your first one.</div>';
     return;
   }
-  container.innerHTML = _fridges.map((f, idx)=>{
+  container.innerHTML = demoNote + _fridges.map((f, idx)=>{
     const { cls, latest } = fridgeStatus(f);
     const range = (f.target_min != null && f.target_max != null) ? `Target ${f.target_min}–${f.target_max}°C` : 'No target set';
     return `
@@ -22409,6 +22447,7 @@ function showFridgeLog(idx){
   el.innerHTML = `
     <h2 class="recipe-title display">${f.name}</h2>
     <div class="recipe-meta">${range}</div>
+    ${_haccpDemoMode ? '<div class="sheet-text" style="opacity:.65; margin-top:6px;">🎭 Illustration data — invented, for demo purposes only.</div>' : ''}
 
     <label class="form-label">Log a new reading</label>
     <div class="staff-add-row">
@@ -22430,6 +22469,7 @@ function showFridgeLog(idx){
 }
 
 async function logFridgeReading(){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to log a real reading.'); return; }
   const input = document.getElementById('newFridgeTemp');
   const val = parseFloat(input.value);
   if(isNaN(val)){ alert('Enter a temperature first.'); return; }
@@ -22445,11 +22485,13 @@ async function logFridgeReading(){
 }
 
 function showAddFridgeForm(){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to add a real fridge.'); return; }
   fridgeEditingId = null;
   renderFridgeForm({ name:'', target_min:'', target_max:'' });
 }
 
 function showEditFridgeForm(){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to edit a real fridge.'); return; }
   const f = _fridges[currentFridgeIdx];
   fridgeEditingId = f.id;
   renderFridgeForm({ name: f.name, target_min: f.target_min != null ? f.target_min : '', target_max: f.target_max != null ? f.target_max : '' });
@@ -22563,7 +22605,43 @@ function setHaccpMeasurementStatusChoice(status){
   document.getElementById('hm_status_ok').classList.toggle('active', status==='ok');
   document.getElementById('hm_status_issue').classList.toggle('active', status==='issue');
 }
+/* Illustration data for the reading-log screens (Richard, 20.7. — extends the 19.7. HACCP demo
+   pattern to every tile, not just the checklists). One small pool per type, same display-only
+   rules as everywhere else: nothing written to haccp_measurement_log while Demo is on. */
+function haccpMeasurementDemoData(type){
+  const now = Date.now();
+  const hoursAgo = (h)=> new Date(now - h*3600000).toISOString();
+  const pools = {
+    goods_receiving: [
+      { label:'Chicken – Metro', value:3.8, status:'ok', note:null, at:hoursAgo(2) },
+      { label:'Fish – Bianchi', value:2.1, status:'ok', note:null, at:hoursAgo(5) },
+      { label:'Frozen veg – Prodega', value:-19, status:'ok', note:null, at:hoursAgo(8) },
+      { label:'Dairy – Emmi', value:6.5, status:'issue', note:'Too warm on arrival, rejected — redelivered next day', at:hoursAgo(26) },
+    ],
+    core_cooking: [
+      { label:'Roast chicken', value:78, status:'ok', note:null, at:hoursAgo(3) },
+      { label:'Beef burger', value:71, status:'ok', note:null, at:hoursAgo(6) },
+      { label:'Pork tenderloin', value:74, status:'ok', note:null, at:hoursAgo(9) },
+      { label:'Fish fillet', value:61, status:'issue', note:'Under temp, returned to heat and re-checked', at:hoursAgo(30) },
+    ],
+    cooling: [
+      { label:'Bolognese sauce', value:8, status:'ok', note:'Within 2 hours', at:hoursAgo(4) },
+      { label:'Vegetable soup', value:9, status:'ok', note:'Within 2 hours', at:hoursAgo(11) },
+      { label:'Rice', value:14, status:'issue', note:'Cooled too slowly — discarded', at:hoursAgo(28) },
+    ],
+    fryer_oil: [
+      { label:'Fryer 1', value:null, status:'ok', note:'Clear, no foaming', at:hoursAgo(5) },
+      { label:'Fryer 2', value:null, status:'issue', note:'Dark colour and smell — oil changed', at:hoursAgo(24) },
+    ],
+  };
+  const cfg = HACCP_MEASUREMENT_CONFIG[type];
+  return (pools[type]||[]).map(e=>({
+    status:e.status, label:e.label, value_numeric:e.value, value_unit: e.value!=null ? (cfg.unit||null) : null,
+    note:e.note, logged_at:e.at
+  }));
+}
 async function saveHaccpMeasurement(){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to log a real entry.'); return; }
   const label = document.getElementById('hm_label').value.trim();
   const valueRaw = document.getElementById('hm_value').value;
   const note = document.getElementById('hm_note').value.trim();
@@ -22590,6 +22668,11 @@ async function saveHaccpMeasurement(){
   await loadHaccpMeasurementLog();
 }
 async function loadHaccpMeasurementLog(){
+  if(_haccpDemoMode){
+    _haccpMeasurementEntries = haccpMeasurementDemoData(_haccpMeasurementType);
+    renderHaccpMeasurementLog();
+    return;
+  }
   const { data } = await sb.from('haccp_measurement_log').select('*')
     .eq('kitchen_id', currentKitchenId).eq('type', _haccpMeasurementType)
     .order('logged_at', { ascending:false }).limit(30);
@@ -22598,8 +22681,9 @@ async function loadHaccpMeasurementLog(){
 }
 function renderHaccpMeasurementLog(){
   const el = document.getElementById('haccpMeasurementList');
-  if(!_haccpMeasurementEntries.length){ el.innerHTML = '<div class="empty-state">No entries yet.</div>'; return; }
-  el.innerHTML = _haccpMeasurementEntries.map(e => `
+  const demoNote = _haccpDemoMode ? '<div class="sheet-text" style="opacity:.65; margin-bottom:8px;">🎭 Illustration data — invented, for demo purposes only.</div>' : '';
+  if(!_haccpMeasurementEntries.length){ el.innerHTML = demoNote + '<div class="empty-state">No entries yet.</div>'; return; }
+  el.innerHTML = demoNote + _haccpMeasurementEntries.map(e => `
     <div class="fridge-log-row">
       <span>${e.status==='issue' ? '⚠️' : '✅'} ${(e.label||'').replace(/</g,'&lt;')}${e.value_numeric!=null ? ' — ' + e.value_numeric + (e.value_unit||'') : ''}${e.note ? ' · ' + e.note.replace(/</g,'&lt;') : ''}</span>
       <span class="temp${e.status==='issue' ? ' warn' : ''}">${new Date(e.logged_at).toLocaleString()}</span>
@@ -23007,7 +23091,29 @@ async function showLabelExpiry(){
   window.scrollTo(0,0);
 }
 
+/* Illustration data for Label Expiry (Richard, 20.7. — extends the 19.7. HACCP demo pattern to
+   every tile). Covers all four buckets (expired/soon/ok/no-date) so the grouping is visible at
+   a glance. Nothing written to print_label_log while Demo is on. */
+function haccpLabelExpiryDemoData(){
+  const ymd = (d)=> new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(d);
+  const daysFromNow = (n)=>{ const d = new Date(); d.setDate(d.getDate()+n); return ymd(d); };
+  const hoursAgo = (h)=> new Date(Date.now() - h*3600000).toISOString();
+  return [
+    { id:'demo-le-0', name:'Diced Onions', qty:2, use_by:daysFromNow(-1), printed_at:hoursAgo(50), station:'Prep' },
+    { id:'demo-le-1', name:'Chicken Stock', qty:1, use_by:daysFromNow(0), printed_at:hoursAgo(6), station:'Hot Line' },
+    { id:'demo-le-2', name:'Cut Tomatoes', qty:1, use_by:daysFromNow(1), printed_at:hoursAgo(4), station:'Cold Prep' },
+    { id:'demo-le-3', name:'Bolognese Sauce', qty:1, use_by:daysFromNow(4), printed_at:hoursAgo(3), station:'Hot Line' },
+    { id:'demo-le-4', name:'Marinated Chicken', qty:3, use_by:daysFromNow(3), printed_at:hoursAgo(5), station:'Hot Line' },
+    { id:'demo-le-5', name:'Fresh Herbs', qty:1, use_by:null, printed_at:hoursAgo(2), station:'Garnish' },
+  ];
+}
 async function loadLabelExpiry(){
+  if(_haccpDemoMode){
+    _labelExpiryRows = haccpLabelExpiryDemoData();
+    setLabelExpiryStatus('saved');
+    renderLabelExpiry();
+    return;
+  }
   setLabelExpiryStatus('saving');
   const { data, error } = await sb.from('print_label_log').select('*')
     .eq('kitchen_id', currentKitchenId)
@@ -23031,8 +23137,9 @@ function labelExpiryBucket(row){
 
 function renderLabelExpiry(){
   const el = document.getElementById('labelExpiryList');
+  const demoNote = _haccpDemoMode ? '<div class="sheet-text" style="opacity:.65; margin-bottom:8px;">🎭 Illustration data — invented, for demo purposes only.</div>' : '';
   if(!_labelExpiryRows.length){
-    el.innerHTML = '<div class="empty-state">Nothing tracked yet — labels land here automatically the next time you print from Print Labels.</div>';
+    el.innerHTML = demoNote + '<div class="empty-state">Nothing tracked yet — labels land here automatically the next time you print from Print Labels.</div>';
     return;
   }
   const buckets = { expired:[], soon:[], ok:[], nodate:[] };
@@ -23043,7 +23150,7 @@ function renderLabelExpiry(){
     { key:'ok', title:'✅ Still fine', color:'var(--copper, var(--accent))' },
     { key:'nodate', title:'⚪ No use-by date (no shelf life set when printed)', color:'var(--ink-dim)' }
   ];
-  el.innerHTML = groupDefs.map(g=>{
+  el.innerHTML = demoNote + groupDefs.map(g=>{
     const rows = buckets[g.key];
     if(!rows.length) return '';
     return `
@@ -23066,6 +23173,7 @@ function renderLabelExpiry(){
 }
 
 async function removeLabelExpiryRow(id){
+  if(_haccpDemoMode){ alert('🎭 Demo data — turn off Demo to manage real labels.'); return; }
   setLabelExpiryStatus('saving');
   const { error } = await sb.from('print_label_log').delete().eq('id', id).eq('kitchen_id', currentKitchenId);
   if(error){ alert('Could not remove: ' + error.message); setLabelExpiryStatus('offline'); return; }
