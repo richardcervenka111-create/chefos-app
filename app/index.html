@@ -11468,7 +11468,8 @@ let _settingsReorderList = [];
 function openSettingsReorder(){
   _settingsReorderList = getSettingsTileOrder().filter(key=>{
     const tile = SETTINGS_TILE_DEFS.find(x=>x.key===key);
-    return tile && (!tile.adminOnly || currentIsAdmin);
+    // Same function-vs-boolean fix as openHomeReorder (Richard, 20.7.).
+    return tile && (!tile.adminOnly || (typeof tile.adminOnly === 'function' ? tile.adminOnly() : currentIsAdmin));
   });
   renderSettingsReorderList();
   document.getElementById('settingsReorderOverlay').classList.add('open');
@@ -12135,7 +12136,12 @@ let _homeReorderList = [];
 function openHomeReorder(){
   _homeReorderList = getHomeTileOrder().filter(key=>{
     const tile = HOME_TILE_DEFS.find(x=>x.key===key);
-    return tile && (!tile.adminOnly || currentIsAdmin);
+    // Match renderHomeGrid EXACTLY: adminOnly is a FUNCTION on some tiles (admin, teamMeetings)
+    // — evaluating it as a plain boolean (`!tile.adminOnly`) is always false for those, so they
+    // fell out of the reorder list for anyone who wasn't the platform super-admin. That hid the
+    // Admin tile from the reorder list for a Kitchen Admin (company_admin, is_admin=false) even
+    // though it shows on their Home grid. (Richard, 20.7. — MacBook = Kitchen Admin account.)
+    return tile && (!tile.adminOnly || (typeof tile.adminOnly === 'function' ? tile.adminOnly() : currentIsAdmin));
   });
   renderHomeReorderList();
   document.getElementById('homeReorderOverlay').classList.add('open');
