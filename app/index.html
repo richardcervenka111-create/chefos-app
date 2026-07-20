@@ -2624,7 +2624,8 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     </div>
     <div id="editAdminPermsList"></div>
     <div class="form-status" id="editAdminPermsStatus"></div>
-    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeEditAdminPerms()">Close</button>
+    <button class="save-btn" id="editAdminPermsSaveBtn" style="width:100%; margin-top:10px; opacity:.5;" onclick="saveAdminPermsEdits()" disabled>Saved — no changes</button>
+    <button class="sheet-cancel" style="margin-top:8px;" onclick="closeEditAdminPerms()">Close</button>
   </div>
 </div>
 
@@ -11974,38 +11975,50 @@ function renderAdminDirectory(){
 /* ---------- Edit one person's admin_perms + is_admin (on/off per Richard's wording — each
    toggle saves itself immediately, no separate Save button). ---------- */
 let _editAdminPermsTarget = null;
+// Pending, uncommitted edits (Richard, 20.7. — "pridaj Uložiť zmeny"): every permission toggle
+// and preset used to write straight to the DB. Now they only mutate this draft; nothing reaches
+// the server until "Save changes". { perms:{...}, is_admin:bool }.
+let _editAdminPermsDraft = null;
 /* Quick presets inside the editor (Richard, 17.7.: Add Admin tile merged into the Directory). */
-async function grantPresetFromEditor(kind){
-  const t = _editAdminPermsTarget;
-  if(!t) return;
-  const statusEl = document.getElementById('editAdminPermsStatus');
-  const name = t.full_name || t.email || 'This person';
+function grantPresetFromEditor(kind){
+  if(!_editAdminPermsDraft) return;
+  // Presets now only fill the DRAFT — the actual write happens on "Save changes" (the Head Admin
+  // confirm lives there too).
   if(kind === 'head'){
-    if(!confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
-    const { error } = await sb.from('profiles').update({ is_admin: true }).eq('id', t.id);
-    if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
-    t.is_admin = true;
+    _editAdminPermsDraft.is_admin = true;
   } else {
-    const perms = { ...(t.admin_perms || {}), manage_invites:true, manage_team:true, language_audit:true };
-    const { error } = await sb.from('profiles').update({ admin_perms: perms }).eq('id', t.id);
-    if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
-    t.admin_perms = perms;
+    _editAdminPermsDraft.perms = { ..._editAdminPermsDraft.perms, manage_invites:true, manage_team:true, language_audit:true };
   }
-  statusEl.textContent = kind === 'head' ? `${name} is now a Head Admin.` : `${name} is now a Kitchen Admin (invites + team + language audit).`;
+  document.getElementById('editAdminPermsStatus').textContent = kind === 'head'
+    ? 'Head Admin set in the draft — press Save changes to apply.'
+    : 'Kitchen Admin preset set in the draft — press Save changes to apply.';
   renderEditAdminPermsList();
-  renderAdminDirectory();
 }
 function openEditAdminPerms(userId){
   _editAdminPermsTarget = _adminDirectoryRows.find(p=>p.id===userId) || null;
   if(!_editAdminPermsTarget) return;
+  // Seed the draft from the live values; edits accumulate here until "Save changes".
+  _editAdminPermsDraft = { perms: { ...(_editAdminPermsTarget.admin_perms || {}) }, is_admin: !!_editAdminPermsTarget.is_admin };
   document.getElementById('editAdminPermsName').textContent = _editAdminPermsTarget.full_name || _editAdminPermsTarget.email || 'Unknown';
   document.getElementById('editAdminPermsStatus').textContent = '';
   renderEditAdminPermsList();
   document.getElementById('editAdminPermsOverlay').classList.add('open');
 }
+function _editAdminPermsDirty(){
+  const t = _editAdminPermsTarget, d = _editAdminPermsDraft;
+  if(!t || !d) return false;
+  if(!!t.is_admin !== !!d.is_admin) return true;
+  const orig = t.admin_perms || {};
+  const keys = new Set([...Object.keys(orig), ...Object.keys(d.perms)]);
+  for(const k of keys){ if(!!orig[k] !== !!d.perms[k]) return true; }
+  return false;
+}
 function closeEditAdminPerms(){
+  // Don't silently drop pending permission edits.
+  if(_editAdminPermsDirty() && !confirm('Discard unsaved permission changes?')) return;
   document.getElementById('editAdminPermsOverlay').classList.remove('open');
   _editAdminPermsTarget = null;
+  _editAdminPermsDraft = null;
 }
 function renderEditAdminPermsList(){
   const el = document.getElementById('editAdminPermsList');
@@ -12020,11 +12033,12 @@ function renderEditAdminPermsList(){
       <span style="flex:1; min-width:0; line-height:1.35;"><strong>${label}</strong><br><span style="font-weight:400; font-size:12px; opacity:.85;">${desc}</span></span>
       <span style="flex:none; font-weight:700;">${badge}</span>
     </div>`;
+  const draft = _editAdminPermsDraft || { perms: { ...(p.admin_perms||{}) }, is_admin: !!p.is_admin };
   const permsHtml = ADMIN_PERM_DEFS.map(d=>{
-    const on = !!(p.admin_perms||{})[d.key];
+    const on = !!draft.perms[d.key];
     return permRow(d.label, d.desc, on?'ON':'OFF', `toggleAdminPerm('${d.key}')`, on);
   }).join('');
-  const headAdminOn = !!p.is_admin;
+  const headAdminOn = !!draft.is_admin;
   el.innerHTML = permsHtml + `
     ${p.account_type === 'personal' ? `
     <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">AI Credit (bod 8, 16.7. — db/102, manual until billing exists)</div>
@@ -12040,6 +12054,13 @@ function renderEditAdminPermsList(){
     <div style="margin:14px 0 4px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; opacity:.6;">Super-admin</div>
     ${permRow('Head Admin', 'Full super-admin — everything Richard has. Use sparingly.', headAdminOn?'ON':'OFF', 'toggleHeadAdmin()', headAdminOn)}
   `;
+  const saveBtn = document.getElementById('editAdminPermsSaveBtn');
+  if(saveBtn){
+    const dirty = _editAdminPermsDirty();
+    saveBtn.disabled = !dirty;
+    saveBtn.style.opacity = dirty ? '1' : '.5';
+    saveBtn.textContent = dirty ? 'Save changes' : 'Saved — no changes';
+  }
 }
 async function addCreditToTarget(){
   const p = _editAdminPermsTarget;
@@ -12064,32 +12085,30 @@ async function addCreditToTarget(){
   renderEditAdminPermsList();
   renderAdminDirectory();
 }
-async function toggleAdminPerm(key){
-  const p = _editAdminPermsTarget;
-  if(!p) return;
-  const statusEl = document.getElementById('editAdminPermsStatus');
-  const nextPerms = { ...(p.admin_perms||{}) };
-  nextPerms[key] = !nextPerms[key];
-  statusEl.textContent = 'Saving…';
-  const { error } = await sb.from('profiles').update({ admin_perms: nextPerms }).eq('id', p.id);
-  if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
-  p.admin_perms = nextPerms;
-  statusEl.textContent = 'Saved.';
+function toggleAdminPerm(key){
+  if(!_editAdminPermsDraft) return;
+  _editAdminPermsDraft.perms[key] = !_editAdminPermsDraft.perms[key];  // draft only — Save changes commits
   renderEditAdminPermsList();
-  renderAdminDirectory();
 }
-async function toggleHeadAdmin(){
-  const p = _editAdminPermsTarget;
-  if(!p) return;
-  const next = !p.is_admin;
-  const name = p.full_name || p.email;
-  if(next && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
-  if(!next && !confirm(`Remove Head Admin from ${name}?`)) return;
+function toggleHeadAdmin(){
+  if(!_editAdminPermsDraft) return;
+  _editAdminPermsDraft.is_admin = !_editAdminPermsDraft.is_admin;  // confirm happens on Save
+  renderEditAdminPermsList();
+}
+async function saveAdminPermsEdits(){
+  const t = _editAdminPermsTarget, d = _editAdminPermsDraft;
+  if(!t || !d) return;
+  if(!_editAdminPermsDirty()) return;
   const statusEl = document.getElementById('editAdminPermsStatus');
+  const name = t.full_name || t.email || 'this person';
+  // Strong confirm only for the super-admin bit, fired once at the real commit.
+  if(!!d.is_admin && !t.is_admin && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
+  if(!d.is_admin && !!t.is_admin && !confirm(`Remove Head Admin from ${name}?`)) return;
   statusEl.textContent = 'Saving…';
-  const { error } = await sb.from('profiles').update({ is_admin: next }).eq('id', p.id);
+  const { error } = await sb.from('profiles').update({ admin_perms: d.perms, is_admin: d.is_admin }).eq('id', t.id);
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
-  p.is_admin = next;
+  t.admin_perms = { ...d.perms };
+  t.is_admin = d.is_admin;
   statusEl.textContent = 'Saved.';
   renderEditAdminPermsList();
   renderAdminDirectory();
