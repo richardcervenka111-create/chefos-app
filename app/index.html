@@ -2649,7 +2649,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <!-- Quick presets (Richard, 17.7.: Add Admin merged into the Directory — these two buttons
          are everything the old tile did). -->
     <div style="display:flex; gap:8px; margin:6px 0 10px 0;">
-      <button class="add-row-btn" style="flex:1; margin:0;" onclick="grantPresetFromEditor('kitchen')">⚡ Kitchen Admin preset</button>
+      <button class="add-row-btn" style="flex:1; margin:0;" onclick="grantPresetFromEditor('kitchen')">⚡ Company Admin preset</button>
       <button class="add-row-btn" style="flex:1; margin:0;" onclick="grantPresetFromEditor('head')">🛡️ Head Admin</button>
     </div>
     <div id="editAdminPermsList"></div>
@@ -12093,11 +12093,14 @@ function grantPresetFromEditor(kind){
   if(kind === 'head'){
     _editAdminPermsDraft.is_admin = true;
   } else {
-    _editAdminPermsDraft.perms = { ..._editAdminPermsDraft.perms, manage_invites:true, manage_team:true, language_audit:true };
+    // Company Admin preset (Richard, 21.7.): this must set company_admin — that's the perm that
+    // makes them a company's main admin AND triggers the onboarding offer on Save. Without it the
+    // preset only handed out helper perms and nothing happened. Bundle the useful ones too.
+    _editAdminPermsDraft.perms = { ..._editAdminPermsDraft.perms, company_admin:true, manage_invites:true, manage_team:true, language_audit:true };
   }
   document.getElementById('editAdminPermsStatus').textContent = kind === 'head'
     ? 'Head Admin set in the draft — press Save changes to apply.'
-    : 'Kitchen Admin preset set in the draft — press Save changes to apply.';
+    : 'Company Admin preset set in the draft — press Save changes to apply.';
   renderEditAdminPermsList();
 }
 function openEditAdminPerms(userId){
