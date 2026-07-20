@@ -6835,6 +6835,15 @@ const SUPABASE_KEY = 'sb_publishable_tr0dbQDdpxLgxL515UeymQ_lvLvY0T_';
    for shared-kitchen-device hygiene instead of relying on that happening automatically. */
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: window.localStorage } });
 
+/* Password recovery link (Richard, 20.7. — found while setting up the sautero_android QA
+   account: "Send password recovery" from the Supabase dashboard authenticates the browser
+   exactly like a normal sign-in, but the app had NO recovery-specific handling — a returning
+   user who already has a password set (passwordGateView only shows for accounts that have
+   NEVER set one) got dropped straight into Home, with no chance to actually pick a new
+   password. Read synchronously, before any async Supabase init work, so it can't race with
+   detectSessionInUrl consuming the hash. */
+const _isPasswordRecovery = /type=recovery/.test(location.hash) || new URLSearchParams(location.search).get('type') === 'recovery';
+
 // The browser's own scroll restoration fights showHome()'s reset on some mobile browsers
 // (it can silently put the old scroll position back after our own reset already ran) — this
 // app manages its own scroll position on every view switch, so let it, not the browser.
@@ -7731,6 +7740,13 @@ async function savePasswordGate(){
   const { error: profErr } = await sb.from('profiles').update({ password_set: true }).eq('id', currentUser.id);
   if(profErr){ statusEl.textContent = 'Could not save: ' + profErr.message; statusEl.className = 'form-status error'; return; }
   document.getElementById('passwordGateView').style.display = 'none';
+
+  // Recovery-link flow (20.7.) skips startApp() entirely to get here fast, so none of the
+  // profile-derived globals (currentKitchenId, currentIsAdmin, currentAccountType…) that
+  // enterApp()/renderHomeGrid() need are populated yet — re-run startApp() itself instead of
+  // jumping to enterApp() directly. It re-checks every gate (all already satisfied for a
+  // returning user) and populates that state before rendering Home.
+  if(_isPasswordRecovery){ await startApp(); return; }
 
   if(!(await hasCompletedMyProfile())){
     document.getElementById('myProfileGateView').style.display = 'block';
@@ -10131,6 +10147,14 @@ async function reviewAccessRequest(id, status){
   await detectFaceIdAvailability();
   renderLoginFaceIdBlock();
   const { data: { session } } = await sb.auth.getSession();
+  if(session && _isPasswordRecovery){
+    currentUser = session.user;
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('passwordGateView').style.display = 'block';
+    document.querySelector('#passwordGateView h1').textContent = 'Reset Your Password';
+    document.querySelector('#passwordGateView .lede').textContent = "You're signed in from the reset link — pick a new password below.";
+    return;
+  }
   if(session){ await startApp(); return; }
   // Coming soon wall (bod 5, 16.7. — db/96) — only for someone with zero invitation context
   // AND no prior session on this device. A real invite/QR link or an already-known browser
