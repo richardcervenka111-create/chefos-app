@@ -12097,18 +12097,31 @@ function toggleHeadAdmin(){
 }
 async function saveAdminPermsEdits(){
   const t = _editAdminPermsTarget, d = _editAdminPermsDraft;
-  if(!t || !d) return;
-  if(!_editAdminPermsDirty()) return;
+  if(!t || !d || !_editAdminPermsDirty()) return;
   const statusEl = document.getElementById('editAdminPermsStatus');
   const name = t.full_name || t.email || 'this person';
+  const adminChanged = !!t.is_admin !== !!d.is_admin;
+  const permsChanged = (()=>{ const o = t.admin_perms || {}; const keys = new Set([...Object.keys(o), ...Object.keys(d.perms)]); for(const k of keys){ if(!!o[k] !== !!d.perms[k]) return true; } return false; })();
   // Strong confirm only for the super-admin bit, fired once at the real commit.
-  if(!!d.is_admin && !t.is_admin && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
-  if(!d.is_admin && !!t.is_admin && !confirm(`Remove Head Admin from ${name}?`)) return;
+  if(adminChanged && d.is_admin && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
+  if(adminChanged && !d.is_admin && !confirm(`Remove Head Admin from ${name}?`)) return;
+  // Send ONLY the columns that changed (mirrors the old per-column writes that worked), and
+  // .select() the row back: a 0-row result means RLS silently refused the write, so surface that
+  // LOUDLY instead of a false "Saved." (Richard, 20.7. — nothing was persisting because a Head
+  // Admin can only UPDATE profiles in their own kitchen unless db/164's super-admin policy applies.)
+  const patch = {};
+  if(permsChanged) patch.admin_perms = d.perms;
+  if(adminChanged) patch.is_admin = d.is_admin;
   statusEl.textContent = 'Saving…';
-  const { error } = await sb.from('profiles').update({ admin_perms: d.perms, is_admin: d.is_admin }).eq('id', t.id);
+  const { data, error } = await sb.from('profiles').update(patch).eq('id', t.id).select('id, admin_perms, is_admin');
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
-  t.admin_perms = { ...d.perms };
-  t.is_admin = d.is_admin;
+  if(!data || !data.length){
+    statusEl.textContent = '⚠️ Nothing saved — the server refused the change (you may not have rights to edit this person).';
+    return;
+  }
+  t.admin_perms = data[0].admin_perms || {};
+  t.is_admin = !!data[0].is_admin;
+  _editAdminPermsDraft = { perms: { ...t.admin_perms }, is_admin: t.is_admin };  // draft now matches saved state → clean
   statusEl.textContent = 'Saved.';
   renderEditAdminPermsList();
   renderAdminDirectory();
