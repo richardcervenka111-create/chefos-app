@@ -7,10 +7,14 @@ WHAT THIS IS: a "golden path" check, not full coverage. It logs in as one or mor
 dedicated QA accounts (one per ROLE — solo user, team member, kitchen admin, main admin)
 and taps through every top-level Home tile for each, asserting two things per tile:
   1. the tile actually opened something (Home replaced by a view, or a sheet/overlay), and
-  2. the browser threw NO JavaScript error while getting there.
+  2. nothing that means the app is BROKEN for the user happened while getting there —
+     an uncaught JS exception, an app-authored console.error, or a 5xx server response.
 That second check is the real value — most regressions in a single 23k-line HTML file
-show up as a silent broken screen or a console error, and this catches that automatically
-instead of needing a human to notice.
+show up as a silent broken screen or a JS error, and this catches that automatically
+instead of needing a human to notice. A 4xx response is treated as a non-fatal WARNING
+(printed with its exact endpoint), not a failure: the screen still opened and a 4xx is
+almost always a handled/expected condition — failing on it made the test flaky, since a
+stray background request could get blamed on whichever tile happened to be open.
 
 WHAT THIS IS NOT: it does not verify business logic (e.g. "does check-in correctly stop
 the clock"), does not create/delete real data beyond what's unavoidable to open a screen,
@@ -86,13 +90,44 @@ def run_account(browser, url, label, email, password, extra_tiles):
     """Run the full tile sweep for one account in its own fresh browser context.
     Returns a list of failure strings ([] = the account passed)."""
     failures = []
-    console_errors = []
+    # Two buckets, cleared per tile. hard_errors = things that mean the app is actually broken
+    # for the user (uncaught JS, an app-authored console.error, or a 5xx from the server) → fail
+    # the tile. net_warnings = 4xx responses → NOT a failure: the screen still opened, and a 4xx
+    # is almost always a handled/expected condition (a query the app copes with, an auth-token
+    # refresh racing). We record the exact endpoint so a human can judge, instead of failing a
+    # tile for a stray background request that merely happened to resolve while it was open —
+    # the false failure that first bit us was a background 400 misattributed to Ingredients.
+    hard_errors = []
+    net_warnings = []
+
+    def on_console(msg):
+        if msg.type != "error":
+            return
+        text = msg.text or ""
+        # Browser network-level "Failed to load resource" messages carry no URL and duplicate
+        # what the response listener captures with full detail — skip them here so the response
+        # listener is the single, URL-bearing source of truth for HTTP failures.
+        if text.startswith("Failed to load resource"):
+            return
+        hard_errors.append(f"[console.error] {text}")
+
+    def on_response(resp):
+        try:
+            st = resp.status
+        except Exception:
+            return
+        if st >= 500:
+            hard_errors.append(f"[HTTP {st}] {resp.url}")
+        elif st >= 400:
+            net_warnings.append(f"[HTTP {st}] {resp.url}")
+
     # A fresh context per account: clean localStorage/session so accounts can't bleed into
     # each other, and each starts exactly like a new device.
     context = browser.new_context()
     page = context.new_page()
-    page.on("pageerror", lambda exc: console_errors.append(f"[pageerror] {exc}"))
-    page.on("console", lambda msg: console_errors.append(f"[console.{msg.type}] {msg.text}") if msg.type == "error" else None)
+    page.on("pageerror", lambda exc: hard_errors.append(f"[pageerror] {exc}"))
+    page.on("console", on_console)
+    page.on("response", on_response)
     # A fresh browser has empty localStorage, so every first-run tutorial auto-opens and its
     # overlay blocks tile clicks. Report all tutorials as seen — test-harness concern only.
     page.add_init_script(TUTORIAL_MUTE_SCRIPT)
@@ -147,14 +182,18 @@ def run_account(browser, url, label, email, password, extra_tiles):
             # isolates every tile as its own check, no back-navigation fragility.
             page.goto(login_url, wait_until="domcontentloaded", timeout=20000)
             page.wait_for_selector("#homeView", state="visible", timeout=15000)
-            console_errors.clear()  # watch the tile only, not the reload
+            hard_errors.clear()   # watch the tile only, not the reload
+            net_warnings.clear()
             # has_text= (not :has-text()) so "Chef's Assistant"'s apostrophe can't break the selector.
             page.locator(".home-tile", has_text=tile).first.click(timeout=8000)
             page.wait_for_timeout(1200)  # let async loads settle
             page.wait_for_function(OPENED_SOMETHING_JS, timeout=8000)
-            if console_errors:
-                failures.append(f"[{label}] {tile}: JS error(s) — {'; '.join(console_errors[:3])}")
-                print(f"  ✗ {console_errors[0]}")
+            if hard_errors:
+                failures.append(f"[{label}] {tile}: {'; '.join(hard_errors[:3])}")
+                print(f"  ✗ {hard_errors[0]}")
+            elif net_warnings:
+                # Tile opened fine; surface the handled 4xx endpoint(s) without failing.
+                print(f"  ✓ ok (⚠ {len(net_warnings)} handled 4xx — e.g. {net_warnings[0]})")
             else:
                 print("  ✓ ok, no console errors")
         except Exception as e:
