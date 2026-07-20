@@ -4525,26 +4525,28 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
 </button>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Fallback CDN for the Supabase library (Richard, 20.7. — confirmed root cause of a total
-     lockout on his Huawei/Chrome device: jsdelivr failed to deliver supabase-js while Firefox
-     Klar loaded it fine, so `supabase` was undefined, `const sb = supabase.createClient(...)`
-     threw during load, and everything downstream — the login itself, the language dropdown —
-     silently died with a cryptic "Cannot access 'sb' before initialization"). A single-CDN
-     dependency for the ONE library the whole app needs is a single point of failure; this
-     document.write runs synchronously during parse (before the main app script below) and
-     pulls the same library from a second CDN only if the first didn't deliver. -->
+<!-- Supabase library — the ONE dependency the whole app cannot run without. Vendored locally
+     (supabase.min.js, v2.110.7 UMD, sits next to this file and is served from the SAME origin,
+     app.sautero.ch) so it can never fail to load once the app HTML itself has loaded. This
+     replaces a CDN-only setup that locked Richard's Huawei device out completely on 20.7.: it
+     couldn't reach jsdelivr OR unpkg even with a working connection (some networks/browsers
+     block third-party CDNs), so `supabase` was undefined, `const sb = supabase.createClient()`
+     threw during load, and everything downstream — login, the language dropdown — died with a
+     cryptic "Cannot access 'sb' before initialization". The two CDN <script>s below remain
+     purely as a backstop for the near-impossible case the same-origin file itself 404s. -->
+<script src="supabase.min.js"></script>
 <script>
-  if (!window.supabase) {
-    document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
-  }
+  if (!window.supabase) { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>'); }
+</script>
+<script>
+  if (!window.supabase) { document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>'); }
 </script>
 <!-- jsQR (Scan QR, Connections hub, bod 6) — decodes camera frames entirely client-side, MIT
-     license, https://github.com/cozmo/jsQR. Loaded from CDN rather than vendored inline like
-     the QR generator below: at ~130KB minified it would badly bloat this file, and unlike
-     invite-link generation there's no privacy reason to avoid the CDN — it only decodes pixels
-     already visible to the camera, nothing about a scan is ever sent anywhere. -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+     license, https://github.com/cozmo/jsQR. Vendored locally (jsQR.js, same origin) alongside
+     the Supabase library above, Richard 20.7. — his device blocks third-party CDNs outright,
+     so a CDN-loaded scanner would silently never work on it. Not blocking for login (QR scan
+     is only used in Connections), but same-origin is the reliable home for it too. -->
+<script src="jsQR.js"></script>
 <!-- Vendored QR code generator (team-invite QR), MIT license, Kazuhiko Arase — https://github.com/kazuhikoarase/qrcode-generator. Client-side only, no third-party service sees invite links. -->
 <script>
 //---------------------------------------------------------------------
