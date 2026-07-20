@@ -14998,6 +14998,14 @@ new MutationObserver((muts)=>{
     if(wasOpen && !isOpen){
       _ghostClickGuardUntil = Date.now() + 450;
       _openOverlayCount = Math.max(0, _openOverlayCount - 1);
+      // Undo any keyboard lift (_liftOpenSheetsAboveKeyboard below) — a closed overlay no
+      // longer matches its `.open` selector, so the lift's own reset would never reach it and
+      // the inline offset would still be there the next time this sheet opens.
+      if(el.classList.contains('sheet-overlay')){
+        el.style.bottom = '';
+        const sheet = el.querySelector('.sheet');
+        if(sheet) sheet.style.maxHeight = '';
+      }
       if(_openOverlayCount === 0){
         const y = _preOverlayScrollY;
         _preOverlayScrollY = null;
@@ -15029,23 +15037,45 @@ if(window.visualViewport){
     _lastVvH = h;
   });
 }
-/* Android keyboard covering the focused field (Richard, 20.7. — photo from the sautero_android
-   device: tapped the password field inside My Profile's sheet, on-screen keyboard opened over
-   the bottom half of the screen, and the field + Save button were left below it, invisible).
-   Two JS-only attempts (plain scrollIntoView, then a manual visualViewport-based scrollBy)
-   both missed the actual cause: .sheet is a position:fixed panel with its OWN internal scroll
-   (max-height:80vh; overflow-y:auto) — scrolling window did nothing, since window was never the
-   scrolling element, and 80vh doesn't shrink on keyboard-open without the interactive-widget
-   meta directive (added above), so the sheet's bottom portion sat directly behind the keyboard
-   regardless of what got scrolled. With that directive in place the layout viewport itself now
-   resizes on Android too (matching iOS), so a plain scrollIntoView on the focused field —
-   scrolling its nearest scrollable ancestor, i.e. the now correctly-sized .sheet — is enough. */
+/* Android keyboard covering the focused field (Richard, 20.7. — the sautero_android device;
+   FOUR attempts, each verified against his next photo/video). The real environment, visible in
+   his screen recording: it's not Chrome at all — it's the Huawei Browser (purple address bar,
+   shield + trash icons), built on an older Chromium that ignores the interactive-widget
+   viewport directive added above (that directive stays: it's the correct native fix for
+   Chrome 108+ and costs nothing elsewhere). Root geometry problem, same on every non-resizing
+   browser: .sheet-overlay is position:fixed inset:0 sized to the LAYOUT viewport, which never
+   shrinks when the keyboard opens — its flex-end alignment pins the sheet to the true bottom
+   of the screen, i.e. directly behind the keyboard.
+
+   Universal JS fallback: window.visualViewport.height DOES shrink on every Chromium since 61,
+   including Huawei Browser. On every visualViewport resize, measure the keyboard as
+   (innerHeight − vv.height − vv.offsetTop) and lift every OPEN sheet-overlay by exactly that
+   much (style.bottom), capping the sheet's own max-height to the space that's genuinely
+   visible. On browsers where interactive-widget already works (iOS, real Chrome 108+),
+   innerHeight shrinks along with vv.height, the measured keyboard is 0, and this whole branch
+   is a no-op — no double-compensation. */
+function _liftOpenSheetsAboveKeyboard(){
+  if(!window.visualViewport) return;
+  const vv = window.visualViewport;
+  const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  document.querySelectorAll('.sheet-overlay.open').forEach(ov=>{
+    ov.style.bottom = kb > 0 ? kb + 'px' : '';
+    const sheet = ov.querySelector('.sheet');
+    if(sheet) sheet.style.maxHeight = kb > 0 ? Math.round(vv.height * 0.92) + 'px' : '';
+  });
+}
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', _liftOpenSheetsAboveKeyboard);
+  window.visualViewport.addEventListener('scroll', _liftOpenSheetsAboveKeyboard);
+}
 document.addEventListener('focusin', (e)=>{
   const el = e.target;
   if(!el.matches) return;
   if(!el.matches('input, textarea, select')) return;
   if(!el.closest('.sheet, .sheet-overlay, .box')) return;
-  setTimeout(()=> el.scrollIntoView({ block:'nearest', behavior:'smooth' }), 300);
+  // Covers the keyboard-already-open case (tapping a second field fires no vv resize), and
+  // scrolls the field into view within the sheet's own scroll area once it's been lifted.
+  setTimeout(()=>{ _liftOpenSheetsAboveKeyboard(); el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }, 300);
 });
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
