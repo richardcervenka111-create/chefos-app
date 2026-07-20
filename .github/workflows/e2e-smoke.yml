@@ -23,8 +23,19 @@ jobs:
         run: |
           pip3 install playwright
           python3 -m playwright install --with-deps chromium
+      # One secret pair per ROLE (20.7. evening — Richard: cover team-member and admin
+      # accounts too, not just the solo user). Pairs that aren't set yet are skipped by the
+      # script with a note, so roles can be added one at a time as their QA accounts are
+      # created. All are dedicated QA accounts (Proton +aliases of the QA mailbox), never
+      # real daily accounts.
       - name: Run smoke test
         env:
           SAUTERO_QA_EMAIL: ${{ secrets.SAUTERO_QA_EMAIL }}
           SAUTERO_QA_PASSWORD: ${{ secrets.SAUTERO_QA_PASSWORD }}
+          SAUTERO_QA_MEMBER_EMAIL: ${{ secrets.SAUTERO_QA_MEMBER_EMAIL }}
+          SAUTERO_QA_MEMBER_PASSWORD: ${{ secrets.SAUTERO_QA_MEMBER_PASSWORD }}
+          SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
+          SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
+          SAUTERO_QA_MAIN_EMAIL: ${{ secrets.SAUTERO_QA_MAIN_EMAIL }}
+          SAUTERO_QA_MAIN_PASSWORD: ${{ secrets.SAUTERO_QA_MAIN_PASSWORD }}
         run: python3 scripts/e2e_smoke_test.py
