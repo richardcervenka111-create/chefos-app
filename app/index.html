@@ -2326,6 +2326,20 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
+<!-- Name your restaurant (Richard, 20.7.) — someone made a Company Admin via the Admin editor
+     toggle is onboarded with a blank-named kitchen; they land here to name it themselves before
+     entering. Mandatory (no skip). RLS lets a company_admin rename their own kitchen (db/165). -->
+<div id="nameKitchenGateView" style="display:none;">
+  <div class="box">
+    <div class="login-mark">🏢</div>
+    <h1 class="title display">Name your restaurant</h1>
+    <p class="lede">You're set up as the main admin of your own kitchen. Give it a name — this is what your team will see. You can change it anytime in Settings.</p>
+    <input class="form-field" id="nameKitchenGateInput" type="text" placeholder="e.g. Nooch Asian Kitchen — Bern" style="margin-top:14px;" onkeydown="if(event.key==='Enter') submitNameKitchenGate();">
+    <button class="save-btn" style="width:100%; margin-top:10px;" onclick="submitNameKitchenGate()">Save &amp; continue</button>
+    <div class="form-status" id="nameKitchenGateStatus"></div>
+  </div>
+</div>
+
 <!-- Non-mandatory version of the same form, reachable anytime afterward to edit these details. -->
 <div id="myProfileSettingsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeMyProfileSettings()">
   <div class="sheet">
@@ -7634,7 +7648,41 @@ function quickToggleAccountType(){
   const target = currentAccountType === 'company' ? 'personal' : 'company';
   setAccountTypeFromSettings(target);
 }
+function showNameKitchenGate(){
+  ['homeView','teamGateView','privacyGateView','confidentialityGateView','passwordGateView','myProfileGateView','accountTypeGateView','loginView','comingSoonView'].forEach(id=>{ const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  const inp = document.getElementById('nameKitchenGateInput');
+  const st = document.getElementById('nameKitchenGateStatus');
+  if(inp) inp.value = '';
+  if(st) st.textContent = '';
+  document.getElementById('nameKitchenGateView').style.display = 'block';
+  setTimeout(()=>{ if(inp) inp.focus(); }, 100);
+}
+async function submitNameKitchenGate(){
+  const name = (document.getElementById('nameKitchenGateInput').value || '').trim();
+  const st = document.getElementById('nameKitchenGateStatus');
+  if(!name){ st.textContent = 'Give your restaurant a name first.'; return; }
+  st.textContent = 'Saving…';
+  // db/165 lets a company_admin rename their own kitchen; .select() so a 0-row RLS refusal is
+  // caught loudly instead of silently "succeeding".
+  const { data, error } = await sb.from('kitchens').update({ name }).eq('id', currentKitchenId).select('id');
+  if(error){ st.textContent = 'Could not save: ' + error.message; return; }
+  if(!data || !data.length){ st.textContent = 'Could not save — please try again.'; return; }
+  document.getElementById('nameKitchenGateView').style.display = 'none';
+  await enterApp();
+}
 async function enterApp(){
+  // Name-your-restaurant gate (Richard, 20.7.) — placed at this single choke point because every
+  // login path funnels through enterApp(). A Company Admin onboarded via the Admin-editor toggle
+  // lands with a blank-named kitchen (create_company was called with an empty name); make them
+  // name it before anything renders. Fires only for a member who can actually rename it (super-
+  // admin or that kitchen's company_admin, per db/165) and only while the name is blank.
+  if(currentKitchenId && (currentIsAdmin || !!currentAdminPerms.company_admin)){
+    const { data: kNameRow } = await sb.from('kitchens').select('name').eq('id', currentKitchenId).maybeSingle();
+    if(kNameRow && (!kNameRow.name || !kNameRow.name.trim())){
+      showNameKitchenGate();
+      return;
+    }
+  }
   document.getElementById('homeView').style.display = 'block';
   renderHomeGrid();
   renderHomeAccountTypeBadge();
@@ -11937,7 +11985,7 @@ async function showAdminDirectory(){
   document.getElementById('adminDirectorySearch').value = '';
   document.getElementById('adminDirectoryList').innerHTML = '<p class="lede">Loading…</p>';
   window.scrollTo(0,0);
-  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms, account_type, ai_credit_chf, ai_credit_ever_topped_up').order('email');
+  const { data, error } = await sb.from('profiles').select('id, email, full_name, is_admin, admin_perms, account_type, ai_credit_chf, ai_credit_ever_topped_up, kitchen_id').order('email');
   if(error){ document.getElementById('adminDirectoryList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
   _adminDirectoryRows = data || [];
   renderAdminDirectory();
@@ -12102,6 +12150,11 @@ async function saveAdminPermsEdits(){
   const name = t.full_name || t.email || 'this person';
   const adminChanged = !!t.is_admin !== !!d.is_admin;
   const permsChanged = (()=>{ const o = t.admin_perms || {}; const keys = new Set([...Object.keys(o), ...Object.keys(d.perms)]); for(const k of keys){ if(!!o[k] !== !!d.perms[k]) return true; } return false; })();
+  // Did THIS save just make a currently-kitchenless user a Company Admin? If so, we don't just
+  // flip the flag — we onboard them like Add Company (email invite → they name their own kitchen).
+  const wasCompanyAdmin = !!(t.admin_perms || {}).company_admin;
+  const nowCompanyAdmin = !!d.perms.company_admin;
+  const startOnboarding = nowCompanyAdmin && !wasCompanyAdmin && !t.kitchen_id;
   // Strong confirm only for the super-admin bit, fired once at the real commit.
   if(adminChanged && d.is_admin && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
   if(adminChanged && !d.is_admin && !confirm(`Remove Head Admin from ${name}?`)) return;
@@ -12122,6 +12175,26 @@ async function saveAdminPermsEdits(){
   t.admin_perms = data[0].admin_perms || {};
   t.is_admin = !!data[0].is_admin;
   _editAdminPermsDraft = { perms: { ...t.admin_perms }, is_admin: t.is_admin };  // draft now matches saved state → clean
+  // New Company Admin with no kitchen yet → fire the Add-Company-style onboarding: create their
+  // (blank-named) kitchen + email them a magic link. They confirm by email and name their own
+  // restaurant on arrival (the "Name your restaurant" gate). Reuses create_company + signInWithOtp,
+  // exactly like Add Company. (Richard, 20.7.)
+  if(startOnboarding){
+    const emailAddr = (t.email || '').trim();
+    if(!emailAddr){ statusEl.textContent = 'Saved — but this account has no email on file, so no onboarding invite could be sent.'; renderEditAdminPermsList(); renderAdminDirectory(); return; }
+    statusEl.textContent = 'Saved. Setting up their company & sending the invite…';
+    const { data: cc, error: ccErr } = await sb.rpc('create_company', { p_name: '', p_email: emailAddr });
+    const ccRow = Array.isArray(cc) ? cc[0] : cc;
+    if(ccErr || !ccRow){ statusEl.textContent = 'Role saved, but could not start onboarding: ' + (ccErr ? ccErr.message : 'unknown error'); renderEditAdminPermsList(); renderAdminDirectory(); return; }
+    const inviteUrl = location.origin + location.pathname + '?invite=' + ccRow.invite_id;
+    const { error: mailErr } = await sb.auth.signInWithOtp({ email: emailAddr, options: { shouldCreateUser: true, emailRedirectTo: inviteUrl } });
+    statusEl.textContent = mailErr
+      ? '⚠️ Role saved + kitchen created, but the email failed (' + friendlyAuthErrorMessage(mailErr) + '). Send them this link: ' + inviteUrl
+      : `Saved. Onboarding email sent to ${emailAddr} — one click and they'll name their own restaurant.`;
+    renderEditAdminPermsList();
+    renderAdminDirectory();
+    return;
+  }
   statusEl.textContent = 'Saved.';
   renderEditAdminPermsList();
   renderAdminDirectory();
