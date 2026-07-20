@@ -2282,6 +2282,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <h1 class="title display">My Profile</h1>
     <p class="lede">Optional — any name works, not necessarily your real one. Skip it entirely if you'd rather not.</p>
     <input class="form-field" id="mp_full_name" type="text" placeholder="Name (any you like)" style="margin-top:14px;">
+    <input class="form-field" id="mp_personal_kitchen" type="text" placeholder="Name your kitchen (e.g. My Kitchen)" style="margin-top:10px;">
     <input class="form-field" id="mp_age" type="number" min="14" max="100" placeholder="Age (optional)" style="margin-top:10px;">
     <select class="form-field" id="mp_gender" style="margin-top:10px;">
       <option value="">Gender (optional)…</option>
@@ -2350,6 +2351,11 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
          (that's how "Join Mr. Woof woof" leaked), just whether they're in a team at all. -->
     <label class="form-label">Signed in as</label>
     <input class="form-field" id="mps_email" type="text" readonly style="opacity:.7;">
+    <!-- Personal kitchen name (Richard, 21.7.) — a per-user display label for their own personal
+         space, right under the email. Editable here; also set on first login. Purely a label
+         (db/166) — no kitchen/mode/team/permission logic touched. -->
+    <label class="form-label" style="margin-top:10px;">My personal kitchen</label>
+    <input class="form-field" id="mps_personal_kitchen" type="text" placeholder="e.g. My Kitchen">
     <label class="form-label" style="margin-top:10px;">Team</label>
     <input class="form-field" id="mps_team" type="text" readonly style="opacity:.7;">
     <label class="form-label" style="margin-top:10px;">Role</label>
@@ -7956,9 +7962,10 @@ async function saveMyProfileGate(){
     age = parseInt(ageRaw, 10);
     if(!age || age < 14 || age > 100){ statusEl.textContent = 'Enter a real age, or leave it blank.'; return; }
   }
+  const personal_kitchen_name = document.getElementById('mp_personal_kitchen').value.trim() || 'My Kitchen';
   statusEl.textContent = 'Saving…';
   const { error } = await sb.from('profiles').update({
-    full_name: full_name || null, age, gender: gender || null, profile_gate_skipped: true
+    full_name: full_name || null, age, gender: gender || null, profile_gate_skipped: true, personal_kitchen_name
   }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   if(full_name) currentUserName = full_name;
@@ -9075,7 +9082,11 @@ function openMyProfileSettings(){
   // name is exactly how "Mr. Woof woof" leaked to an invitee), only whether they're in a team.
   document.getElementById('mps_email').value = (currentUser && currentUser.email) || '';
   const teamEl = document.getElementById('mps_team');
-  if(currentAccountType === 'company' && currentKitchenId){
+  // Team shows if the person is actually in a team — in BOTH modes (Richard, 21.7.: a team member
+  // like the gmail account should see their team even while browsing in Personal mode). Someone
+  // genuinely in no team still reads "Not in any team yet".
+  const inTeam = !!currentInTeam || currentAccountType === 'company';
+  if(inTeam && currentKitchenId){
     teamEl.value = 'Loading…';
     sb.from('kitchens').select('name').eq('id', currentKitchenId).maybeSingle().then(({ data: k })=>{
       teamEl.value = (k && k.name) || 'Your team';
@@ -9083,14 +9094,17 @@ function openMyProfileSettings(){
   } else {
     teamEl.value = 'Not in any team yet';
   }
-  // Role (16.7. večer): derived from the real permission flags — an admin changes a member's
-  // role from their own Admin section (Make Assistant in My Team, or Admin Directory).
+  // Role: derived from the real permission flags. Someone in no team has no company role, so show
+  // "—" instead of a misleading "Member" (Richard, 21.7.). Head Admin is platform-level and shows
+  // regardless.
   document.getElementById('mps_role_display').value =
     currentIsAdmin ? 'Head Admin'
+    : !inTeam ? '—'
     : currentAdminPerms.company_admin ? 'Admin'
     : currentAdminPerms.assistant ? 'Admin Assistant'
     : 'Member';
-  sb.from('profiles').select('full_name, age, gender, role, phone, bio, password_set').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
+  sb.from('profiles').select('full_name, age, gender, role, phone, bio, password_set, personal_kitchen_name').eq('id', currentUser.id).maybeSingle().then(({ data })=>{
+    document.getElementById('mps_personal_kitchen').value = (data && data.personal_kitchen_name) || 'My Kitchen';
     document.getElementById('mps_full_name').value = (data && data.full_name) || '';
     document.getElementById('mps_age').value = (data && data.age) || '';
     document.getElementById('mps_gender').value = (data && data.gender) || '';
@@ -9127,11 +9141,12 @@ async function saveMyProfileSettings(){
   const role = document.getElementById('mps_role').value || null;
   const phone = document.getElementById('mps_phone').value.trim() || null;
   const bio = document.getElementById('mps_bio').value.trim() || null;
+  const personal_kitchen_name = document.getElementById('mps_personal_kitchen').value.trim() || 'My Kitchen';
   if(!full_name || !ageRaw || !gender){ statusEl.textContent = 'Fill in name, age, and gender first.'; return; }
   const age = parseInt(ageRaw, 10);
   if(!age || age < 14 || age > 100){ statusEl.textContent = 'Enter a real age.'; return; }
   statusEl.textContent = 'Saving…';
-  const { error } = await sb.from('profiles').update({ full_name, age, gender, role, phone, bio }).eq('id', currentUser.id);
+  const { error } = await sb.from('profiles').update({ full_name, age, gender, role, phone, bio, personal_kitchen_name }).eq('id', currentUser.id);
   if(error){ statusEl.textContent = 'Could not save: ' + error.message; return; }
   currentUserName = full_name;
   statusEl.textContent = 'Saved.';
