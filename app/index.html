@@ -9123,9 +9123,7 @@ function openMyProfileSettings(){
   document.getElementById('mps_new_password').value = '';
   renderFaceIdSettingsBlock();
   document.getElementById('myProfileSettingsOverlay').classList.add('open');
-  // Always open at the top, not where it was last scrolled (Richard, 21.7.).
-  const _mpsSheet = document.querySelector('#myProfileSettingsOverlay .sheet');
-  if(_mpsSheet) _mpsSheet.scrollTop = 0;
+  // (Scroll-to-top on open is handled globally for every sheet by the overlay MutationObserver.)
 }
 function openChangePasswordField(){
   document.getElementById('passwordAlreadySetBlock').style.display = 'none';
@@ -15251,6 +15249,10 @@ new MutationObserver((muts)=>{
     const wasOpen = (m.oldValue || '').split(/\s+/).includes('open');
     const isOpen = el.classList.contains('open');
     if(!wasOpen && isOpen){
+      // Every sheet/overlay opens scrolled to the TOP, not wherever it was left last time
+      // (Richard, 21.7. — "oprav to všade pri takýchto typoch okien"). One place, covers all.
+      const _sheet = el.querySelector('.sheet');
+      if(_sheet) _sheet.scrollTop = 0;
       if(_openOverlayCount === 0) _preOverlayScrollY = window.scrollY;
       _openOverlayCount++;
     }
