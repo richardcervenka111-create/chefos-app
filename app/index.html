@@ -7945,7 +7945,11 @@ function openAccountTypeSettings(){
   document.getElementById('accountTypeSettingsList').innerHTML = `
     <button class="chip${currentAccountType==='personal'?' active':''}" style="width:100%; text-align:left; margin-bottom:8px;" onclick="setAccountTypeFromSettings('personal')">👤 Personal — your own recipes + the Sautero library${currentAccountType==='personal'?' ✓':''}</button>
     <button class="chip${currentAccountType==='company'?' active':''}" style="width:100%; text-align:left;" onclick="setAccountTypeFromSettings('company')">🏢 Company — your team's shared recipes + the Sautero library${currentAccountType==='company'?' ✓':''}</button>
-    ${currentAccountType==='company' ? `<button class="sheet-cancel" style="width:100%; text-align:left; margin-top:10px;" onclick="closeAccountTypeSettings(); openManualTeamCode();">🔢 Enter/Change Team Code</button>` : ''}
+    <button class="sheet-cancel" style="width:100%; text-align:left; margin-top:10px;" onclick="closeAccountTypeSettings(); openManualTeamCode();">🔢 ${currentAccountType==='company' ? 'Enter/Change Team Code' : 'Join a team with a code'}</button>
+    <!-- Always shown (Richard, 20.7.): the join-by-code button used to be Company-only, but the
+         person joining a team is usually still in Personal mode — they had no way to enter a code.
+         join_team_by_code (via lookupManualTeamCode → confirmTeamJoin) does the whole join server-
+         side and flips the account to Company itself, so it works fine straight from Personal. -->
     ${currentAccountType==='company' ? `<button class="chip${localStorage.getItem('chefos_show_personal_in_company')==='1'?' active':''}" style="width:100%; text-align:left; margin-top:10px;" onclick="toggleShowPersonalInCompany()">📖 Also show my personal recipes here${localStorage.getItem('chefos_show_personal_in_company')==='1'?' ✓':''}</button>` : ''}
   `;
   document.getElementById('accountTypeSettingsOverlay').classList.add('open');
