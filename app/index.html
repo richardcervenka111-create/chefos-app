@@ -31,9 +31,13 @@
      way to force tablets still showing the old ChefOS icon to actually fetch the new Sautero
      one. If a tablet already has an old Add-to-Home-Screen icon, that snapshot is frozen at
      iOS's OS level regardless of anything served here — remove and re-add it once. -->
-<link rel="icon" href="icons/icon-32-v2.png" sizes="32x32">
-<link rel="icon" href="icons/icon-192-v2.png" sizes="192x192">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon-v2.png">
+<!-- -v3 (20.7.): same Sautero art, new file paths again — some desktop browsers (Richard's Mac)
+     still showed the old cached ChefOS tab icon after -v2; a fresh path is the only bust those
+     honour. A pinned tab / bookmark / desktop shortcut created earlier keeps its own frozen
+     snapshot regardless — remove and re-add it once to pick this up. -->
+<link rel="icon" href="icons/icon-32-v3.png" sizes="32x32">
+<link rel="icon" href="icons/icon-192-v3.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-v3.png">
 <meta name="theme-color" content="#0A1A2F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -377,6 +381,14 @@
     max-height: 80vh;
     overflow-y: auto;
   }
+  /* Reorder sheets list every Home/Settings tile, so they get tall. Make the LIST itself the
+     scroll area and keep the "Done" button pinned at the bottom — so on a short window (Richard,
+     20.7. — Mac / Proton) you can always scroll to the last icons AND reach Done, whatever the
+     window height. Scoped to the two reorder overlays only; every other sheet is untouched. */
+  #homeReorderOverlay .sheet, #settingsReorderOverlay .sheet{ display:flex; flex-direction:column; overflow:hidden; }
+  #homeReorderOverlay .sheet > :not(#homeReorderList),
+  #settingsReorderOverlay .sheet > :not(#settingsReorderList){ flex:0 0 auto; }
+  #homeReorderList, #settingsReorderList{ flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .sheet-handle{
     width: 36px; height: 4px; border-radius: 999px;
     background: var(--rule);
@@ -15184,10 +15196,21 @@ document.addEventListener('focusin', (e)=>{
   const el = e.target;
   if(!el.matches) return;
   if(!el.matches('input, textarea, select')) return;
-  if(!el.closest('.sheet, .sheet-overlay, .box')) return;
-  // The 300ms delay lets the keyboard finish animating in before measuring; also covers the
-  // keyboard-already-open case (tapping a second field fires no viewport event at all).
-  setTimeout(()=>{ _adjustOpenSheetsForKeyboard(); el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }, 300);
+  // Universal coverage (Richard, 20.7. — "aby sa to už nikde nestávalo, ani v tom čo vytvoríme
+  // ďalej"): fire for EVERY text field, not only those inside a sheet/box. This way login, the
+  // onboarding gates, and any screen we build later are all covered automatically — the earlier
+  // gate limited the keyboard handling to bottom-sheet forms only.
+  setTimeout(()=>{
+    _adjustOpenSheetsForKeyboard();
+    // On Android browsers that report NO viewport signal (Firefox Klar), the layout viewport
+    // never shrinks, so block:'nearest' thinks the field is visible while the keyboard actually
+    // draws over the lower half. For a page-level field there's no sheet to pin, so pull the
+    // field itself up to the top region no soft keyboard can reach. iOS/desktop keep 'nearest'.
+    const km = _sheetKeyboardMode().mode;
+    const noSignal = /Android/i.test(navigator.userAgent) && km !== 'lift' && km !== 'shrunk';
+    el.scrollIntoView({ block: noSignal ? 'start' : 'nearest', behavior:'smooth' });
+  }, 300);  // 300ms lets the keyboard finish animating; also covers the keyboard-already-open
+            // case (tapping a second field fires no viewport event at all).
 });
 document.addEventListener('focusout', ()=>{
   // Wait for focus to settle — tapping from one field straight into another must not flash
