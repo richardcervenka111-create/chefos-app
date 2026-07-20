@@ -12198,6 +12198,15 @@ const VIEW_REOPENERS = {
   teamInviteView: ()=>showTeamInvite(),
 };
 function hideAllViews(){
+  // Close any open tutorial when switching screens (Richard, 20.7. — bug: he was on HACCP but
+  // saw the Ingredients tutorial). The per-screen guides auto-open on a screen's first visit,
+  // but navigating away (the top-bar ‹ / Home buttons sit above the bottom-sheet tutorial and
+  // stay tappable) never closed the old one — and maybeShowViewTutorial refuses to open the new
+  // screen's guide while one is already open, so the previous screen's tutorial lingered on the
+  // wrong screen. Closing it here (via closeTutorial, which also marks it seen so it doesn't
+  // re-pop every visit) lets each screen's own guide show cleanly; the ❓ replays it anytime.
+  const tutOverlay = document.getElementById('tutorialOverlay');
+  if(tutOverlay && tutOverlay.classList.contains('open')) closeTutorial();
   const visible = ALL_VIEW_IDS.find(id=>{
     const el = document.getElementById(id);
     return el && el.style.display !== 'none';
