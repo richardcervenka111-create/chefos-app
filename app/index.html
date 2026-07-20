@@ -4526,20 +4526,30 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 </button>
 
 <!-- Supabase library — the ONE dependency the whole app cannot run without. Vendored locally
-     (supabase.min.js, v2.110.7 UMD, sits next to this file and is served from the SAME origin,
-     app.sautero.ch) so it can never fail to load once the app HTML itself has loaded. This
-     replaces a CDN-only setup that locked Richard's Huawei device out completely on 20.7.: it
-     couldn't reach jsdelivr OR unpkg even with a working connection (some networks/browsers
-     block third-party CDNs), so `supabase` was undefined, `const sb = supabase.createClient()`
-     threw during load, and everything downstream — login, the language dropdown — died with a
-     cryptic "Cannot access 'sb' before initialization". The two CDN <script>s below remain
-     purely as a backstop for the near-impossible case the same-origin file itself 404s. -->
+     (supabase.min.js, served from the SAME origin, app.sautero.ch) so it can never fail to
+     load once the app HTML itself has loaded — no third-party CDN in the boot path.
+
+     PINNED to v2.86.0 UMD, deliberately NOT the latest (Richard, 20.7.): the real cause of the
+     lockout on his Huawei P30 turned out to be the browser, not the network — it's frozen on
+     Chrome 83 (May 2020, can't update: no full Google Play since the 2019 sanctions). supabase-js
+     introduced logical-assignment syntax (||=, &&=) at v2.89.0, which Chrome 83 cannot even
+     PARSE — so the library silently failed to load and every symptom cascaded from there
+     ("Cannot access 'sb' before initialization", empty language dropdown). v2.86.0 is the newest
+     build free of that AND of every other post-Chrome-83 syntax/method (private fields, static
+     blocks, replaceAll, .at(), structuredClone, Object.hasOwn, Promise.any…) — audited byte by
+     byte. The app's OWN inline code was already Chrome-83-clean, so this one pin makes the whole
+     app run on that 2020 browser. Verified: loads + a real auth round-trip succeeds. Before
+     bumping this version, re-audit the new bundle for Chrome-83-incompatible syntax.
+
+     The two CDN <script>s below are a backstop only if the same-origin file 404s (near-
+     impossible); pinned to the same 2.86.0 so a fallback can't silently reintroduce the newer
+     syntax. -->
 <script src="supabase.min.js"></script>
 <script>
-  if (!window.supabase) { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>'); }
+  if (!window.supabase) { document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.86.0/dist/umd/supabase.js"><\/script>'); }
 </script>
 <script>
-  if (!window.supabase) { document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>'); }
+  if (!window.supabase) { document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.86.0/dist/umd/supabase.js"><\/script>'); }
 </script>
 <!-- jsQR (Scan QR, Connections hub, bod 6) — decodes camera frames entirely client-side, MIT
      license, https://github.com/cozmo/jsQR. Vendored locally (jsQR.js, same origin) alongside
