@@ -2627,6 +2627,20 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
+<!-- Error Logs (Richard, 20.7. — "urob to", golden-path testing follow-up): error_logs already
+     existed (db/51) and logClientError() has been writing to it for weeks via window.onerror /
+     unhandledrejection + dozens of explicit call sites — nobody had ever built a screen to read
+     it back, so real errors sat unseen. Head Admin only, same gate as Internal Docs. -->
+<div id="adminErrorLogsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeAdminErrorLogs()">
+  <div class="sheet" style="max-height:80vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">🐞 Error Logs</div>
+    <p class="lede" style="margin:0 0 8px 0;">Every JS error and failed save the app has caught on its own — nothing here needs anyone to report it.</p>
+    <div id="adminErrorLogsList" style="overflow-y:auto;"></div>
+    <button class="sheet-cancel" style="margin-top:10px;" onclick="closeAdminErrorLogs()">Close</button>
+  </div>
+</div>
+
 <!-- Long-press context menu (bod 1, 16.7.) — Check List dishes + Ingredients, for everyone.
      Delete reuses each table's existing soft-delete/hide columns (prep_dishes already had
      hidden/deleted; ingredients gets hidden new in db/107). -->
@@ -8078,6 +8092,33 @@ async function openAdminFeedback(){
 }
 function closeAdminFeedback(){ document.getElementById('adminFeedbackOverlay').classList.remove('open'); }
 
+/* ---------- Error Logs (Richard, 20.7.) ---------- */
+async function openAdminErrorLogs(){
+  document.getElementById('adminErrorLogsList').innerHTML = '<p class="lede">Loading…</p>';
+  document.getElementById('adminErrorLogsOverlay').classList.add('open');
+  const { data, error } = await sb.from('error_logs').select('id, kitchen_id, user_id, message, stack, url, created_at').order('created_at', { ascending:false }).limit(100);
+  if(error){ document.getElementById('adminErrorLogsList').innerHTML = `<p class="lede">Could not load: ${error.message}</p>`; return; }
+  if(!data || !data.length){ document.getElementById('adminErrorLogsList').innerHTML = '<div class="empty-state">Nothing logged — no JS errors or failed saves caught recently.</div>'; return; }
+  const userIds = Array.from(new Set(data.map(e=>e.user_id).filter(Boolean)));
+  let nameById = {};
+  if(userIds.length){
+    const { data: people } = await sb.from('profiles').select('id, full_name, email').in('id', userIds);
+    (people||[]).forEach(p=>{ nameById[p.id] = p.full_name || p.email || 'Unknown'; });
+  }
+  document.getElementById('adminErrorLogsList').innerHTML = data.map(e=>`
+    <div class="task-row">
+      <div class="task-row-top">
+        <div class="info" style="flex:1;">
+          <div class="name task-text">${(e.message||'').replace(/</g,'&lt;')}</div>
+          <div class="meta">${(nameById[e.user_id]||'unknown user').replace(/</g,'&lt;')} · ${new Date(e.created_at).toLocaleString()}${e.url ? ' · ' + e.url.replace(/</g,'&lt;').slice(0,60) : ''}</div>
+          ${e.stack ? `<div class="meta" style="opacity:.6; font-family:monospace; font-size:11.5px; white-space:pre-wrap;">${e.stack.replace(/</g,'&lt;').slice(0,300)}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function closeAdminErrorLogs(){ document.getElementById('adminErrorLogsOverlay').classList.remove('open'); }
+
 /* ---------- Add Company (bod 5, 16.7. — db/109) — Head Admin only ---------- */
 function openAddCompany(){
   document.getElementById('addCompanyName').value = '';
@@ -11609,6 +11650,10 @@ const ADMIN_TILE_DEFS = [
      unlisted GitHub Pages subpath (see .github/workflows/deploy-pages.yml) purely so it's
      fetchable at all — this tile is the only place that path is ever written down. */
   { key:'internalDocs', icon:'📊', staticLabel:'Internal Docs', onclick:'openInternalDocs()', adminOnly:()=> !!(currentUser && currentUser.email && currentUser.email.toLowerCase()==='richard.cervenka@icloud.com') },
+  /* Error Logs (Richard, 20.7.) — reads error_logs, which logClientError() has quietly been
+     filling since db/51. Head Admin only, same gate as Internal Docs — this is a dev-facing
+     screen, not something every Kitchen Admin needs. */
+  { key:'errorLogs', icon:'🐞', staticLabel:'Error Logs', onclick:'openAdminErrorLogs()', adminOnly:()=> !!(currentUser && currentUser.email && currentUser.email.toLowerCase()==='richard.cervenka@icloud.com') },
 ];
 function showAdmin(){
   logEvent('view_opened', {view:'admin_hub'});

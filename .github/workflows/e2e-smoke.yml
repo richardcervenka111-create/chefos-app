@@ -1,0 +1,30 @@
+name: E2E smoke test
+
+# Golden-path browser test against the live app (Richard, 20.7.2026) — separate from
+# health-checks.yml (which is static/instant and runs on every push): this one drives a
+# real browser against app.sautero.ch, so it runs on a schedule + manual trigger instead,
+# not on every commit. Needs SAUTERO_QA_EMAIL / SAUTERO_QA_PASSWORD as repo secrets — a
+# dedicated QA account (Settings → My Profile & Security → set a password), never one of
+# the 3 real test accounts. See scripts/e2e_smoke_test.py for what it actually checks.
+on:
+  schedule:
+    - cron: '0 6 * * *'   # 06:00 UTC daily — quiet hours for the pilot kitchens
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Playwright
+        run: |
+          pip3 install playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Run smoke test
+        env:
+          SAUTERO_QA_EMAIL: ${{ secrets.SAUTERO_QA_EMAIL }}
+          SAUTERO_QA_PASSWORD: ${{ secrets.SAUTERO_QA_PASSWORD }}
+        run: python3 scripts/e2e_smoke_test.py
