@@ -1755,6 +1755,12 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <p class="kicker">Kitchen Notebook</p>
     <h1 class="title display">Sautero</h1>
     <p class="lede" style="margin-top:14px;">We're launching soon — get in touch with whoever's already using Sautero at your kitchen for an invite, or check back shortly.</p>
+    <!-- Richard, 20.7. — found live: an existing account that loses its session (cache/cookies
+         cleared, new device, browser's own "clear data" button) had no way back in except
+         re-finding an ?invite= link. This is exactly the login form the wall is otherwise
+         hiding — someone with no account still can't get anywhere past it, sign-in still
+         requires real credentials or a valid emailed code either way. -->
+    <button class="sheet-cancel" style="width:100%; margin-top:14px;" onclick="showLoginFromComingSoon()">Already have an account? Sign in</button>
   </div>
 </div>
 
@@ -7276,6 +7282,10 @@ function randomChallenge(){
   return arr;
 }
 
+function showLoginFromComingSoon(){
+  document.getElementById('comingSoonView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'block';
+}
 function togglePasswordLogin(){
   const block = document.getElementById('loginPasswordBlock');
   const isOpen = block.style.display !== 'none';
