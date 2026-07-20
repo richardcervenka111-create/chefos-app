@@ -69,6 +69,19 @@ def run(url: str, email: str, password: str, headed: bool) -> int:
         page = browser.new_page()
         page.on("pageerror", lambda exc: console_errors.append(f"[pageerror] {exc}"))
         page.on("console", lambda msg: console_errors.append(f"[console.{msg.type}] {msg.text}") if msg.type == "error" else None)
+        # A fresh CI browser has empty localStorage, so every first-run tutorial auto-opens and
+        # its overlay blocks tile clicks. Report all tutorials as already seen (before any page
+        # code runs, on every navigation) so they never pop during the test — purely a
+        # test-harness concern, it changes nothing about the app's real behaviour.
+        page.add_init_script(
+            """() => {
+                const orig = Storage.prototype.getItem;
+                Storage.prototype.getItem = function(k){
+                    if (k === 'chefos_tutorial_seen' || (typeof k === 'string' && k.indexOf('chefos_vtut_') === 0)) return '1';
+                    return orig.call(this, k);
+                };
+            }"""
+        )
 
         # ?invite= bypasses the "coming soon" wall shown to any browser with zero invite
         # context (app_config.coming_soon_enabled, app/index.html's init()) — without it a
@@ -118,34 +131,31 @@ def run(url: str, email: str, password: str, headed: bool) -> int:
         print("  ✓ reached Home")
 
         for step in GOLDEN_PATHS:
-            console_errors.clear()
             tile = step["tile"]
             print(f"→ {tile}")
             try:
-                page.click(f".home-tile:has-text('{tile}')", timeout=8000)
+                # Reset to a clean Home before each tile (the session persists across a reload,
+                # so it lands straight back on Home). This sidesteps every kind of
+                # back-navigation fragility — sheets vs full views, etc. — that a tile might
+                # leave behind, and isolates each tile as its own check.
+                page.goto(login_url, wait_until="domcontentloaded", timeout=20000)
+                page.wait_for_selector("#homeView", state="visible", timeout=15000)
+                console_errors.clear()  # ignore anything from the reload itself; watch the tile only
+                # has_text= (not the :has-text('...') pseudo-selector) so labels with an
+                # apostrophe like "Chef's Assistant" don't break the CSS parser.
+                page.locator(".home-tile", has_text=tile).first.click(timeout=8000)
                 page.wait_for_timeout(1200)  # let async loads settle
                 if step["expect_text"]:
-                    page.wait_for_selector(f"text={step['expect_text']}", timeout=8000)
+                    page.get_by_text(step["expect_text"], exact=False).first.wait_for(timeout=8000)
                 if console_errors:
                     failures.append(f"{tile}: JS error(s) — {'; '.join(console_errors[:3])}")
                     print(f"  ✗ {console_errors[0]}")
                 else:
                     print("  ✓ ok, no console errors")
             except Exception as e:
-                failures.append(f"{tile}: {e}")
-                print(f"  ✗ {e}")
-            finally:
-                # Best-effort return to Home for the next tile — tolerate either a back
-                # icon or a full reload if a tile leaves us somewhere unexpected.
-                try:
-                    if page.locator(BACK_ICON_SELECTOR).count():
-                        page.locator(BACK_ICON_SELECTOR).first.click(timeout=3000)
-                        page.wait_for_selector("#homeView", state="visible", timeout=5000)
-                    elif not page.locator("#homeView").is_visible():
-                        page.goto(url, wait_until="networkidle", timeout=15000)
-                        page.wait_for_selector("#homeView", state="visible", timeout=15000)
-                except Exception:
-                    page.goto(url, wait_until="networkidle", timeout=15000)
+                msg = str(e).splitlines()[0]
+                failures.append(f"{tile}: {msg}")
+                print(f"  ✗ {msg}")
 
         browser.close()
 
