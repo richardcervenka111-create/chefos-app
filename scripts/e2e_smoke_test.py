@@ -80,14 +80,39 @@ def run(url: str, email: str, password: str, headed: bool) -> int:
         print(f"→ Signing in as {email}")
         page.wait_for_selector("#loginEmail", state="visible", timeout=15000)
         page.fill("#loginEmail", email)
-        page.click("#passwordLoginToggleLink")  # password field starts hidden — magic-link is the default flow
-        page.wait_for_selector("#loginPassword", state="visible", timeout=5000)
+        # Reveal the password field only if it isn't already showing (the toggle flips whichever
+        # block is visible, so a blind click could hide it).
+        if not page.locator("#loginPassword").is_visible():
+            page.click("#passwordLoginToggleLink")
+            page.wait_for_selector("#loginPassword", state="visible", timeout=5000)
         page.fill("#loginPassword", password)
         page.click("#loginPasswordBlock button:has-text('Sign in')")  # not the (hidden) Face ID button, which also matches "Sign in"
         try:
             page.wait_for_selector("#homeView", state="visible", timeout=15000)
         except Exception:
-            print("FAIL: never reached Home after sign-in — check the QA account has a password set and has finished onboarding.")
+            # Better diagnostics (Richard, 20.7.): say WHY, not just "never reached Home".
+            page.wait_for_timeout(1500)
+            status = ""
+            try:
+                status = (page.locator("#loginStatus1").inner_text() or "").strip()
+            except Exception:
+                pass
+            # Which top-level view actually ended up visible?
+            landed = page.evaluate(
+                """() => {
+                    const ids = ['loginView','comingSoonView','privacyGateView','confidentialityGateView',
+                                 'passwordGateView','myProfileGateView','accountTypeGateView','teamGateView','homeView'];
+                    const vis = ids.filter(id => { const el=document.getElementById(id); return el && getComputedStyle(el).display !== 'none'; });
+                    return vis.join(',') || 'unknown';
+                }"""
+            )
+            if status:
+                print(f"FAIL: sign-in rejected — login message: \"{status}\" (usually a wrong password for the QA account).")
+            elif landed and landed != "homeView":
+                print(f"FAIL: signed in but stopped at a gate/screen, not Home — visible view(s): {landed}. "
+                      f"The QA account still needs to finish that step once by hand.")
+            else:
+                print(f"FAIL: never reached Home (visible view: {landed}).")
             browser.close()
             return 1
         print("  ✓ reached Home")
@@ -140,10 +165,24 @@ if __name__ == "__main__":
     parser.add_argument("--headed", action="store_true", help="Show the browser window instead of running headless.")
     args = parser.parse_args()
 
+    # CI (GitHub Actions) sets both as env vars from repo secrets. For a local run, prompt
+    # instead — the password is read with getpass (hidden, never echoed to the terminal and
+    # never captured in a screenshot), and email defaults to the QA account so the whole thing
+    # is one command with no quoting to get wrong (Richard, 20.7. — the env-var form was
+    # error-prone by hand: shell quoting mangled the password).
     email = os.environ.get("SAUTERO_QA_EMAIL")
     password = os.environ.get("SAUTERO_QA_PASSWORD")
+    if not email:
+        try:
+            entered = input("QA email [sautero_android@proton.me]: ").strip()
+        except EOFError:
+            entered = ""
+        email = entered or "sautero_android@proton.me"
+    if not password:
+        import getpass
+        password = getpass.getpass("QA password (hidden): ")
     if not email or not password:
-        print("Set SAUTERO_QA_EMAIL and SAUTERO_QA_PASSWORD environment variables first (see the docstring at the top of this file).")
+        print("Need an email and a password to run the smoke test.")
         sys.exit(1)
 
     sys.exit(run(args.url, email, password, args.headed))
