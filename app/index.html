@@ -7693,9 +7693,11 @@ async function enterApp(){
   const inviteParam = new URLSearchParams(location.search).get('invite');
   if(inviteParam && currentKitchenId){
     history.replaceState(null, '', location.pathname);
-    const { data: inviteRow } = await sb.from('kitchen_invites')
-      .select('kitchen_id, revoked, expires_at, grants_company_admin')
-      .eq('id', inviteParam).maybeSingle();
+    const { data: inviteRow } = isUuidShape(inviteParam)
+      ? await sb.from('kitchen_invites')
+          .select('kitchen_id, revoked, expires_at, grants_company_admin')
+          .eq('id', inviteParam).maybeSingle()
+      : { data: null };
     // Deliberately NOT gated on !revoked/!expired (16.7. fix, bod 3) — a revoked/expired link
     // is exactly the protonmail failure mode db/118 exists to recover from. The confirm dialog
     // and the RPC call below still run; claim_company_admin's own server-side invariant (caller
@@ -9118,6 +9120,14 @@ function handleRealtimePrepDishChange(payload){
    anything — this section handles both.
    ============================================================ */
 
+// Invite tokens are kitchen_invites.id — a UUID. A syntactically-invalid token (a truncated /
+// garbage invite link, or the E2E smoke test's fake token) can never match a real row, so we
+// skip the lookup entirely instead of firing a request PostgREST rejects with 400 "invalid
+// input syntax for type uuid". ONLY clearly-invalid (non-UUID) tokens are short-circuited — a
+// real UUID invite still resolves and claims exactly as before.
+function isUuidShape(v){
+  return typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+}
 function getJoinTargetFromUrl(){
   // 'invite' is the current format (a real, revocable/expiring token — db/53_*.sql). 'join'
   // (the kitchen's own id, never expires, can't be revoked) is kept readable so links already
@@ -9203,7 +9213,9 @@ async function renderTeamGate(){
   let targetKitchenId = null;
   let invalidInviteReason = '';
   if(invite){
-    const { data: inviteRow } = await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at').eq('id', invite).maybeSingle();
+    const { data: inviteRow } = isUuidShape(invite)
+      ? await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at').eq('id', invite).maybeSingle()
+      : { data: null };
     if(!inviteRow) invalidInviteReason = "That invite link doesn't point to a real team.";
     else if(inviteRow.revoked) invalidInviteReason = 'That invite link has been revoked. Ask whoever sent it for a fresh one.';
     else if(new Date(inviteRow.expires_at) < new Date()) invalidInviteReason = 'That invite link has expired. Ask whoever sent it for a fresh one.';
@@ -9350,7 +9362,7 @@ async function joinKitchenViaLink(kitchenId){
   // call makes the joiner the kitchen's main admin and burns the invite (single-use), all
   // verified server-side. For any ordinary invite it just returns false — awaited (not
   // fire-and-forget) so startApp() below reads the profile AFTER the perms exist.
-  if(inviteId){
+  if(inviteId && isUuidShape(inviteId)){
     // Check whether THIS invite was actually meant to grant admin before deciding how loud to
     // be about a `false`/failed claim — an ordinary (non-admin) invite legitimately returns
     // false here every time, that's not an error. Only alert when a KNOWN admin invite fails to
@@ -9846,7 +9858,9 @@ function handleScannedQrText(text){
     (async ()=>{
       let kitchenId = legacyKitchen;
       if(inviteId){
-        const { data: inviteRow } = await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at, grants_company_admin').eq('id', inviteId).maybeSingle();
+        const { data: inviteRow } = isUuidShape(inviteId)
+          ? await sb.from('kitchen_invites').select('kitchen_id, revoked, expires_at, grants_company_admin').eq('id', inviteId).maybeSingle()
+          : { data: null };
         if(!inviteRow || inviteRow.revoked || new Date(inviteRow.expires_at) < new Date()){
           document.getElementById('qrScanStatus').textContent = 'That invite is no longer valid — ask for a fresh one.';
           return;
