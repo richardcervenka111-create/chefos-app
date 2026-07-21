@@ -154,6 +154,51 @@ def refresh_sautero_stamps(check_only, changed):
     return fixed, stale
 
 
+def refresh_feature_history(check_only):
+    """Third auto-fix class (22.7. — the History chart showed a fake feature-count DROP because
+    FEATURE_COUNT_HISTORY in tasklist.html was hand-maintained and had gaps): today's row is now
+    MEASURED from the live feature map (feature_status.html status counts; plan = plan + build,
+    matching the map's own legend) and written into the array on every commit. Context-anchored
+    per the hard rule: detection and rewrite touch ONLY the FEATURE_COUNT_HISTORY block."""
+    import re
+    fs_path = os.path.join(VD, 'feature_status.html')
+    tl_path = os.path.join(VD, 'tasklist.html')
+    if not (os.path.exists(fs_path) and os.path.exists(tl_path)):
+        return None
+    fs = open(fs_path, encoding='utf-8', errors='replace').read()
+    # Data rows carry status:'ok' (no space); the one status: 'ok' WITH a space is a comment
+    # explaining the values — the strict no-space form counts only real feature rows.
+    counts = {k: len(re.findall(r"\bstatus:'" + k + r"'", fs)) for k in ('ok', 'test', 'plan', 'build')}
+    ok, test, plan = counts['ok'], counts['test'], counts['plan'] + counts['build']
+    if ok == 0:
+        return None  # feature map unreadable — never write a zero row
+    os.environ['TZ'] = 'Europe/Zurich'
+    try:
+        import time as _t
+        _t.tzset()
+    except Exception:
+        pass
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    s = open(tl_path, encoding='utf-8').read()
+    m = re.search(r'(const FEATURE_COUNT_HISTORY = \[)(.*?)(\n\];)', s, re.S)
+    if not m:
+        return None
+    row = f"  {{ date:'{today}', ok:{ok}, test:{test}, plan:{plan} }},  // auto-recorded from the live feature map"
+    have = re.search(r"\{\s*date:'" + today + r"',\s*ok:(\d+),\s*test:(\d+),\s*plan:(\d+)\s*\}", m.group(2))
+    if have and (int(have.group(1)), int(have.group(2)), int(have.group(3))) == (ok, test, plan):
+        return False  # today already recorded and correct
+    if check_only:
+        return True   # stale: today missing or wrong
+    if have:
+        body = re.sub(r"^.*date:'" + today + r"'.*$", row, m.group(2), count=1, flags=re.M)
+    else:
+        body = m.group(2) + '\n' + row
+    open(tl_path, 'w', encoding='utf-8').write(s[:m.start()] + m.group(1) + body + m.group(3) + s[m.end():])
+    print(f"docs_autofix: recorded today's feature counts into FEATURE_COUNT_HISTORY "
+          f"({today}: ok {ok} / test {test} / plan {plan}).")
+    return True
+
+
 def process(check_only):
     changed = _changed_files()
     fixed, missing = [], []
@@ -172,9 +217,12 @@ def process(check_only):
     if stamp_fixed:
         print(f'docs_autofix: refreshed the "Stav Sautero k" date on {len(stamp_fixed)} doc(s): '
               + ', '.join(stamp_fixed))
+    hist_stale = refresh_feature_history(check_only)
 
     if check_only:
         problems = missing + [p + ' (stale "Stav Sautero k" date)' for p in stamp_stale]
+        if hist_stale:
+            problems.append("visual data/tasklist.html (FEATURE_COUNT_HISTORY is missing today's measured row)")
         if problems:
             print(f'docs_autofix --check: {len(problems)} doc(s) with a missing/stale date stamp:')
             for p in problems:

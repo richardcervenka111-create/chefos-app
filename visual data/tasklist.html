@@ -963,11 +963,12 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-18', ok:77, test:26, plan:8 },
   { date:'2026-07-19', ok:89, test:29, plan:8 },
   { date:'2026-07-21', ok:89, test:24, plan:13 },  // measured from the live feature map (plan = plan 8 + build 5)
+  { date:'2026-07-22', ok:89, test:24, plan:13 },  // auto-recorded from the live feature map
 ];
 /* Hours worked per day (Richard, 17.7.) — measured from git commit sessions by
    scripts/work_hours.py (run it and paste its output here on every doc-sync). Days before
    13.7. predate git, so they're documented-day-log ESTIMATES, always shown with ~. */
-const WORK_HOURS = { '2026-07-08':8.0 /*odhad*/, '2026-07-09':8.0 /*odhad*/, '2026-07-10':8.0 /*odhad*/, '2026-07-11':8.0 /*odhad*/, '2026-07-12':8.0 /*odhad*/, '2026-07-13':7.7, '2026-07-14':7.4, '2026-07-15':11.6, '2026-07-16':14.8, '2026-07-17':6.4, '2026-07-18':12.4, '2026-07-19':3.9, '2026-07-20':17.3, '2026-07-21':4.9 };
+const WORK_HOURS = { '2026-07-08':8.0 /*odhad*/, '2026-07-09':8.0 /*odhad*/, '2026-07-10':8.0 /*odhad*/, '2026-07-11':8.0 /*odhad*/, '2026-07-12':8.0 /*odhad*/, '2026-07-13':7.7, '2026-07-14':7.4, '2026-07-15':11.6, '2026-07-16':14.8, '2026-07-17':6.4, '2026-07-18':12.4, '2026-07-19':3.9, '2026-07-20':17.3, '2026-07-21':5.0 };
 const WORK_HOURS_MEASURED_FROM = '2026-07-13';
 function isEstimatedHours(d){ return d < WORK_HOURS_MEASURED_FROM; }
 function renderWorkHours(){
@@ -1056,13 +1057,23 @@ function renderFeaturesOverTime(){
     const test = Math.round(total * first.test / first.total);
     return { ok, test, plan: Math.max(0, total - ok - test), total };
   };
-  const maxTotal = Math.max(...dates.map(d => (recorded[d] || estDay(d)).total));
+  // A missing day AFTER recording started is NOT an estimate case — the back-estimate formula
+  // exists only for days before 16.7. Applying it later invented a fake DROP (22.7. showed 117
+  // while the live map said 126, because the formula ignores recorded snapshots entirely).
+  // Such days now carry the LAST recorded stack forward — honest "no change recorded".
+  const valueFor = {};
+  let lastRec = null;
+  dates.forEach(d=>{
+    if(recorded[d]) lastRec = recorded[d];
+    valueFor[d] = recorded[d] || (d > firstRecordedDate && lastRec ? lastRec : estDay(d));
+  });
+  const maxTotal = Math.max(...dates.map(d => valueFor[d].total));
   const BW = 40, GAP = 16, H = 170, TOP = 20, LBL = 30;
   const W = Math.max(dates.length * (BW + GAP) + GAP, 4 * 128 + GAP);
   const bars = dates.map((d,i)=>{
     const x = GAP + i * (BW + GAP);
     const isEst = !recorded[d];
-    const r = recorded[d] || estDay(d);
+    const r = valueFor[d];
     let yCursor = TOP + H;
     const segs = SER.map(s=>{
       const v = r[s.key];
