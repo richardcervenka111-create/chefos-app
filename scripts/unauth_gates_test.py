@@ -55,6 +55,12 @@ BOGUS_PASSWORD = "definitely-not-a-real-password-000"
 IGNORABLE_CONSOLE = (
     "invalid login credentials", "invalid_credentials", "400 (bad request)",
     "auth", "password", "favicon", "manifest",
+    # The deliberate bogus-login step makes the auth endpoint return 400; the browser mirrors
+    # every failed request as a generic "Failed to load resource ... status of 400" console
+    # error. That is EXPECTED (the app correctly rejects bad creds) and is already classified by
+    # severity in on_response (4xx=warn, 5xx=hard), so this console echo is pure noise. Ignoring
+    # it here is what a real broken-app 5xx still gets caught by on_response. (21.7 CI false pos.)
+    "failed to load resource", "status of 400", "status of 401", "status of 403",
 )
 
 

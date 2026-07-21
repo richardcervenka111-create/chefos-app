@@ -22,6 +22,12 @@ declare
   user_b uuid; kitchen_b uuid;
   t text;
   leaked bigint;
+  -- Some tables have INTENTIONAL cross-kitchen sharing (the Public shelf + friend sharing:
+  -- ingredients db/136, recipes db/131/126/138). A user legitimately seeing another kitchen's
+  -- SHARED rows is NOT a leak — only a PRIVATE (unshared) row crossing kitchens is. So for those
+  -- tables we subtract the legitimately-shareable rows before counting. (Found 21.7. on the first
+  -- real prod run: 12 is_public ingredients showed as a "leak" — the test was too naive.)
+  shareable text;
   -- schedule_entries removed 19.7. (never existed in prod — dropped by db/18; the reference
   -- here would abort the whole test on a missing table); projects/tasks/events added.
   -- ingredient_price_history added 19.7. (db/163, same audit that found prep_dishes/tasks
@@ -58,7 +64,11 @@ begin
 
   foreach t in array tenant_tables loop
     begin
-      execute format('select count(*) from %I where kitchen_id = %L', t, kitchen_b) into leaked;
+      shareable := case t
+        when 'ingredients' then ' and not coalesce(is_public,false) and not coalesce(shared_with_friends,false)'
+        when 'recipes' then ' and not coalesce(is_public,false) and not coalesce(shared_with_chefos,false) and not coalesce(shared_with_friends,false)'
+        else '' end;
+      execute format('select count(*) from %I where kitchen_id = %L' || shareable, t, kitchen_b) into leaked;
       if leaked > 0 then
         raise exception 'TENANT LEAK: user % (kitchen %) can read % row(s) of table % belonging to kitchen %',
           user_a, kitchen_a, leaked, t, kitchen_b;
@@ -79,7 +89,11 @@ begin
 
   foreach t in array tenant_tables loop
     begin
-      execute format('select count(*) from %I where kitchen_id = %L', t, kitchen_a) into leaked;
+      shareable := case t
+        when 'ingredients' then ' and not coalesce(is_public,false) and not coalesce(shared_with_friends,false)'
+        when 'recipes' then ' and not coalesce(is_public,false) and not coalesce(shared_with_chefos,false) and not coalesce(shared_with_friends,false)'
+        else '' end;
+      execute format('select count(*) from %I where kitchen_id = %L' || shareable, t, kitchen_a) into leaked;
       if leaked > 0 then
         raise exception 'TENANT LEAK: user % (kitchen %) can read % row(s) of table % belonging to kitchen %',
           user_b, kitchen_b, leaked, t, kitchen_a;

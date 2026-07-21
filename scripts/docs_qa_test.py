@@ -94,7 +94,13 @@ def run(base, doc, headed):
         browser = p.chromium.launch(headless=not headed)
         context = browser.new_context()
         page = context.new_page()
-        page.on('console', lambda m: console_errors.append(m.text[:160]) if m.type == 'error' else None)
+        # A failed sub-resource (a missing font/favicon, a 4xx) is mirrored by the browser as a
+        # generic "Failed to load resource" console error — that is network noise, already scored
+        # by severity in the response handler (5xx = broken). Only app-authored console.error is a
+        # real signal, so drop the resource-load echoes.
+        IGNORE_CONSOLE = ('failed to load resource', 'favicon', 'manifest', 'net::err')
+        page.on('console', lambda m: (console_errors.append(m.text[:160])
+                if m.type == 'error' and not any(t in (m.text or '').lower() for t in IGNORE_CONSOLE) else None))
         page.on('response', lambda r: bad_responses.append(f'{r.status} {r.url}') if r.status >= 400 else None)
 
         # 1) nothing flies — check both widths
