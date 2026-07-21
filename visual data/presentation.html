@@ -44,10 +44,11 @@
   #progress{ position:fixed; top:0; left:0; height:3px; width:0; z-index:100;
     background:linear-gradient(90deg, var(--accent-deep), var(--accent)); box-shadow:0 0 12px var(--accent-dim); transition:width .08s linear; }
 
-  /* Reveal-on-scroll — gated on the .js class so content is never hidden without JS. */
-  .js .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-  .js .reveal.in{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } .js .reveal{ opacity:1 !important; transform:none !important; transition:none; } }
+  /* Reveal DISABLED 21.7. (Richard: the deck "flies / isn't anchored") — content is solid and
+     static, no scroll-in motion. The .reveal class is now inert; initReveal() is a harmless
+     no-op that only adds the .js class. Nothing translates or fades on scroll anymore. */
+  .reveal{ opacity:1 !important; transform:none !important; }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
 
   /* ---------- Hero ---------- */
   header.hero{ position:relative; padding:78px 0 46px 0; border-bottom:1px solid var(--rule); overflow:hidden; }
