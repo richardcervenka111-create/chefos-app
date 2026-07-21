@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChefOS — Swiss Market Overview</title>
+<style>
+  /* ChefOS standing visual identity (2026-07-11) — same palette/fonts as app/board.html,
+     used across every ChefOS internal document from here on. */
+  :root{
+    --bg:#0A1A2F; --paper:#122845; --paper-raised:#0f2340;
+    --ink:#fff; --ink-dim:#9C949E; --ink-faint:rgba(156,148,158,0.6);
+    --rule:#223d57; --accent:#34F7D7; --accent-dim:rgba(52,247,215,0.4);
+    --gold:#F7C948; --gold-dim:rgba(247,201,72,0.4);
+    --shadow:0 8px 28px rgba(0,0,0,0.45);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px 100px 24px; }
+  a{ color:var(--accent); }
+
+  header.hero{ padding:56px 0 34px 0; border-bottom:1px solid var(--rule); }
+  .kicker{ color:var(--accent); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
+  h1.title{ font-size:42px; font-weight:700; margin:0 0 14px 0; }
+  h1.title b{ color:var(--accent); font-weight:700; }
+  .lede{ color:var(--ink-dim); font-size:15.5px; max-width:62ch; line-height:1.65; }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:8px; margin-top:20px;
+    padding:7px 14px; border-radius:999px; border:1px solid var(--accent-dim);
+    background:rgba(52,247,215,0.10); font-size:12.5px; color:var(--accent);
+    font-family:"SF Mono",Menlo,monospace;
+  }
+  .status-pill::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--accent); }
+
+  section{ padding:46px 0; border-bottom:1px solid var(--rule); }
+  section:last-of-type{ border-bottom:none; }
+  h2.section-title{ font-weight:700; font-size:26px; margin:0 0 8px 0; }
+  .section-desc{ color:var(--ink-dim); font-size:14px; max-width:66ch; margin-bottom:26px; line-height:1.6; }
+
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:720px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+  .kpi-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:18px 16px; }
+  .kpi-num{ font-family:"SF Mono",Menlo,monospace; font-size:28px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .kpi-label{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-dim); margin-top:4px; }
+  .kpi-note{ font-size:11px; color:var(--ink-faint); margin-top:6px; }
+
+  .benefit-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:820px){ .benefit-grid{ grid-template-columns:1fr; } }
+  .benefit-card{ background:var(--paper); border:1px solid var(--rule); border-radius:16px; padding:22px 20px; }
+  .benefit-icon{ font-size:26px; margin-bottom:12px; }
+  .benefit-title{ font-size:16px; font-weight:600; margin-bottom:8px; }
+  .benefit-desc{ font-size:13.5px; color:var(--ink-dim); line-height:1.6; }
+  .benefit-status{
+    display:inline-block; margin-top:12px; padding:3px 9px; border-radius:999px;
+    font-size:10px; text-transform:uppercase; letter-spacing:0.05em; font-family:"SF Mono",Menlo,monospace;
+  }
+  .benefit-status.live{ background:rgba(52,247,215,0.16); color:var(--accent); }
+  .benefit-status.vision{ background:rgba(156,148,158,0.14); color:var(--ink-dim); }
+
+  .chart-card{ background:var(--paper); border:1px solid var(--rule); border-radius:16px; padding:20px 18px; }
+  .chart-legend{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:14px; font-size:12px; color:var(--ink-dim); }
+  .chart-legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .legend-dot{ width:9px; height:9px; border-radius:3px; display:inline-block; }
+
+  .disclaimer{
+    background:rgba(247,201,72,0.08); border:1px solid var(--gold-dim); border-radius:10px;
+    padding:12px 16px; font-size:12.5px; color:var(--ink-dim); margin-top:16px; max-width:70ch;
+  }
+  .disclaimer b{ color:var(--gold); }
+
+  .tier-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:20px; }
+  @media (max-width:820px){ .tier-grid{ grid-template-columns:1fr; } }
+  .tier-card{ background:var(--paper); border:1px solid var(--rule); border-radius:14px; padding:20px 18px; }
+  .tier-card.featured{ border-color:var(--accent); box-shadow:var(--shadow); }
+  .tier-name{ font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-dim); }
+  .tier-price{ font-family:"SF Mono",Menlo,monospace; font-size:24px; color:var(--accent); margin:8px 0 2px 0; }
+  .tier-price span{ font-size:12px; color:var(--ink-faint); }
+  .tier-list{ list-style:none; padding:0; margin:14px 0 0 0; font-size:12.5px; color:var(--ink-dim); }
+  .tier-list li{ padding:4px 0; border-top:1px solid var(--rule); }
+  .tier-list li:first-child{ border-top:none; }
+
+  .assumptions-table-wrap{ overflow-x:auto; margin-top:16px; }
+  .assumptions-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .assumptions-table th, .assumptions-table td{ text-align:left; padding:8px 12px; border-bottom:1px solid var(--rule); white-space:nowrap; }
+  .assumptions-table th{ color:var(--ink-dim); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; }
+  .assumptions-table td{ color:var(--ink); font-family:"SF Mono",Menlo,monospace; }
+  .assumptions-table td.region{ font-family:inherit; color:var(--ink-dim); }
+
+  footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:40px 0 20px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">ChefOS — Swiss Market Overview</div>
+    <h1 class="title">Chef<b>OS</b></h1>
+    <p class="lede">An operating system for professional kitchens, built for the Swiss hospitality market. Go-to-market is deliberately narrow: prove it in canton Bern first, then expand — not a global launch plan. Built solo, in production, validated against a real pilot kitchen (Burrito Bandito &amp; Lido).</p>
+    <div class="status-pill" id="statusPill">Live in production · Canton Bern pilot</div>
+  </header>
+
+  <section id="kpis">
+    <h2 class="section-title">Where we are today</h2>
+    <p class="section-desc">Real counts from the live system, not projections.</p>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <section id="market">
+    <h2 class="section-title">Market — Switzerland, starting in canton Bern</h2>
+    <p class="section-desc">Deliberately narrow beachhead: prove the model in one canton, on a real pilot kitchen, before expanding — not a "launch everywhere" plan.</p>
+    <div class="kpi-grid" id="marketGrid"></div>
+    <div class="disclaimer"><b>Canton Bern figure is an estimate</b>, not an official GastroSuisse cantonal count — apportioned from the national ~32,000 figure by canton Bern's ~12% share of Swiss population. Source: GastroSuisse Branchenspiegel 2025.</div>
+    <p class="section-desc" style="margin-top:16px; margin-bottom:0;"><b style="color:var(--ink);">First named expansion target: Nooch Asian Kitchen</b> (FWG Gastronomie group) — a real 10+-location Swiss chain with three restaurants already in canton Bern (Aarbergergasse, Viktoriaplatz, Westside), a direct fit for the canton-first strategy above. Identified 2026-07-13 as the first account to approach once the pilot validates the product — no contact made yet, not a signed or in-progress deal.</p>
+  </section>
+
+  <section id="benefits">
+    <h2 class="section-title">Core benefits</h2>
+    <p class="section-desc">Three pillars. Two are live and in daily use; the third is the near-term build target.</p>
+    <div class="benefit-grid" id="benefitGrid"></div>
+  </section>
+
+  <section id="roadmap">
+    <h2 class="section-title">Roadmap — inception to 2030</h2>
+    <p class="section-desc">Solid bars are shipped and dated. Hatched bars are forward vision, not committed dates — illustrative quarters only.</p>
+    <div class="chart-card">
+      <div class="chart-legend">
+        <span><i class="legend-dot" style="background:var(--accent);"></i>Shipped</span>
+        <span><i class="legend-dot" style="background:var(--ink-dim); opacity:0.7;"></i>Vision (illustrative timing)</span>
+      </div>
+      <canvas id="roadmapChart" height="230"></canvas>
+    </div>
+  </section>
+
+  <section id="financials">
+    <h2 class="section-title">Financials &amp; monetization</h2>
+    <p class="section-desc">Subscription tiers map directly to the product's own user tiers (Home Cook / Chef Pro / Restaurant), priced in CHF for the Swiss market. Go-to-market starts in canton Bern — the pilot kitchen's own canton — before expanding to neighbouring cantons and eventually German-speaking Switzerland. A future B2B layer — Swiss suppliers transacting through the platform — is vision-stage, not built.</p>
+    <p class="section-desc"><b style="color:var(--ink);">Monetization plan formalized 2026-07-13</b> (full expert-panel analysis of 11 models: <i>monetization.html</i>): first revenue comes from a <b style="color:var(--ink);">founding-member pre-sale</b> (first 10 kitchens at CHF 490/year, offered during the August trial) combined with a <b style="color:var(--ink);">paid onboarding service</b> (~CHF 990 — the founder, a working chef, personally digitizes the kitchen's recipes and prep sheets). Flat SaaS pricing below follows after a successful trial. The two blockers to first revenue are legal, not product: written employer consent for side-business income, and sole-proprietorship registration — both in progress.</p>
+
+    <div class="tier-grid">
+      <div class="tier-card">
+        <div class="tier-name">Home Cook</div>
+        <div class="tier-price">Free</div>
+        <ul class="tier-list"><li>Recipes, scaling, shopping lists</li><li>Not the current focus — deferred</li></ul>
+      </div>
+      <div class="tier-card featured">
+        <div class="tier-name">Chef Pro</div>
+        <div class="tier-price">CHF 49<span>/month/kitchen</span></div>
+        <ul class="tier-list"><li>Full recipe engine + AI import</li><li>Cost &amp; nutrition engine</li><li>Check List, Order List, Ingredients</li></ul>
+      </div>
+      <div class="tier-card">
+        <div class="tier-name">Restaurant</div>
+        <div class="tier-price">CHF 149<span>/month/kitchen</span></div>
+        <ul class="tier-list"><li>Everything in Chef Pro</li><li>Multi-user roles, Schedule, live cross-station view</li><li>Chef's Assistant</li></ul>
+      </div>
+    </div>
+    <div class="disclaimer"><b>Pricing shown is illustrative</b>, not finalized or investor-approved. No paying customers exist yet — the product is validated against one pilot kitchen, not yet monetized.</div>
+
+    <div class="chart-card" style="margin-top:22px;">
+      <div class="chart-legend"><span><i class="legend-dot" style="background:var(--gold);"></i>Illustrative ARR (CHF), 2026–2030 — canton Bern first</span></div>
+      <canvas id="revenueChart" height="220"></canvas>
+      <div class="assumptions-table-wrap">
+        <table class="assumptions-table" id="assumptionsTable"></table>
+      </div>
+      <div class="disclaimer"><b>Illustrative projection only — not actual or committed revenue.</b> Bottom-up, not a top-line growth curve: paying-kitchen counts above are a hypothetical adoption assumption (starting with canton Bern's ~3,500 establishments, ~12% estimate of the Swiss total) × a blended CHF 89/month/kitchen (60% Chef Pro CHF 49, 40% Restaurant CHF 149). Zero live paying customers today — first real signal comes from the canton Bern pilot.</div>
+    </div>
+  </section>
+
+  <footer class="foot" id="footNote"></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+/* ============================================================
+   DATA — the only part of this file that should need editing when the project changes.
+   Keep KPIS / BENEFITS / ROADMAP / REVENUE in sync with docs/ROADMAP.md after any shipped
+   feature; see the persistent-update instruction this file was created under.
+   ============================================================ */
+const GENERATED = '2026-07-13';
+
+const MARKET = [
+  { num:'~32,000', label:'F&B establishments, Switzerland', note:'GastroSuisse Branchenspiegel 2025' },
+  { num:'CHF 25–28bn', label:'Swiss foodservice revenue / year', note:'GastroSuisse Branchenspiegel 2025' },
+  { num:'~3,500', label:'F&B establishments, canton Bern', note:'population-share estimate, not official' },
+  { num:'1', label:'Pilot kitchen live today', note:'Burrito Bandito & Lido (one group, two venues)' },
+];
+
+const KPIS = [
+  { num: '173', label: 'Recipes migrated', note: 'full 20-field format' },
+  { num: '1,263', label: 'Ingredients priced', note: 'SQL ready, not yet run in prod' },
+  { num: '8', label: 'Kitchen stations', note: 'dish-grouped prep sheets' },
+  { num: '5', label: 'AI features live', note: 'scan · generate · assistant · translate' },
+  { num: '0', label: 'Staff in Schedule', note: 'roster retiring with the old pilot, rebuilding for Burrito Bandito & Lido' },
+  { num: '5', label: 'UI languages', note: 'EN/DE/FR/IT/SK, partial coverage' },
+  { num: '1', label: 'Pilot kitchen', note: 'Burrito Bandito & Lido (one group, two venues)' },
+  { num: '0', label: 'Paying customers', note: 'pre-monetization' },
+  { num: 'Aug 1', label: 'Public trial target', note: '25 users, multi-team via QR invite' },
+];
+
+const BENEFITS = [
+  {
+    icon:'📋', title:'Line-cook workflow (Check List)', status:'live',
+    desc:'Dish-grouped prep sheets per station (TO DO / CHECK / FINISH / DON\'T DO), a live cross-station "All" view, and an overload flag once a station exceeds 3.5h of outstanding work. Not a ticket/KDS system — cross-team visibility into shared prep state.'
+  },
+  {
+    icon:'📦', title:'Inventory awareness', status:'live',
+    desc:'Per-item on-hand counts, minimum-required thresholds with an automatic shortfall flag, and a station-by-station Order List built off the same priced ingredient table used for recipe costing.'
+  },
+  {
+    icon:'🤝', title:'Supplier collaboration', status:'vision',
+    desc:'Not built. Vision: connect the Ingredients/Order List data to real Swiss foodservice supplier feeds (e.g. Transgourmet, Prodega) and order submission — the monetizable B2B layer referenced in Financials below.'
+  },
+];
+
+/* Roadmap rendered as a pseudo-Gantt: each row is [offset-months-from-Jul-2026, duration-months, shipped?].
+   Shipped rows carry the real date range; vision rows are illustrative-quarter placeholders only. */
+const ROADMAP_START = new Date('2026-07-01');
+function monthsBetween(dateStr){
+  const d = new Date(dateStr);
+  return (d.getFullYear()-ROADMAP_START.getFullYear())*12 + (d.getMonth()-ROADMAP_START.getMonth()) + (d.getDate()-1)/30;
+}
+const ROADMAP = [
+  { label:'Phase 0 — Foundation & Validation', start:'2026-07-08', end:'2026-07-08', shipped:true },
+  { label:'Phase 1a — Recipe engine + data foundation', start:'2026-07-09', end:'2026-07-09', shipped:true },
+  { label:'Phase 1b — AI recipe import', start:'2026-07-09', end:'2026-07-09', shipped:true },
+  { label:'Ingredients, nutrition, Order List, Schedule, Fridge Temp', start:'2026-07-09', end:'2026-07-09', shipped:true },
+  { label:'Check List (8-station prep sheets) + Kitchen Flow v1', start:'2026-07-09', end:'2026-07-10', shipped:true },
+  { label:'Multi-language UI v1 + Ingredients expansion (1,263)', start:'2026-07-10', end:'2026-07-10', shipped:true },
+  { label:'Check List polish: cross-station "All" view, swipe-back, per-item notes, busiest-first sort', start:'2026-07-10', end:'2026-07-10', shipped:true },
+  { label:'Multi-team access gate, soft-delete, Order List redesign, Print Labels, Working Time (check-in/out + contract scan)', start:'2026-07-11', end:'2026-07-12', shipped:true },
+  { label:'Engineering discipline: Git, staging environment, RLS audit + critical fix, error/usage tracking, audit log, trial success criteria', start:'2026-07-12', end:'2026-07-13', shipped:true },
+  { label:'Ingredients expanded to 2,000 (staging) + production reliability fixes: AI features restored (claude-proxy deploy was missing), Check List delete silent-failure fixed', start:'2026-07-13', end:'2026-07-13', shipped:true },
+  { label:'Public trial prep — polish Check List, Chef\'s Assistant, Ingredients, Recipes; multi-team QR invites; email login for any address', start:'2026-07-11', end:'2026-07-31', shipped:false },
+  { label:'Public trial — 25 users, multiple restaurants, own team per kitchen', start:'2026-08-01', end:'2026-08-01', shipped:false },
+  { label:'Phase 2 — Kitchen Flow full (multi-user roles, pilot live test)', start:'2026-09-01', end:'2026-11-30', shipped:false },
+  { label:'Phase 3 — Inventory & food cost (real stock, Swiss supplier feeds)', start:'2026-11-01', end:'2027-02-28', shipped:false },
+  { label:'Phase 4 — Production planning & reports', start:'2027-02-01', end:'2027-05-31', shipped:false },
+  { label:'Phase 5 — Intelligence layer (AI prep recommendations)', start:'2027-05-01', end:'2027-09-30', shipped:false },
+  { label:'Phase 6 — Native mobile + offline mode', start:'2027-09-01', end:'2028-03-31', shipped:false },
+  { label:'Phase 7 — Go-to-market: canton Bern (first paying kitchens)', start:'2028-03-01', end:'2028-12-31', shipped:false },
+  { label:'Expansion — neighbouring cantons (Fribourg, Solothurn, Vaud, Neuchâtel)', start:'2029-01-01', end:'2029-12-31', shipped:false },
+  { label:'Expansion — German-speaking Switzerland (Zürich, Basel, Lucerne, Aargau)', start:'2030-01-01', end:'2030-12-31', shipped:false },
+];
+
+/* Illustrative only — see disclaimer in the page. Bottom-up: hypothetical paying-kitchen
+   count per year (canton Bern first, then adjacent cantons, then German-speaking CH) ×
+   a blended CHF 89/month/kitchen (60% Chef Pro @49 + 40% Restaurant @149). Not a committed
+   or actual figure — zero paying customers exist today. */
+const REVENUE_YEARS = ['2026','2027','2028','2029','2030'];
+const REVENUE_REGION = ['Pilot only', 'Canton Bern', 'Canton Bern', 'Bern + neighbours', 'German-speaking CH'];
+const REVENUE_KITCHENS = [0, 20, 80, 250, 600];
+const BLENDED_ARPU_MONTHLY_CHF = 89; // 60% Chef Pro (49) + 40% Restaurant (149)
+const REVENUE_ILLUSTRATIVE_CHF = REVENUE_KITCHENS.map(k => k * BLENDED_ARPU_MONTHLY_CHF * 12);
+
+function renderMarket(){
+  document.getElementById('marketGrid').innerHTML = MARKET.map(k=>`
+    <div class="kpi-card">
+      <div class="kpi-num">${k.num}</div>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-note">${k.note}</div>
+    </div>
+  `).join('');
+}
+
+function renderKPIs(){
+  document.getElementById('kpiGrid').innerHTML = KPIS.map(k=>`
+    <div class="kpi-card">
+      <div class="kpi-num">${k.num}</div>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-note">${k.note}</div>
+    </div>
+  `).join('');
+}
+
+function renderBenefits(){
+  document.getElementById('benefitGrid').innerHTML = BENEFITS.map(b=>`
+    <div class="benefit-card">
+      <div class="benefit-icon">${b.icon}</div>
+      <div class="benefit-title">${b.title}</div>
+      <div class="benefit-desc">${b.desc}</div>
+      <span class="benefit-status ${b.status}">${b.status === 'live' ? 'Live' : 'Vision'}</span>
+    </div>
+  `).join('');
+}
+
+function renderRoadmapChart(){
+  const ctx = document.getElementById('roadmapChart');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ROADMAP.map(r=>r.label),
+      datasets: [
+        { label:'offset', data: ROADMAP.map(r=>monthsBetween(r.start)), backgroundColor:'rgba(0,0,0,0)' },
+        { label:'duration', data: ROADMAP.map(r=> Math.max(monthsBetween(r.end)-monthsBetween(r.start), 0.6)),
+          backgroundColor: ROADMAP.map(r=> r.shipped ? '#34F7D7' : 'rgba(156,148,158,0.5)') }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: (c)=> c.datasetIndex===1 ? ROADMAP[c.dataIndex].start + ' → ' + ROADMAP[c.dataIndex].end : '' } } },
+      scales: {
+        x: { stacked:true, ticks:{ color:'#9C949E', callback:(v)=>{ const d=new Date(ROADMAP_START); d.setMonth(d.getMonth()+v); return d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}); } }, grid:{ color:'#223d57' } },
+        y: { stacked:true, ticks:{ color:'#fff', font:{ size:11 } }, grid:{ display:false } }
+      }
+    }
+  });
+}
+
+function renderRevenueChart(){
+  const ctx = document.getElementById('revenueChart');
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: REVENUE_YEARS,
+      datasets:[{
+        label:'Illustrative ARR (CHF)', data: REVENUE_ILLUSTRATIVE_CHF,
+        borderColor:'#F7C948', backgroundColor:'rgba(247,201,72,0.15)', fill:true, tension:0.3, pointRadius:4
+      }]
+    },
+    options:{
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:'#9C949E' }, grid:{ color:'#223d57' } },
+        y:{ ticks:{ color:'#9C949E', callback:(v)=> 'CHF ' + (v/1000) + 'k' }, grid:{ color:'#223d57' } }
+      }
+    }
+  });
+}
+
+function renderAssumptionsTable(){
+  const rows = REVENUE_YEARS.map((y,i)=> `
+    <tr>
+      <td>${y}</td>
+      <td class="region">${REVENUE_REGION[i]}</td>
+      <td>${REVENUE_KITCHENS[i].toLocaleString('en-CH')}</td>
+      <td>CHF ${BLENDED_ARPU_MONTHLY_CHF}/mo</td>
+      <td>CHF ${REVENUE_ILLUSTRATIVE_CHF[i].toLocaleString('en-CH')}</td>
+    </tr>
+  `).join('');
+  document.getElementById('assumptionsTable').innerHTML = `
+    <thead><tr><th>Year</th><th>Region</th><th>Paying kitchens</th><th>Blended ARPU</th><th>ARR</th></tr></thead>
+    <tbody>${rows}</tbody>
+  `;
+}
+
+document.getElementById('footNote').textContent = `ChefOS · generated ${GENERATED} · kept in sync with docs/ROADMAP.md`;
+renderMarket();
+renderKPIs();
+renderBenefits();
+renderRoadmapChart();
+renderRevenueChart();
+renderAssumptionsTable();
+</script>
+</body>
+</html>

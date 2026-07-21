@@ -35,6 +35,23 @@ jobs:
       - name: QA coverage manifest (test_sweep → automated-guard map, informational)
         run: python3 scripts/coverage_manifest.py
 
+  unauth-gates:
+    # Credential-free browser test of the pre-login gates (coming-soon wall, "already have an
+    # account" reveal, password/email-code toggle, safe failing login) — the 20.7 login bug
+    # area. Needs NO secrets, so unlike e2e-smoke.yml it always runs on the 2x/day schedule.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Playwright
+        run: |
+          pip3 install playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Unauthenticated gates test
+        run: python3 scripts/unauth_gates_test.py
+
   tenant-isolation:
     runs-on: ubuntu-latest
     steps:
