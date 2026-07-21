@@ -320,6 +320,13 @@
   .stage-head.now{ color:var(--accent); background:var(--accent-wash); border-color:var(--accent-dim); }
   .stage-head.after{ color:var(--gold); background:var(--gold-wash); border-color:var(--gold-dim); }
   .stage-head.vision{ color:#AEB4FF; background:rgba(139,147,255,0.08); border-color:rgba(139,147,255,0.35); }
+  .stream-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:6px; }
+  @media (max-width:900px){ .stream-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:560px){ .stream-grid{ grid-template-columns:1fr; } }
+  .stage-pill{ display:inline-block; font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; padding:3px 8px; border-radius:999px; margin-left:auto; flex:none; }
+  .stage-pill.now{ color:var(--accent); background:var(--accent-wash); border:1px solid var(--accent-dim); }
+  .stage-pill.after{ color:var(--gold); background:var(--gold-wash); border:1px solid var(--gold-dim); }
+  .stage-pill.vision{ color:#AEB4FF; background:rgba(139,147,255,0.08); border:1px solid rgba(139,147,255,0.35); }
   .scard{ background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:14px 15px; transition:border-color .15s, transform .15s, box-shadow .15s; }
   .scard:hover{ border-color:var(--accent-dim); transform:translateY(-2px); box-shadow:var(--shadow); }
   .scard .sh{ display:flex; align-items:center; gap:9px; }
@@ -597,7 +604,7 @@
       <div class="tier-card">
         <div class="tier-name">Home Cook</div>
         <div class="tier-price">Free</div>
-        <ul class="tier-list"><li>Recipes, scaling, shopping lists</li><li>Not the current focus — deferred</li></ul>
+        <ul class="tier-list"><li>Recipes, scaling, shopping lists</li><li>Earns AI tokens by contributing verified data</li><li>Not the current focus — deferred</li></ul>
       </div>
       <div class="tier-card featured">
         <div class="tier-name">Chef Pro</div>
@@ -629,30 +636,17 @@
 
     <!-- Revenue streams beyond the subscription backbone (models from monetization.html) -->
     <div class="group-label reveal" data-sk="Príjmové toky za hranicou predplatného" data-en="Revenue streams beyond the subscription">Príjmové toky za hranicou predplatného</div>
-    <p class="section-desc reveal" style="margin-bottom:20px;" data-sk="Predplatné je chrbtica. Okolo neho stojí diverzifikovaný, čestne odstupňovaný rebríček tokov — z plnej analýzy 14 modelov (monetization.html). Nič z „neskôr“ sa netvári ako dnešný príjem; hviezdičky sú verdikt expertného panelu, nie prísľub." data-en="Subscriptions are the backbone. Around it sits a diversified, honestly staged ladder of streams — from the full 14-model analysis (monetization.html). Nothing in &quot;later&quot; pretends to be today's revenue; the stars are the expert panel's verdict, not a promise."></p>
+    <p class="section-desc reveal" style="margin-bottom:20px;" data-sk="Predplatné je chrbtica. Okolo neho stojí 6 investorsky najsilnejších tokov (vybrané z plnej analýzy 14 modelov). Nič z „neskôr“ sa netvári ako dnešný príjem; hviezdičky sú verdikt expertného panelu, nie prísľub." data-en="Subscriptions are the backbone. Around it sit the 6 investor-strongest streams (picked from the full 14-model analysis). Nothing in &quot;later&quot; pretends to be today's revenue; the stars are the expert panel's verdict, not a promise."></p>
 
-    <div class="stream-stages reveal">
-      <div class="stream-stage">
-        <div class="stage-head now" data-sk="Teraz / prvý príjem" data-en="Now / first revenue">Teraz / prvý príjem</div>
-        <div class="scard"><div class="sh"><span class="si">🏛️</span><h5 data-sk="Predplatné na kuchyňu" data-en="Subscription per kitchen">Predplatné na kuchyňu</h5></div><p class="sm" data-sk="CHF 49 Chef Pro · 149 Restaurant/mes. Chrbtica — predvídateľný MRR, multi-tenant architektúra už hotová." data-en="CHF 49 Chef Pro · 149 Restaurant/mo. The backbone — predictable MRR, the multi-tenant architecture already built."></p><div class="sstars">★★★★★</div></div>
-        <div class="scard"><div class="sh"><span class="si">🎟️</span><h5 data-sk="Founding pre-sale" data-en="Founding pre-sale">Founding pre-sale</h5></div><p class="sm" data-sk="Prvých 10 kuchýň CHF 490/rok vopred počas augustového trialu. Cash bez dlhu a bez investora, najtvrdšia validácia." data-en="First 10 kitchens at CHF 490/year up front during the August trial. Cash with no debt or investor, the hardest validation."></p><div class="sstars">★★★★★</div></div>
-        <div class="scard"><div class="sh"><span class="si">🧑‍🍳</span><h5 data-sk="Platený onboarding" data-en="Paid onboarding">Platený onboarding</h5></div><p class="sm" data-sk="~CHF 990: zakladateľ osobne zdigitalizuje kuchyňu. Vysoká marža (AI robí väčšinu), chef-only výhoda + dátový zámok." data-en="~CHF 990: the founder personally digitizes the kitchen. High margin (AI does most), a chef-only edge + a data moat."></p><div class="sstars">★★★★☆</div></div>
-        <div class="scard"><div class="sh"><span class="si">🎓</span><h5 data-sk="Workshopy" data-en="Workshops">Workshopy</h5></div><p class="sm" data-sk="CHF 500–1500 za poldeň. Jediný tok nezávislý od hotového produktu — a zároveň priamy predajný kanál." data-en="CHF 500–1500 per half-day. The only stream independent of a finished product — and a direct sales channel too."></p><div class="sstars">★★★☆☆</div></div>
-      </div>
-      <div class="stream-stage">
-        <div class="stage-head after" data-sk="Po triale / rast" data-en="After trial / growth">Po triale / rast</div>
-        <div class="scard"><div class="sh"><span class="si">🤖</span><h5 data-sk="AI kredity / tokeny" data-en="AI credits / tokens">AI kredity / tokeny</h5></div><p class="sm" data-sk="Metered AI nad fair-use limitom + token flywheel: variabilné náklady (Anthropic API) presne kopírujú príjem, nulové riziko „power usera“." data-en="Metered AI above a fair-use limit + a token flywheel: variable cost (Anthropic API) tracks revenue exactly, zero power-user risk."></p><div class="sstars">★★★☆☆</div></div>
-        <div class="scard"><div class="sh"><span class="si">🪪</span><h5 data-sk="Dokumenty v identite klienta" data-en="Client-identity documents">Dokumenty v identite klienta</h5></div><p class="sm" data-sk="Recepty, prep sheety a štítky automaticky v brandingu každej reštaurácie (farby, font, logo) — prémiový add-on nad tlačou." data-en="Recipes, prep sheets and labels auto-generated in each restaurant's own branding (colours, font, logo) — a premium add-on over printing."></p><div class="sstars">★★★☆☆</div></div>
-        <div class="scard"><div class="sh"><span class="si">🧩</span><h5 data-sk="Modulárne add-ony" data-en="Modular add-ons">Modulárne add-ony</h5></div><p class="sm" data-sk="Základ lacno + moduly (Working Time, Food Cost, AI) za príplatok. Expanzia príjmu bez získavania nových zákazníkov." data-en="A cheap base + modules (Working Time, Food Cost, AI) as paid upgrades. Revenue expansion without new customers."></p><div class="sstars">★★★☆☆</div></div>
-        <div class="scard"><div class="sh"><span class="si">🏢</span><h5 data-sk="Enterprise / reťazce" data-en="Enterprise / chains">Enterprise / reťazce</h5></div><p class="sm" data-sk="Multi-location licencia, centrálne recepty na pobočky, per-location cena. Jeden podpis = 10× MRR. Cieľ 2027+, cez „trójskeho koňa“ jednej pobočky." data-en="Multi-location licence, central recipes pushed to venues, per-location pricing. One signature = 10× MRR. A 2027+ target, via the one-venue trojan horse."></p><div class="sstars">★★★★☆</div></div>
-      </div>
-      <div class="stream-stage">
-        <div class="stage-head vision" data-sk="Vízia / dlhý chvost" data-en="Vision / long tail">Vízia / dlhý chvost</div>
-        <div class="scard"><div class="sh"><span class="si">🔮</span><h5 data-sk="Dátová inteligencia & predikcie" data-en="Data intelligence & predictions">Dátová inteligencia & predikcie</h5></div><p class="sm" data-sk="Benchmarking food costu, AI prep odporúčania, predikcia dopytu podľa počasia/dňa/sviatkov. LEN opt-in, po 100+ kuchyniach a zmene podmienok — dnešné sľuby to výslovne zakazujú. Rok 2028+." data-en="Food-cost benchmarking, AI prep recommendations, demand prediction by weather/weekday/holidays. Opt-in ONLY, after 100+ kitchens and a terms change — today's promises explicitly forbid it. 2028+."></p><div class="sstars">★★★☆☆</div></div>
-        <div class="scard"><div class="sh"><span class="si">🤝</span><h5 data-sk="Dodávateľský marketplace" data-en="Supplier marketplace">Dodávateľský marketplace</h5></div><p class="sm" data-sk="% z objednávok cez Order List napojený na švajčiarskych dodávateľov (Transgourmet, Prodega). Potenciálne najväčší tok — rádovo nad predplatné. Dlhodobá vízia." data-en="A % of orders via an Order List wired to Swiss suppliers (Transgourmet, Prodega). Potentially the biggest stream — an order of magnitude above subscriptions. A long-term vision."></p><div class="sstars">★★★☆☆</div></div>
-        <div class="scard" style="border-style:dashed;"><div class="sh"><span class="si">🗂️</span><h5 data-sk="Ďalšie v analýze" data-en="More in the analysis">Ďalšie v analýze</h5></div><p class="sm" data-sk="Sponzorované umiestnenie lokálnych dodávateľov, hardware + spotrebný materiál, obsahová knižnica, gamifikovaný free tier — všetkých 14 modelov s verdiktmi: monetization.html." data-en="Sponsored local-supplier placement, hardware + consumables, a content library, a gamified free tier — all 14 models with verdicts: monetization.html."></p><div class="sstars" style="color:var(--ink-faint);">★★☆☆☆ →</div></div>
-      </div>
+    <div class="stream-grid reveal">
+      <div class="scard"><div class="sh"><span class="si">🏛️</span><h5 data-sk="Predplatné na kuchyňu" data-en="Subscription per kitchen">Predplatné na kuchyňu</h5><span class="stage-pill now" data-sk="Teraz" data-en="Now">Teraz</span></div><p class="sm" data-sk="CHF 49 Chef Pro · 149 Restaurant/mes. Chrbtica — predvídateľný recurring MRR, multi-tenant architektúra už hotová." data-en="CHF 49 Chef Pro · 149 Restaurant/mo. The backbone — predictable recurring MRR, the multi-tenant architecture already built."></p><div class="sstars">★★★★★</div></div>
+      <div class="scard"><div class="sh"><span class="si">🎟️</span><h5 data-sk="Founding pre-sale" data-en="Founding pre-sale">Founding pre-sale</h5><span class="stage-pill now" data-sk="Teraz" data-en="Now">Teraz</span></div><p class="sm" data-sk="Prvých 10 kuchýň CHF 490/rok vopred počas augustového trialu. Cash bez dilúcie, najtvrdšia validácia — kto zaplatí rok vopred, je skutočný zákazník." data-en="First 10 kitchens at CHF 490/year up front during the August trial. Cash with no dilution, the hardest validation — paying a year ahead makes you a real customer."></p><div class="sstars">★★★★★</div></div>
+      <div class="scard"><div class="sh"><span class="si">🧑‍🍳</span><h5 data-sk="Platený onboarding" data-en="Paid onboarding">Platený onboarding</h5><span class="stage-pill now" data-sk="Teraz" data-en="Now">Teraz</span></div><p class="sm" data-sk="~CHF 990: zakladateľ osobne zdigitalizuje kuchyňu. Vysoká marža (AI robí väčšinu), chef-only výhoda + dátový zámok proti churnu." data-en="~CHF 990: the founder personally digitizes the kitchen. High margin (AI does most), a chef-only edge + a data moat against churn."></p><div class="sstars">★★★★☆</div></div>
+      <div class="scard"><div class="sh"><span class="si">🏢</span><h5 data-sk="Enterprise / reťazce" data-en="Enterprise / chains">Enterprise / reťazce</h5><span class="stage-pill after" data-sk="2027+" data-en="2027+">2027+</span></div><p class="sm" data-sk="Multi-location licencia, centrálne recepty na pobočky, per-location cena. Jeden podpis = 10× MRR; land-and-expand cez „trójskeho koňa“ jednej pobočky." data-en="Multi-location licence, central recipes pushed to venues, per-location pricing. One signature = 10× MRR; land-and-expand via the one-venue trojan horse."></p><div class="sstars">★★★★☆</div></div>
+      <div class="scard"><div class="sh"><span class="si">🤝</span><h5 data-sk="Dodávateľský marketplace" data-en="Supplier marketplace">Dodávateľský marketplace</h5><span class="stage-pill vision" data-sk="Vízia" data-en="Vision">Vízia</span></div><p class="sm" data-sk="% z objednávok cez Order List napojený na švajčiarskych dodávateľov (Transgourmet, Prodega). Potenciálne najväčší tok — rádovo nad predplatné, expanzia TAM." data-en="A % of orders via an Order List wired to Swiss suppliers (Transgourmet, Prodega). Potentially the biggest stream — an order of magnitude above subscriptions, a TAM expansion."></p><div class="sstars">★★★☆☆</div></div>
+      <div class="scard"><div class="sh"><span class="si">🤖</span><h5 data-sk="AI, tokeny & dátová inteligencia" data-en="AI, tokens & data intelligence">AI, tokeny & dátová inteligencia</h5><span class="stage-pill vision" data-sk="Vízia" data-en="Vision">Vízia</span></div><p class="sm" data-sk="Tokeny za AI naprieč tiermi: heavy-use kredity aj free-tier flywheel — free užívatelia si tokeny ZARÁBAJÚ prispievaním overených dát (ceny, yieldy, HACCP) a míňajú na AI, takže free tier nikdy nespáli viac, než „odpracoval“, a zároveň buduje dátové aktívum. To poháňa benchmarking, AI prep odporúčania a predikciu dopytu. Len opt-in, 2028+." data-en="AI tokens across tiers: heavy-use credits AND a free-tier flywheel — free users EARN tokens by contributing verified data (prices, yields, HACCP) and spend them on AI, so the free tier never burns more than it 'earned' while building a data asset. That powers benchmarking, AI prep recommendations and demand prediction. Opt-in only, 2028+."></p><div class="sstars">★★★★☆</div></div>
     </div>
+    <p class="section-desc reveal" style="margin:14px 0 0 0; font-size:12.5px;" data-sk="Zvyšných 8 modelov (workshopy, modulárne add-ony, dokumenty v identite klienta, sponzorované umiestnenie dodávateľov, hardware, obsahová knižnica…) je s verdiktmi v plnej analýze: <a href='monetization.html'>monetization.html</a>." data-en="The other 8 models (workshops, modular add-ons, client-identity documents, sponsored supplier placement, hardware, a content library…) are in the full analysis with verdicts: <a href='monetization.html'>monetization.html</a>."></p>
 
     <div class="chart-card reveal" style="margin-top:22px;">
       <div class="chart-legend" id="streamLegend"></div>
@@ -1020,16 +1014,12 @@ function renderAssumptionsTable(){
 /* Revenue-stream map — qualitative positioning (readiness × potential), the panel's verdict,
    not revenue numbers. Colours match the three staged columns above. */
 const STREAMS = [
-  {x:.95,y:.82,s:'now',   l:'Subscription',        l_sk:'Predplatné'},
-  {x:.88,y:.42,s:'now',   l:'Founding pre-sale',   l_sk:'Founding pre-sale'},
-  {x:.83,y:.54,s:'now',   l:'Onboarding',          l_sk:'Onboarding'},
-  {x:.79,y:.30,s:'now',   l:'Workshops',           l_sk:'Workshopy'},
-  {x:.55,y:.46,s:'after', l:'AI credits / tokens', l_sk:'AI kredity / tokeny'},
-  {x:.47,y:.33,s:'after', l:'Branded docs',        l_sk:'Dokumenty v identite'},
-  {x:.55,y:.62,s:'after', l:'Modular add-ons',     l_sk:'Modulárne add-ony'},
-  {x:.34,y:.86,s:'after', l:'Enterprise / chains', l_sk:'Enterprise / reťazce'},
-  {x:.17,y:.76,s:'vision',l:'Data intelligence',   l_sk:'Dátová inteligencia'},
-  {x:.12,y:.96,s:'vision',l:'Supplier marketplace',l_sk:'Dodávateľský marketplace'},
+  {x:.95,y:.80,s:'now',   l:'Subscription',        l_sk:'Predplatné'},
+  {x:.90,y:.45,s:'now',   l:'Founding pre-sale',   l_sk:'Founding pre-sale'},
+  {x:.84,y:.57,s:'now',   l:'Onboarding',          l_sk:'Onboarding'},
+  {x:.55,y:.87,s:'after', l:'Enterprise / chains', l_sk:'Enterprise / reťazce'},
+  {x:.26,y:.70,s:'vision',l:'AI & data flywheel',  l_sk:'AI + dátový flywheel'},
+  {x:.13,y:.96,s:'vision',l:'Supplier marketplace',l_sk:'Dodávateľský marketplace'},
 ];
 const STREAM_COLORS = { now:'#34F7D7', after:'#F7C948', vision:'#8B93FF' };
 function renderStreamMatrix(){
