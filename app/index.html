@@ -12319,10 +12319,16 @@ async function saveAdminPermsEdits(){
     const inviteUrl = location.origin + location.pathname + '?invite=' + ccRow.invite_id;
     _lastOnboardingLink = inviteUrl;
     { const cb = document.getElementById('copyOnboardingLinkBtn'); if(cb) cb.style.display = 'block'; }
-    let mailErr = null;
-    if(emailAddr){ ({ error: mailErr } = await sb.auth.signInWithOtp({ email: emailAddr, options: { shouldCreateUser: true, emailRedirectTo: inviteUrl } })); }
+    // Dedicated "You've been made a Company Admin" email via the notify-company-offer edge
+    // function (Resend, magic link) — Richard, 21.7. "cesta A". Best-effort: the in-app Profile
+    // banner + the backup link below work regardless of whether the email lands.
+    let mailFailed = false;
+    if(emailAddr){
+      const { data: mailRes, error: fnErr } = await sb.functions.invoke('notify-company-offer', { body: { email: emailAddr, inviteUrl } });
+      mailFailed = !!(fnErr || (mailRes && mailRes.error));
+    }
     statusEl.textContent = 'Offer sent. They get a welcome email AND a notification in their own Profile — when they accept, they name their own restaurant. Their personal space stays private & untouched. '
-      + (emailAddr && mailErr ? '(The email could not be sent — use the backup link.) ' : '')
+      + (emailAddr && mailFailed ? '(The email could not be sent yet — use the backup link.) ' : '')
       + 'Backup link below if you want to hand it over yourself.';
     renderEditAdminPermsList();
     renderAdminDirectory();
