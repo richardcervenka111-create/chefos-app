@@ -1171,25 +1171,31 @@
   }
   .doc-note b{ color:var(--copper); }
   footer.doc-footer{ text-align:center; padding:40px 24px; color:var(--ink-faint); font-size:12px; }
+  #vprogress{ position:fixed; top:0; left:0; height:3px; width:0; z-index:100; background:linear-gradient(90deg,#0F6E56,#34F7D7); box-shadow:0 0 12px rgba(52,247,215,0.4); transition:width .08s linear; }
+  @media print{ #vprogress{ display:none; } }
+  .js .doc-section{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
+  .js .doc-section.in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){ .js .doc-section{ opacity:1 !important; transform:none !important; transition:none; } }
 </style>
 
+<div id="vprogress"></div>
 <div class="doc-cover">
-  <div class="doc-kicker">Sautero — Visual Product Guide</div>
+  <div class="doc-kicker" data-sk="Sautero — Vizuálny sprievodca produktom" data-en="Sautero — Visual Product Guide">Sautero — Visual Product Guide</div>
   <h1 class="doc-title">Sau<b>tero</b></h1>
-  <p class="doc-lede">The product's core screens, shown with the app's real design system and real data — not placeholder mockups. Built as a working reference and an investor-facing walkthrough. Screens shipped in the 14.–15.7. sprint (Working Time, Print Labels, My Team, HACCP) are listed in section 11 and get full illustrated spreads in the next pass.</p>
+  <p class="doc-lede" data-sk="Kľúčové obrazovky produktu, zobrazené v reálnom dizajnovom systéme appky a s reálnymi dátami — nie zástupné mockupy. Postavené ako pracovná referencia aj ako prehliadka pre investorov. Obrazovky dodané v sprinte 14.–15.7. (Working Time, Print Labels, My Team, HACCP) sú v sekcii 11 a plné ilustrované rozpisy dostanú v ďalšom kole." data-en="The product's core screens, shown with the app's real design system and real data — not placeholder mockups. Built as a working reference and an investor-facing walkthrough. Screens shipped in the 14.–15.7. sprint (Working Time, Print Labels, My Team, HACCP) are listed in section 11 and get full illustrated spreads in the next pass.">The product's core screens, shown with the app's real design system and real data — not placeholder mockups. Built as a working reference and an investor-facing walkthrough. Screens shipped in the 14.–15.7. sprint (Working Time, Print Labels, My Team, HACCP) are listed in section 11 and get full illustrated spreads in the next pass.</p>
   <div class="doc-stats">
-    <div class="doc-stat"><b>15+</b><span>Screens</span></div>
-    <div class="doc-stat"><b>183</b><span>Library recipes</span></div>
-    <div class="doc-stat"><b>2,005</b><span>Ingredients (live)</span></div>
-    <div class="doc-stat"><b>7</b><span>AI features</span></div>
+    <div class="doc-stat"><b>15+</b><span data-sk="Obrazoviek" data-en="Screens">Screens</span></div>
+    <div class="doc-stat"><b>183</b><span data-sk="receptov v knižnici" data-en="Library recipes">Library recipes</span></div>
+    <div class="doc-stat"><b>2,005</b><span data-sk="ingrediencií (naživo)" data-en="Ingredients (live)">Ingredients (live)</span></div>
+    <div class="doc-stat"><b>7</b><span data-sk="AI funkcií" data-en="AI features">AI features</span></div>
   </div>
 </div>
 
 <!-- 1. LOGIN -->
 <div class="doc-section">
-  <div class="doc-section-num">01 · Entry</div>
-  <h2 class="doc-section-title">Login</h2>
-  <p class="doc-section-desc">A cook signs in with email + a mandatory password (since 15 Jul), or a one-time email code — plus optional Face ID unlock per device. Authentication runs on Supabase Auth with custom SMTP (Resend) for reliable delivery.</p>
+  <div class="doc-section-num" data-sk="01 · Vstup" data-en="01 · Entry">01 · Entry</div>
+  <h2 class="doc-section-title" data-sk="Prihlásenie" data-en="Login">Login</h2>
+  <p class="doc-section-desc" data-sk="Kuchár sa prihlási e-mailom + povinným heslom (od 15.7.) alebo jednorazovým e-mailovým kódom — plus voliteľné odomknutie Face ID per zariadenie. Autentifikácia beží na Supabase Auth s vlastným SMTP (Resend) pre spoľahlivé doručenie." data-en="A cook signs in with email + a mandatory password (since 15 Jul), or a one-time email code — plus optional Face ID unlock per device. Authentication runs on Supabase Auth with custom SMTP (Resend) for reliable delivery.">A cook signs in with email + a mandatory password (since 15 Jul), or a one-time email code — plus optional Face ID unlock per device. Authentication runs on Supabase Auth with custom SMTP (Resend) for reliable delivery.</p>
   <div class="doc-mock">
     <div style="padding:40px 28px;">
       <div class="login-mark" style="font-family:-apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size:15px; letter-spacing:0.14em; color:var(--copper); text-transform:uppercase; margin-bottom:6px;">Kitchen Notebook</div>
@@ -1204,9 +1210,9 @@
 
 <!-- 2. HOME -->
 <div class="doc-section">
-  <div class="doc-section-num">02 · Navigation</div>
-  <h2 class="doc-section-title">Home</h2>
-  <p class="doc-section-desc">Seven tiles, one tap each. No nested menus — everything a kitchen needs is one level deep.</p>
+  <div class="doc-section-num" data-sk="02 · Navigácia" data-en="02 · Navigation">02 · Navigation</div>
+  <h2 class="doc-section-title" data-sk="Domov" data-en="Home">Home</h2>
+  <p class="doc-section-desc" data-sk="Sedem dlaždíc, každá na jedno ťuknutie. Žiadne vnorené menu — všetko, čo kuchyňa potrebuje, je jednu úroveň hlboko." data-en="Seven tiles, one tap each. No nested menus — everything a kitchen needs is one level deep.">Seven tiles, one tap each. No nested menus — everything a kitchen needs is one level deep.</p>
   <div class="doc-mock doc-mock-wide" style="max-width:520px;">
     <div style="padding:22px 18px 6px 18px;">
       <p class="kicker">Kitchen Notebook</p>
@@ -1226,9 +1232,9 @@
 
 <!-- 3. RECIPES -->
 <div class="doc-section">
-  <div class="doc-section-num">03 · Core</div>
-  <h2 class="doc-section-title">Recipes</h2>
-  <p class="doc-section-desc">All 183 library recipes (plus community promotions), Michelin-enriched, from Richard's original recipe book, migrated and now editable, scalable, and cost/nutrition-calculated against the real ingredients table. Every recipe covers the full 20-field professional spec (yield, times, station, allergens, plating notes, and more).</p>
+  <div class="doc-section-num" data-sk="03 · Jadro" data-en="03 · Core">03 · Core</div>
+  <h2 class="doc-section-title" data-sk="Recepty" data-en="Recipes">Recipes</h2>
+  <p class="doc-section-desc" data-sk="Všetkých 183 receptov knižnice (plus komunitné povýšenia), Michelin-obohatené, z Richardovej pôvodnej receptovej knihy, zmigrované a teraz editovateľné, škálovateľné a s automaticky počítaným food costom aj nutríciou oproti reálnej tabuľke ingrediencií. Každý recept pokrýva plný 20-poľový profesionálny formát (výťažnosť, časy, stanica, alergény, plating poznámky a viac)." data-en="All 183 library recipes (plus community promotions), Michelin-enriched, from Richard's original recipe book, migrated and now editable, scalable, and cost/nutrition-calculated against the real ingredients table. Every recipe covers the full 20-field professional spec (yield, times, station, allergens, plating notes, and more).">All 183 library recipes (plus community promotions), Michelin-enriched, from Richard's original recipe book, migrated and now editable, scalable, and cost/nutrition-calculated against the real ingredients table. Every recipe covers the full 20-field professional spec (yield, times, station, allergens, plating notes, and more).</p>
   <div class="doc-two-col">
     <div class="doc-mock" style="padding:16px 4px;">
       <div style="padding:0 16px 10px 16px;">
@@ -1249,20 +1255,20 @@
     </div>
     <div class="doc-mock" style="padding:20px 18px;">
       <div class="prep-dish-name" style="margin-bottom:4px;">Ingredients</div>
-      <div style="font-size:13px; color:var(--ink-dim); margin-bottom:14px;">Cost + nutrition calculated automatically by matching each line against the 535-item ingredient table.</div>
+      <div style="font-size:13px; color:var(--ink-dim); margin-bottom:14px;">Cost + nutrition calculated automatically by matching each line against the 2,005-item ingredient table.</div>
       <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid var(--rule); font-size:14px;"><span>Garlic, minced</span><span class="mono">10 g</span></div>
       <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid var(--rule); font-size:14px;"><span>Chicken stock</span><span class="mono">1.2 L</span></div>
       <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--rule); display:flex; justify-content:space-between;"><b>Est. cost</b><span class="mono" style="color:var(--copper);">CHF 4.80</span></div>
     </div>
   </div>
-  <div class="doc-note"><b>AI-assisted, two ways:</b> "Scan a photo" reads a handwritten or printed recipe (camera or file) and structures it automatically. "✨ Generate method with AI" writes the step-by-step method from just a title and ingredient list. Both run through Sautero's central AI key via the server-side claude-proxy function (since 16 Jul) — no chef ever pastes their own key, and every call is metered per user.</div>
+  <div class="doc-note" data-sk='<b>AI asistencia, dvomi spôsobmi:</b> „Odfoť recept“ prečíta rukou písaný alebo tlačený recept (kamera alebo súbor) a automaticky ho zoštruktúruje. „✨ Vygeneruj postup cez AI“ napíše postup krok za krokom len z názvu a zoznamu ingrediencií. Oboje beží cez centrálny AI kľúč Sautero cez server-side funkciu claude-proxy (od 16.7.) — žiadny kuchár nevkladá vlastný kľúč a každé volanie je merané per užívateľ.' data-en='<b>AI-assisted, two ways:</b> "Scan a photo" reads a handwritten or printed recipe (camera or file) and structures it automatically. "✨ Generate method with AI" writes the step-by-step method from just a title and ingredient list. Both run through Sautero&#39;s central AI key via the server-side claude-proxy function (since 16 Jul) — no chef ever pastes their own key, and every call is metered per user.'><b>AI-assisted, two ways:</b> "Scan a photo" reads a handwritten or printed recipe (camera or file) and structures it automatically. "✨ Generate method with AI" writes the step-by-step method from just a title and ingredient list. Both run through Sautero's central AI key via the server-side claude-proxy function (since 16 Jul) — no chef ever pastes their own key, and every call is metered per user.</div>
 </div>
 
 <!-- 4. INGREDIENTS -->
 <div class="doc-section">
-  <div class="doc-section-num">04 · Foundation</div>
-  <h2 class="doc-section-title">Ingredients &amp; Pricing</h2>
-  <p class="doc-section-desc">2,005 price-book ingredients with price, unit, category, allergens, origin, season, and substitutes — the data every cost and nutrition calculation in the app is built on (most prices still honest AI estimates; real ones arrive via Invoice Scan).</p>
+  <div class="doc-section-num" data-sk="04 · Základ" data-en="04 · Foundation">04 · Foundation</div>
+  <h2 class="doc-section-title" data-sk="Ingrediencie &amp; ceny" data-en="Ingredients &amp; Pricing">Ingredients &amp; Pricing</h2>
+  <p class="doc-section-desc" data-sk="2 005 ingrediencií v cenníku s cenou, jednotkou, kategóriou, alergénmi, pôvodom, sezónou a náhradami — dáta, na ktorých stojí každý výpočet food costu aj nutrície v appke (väčšina cien sú stále čestné AI odhady; reálne pribúdajú cez Invoice Scan)." data-en="2,005 price-book ingredients with price, unit, category, allergens, origin, season, and substitutes — the data every cost and nutrition calculation in the app is built on (most prices still honest AI estimates; real ones arrive via Invoice Scan).">2,005 price-book ingredients with price, unit, category, allergens, origin, season, and substitutes — the data every cost and nutrition calculation in the app is built on (most prices still honest AI estimates; real ones arrive via Invoice Scan).</p>
   <div class="doc-mock" style="padding:16px 4px; max-width:480px;">
     <div class="ingredient-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--rule);">
       <div><div style="font-size:14.5px;">Garlic, minced</div><div style="font-size:12px; color:var(--ink-dim);">Produce</div></div>
@@ -1277,11 +1283,11 @@
 
 <!-- 5. MISE EN PLACE -->
 <div class="doc-section">
-  <div class="doc-section-num">05 · Daily operations</div>
-  <h2 class="doc-section-title">Check List (Mise en Place)</h2>
-  <p class="doc-section-desc">Two working styles, chosen per station. Most stations get a flat prioritized task checklist. Stations with a real paper prep sheet — like SKY — get a dish-grouped prep sheet that matches the paper original exactly.</p>
+  <div class="doc-section-num" data-sk="05 · Denná prevádzka" data-en="05 · Daily operations">05 · Daily operations</div>
+  <h2 class="doc-section-title" data-sk="Check List (Mise en Place)" data-en="Check List (Mise en Place)">Check List (Mise en Place)</h2>
+  <p class="doc-section-desc" data-sk="Dva pracovné štýly, volené per stanica. Väčšina staníc dostane plochý prioritizovaný zoznam úloh. Stanice s reálnym papierovým prep sheetom — ako SKY — dostanú prep sheet zoskupený podľa jedál, ktorý presne kopíruje papierový originál." data-en="Two working styles, chosen per station. Most stations get a flat prioritized task checklist. Stations with a real paper prep sheet — like SKY — get a dish-grouped prep sheet that matches the paper original exactly.">Two working styles, chosen per station. Most stations get a flat prioritized task checklist. Stations with a real paper prep sheet — like SKY — get a dish-grouped prep sheet that matches the paper original exactly.</p>
 
-  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:10px;"><b style="color:var(--ink);">Flat checklist</b> — any station, tasks linked to tagged recipes, three-way status.</p>
+  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:10px;" data-sk="<b style='color:var(--ink);'>Plochý checklist</b> — akákoľvek stanica, úlohy prepojené na otagované recepty, trojcestný stav." data-en="<b style='color:var(--ink);'>Flat checklist</b> — any station, tasks linked to tagged recipes, three-way status."><b style="color:var(--ink);">Flat checklist</b> — any station, tasks linked to tagged recipes, three-way status.</p>
   <div class="doc-mock" style="padding:0; max-width:480px; margin-bottom:34px;">
     <div class="task-row">
       <div class="task-row-top">
@@ -1296,7 +1302,7 @@
     </div>
   </div>
 
-  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:10px;"><b style="color:var(--ink);">SKY prep sheet</b> — dish-grouped, matching the real paper sheet: 25 dishes, 69 ingredients.</p>
+  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:10px;" data-sk="<b style='color:var(--ink);'>SKY prep sheet</b> — zoskupený podľa jedál, kopírujúci reálny papierový hárok: 25 jedál, 69 ingrediencií." data-en="<b style='color:var(--ink);'>SKY prep sheet</b> — dish-grouped, matching the real paper sheet: 25 dishes, 69 ingredients."><b style="color:var(--ink);">SKY prep sheet</b> — dish-grouped, matching the real paper sheet: 25 dishes, 69 ingredients.</p>
   <div class="doc-mock" style="padding:0; max-width:480px;">
     <div class="prep-section-summary" style="padding:12px 16px; border-bottom:1px solid var(--rule);">
       <span class="prep-filter-toggle"><b>3</b> to do</span>
@@ -1326,14 +1332,14 @@
       </div>
     </div>
   </div>
-  <div class="doc-note">Every ingredient defaults to <b>DON'T DO</b> — the cook opts items <i>in</i> for today rather than clearing a full list. A 🚩 flag appears if ON HAND falls below the ingredient's minimum. The header (sections + status counts) stays pinned while scrolling.</div>
+  <div class="doc-note" data-sk="Každá ingrediencia je predvolene <b>DON'T DO</b> — kuchár si položky na dnes <i>zapína</i>, namiesto odškrtávania celého zoznamu. Objaví sa 🚩, ak ON HAND klesne pod minimum ingrediencie. Hlavička (sekcie + počty stavov) ostáva pripnutá pri scrollovaní." data-en="Every ingredient defaults to <b>DON'T DO</b> — the cook opts items <i>in</i> for today rather than clearing a full list. A 🚩 flag appears if ON HAND falls below the ingredient's minimum. The header (sections + status counts) stays pinned while scrolling.">Every ingredient defaults to <b>DON'T DO</b> — the cook opts items <i>in</i> for today rather than clearing a full list. A 🚩 flag appears if ON HAND falls below the ingredient's minimum. The header (sections + status counts) stays pinned while scrolling.</div>
 </div>
 
 <!-- 6. ORDER LIST -->
 <div class="doc-section">
-  <div class="doc-section-num">06 · Purchasing</div>
-  <h2 class="doc-section-title">Order List</h2>
-  <p class="doc-section-desc">Quick-check ingredients by station to build a shopping list, with quantities and running totals pulled from the same ingredient table used everywhere else.</p>
+  <div class="doc-section-num" data-sk="06 · Nákup" data-en="06 · Purchasing">06 · Purchasing</div>
+  <h2 class="doc-section-title" data-sk="Order List" data-en="Order List">Order List</h2>
+  <p class="doc-section-desc" data-sk="Rýchlym odškrtnutím ingrediencií po staniciach zostavíš nákupný zoznam, s množstvami a priebežnými súčtami z tej istej tabuľky ingrediencií, ktorá sa používa všade inde." data-en="Quick-check ingredients by station to build a shopping list, with quantities and running totals pulled from the same ingredient table used everywhere else.">Quick-check ingredients by station to build a shopping list, with quantities and running totals pulled from the same ingredient table used everywhere else.</p>
   <div class="doc-mock" style="padding:16px; max-width:480px;">
     <div class="qa-row order-checked">
       <div class="qa-checkbox">✓</div>
@@ -1350,9 +1356,9 @@
 
 <!-- 7. SCHEDULE -->
 <div class="doc-section">
-  <div class="doc-section-num">07 · Staffing</div>
-  <h2 class="doc-section-title">Schedule</h2>
-  <p class="doc-section-desc">A real shift-code grid — staff × date — matching a genuine Swiss kitchen roster format: shift codes with real hours and break windows, staff grouped by station (Management, SKY, Bankett, Saucier, Entremetier, Gardemanger, Patisserie, Frühstück). Original reference roster retired 2026-07-13 along with the pilot-kitchen change; rebuilding against Burrito Bandito &amp; Lido's own roster.</p>
+  <div class="doc-section-num" data-sk="07 · Personál" data-en="07 · Staffing">07 · Staffing</div>
+  <h2 class="doc-section-title" data-sk="Rozvrh" data-en="Schedule">Schedule</h2>
+  <p class="doc-section-desc" data-sk="Reálna mriežka smenových kódov — personál × dátum — kopírujúca skutočný formát švajčiarskeho kuchynského rozpisu: smenové kódy s reálnymi hodinami a oknami prestávok, personál zoskupený po staniciach (Management, SKY, Bankett, Saucier, Entremetier, Gardemanger, Patisserie, Frühstück). Pôvodný referenčný rozpis odstavený 13.7.2026 spolu so zmenou pilotnej kuchyne; prestavuje sa podľa vlastného rozpisu Burrito Bandito &amp; Lido." data-en="A real shift-code grid — staff × date — matching a genuine Swiss kitchen roster format: shift codes with real hours and break windows, staff grouped by station (Management, SKY, Bankett, Saucier, Entremetier, Gardemanger, Patisserie, Frühstück). Original reference roster retired 2026-07-13 along with the pilot-kitchen change; rebuilding against Burrito Bandito &amp; Lido's own roster.">A real shift-code grid — staff × date — matching a genuine Swiss kitchen roster format: shift codes with real hours and break windows, staff grouped by station (Management, SKY, Bankett, Saucier, Entremetier, Gardemanger, Patisserie, Frühstück). Original reference roster retired 2026-07-13 along with the pilot-kitchen change; rebuilding against Burrito Bandito &amp; Lido's own roster.</p>
   <div class="doc-mock doc-mock-wide" style="padding:14px; overflow-x:auto;">
     <table class="schedule-grid" style="min-width:480px;">
       <thead><tr><th style="text-align:left; padding:8px; font-size:11px; color:var(--ink-dim);">Staff</th><th style="padding:8px; font-size:11px; color:var(--ink-dim);">Mon</th><th style="padding:8px; font-size:11px; color:var(--ink-dim);">Tue</th><th style="padding:8px; font-size:11px; color:var(--ink-dim);">Wed</th></tr></thead>
@@ -1365,9 +1371,9 @@
 
 <!-- 8. FRIDGE TEMP -->
 <div class="doc-section">
-  <div class="doc-section-num">08 · Compliance</div>
-  <h2 class="doc-section-title">Fridge Temperature</h2>
-  <p class="doc-section-desc">A running log per fridge/freezer — quick daily readings, timestamped, for HACCP-style temperature compliance records.</p>
+  <div class="doc-section-num" data-sk="08 · Súlad / hygiena" data-en="08 · Compliance">08 · Compliance</div>
+  <h2 class="doc-section-title" data-sk="Teplota chladničky" data-en="Fridge Temperature">Fridge Temperature</h2>
+  <p class="doc-section-desc" data-sk="Priebežný log per chladnička/mraznička — rýchle denné odčítania s časovou pečiatkou, pre HACCP-style záznamy o teplotnej zhode." data-en="A running log per fridge/freezer — quick daily readings, timestamped, for HACCP-style temperature compliance records.">A running log per fridge/freezer — quick daily readings, timestamped, for HACCP-style temperature compliance records.</p>
   <div class="doc-mock" style="padding:16px; max-width:480px;">
     <div class="fridge-card" style="display:flex; justify-content:space-between; align-items:center; padding:14px 4px;">
       <div><div style="font-size:14.5px;">Walk-in Cooler 1</div><div style="font-size:12px; color:var(--ink-dim);">Last reading: 3.2°C, 08:14</div></div>
@@ -1378,11 +1384,11 @@
 
 <!-- 9. CHEF'S ASSISTANT -->
 <div class="doc-section">
-  <div class="doc-section-num">11 · Shipped, not yet illustrated</div>
-  <h2 class="doc-section-title">Newer screens (14.–15.7.)</h2>
-  <p class="doc-section-desc">These modules are live in the app but don't have illustrated spreads in this guide yet — each gets one in the next content pass. Listed here so this guide never silently understates the product:</p>
+  <div class="doc-section-num" data-sk="11 · Dodané, zatiaľ neilustrované" data-en="11 · Shipped, not yet illustrated">11 · Shipped, not yet illustrated</div>
+  <h2 class="doc-section-title" data-sk="Novšie obrazovky (14.–15.7.)" data-en="Newer screens (14.–15.7.)">Newer screens (14.–15.7.)</h2>
+  <p class="doc-section-desc" data-sk="Tieto moduly sú naživo v appke, ale zatiaľ nemajú v tomto sprievodcovi ilustrované rozpisy — každý dostane jeden v ďalšom obsahovom kole. Uvedené sú tu, aby tento sprievodca produkt nikdy potichu nepodhodnocoval:" data-en="These modules are live in the app but don't have illustrated spreads in this guide yet — each gets one in the next content pass. Listed here so this guide never silently understates the product:">These modules are live in the app but don't have illustrated spreads in this guide yet — each gets one in the next content pass. Listed here so this guide never silently understates the product:</p>
   <div class="doc-mock" style="padding:20px 22px; max-width:640px;">
-    <ul style="margin:0; padding-left:20px; font-size:13.5px; color:var(--ink-dim); line-height:1.9;">
+    <ul style="margin:0; padding-left:20px; font-size:13.5px; color:var(--ink-dim); line-height:1.9;" data-sk='<li><b style="color:var(--ink);">⏱️ Working Time</b> — check-in/out so živým časovačom, prestávky, mesačné hodiny + nadčasy, AI sken zmluvy s tónovo-označenými poznámkami, jednorazový location snapshot</li><li><b style="color:var(--ink);">🏷️ Print Labels</b> — fronta z ktorejkoľvek položky Check Listu, štítky 5×3&nbsp;cm s use-by dátumami z trvanlivosti per produkt</li><li><b style="color:var(--ink);">🧼 HACCP hub</b> — príjem tovaru, jadrová teplota varenia, log chladenia, checklisty čistenia + osobnej hygieny, fritézový olej, deratizácia, sledovanie expirácie štítkov; Teplota chladničky teraz žije tu</li><li><b style="color:var(--ink);">🔗 My Team</b> — QR + e-mailové pozvánky, expirujúce/odvolateľné odkazy, admin schvaľovacia brána</li><li><b style="color:var(--ink);">🔓 Heslo + Face ID login</b> — druhý spôsob vstupu popri e-mailovom kóde</li><li><b style="color:var(--ink);">📖 Aktualizácie Receptov</b> — sken celého menu (foto alebo URL webu), skenovanie na pozadí, filter Moje / Sautero / Firemné</li>' data-en='<li><b style="color:var(--ink);">⏱️ Working Time</b> — check-in/out with a live timer, breaks, monthly hours + overtime, AI contract scan with tone-flagged advisory notes, one-time location snapshot</li><li><b style="color:var(--ink);">🏷️ Print Labels</b> — queue from any Check List item, 5×3&nbsp;cm labels with use-by dates from per-product shelf life</li><li><b style="color:var(--ink);">🧼 HACCP hub</b> — goods receiving, core cooking temperature, cooling log, cleaning + personal hygiene checklists, fryer oil, pest control, label-expiry tracking; Fridge Temperature now lives here</li><li><b style="color:var(--ink);">🔗 My Team</b> — QR + email invites, expiring/revocable links, admin approval gate</li><li><b style="color:var(--ink);">🔓 Password + Face ID login</b> — a second way in besides the emailed code</li><li><b style="color:var(--ink);">📖 Recipes updates</b> — whole-menu scan (photo or website URL), background scanning, Moje / Sautero / Firemné filter</li>'>
       <li><b style="color:var(--ink);">⏱️ Working Time</b> — check-in/out with a live timer, breaks, monthly hours + overtime, AI contract scan with tone-flagged advisory notes, one-time location snapshot</li>
       <li><b style="color:var(--ink);">🏷️ Print Labels</b> — queue from any Check List item, 5×3&nbsp;cm labels with use-by dates from per-product shelf life</li>
       <li><b style="color:var(--ink);">🧼 HACCP hub</b> — goods receiving, core cooking temperature, cooling log, cleaning + personal hygiene checklists, fryer oil, pest control, label-expiry tracking; Fridge Temperature now lives here</li>
@@ -1394,9 +1400,9 @@
 </div>
 
 <div class="doc-section">
-  <div class="doc-section-num">09 · New — AI</div>
-  <h2 class="doc-section-title">Chef's Assistant</h2>
-  <p class="doc-section-desc">A Michelin-starred-chef persona for quick, confident kitchen judgment calls — substitutions, technique, what to do about a shortfall. Session-only chat, calling Claude directly from the browser.</p>
+  <div class="doc-section-num" data-sk="09 · Nové — AI" data-en="09 · New — AI">09 · New — AI</div>
+  <h2 class="doc-section-title" data-sk="Chef's Assistant" data-en="Chef's Assistant">Chef's Assistant</h2>
+  <p class="doc-section-desc" data-sk="Persona michelinského šéfkuchára pre rýchle, sebavedomé kuchynské rozhodnutia — náhrady, technika, čo robiť pri nedostatku. Chat len na reláciu, volá Claude priamo z prehliadača." data-en="A Michelin-starred-chef persona for quick, confident kitchen judgment calls — substitutions, technique, what to do about a shortfall. Session-only chat, calling Claude directly from the browser.">A Michelin-starred-chef persona for quick, confident kitchen judgment calls — substitutions, technique, what to do about a shortfall. Session-only chat, calling Claude directly from the browser.</p>
   <div class="doc-mock" style="padding:0; max-width:480px;">
     <div class="chef-chat-messages" style="padding:18px 16px; gap:12px; min-height:0;">
       <div class="chef-msg user">No more heavy cream on the pass — what do I do for the sauce?</div>
@@ -1411,19 +1417,19 @@
 
 <!-- 10. COST & USAGE -->
 <div class="doc-section" style="border-bottom:none;">
-  <div class="doc-section-num">10 · Cost &amp; usage</div>
-  <h2 class="doc-section-title">What this actually costs</h2>
-  <p class="doc-section-desc">Two separate ledgers: what Richard has spent building and using Sautero so far, and what each AI feature costs per use going forward. The second is an <b style="color:var(--ink);">estimate</b> — the real, authoritative numbers live at <span style="font-family:'SF Mono',Menlo,monospace; color:var(--copper);">console.anthropic.com → Usage</span>.</p>
+  <div class="doc-section-num" data-sk="10 · Náklady &amp; spotreba" data-en="10 · Cost &amp; usage">10 · Cost &amp; usage</div>
+  <h2 class="doc-section-title" data-sk="Čo to reálne stojí" data-en="What this actually costs">What this actually costs</h2>
+  <p class="doc-section-desc" data-sk="Dve oddelené knihy: čo Richard doteraz minul na stavbu a používanie Sautera, a čo každá AI funkcia stojí na jedno použitie do budúcna. To druhé je <b style='color:var(--ink);'>odhad</b> — reálne, autoritatívne čísla žijú na <span style='font-family:&quot;SF Mono&quot;,Menlo,monospace; color:var(--copper);'>console.anthropic.com → Usage</span>." data-en="Two separate ledgers: what Richard has spent building and using Sautero so far, and what each AI feature costs per use going forward. The second is an <b style='color:var(--ink);'>estimate</b> — the real, authoritative numbers live at <span style='font-family:&quot;SF Mono&quot;,Menlo,monospace; color:var(--copper);'>console.anthropic.com → Usage</span>.">Two separate ledgers: what Richard has spent building and using Sautero so far, and what each AI feature costs per use going forward. The second is an <b style="color:var(--ink);">estimate</b> — the real, authoritative numbers live at <span style="font-family:'SF Mono',Menlo,monospace; color:var(--copper);">console.anthropic.com → Usage</span>.</p>
 
   <div class="doc-mock doc-mock-wide" style="padding:26px 24px; max-width:560px; margin-bottom:28px;">
     <div style="display:flex; justify-content:space-between; align-items:baseline;">
-      <span style="font-size:12.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.07em;">Spent so far</span>
-      <span style="font-family:'SF Mono',Menlo,monospace; font-size:30px; color:var(--copper); font-weight:700;">~CHF 141</span>
+      <span style="font-size:12.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.07em;" data-sk="Minuté doteraz" data-en="Spent so far">Spent so far</span>
+      <span style="font-family:'SF Mono',Menlo,monospace; font-size:30px; color:var(--copper); font-weight:700;">~CHF 274</span>
     </div>
-    <div style="font-size:12.5px; color:var(--ink-faint); margin-top:6px; line-height:1.5;">API credits + Claude subscriptions + the chefos.ch domain combined, self-reported as of 2026-07-15 — not pulled from Anthropic's API (no read access to the billing account). The itemized log lives in status.html → Výdavky; check console.anthropic.com → Usage for exact figures.</div>
+    <div style="font-size:12.5px; color:var(--ink-faint); margin-top:6px; line-height:1.5;" data-sk="Súčet hotovostných výdavkov (Claude/API predplatné ~233, Gamma, domény, denný agent), self-reported k 21.7.2026 — nie z Anthropic API (bez čítacieho prístupu k účtu). Itemizovaný log žije v costs.html; presné čísla na console.anthropic.com → Usage." data-en="Cash spend combined (Claude/API subscriptions ~233, Gamma, domains, daily agent), self-reported as of 2026-07-21 — not pulled from Anthropic&#39;s API (no read access to the billing account). The itemized log lives in costs.html; check console.anthropic.com → Usage for exact figures.">Cash spend combined (Claude/API subscriptions ~233, Gamma, domains, daily agent), self-reported as of 2026-07-21 — not pulled from Anthropic's API (no read access to the billing account). The itemized log lives in costs.html; check console.anthropic.com → Usage for exact figures.</div>
   </div>
 
-  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:12px;"><b style="color:var(--ink);">Estimated cost per use</b> — based on Claude Sonnet's published per-token pricing (~$3 / million input tokens, ~$15 / million output tokens as of this writing; confirm current rates at anthropic.com/pricing) and typical token counts for what each feature actually sends.</p>
+  <p style="font-size:13px; color:var(--ink-dim); margin-bottom:12px;" data-sk="<b style='color:var(--ink);'>Odhadovaný náklad na použitie</b> — na základe zverejneného per-token cenníka Claude Sonnet (~$3 / milión vstupných tokenov, ~$15 / milión výstupných tokenov v čase písania; aktuálne sadzby over na anthropic.com/pricing) a typických počtov tokenov, ktoré každá funkcia reálne posiela." data-en="<b style='color:var(--ink);'>Estimated cost per use</b> — based on Claude Sonnet&#39;s published per-token pricing (~$3 / million input tokens, ~$15 / million output tokens as of this writing; confirm current rates at anthropic.com/pricing) and typical token counts for what each feature actually sends."><b style="color:var(--ink);">Estimated cost per use</b> — based on Claude Sonnet's published per-token pricing (~$3 / million input tokens, ~$15 / million output tokens as of this writing; confirm current rates at anthropic.com/pricing) and typical token counts for what each feature actually sends.</p>
 
   <div class="doc-mock doc-mock-wide" style="padding:0; max-width:640px;">
     <div style="display:grid; grid-template-columns:1.4fr 0.7fr 2fr; gap:0;">
@@ -1445,15 +1451,28 @@
     </div>
   </div>
 
-  <div class="doc-note">
+  <div class="doc-note" data-sk="<b>Náklad na chat sa v rámci konverzácie kumuluje.</b> Chef's Assistant momentálne posiela <i>celú</i> históriu správ s každou novou otázkou (bez orezávania, bez prompt cachingu) — takže 1. správa chatu stojí zlomok centa, ale 10. správa viac, lebo Claude zakaždým znova prečíta celú konverzáciu. Pri občasných otázkach zanedbateľné; pri dlhých sedeniach to narastá rýchlejšie, než naznačuje cena za správu vyššie. Hodné prehodnotenia (orezávanie histórie alebo caching), ak sa funkcia začne používať intenzívne denne." data-en="<b>Chat cost compounds within a conversation.</b> Chef's Assistant currently resends the <i>full</i> message history with every new question (no trimming, no prompt caching) — so message 1 of a chat costs a fraction of a cent, but message 10 costs more, because Claude re-reads the whole conversation each time. For occasional questions this is negligible; for long back-and-forth sessions it adds up faster than the per-message cost above suggests. Worth revisiting (history trimming or caching) if this feature gets heavy daily use.">
     <b>Chat cost compounds within a conversation.</b> Chef's Assistant currently resends the <i>full</i> message history with every new question (no trimming, no prompt caching) — so message 1 of a chat costs a fraction of a cent, but message 10 costs more, because Claude re-reads the whole conversation each time. For occasional questions this is negligible; for long back-and-forth sessions it adds up faster than the per-message cost above suggests. Worth revisiting (history trimming or caching) if this feature gets heavy daily use.
   </div>
 </div>
 
-<footer class="doc-footer">Sautero · Kitchen Notebook · generated from the live app source, 2026-07-10</footer>
+<footer class="doc-footer" data-sk="Sautero · Kitchen Notebook · generované z live app zdroja, 21.7.2026" data-en="Sautero · Kitchen Notebook · generated from the live app source, 2026-07-21">Sautero · Kitchen Notebook · generated from the live app source, 2026-07-21</footer>
+
+<script>
+(function(){
+  document.documentElement.classList.add('js');
+  const secs = Array.prototype.slice.call(document.querySelectorAll('.doc-section'));
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver((es)=>{ es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin:'0px 0px -8% 0px', threshold:0.05 });
+    secs.forEach(s=>io.observe(s));
+  } else { secs.forEach(s=>s.classList.add('in')); }
+  const bar = document.getElementById('vprogress');
+  if(bar){ const onScroll=()=>{ const h=document.documentElement; const max=h.scrollHeight-h.clientHeight; bar.style.width=(max>0?(h.scrollTop/max)*100:0)+'%'; }; window.addEventListener('scroll', onScroll, { passive:true }); onScroll(); }
+})();
+</script>
 
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20">🔄 Stav Sautero k 18. 7. 2026, 14:20</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 21. 7. 2026" data-en="🔄 Sautero state as of Jul 21, 2026">🔄 Stav Sautero k 21. 7. 2026</div>
 <button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
 
 <script>
@@ -1523,10 +1542,11 @@
     q('.doc-note').forEach((el,i)=>setEl(el, GSK.notes[i]));
     q('.doc-stat').forEach((el,i)=>setEl(el, GSK.stats[i]));
   };
-  const orig = window.chefosToggleLang;
-  function hook(){ window.applyGuideContent(localStorage.getItem('chefos_doc_lang') || 'sk'); }
-  if(typeof orig === 'function'){ window.chefosToggleLang = function(){ orig(); hook(); }; }
-  hook();
+  /* GSK disabled 21.7.: the narrative is now bilingual via data-sk/data-en on each element,
+     driven by the shared toggle above (a single mechanism). The GSK object + applyGuideContent
+     are kept above for reference only and are intentionally NOT wired in — running both caused
+     double-translation and corrupted the EN fallback. Do not re-hook without removing the
+     per-element data-sk/data-en first. */
 })();
 </script>
 </body>
