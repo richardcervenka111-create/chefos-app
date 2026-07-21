@@ -31,7 +31,14 @@ declare
     'fridges', 'fridge_logs', 'print_label_settings', 'print_label_log',
     'haccp_checklist_items', 'haccp_checklist_log', 'haccp_measurement_log',
     'time_entries', 'projects', 'tasks', 'events', 'check_list_audit_log', 'kitchen_invites',
-    'ingredient_lists', 'recipe_lists', 'ingredient_price_history'
+    'ingredient_lists', 'recipe_lists', 'ingredient_price_history',
+    -- 2026-07-21: coverage expanded 21 -> 36. audit_db now FAILS the build if any table
+    -- carrying kitchen_id is missing from this array, so a new tenant table can never again
+    -- ship without being leak-tested. These 15 had kitchen_id but were never in the test:
+    'ai_usage', 'custom_ingredients', 'error_logs', 'feedback', 'feedback_reports',
+    'privacy_acceptances', 'recipe_category_icons', 'schedule_assignments', 'schedule_entries',
+    'schedule_forecast', 'shift_codes', 'staff_members', 'station_icons', 'usage_events',
+    'working_time_day_notes'
   ];
 begin
   -- two users from two DIFFERENT kitchens

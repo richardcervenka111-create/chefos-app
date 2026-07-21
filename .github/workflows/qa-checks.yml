@@ -1,0 +1,50 @@
+name: QA checks (auditors + tenant isolation)
+
+# Sautero standing QA guard (Richard, 21.7.2026 — "kontrolované 2× denne").
+# Runs the static auditors on a schedule (not only on push) PLUS the cross-kitchen
+# tenant-isolation leak test against a real database — the project's #1 historical
+# incident class. Twice a day + on demand.
+#
+# The tenant-isolation step runs ONLY if a `SAUTERO_DB_URL` repo secret is set (a
+# read-only-safe Postgres connection string — the test is pure SELECT counts inside a
+# single transaction, no writes). Point it at a DB that actually has 2+ kitchens with
+# members (production is fine and read-only-safe; an empty staging just SKIPs, so it
+# would pass without really testing). Without the secret, the DB step is skipped with a
+# clear note and only the static auditors run.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'    # 06:00 UTC (08:00 Bern)
+    - cron: '0 16 * * *'   # 16:00 UTC (18:00 Bern)
+  workflow_dispatch: {}
+  # (auditors on every push are already covered by health-checks.yml + the deploy gate;
+  #  this workflow is the standing 2×/day scheduled sweep + the live tenant-isolation test.)
+
+jobs:
+  static-auditors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: DB migration audit (RLS, tenant scoping, numbering, destructive, tenant-test coverage)
+        run: python3 scripts/audit_db.py
+      - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet, XSS)
+        run: python3 scripts/audit_app.py
+
+  tenant-isolation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Cross-kitchen leak test (tenant_isolation_test.sql)
+        env:
+          SAUTERO_DB_URL: ${{ secrets.SAUTERO_DB_URL }}
+        run: |
+          if [ -z "$SAUTERO_DB_URL" ]; then
+            echo "::warning::SAUTERO_DB_URL secret not set — skipping the live tenant-isolation test."
+            echo "Add a read-only-safe Postgres connection string (DB with 2+ kitchens) to run it."
+            exit 0
+          fi
+          # ON_ERROR_STOP makes a RAISE EXCEPTION (a real cross-kitchen leak) fail the job.
+          psql "$SAUTERO_DB_URL" -v ON_ERROR_STOP=1 -f scripts/tenant_isolation_test.sql

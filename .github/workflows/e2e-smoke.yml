@@ -8,7 +8,8 @@ name: E2E smoke test
 # the 3 real test accounts. See scripts/e2e_smoke_test.py for what it actually checks.
 on:
   schedule:
-    - cron: '0 6 * * *'   # 06:00 UTC daily — quiet hours for the pilot kitchens
+    - cron: '0 6 * * *'    # 06:00 UTC — morning check (08:00 Bern)
+    - cron: '0 16 * * *'   # 16:00 UTC — afternoon check (18:00 Bern). 2×/day (Richard, 21.7.)
   workflow_dispatch: {}
 
 jobs:

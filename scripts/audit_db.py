@@ -183,6 +183,28 @@ def main():
         elif t not in has_policy:
             violations.append(f'{origin}: table "{t}" has RLS enabled but no policy is ever created — that silently blocks ALL access (or none, if RLS gets disabled later)')
 
+    # 2026-07-21: every kitchen_id table MUST be covered by the tenant-isolation leak test.
+    # Cross-kitchen data leaks are this project's #1 historical incident class (db/53, db/86,
+    # plus 5 more found in the 19.7 sweep). This guard makes it impossible to ship a new
+    # tenant-scoped table without adding it to scripts/tenant_isolation_test.sql, so it can
+    # never again silently escape being leak-tested.
+    ti_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tenant_isolation_test.sql')
+    try:
+        ti = open(ti_path, encoding='utf-8').read()
+        arr_m = re.search(r'tenant_tables\s+text\[\]\s*:=\s*array\[(.*?)\];', ti, re.S)
+        covered = set(re.findall(r"'([a-z_]+)'", arr_m.group(1))) if arr_m else set()
+        for t in created:
+            if t in NO_TENANT_OK:
+                continue
+            if t not in covered:
+                violations.append(
+                    f'table "{t}" carries kitchen_id but is NOT in the tenant_tables array of '
+                    f'scripts/tenant_isolation_test.sql — every tenant table must be cross-kitchen '
+                    f'leak-tested. Add it there, or whitelist in NO_TENANT_OK with a reason if it is '
+                    f'genuinely not kitchen-scoped.')
+    except FileNotFoundError:
+        pass
+
     for n, names in sorted(numbers.items()):
         if len(names) > 1:
             violations.append(f'duplicate migration number {n:02d}: {", ".join(names)}')
