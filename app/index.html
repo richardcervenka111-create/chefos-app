@@ -2223,6 +2223,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Kitchen data</b> — recipes, ingredients, Check List activity, schedules — needed to run the app's core features.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Working hours</b> — only if you separately opt in under Settings → Share My Hours with Admin. Off by default.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Feedback</b> you choose to send.</p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Recipe sharing</b> — recipes you create may be added to the shared Sautero recipe library, where other kitchens can cook from them. Your own copy always stays yours to edit or delete; in return, AI help on your recipes is free.</p>
       <p style="margin:0 0 10px 0;">Some features (Chef Assistant, recipe/photo scanning) send the relevant text or image to Anthropic (our AI provider) to work. Everything is hosted on Supabase (our database/hosting provider). Neither sells your data or uses it to train their own models on Sautero's behalf.</p>
       <p style="margin:0 0 10px 0;">Under GDPR (EU) and the Swiss Federal Act on Data Protection, you can ask to see, correct, export, or delete your data at any time — contact your kitchen admin or richard.cervenka@icloud.com.</p>
       <p style="margin:0;">This is a plain-language summary, not the full policy, and not a lawyer-drafted document — see Settings → Privacy & Terms for the complete draft, currently pending legal review.</p>
@@ -4114,11 +4115,35 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <div style="display:flex; gap:8px;">
         <button class="chip" id="msCx_simple" onclick="selectMenuScanComplexity('simple')" style="flex:1;">Short</button>
         <button class="chip" id="msCx_standard" onclick="selectMenuScanComplexity('standard')" style="flex:1;">Standard</button>
-        <button class="chip" id="msCx_complete" onclick="selectMenuScanComplexity('complete')" style="flex:1;">Complete</button>
+        <button class="chip" id="msCx_complete" onclick="selectMenuScanComplexity('complete')" style="flex:1;">Sophisticated</button>
       </div>
     </div>
     <button class="save-btn" style="width:100%; margin-top:14px;" onclick="startMenuScanWithMode()">Start scan</button>
     <button class="sheet-cancel" onclick="closeMenuScanModeSheet()">Cancel</button>
+  </div>
+</div>
+
+<!-- Photo crop before the menu scan (Richard, 22.7.): drag the frame over just the menu part,
+     corners resize; the crop happens on-device via canvas — the AI only ever sees the cropped
+     area (smaller upload, better reads, fewer stray dishes from background clutter). -->
+<div id="menuScanCropOverlay" class="sheet-overlay" onclick="if(event.target===this) cancelMenuScanCrop()">
+  <div class="sheet" style="max-height:92vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Crop the photo</div>
+    <p class="sheet-text">Drag the frame over just the menu. Drag a corner to resize.</p>
+    <div id="cropStage" style="display:flex; justify-content:center; margin:8px 0;">
+      <div id="cropBox" style="position:relative; display:inline-block; overflow:hidden; border-radius:10px; touch-action:none;">
+        <img id="cropImg" alt="" style="max-width:100%; max-height:52vh; display:block; user-select:none; -webkit-user-drag:none; pointer-events:none;">
+        <div id="cropRect" style="position:absolute; border:2px solid var(--copper); box-shadow:0 0 0 9999px rgba(0,0,0,0.55); border-radius:6px; touch-action:none; cursor:move;">
+          <div class="crop-h" data-corner="nw" style="position:absolute; left:-13px; top:-13px; width:26px; height:26px; border-radius:50%; background:var(--copper); border:3px solid #0A1A2F; box-shadow:0 1px 6px rgba(0,0,0,0.5); touch-action:none;"></div>
+          <div class="crop-h" data-corner="ne" style="position:absolute; right:-13px; top:-13px; width:26px; height:26px; border-radius:50%; background:var(--copper); border:3px solid #0A1A2F; box-shadow:0 1px 6px rgba(0,0,0,0.5); touch-action:none;"></div>
+          <div class="crop-h" data-corner="sw" style="position:absolute; left:-13px; bottom:-13px; width:26px; height:26px; border-radius:50%; background:var(--copper); border:3px solid #0A1A2F; box-shadow:0 1px 6px rgba(0,0,0,0.5); touch-action:none;"></div>
+          <div class="crop-h" data-corner="se" style="position:absolute; right:-13px; bottom:-13px; width:26px; height:26px; border-radius:50%; background:var(--copper); border:3px solid #0A1A2F; box-shadow:0 1px 6px rgba(0,0,0,0.5); touch-action:none;"></div>
+        </div>
+      </div>
+    </div>
+    <button class="save-btn" style="width:100%;" onclick="applyMenuScanCrop()">✂️ Use the cropped area</button>
+    <button class="sheet-cancel" onclick="skipMenuScanCrop()">Use the whole photo</button>
   </div>
 </div>
 <input type="file" id="prepScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handlePrepScanFileSelected(event)">
@@ -12651,7 +12676,9 @@ function currentRecipeShelfName(){
   if(recipeSourceFilter === 'chefos') return '✨ Sautero';
   if(recipeSourceFilter === 'company') return '🏢 Company Recipes';
   const l = _recipeLists.find(x=>x.id === recipeSourceFilter);
-  return '🗂️ ' + ((l && l.name) || 'Project');
+  // The open project shows ITS OWN icon (the one picked at creation, e.g. 📕), not a generic
+  // folder (Richard, 22.7.: "chcem tam mať malú červenú knihu a nie folder").
+  return ((l && l.icon) || '🗂️') + ' ' + ((l && l.name) || 'Project');
 }
 function showNewestRecipes(){
   activeCategory = 'Newest';
@@ -14364,7 +14391,7 @@ function editCurrentRecipe(){
 function renderForm(data){
   formIngredientRows = data.ingredients.length ? data.ingredients : [['','']];
   formStepRows = data.steps.length ? data.steps : [''];
-  _recipeAiShare = null; // fresh share-with-Sautero decision per form session (17.7.)
+  _recipeAiShare = true; // sharing consented once at sign-up (Privacy & Terms), stays on (22.7.)
   const el = document.getElementById('formContent');
   const cats = getCategories().filter(c=>c!=='All');
   // A scanned recipe often arrives with a category this shelf doesn't have yet — offer it as a
@@ -14396,11 +14423,14 @@ function renderForm(data){
     <label class="form-label">Passive time (optional)</label>
     <input class="form-field" id="f_passive_time" type="text" placeholder="e.g. rest/cook 1.5 hr" value="${(data.passiveTime||'').replace(/"/g,'&quot;')}">
 
-    <label class="form-label">Station (optional)</label>
-    <select class="form-field" id="f_station">
-      <option value="">None</option>
-      ${DEFAULT_STATIONS.map(s=>`<option value="${s}" ${s===data.station?'selected':''}>${s}</option>`).join('')}
-    </select>
+    <!-- Station row hidden from the form (Richard, 22.7.) — the field stays in the DOM so
+         saveFormBody keeps reading it and existing recipes keep their stored station. -->
+    <div style="display:none;">
+      <select class="form-field" id="f_station">
+        <option value="">None</option>
+        ${DEFAULT_STATIONS.map(s=>`<option value="${s}" ${s===data.station?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
 
     <label class="form-label">Ingredients</label>
     <div id="f_ingredients"></div>
@@ -14568,16 +14598,8 @@ async function saveFormBody(){
     cross_references: crossReferences || null, tags, sections
   };
 
-  // Share-with-Sautero question at save (Richard, 17.7.): if the person already answered it
-  // when they first used an AI helper, don't ask again — otherwise ask now (plain sharing
-  // question, no free-AI wording, since no AI was used).
-  if(!formEditingId && _recipeAiShare === null){
-    _recipeAiShare = confirm(
-      "👨‍🍳 The best recipes get passed on.\n\n" +
-      "Add this one to the Sautero library? Your copy stays yours — kitchens across Sautero get to cook it too.\n\n" +
-      "OK — share it · Cancel — keep it private"
-    );
-  }
+  // Share-with-Sautero question removed (Richard, 22.7.) — consent lives in the Privacy &
+  // Terms gate accepted at sign-up; _recipeAiShare defaults true, no interruption at save.
   // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
   // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
   // same convention as ingredients' custom lists.
@@ -21590,8 +21612,12 @@ function handleMenuScanFileSelected(e){
   const file = e.target.files && e.target.files[0];
   if(!file) return;
   readFileForScan(file, (base64, mediaType, fileName)=>{
-    _menuScanPendingSource = { kind:'file', base64, mediaType, fileName };
-    openMenuScanModeSheet();
+    if((mediaType || '').startsWith('image/')){
+      openMenuScanCrop(base64, mediaType, fileName);   // photos get the crop step first (22.7.)
+    } else {
+      _menuScanPendingSource = { kind:'file', base64, mediaType, fileName };
+      openMenuScanModeSheet();
+    }
   });
 }
 
@@ -21606,13 +21632,16 @@ function closeMenuScanModeSheet(){
 function selectMenuScanMode(mode){ _menuScanOpts.mode = mode; updateMenuScanModeSheet(); }
 function selectMenuScanComplexity(cx){ _menuScanOpts.complexity = cx; updateMenuScanModeSheet(); }
 function updateMenuScanModeSheet(){
-  // active choice = full teal + navy text (standing filter-visibility standard, 16.7.)
-  const on = el => { el.style.background = 'var(--accent)'; el.style.borderColor = 'var(--accent)'; el.style.color = '#0A1A2F'; };
-  const off = el => { el.style.background = ''; el.style.borderColor = ''; el.style.color = ''; };
+  // Active choice = full teal + navy text (standing filter-visibility standard, 16.7.).
+  // Hard colors on EVERY inner element: the first version used var(--accent), which does not
+  // exist in this app (the accent var is --copper) — selected options rendered navy-on-dark,
+  // i.e. unreadable (Richard's 22.7. screenshot).
+  const on = el => { el.style.background = 'var(--copper)'; el.style.borderColor = 'var(--copper)';
+    el.style.color = '#0A1A2F'; el.querySelectorAll('*').forEach(d=>d.style.color = '#0A1A2F'); };
+  const off = el => { el.style.background = ''; el.style.borderColor = ''; el.style.color = '';
+    el.querySelectorAll('*').forEach(d=>d.style.color = ''); };
   const full = document.getElementById('msModeFull'), ingr = document.getElementById('msModeIngredients');
   (_menuScanOpts.mode === 'full' ? on : off)(full); (_menuScanOpts.mode === 'ingredients' ? on : off)(ingr);
-  full.querySelectorAll('div').forEach(d=>d.style.color = _menuScanOpts.mode === 'full' ? '#0A1A2F' : '');
-  ingr.querySelectorAll('div').forEach(d=>d.style.color = _menuScanOpts.mode === 'ingredients' ? '#0A1A2F' : '');
   document.getElementById('msComplexityBlock').style.display = _menuScanOpts.mode === 'full' ? 'block' : 'none';
   ['simple','standard','complete'].forEach(cx=>{
     const el = document.getElementById('msCx_' + cx);
@@ -21627,6 +21656,93 @@ function startMenuScanWithMode(){
   if(src.kind === 'url') runMenuScanFromUrl(src.url);
   else runMenuScan(src.base64, src.mediaType, src.fileName);
 }
+
+/* ---------- Photo crop before the scan (Richard, 22.7.) ----------
+   On-device canvas crop: the AI only ever receives the cropped area. Move = drag inside the
+   frame; resize = drag a corner. Pointer Events cover both touch and mouse. Non-image sources
+   (PDF/text) skip straight to the mode sheet. */
+let _cropSrc = null;      // { base64, mediaType, fileName }
+let _cropRect = null;     // { x, y, w, h } in displayed-image pixels
+let _cropGesture = null;  // { mode:'move'|corner, startX, startY, rect0 }
+
+function openMenuScanCrop(base64, mediaType, fileName){
+  _cropSrc = { base64, mediaType, fileName };
+  const img = document.getElementById('cropImg');
+  img.onload = ()=>{
+    const w = img.clientWidth, h = img.clientHeight;
+    _cropRect = { x: Math.round(w*0.05), y: Math.round(h*0.05), w: Math.round(w*0.9), h: Math.round(h*0.9) };
+    positionCropRect();
+  };
+  img.src = `data:${mediaType};base64,${base64}`;
+  document.getElementById('menuScanCropOverlay').classList.add('open');
+}
+function positionCropRect(){
+  const r = document.getElementById('cropRect').style;
+  r.left = _cropRect.x + 'px'; r.top = _cropRect.y + 'px';
+  r.width = _cropRect.w + 'px'; r.height = _cropRect.h + 'px';
+}
+function cancelMenuScanCrop(){
+  document.getElementById('menuScanCropOverlay').classList.remove('open');
+  _cropSrc = null; _cropGesture = null;
+}
+function skipMenuScanCrop(){
+  const src = _cropSrc;
+  document.getElementById('menuScanCropOverlay').classList.remove('open');
+  _cropSrc = null; _cropGesture = null;
+  if(!src) return;
+  _menuScanPendingSource = { kind:'file', ...src };
+  openMenuScanModeSheet();
+}
+function applyMenuScanCrop(){
+  const src = _cropSrc;
+  const img = document.getElementById('cropImg');
+  if(!src || !_cropRect){ skipMenuScanCrop(); return; }
+  const scaleX = img.naturalWidth / img.clientWidth, scaleY = img.naturalHeight / img.clientHeight;
+  const sx = Math.max(0, Math.round(_cropRect.x * scaleX)), sy = Math.max(0, Math.round(_cropRect.y * scaleY));
+  const sw = Math.min(img.naturalWidth - sx, Math.round(_cropRect.w * scaleX));
+  const sh = Math.min(img.naturalHeight - sy, Math.round(_cropRect.h * scaleY));
+  const canvas = document.createElement('canvas');
+  canvas.width = sw; canvas.height = sh;
+  canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  document.getElementById('menuScanCropOverlay').classList.remove('open');
+  _cropSrc = null; _cropGesture = null;
+  _menuScanPendingSource = { kind:'file', base64: dataUrl.split(',')[1], mediaType: 'image/jpeg', fileName: (src.fileName || 'menu') + '-crop.jpg' };
+  openMenuScanModeSheet();
+}
+// one pointer gesture at a time: corners resize, the frame body moves
+(function wireCropGestures(){
+  const rectEl = document.getElementById('cropRect');
+  if(!rectEl) return;
+  rectEl.addEventListener('pointerdown', (e)=>{
+    const corner = e.target.dataset && e.target.dataset.corner;
+    _cropGesture = { mode: corner || 'move', startX: e.clientX, startY: e.clientY, rect0: { ..._cropRect } };
+    rectEl.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  rectEl.addEventListener('pointermove', (e)=>{
+    if(!_cropGesture || !_cropRect) return;
+    const img = document.getElementById('cropImg');
+    const maxW = img.clientWidth, maxH = img.clientHeight, MIN = 44;
+    const dx = e.clientX - _cropGesture.startX, dy = e.clientY - _cropGesture.startY;
+    const r0 = _cropGesture.rect0;
+    let { x, y, w, h } = r0;
+    if(_cropGesture.mode === 'move'){
+      x = Math.min(Math.max(0, r0.x + dx), maxW - r0.w);
+      y = Math.min(Math.max(0, r0.y + dy), maxH - r0.h);
+    } else {
+      if(_cropGesture.mode.includes('w')){ x = Math.min(Math.max(0, r0.x + dx), r0.x + r0.w - MIN); w = r0.w + (r0.x - x); }
+      if(_cropGesture.mode.includes('e')){ w = Math.min(Math.max(MIN, r0.w + dx), maxW - r0.x); }
+      if(_cropGesture.mode.includes('n')){ y = Math.min(Math.max(0, r0.y + dy), r0.y + r0.h - MIN); h = r0.h + (r0.y - y); }
+      if(_cropGesture.mode.includes('s')){ h = Math.min(Math.max(MIN, r0.h + dy), maxH - r0.y); }
+    }
+    _cropRect = { x, y, w, h };
+    positionCropRect();
+  });
+  const end = ()=>{ _cropGesture = null; };
+  rectEl.addEventListener('pointerup', end);
+  rectEl.addEventListener('pointercancel', end);
+})();
 
 /* How detailed a FULL-mode recipe should be — appended to every per-dish brief. The method is
    demanded unconditionally: recipes were coming back without one (22.7.). */
@@ -21989,17 +22105,11 @@ function openMenuScanRecipeForm(i){
    first time any AI helper is used in the form (or at save if no AI was used). Yes = the
    recipe is contributed to the Sautero library on save AND every AI call in this form is free;
    No = recipe stays private and AI charges credit as normal. null = not asked yet. */
-let _recipeAiShare = null;
+/* Richard, 22.7.: the per-save/per-AI-use share question is GONE — recipe sharing with the
+   Sautero library is consented to once, in the Privacy & Terms gate at sign-up (its summary
+   carries the clause). Sharing stays on by default; AI help on recipes is free accordingly. */
+let _recipeAiShare = true;
 function maybeAskRecipeAiShare(){
-  if(_recipeAiShare !== null) return _recipeAiShare;
-  // Wording (Richard, 17.7., sales-psych pass): identity ("great recipes get passed on"),
-  // zero-loss ("your copy stays yours") and reciprocity ("AI is on the house") — short,
-  // honest, no pressure.
-  _recipeAiShare = confirm(
-    "👨‍🍳 The best recipes get passed on.\n\n" +
-    "Share this one with the Sautero library — your copy stays yours, and all AI help on it is on the house.\n\n" +
-    "OK — share it (AI free) · Cancel — keep it private"
-  );
   return _recipeAiShare;
 }
 
