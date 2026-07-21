@@ -312,6 +312,23 @@
   footer.foot{ text-align:center; font-size:11.5px; color:var(--ink-faint); padding:44px 0 20px 0; }
   footer.foot a{ color:var(--ink-faint); text-decoration:underline; }
 
+  /* ---------- Revenue streams (staged pipeline + matrix) ---------- */
+  .stream-stages{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px; }
+  @media (max-width:900px){ .stream-stages{ grid-template-columns:1fr; } }
+  .stream-stage{ display:flex; flex-direction:column; gap:10px; }
+  .stage-head{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; padding:9px 13px; border-radius:11px; border:1px solid var(--rule); }
+  .stage-head.now{ color:var(--accent); background:var(--accent-wash); border-color:var(--accent-dim); }
+  .stage-head.after{ color:var(--gold); background:var(--gold-wash); border-color:var(--gold-dim); }
+  .stage-head.vision{ color:#AEB4FF; background:rgba(139,147,255,0.08); border-color:rgba(139,147,255,0.35); }
+  .scard{ background:var(--paper); border:1px solid var(--rule); border-radius:12px; padding:14px 15px; transition:border-color .15s, transform .15s, box-shadow .15s; }
+  .scard:hover{ border-color:var(--accent-dim); transform:translateY(-2px); box-shadow:var(--shadow); }
+  .scard .sh{ display:flex; align-items:center; gap:9px; }
+  .scard .si{ font-size:20px; flex:none; }
+  .scard h5{ margin:0; font-size:13.5px; line-height:1.25; }
+  .scard .sm{ margin:9px 0 0 0; font-size:12px; color:var(--ink-dim); line-height:1.5; }
+  .scard .sstars{ font-size:11px; color:var(--gold); letter-spacing:2px; margin-top:9px; }
+  #streamMatrix text{ font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; }
+
   /* ---------- Sautero stamp + language fab ---------- */
   .chefos-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
@@ -514,8 +531,8 @@
     <div class="market-row reveal" id="marketGrid"></div>
     <div class="disclaimer reveal" data-sk='<b>Číslo pre kantón Bern je odhad</b>, nie oficiálny kantonálny údaj GastroSuisse — odvodené z celoštátnych ~32 000 podnikov podľa ~12% podielu kantónu Bern na populácii. Zdroj: GastroSuisse Branchenspiegel 2025.' data-en='<b>Canton Bern figure is an estimate</b>, not an official GastroSuisse cantonal count — apportioned from the national ~32,000 figure by canton Bern&#39;s ~12% share of Swiss population. Source: GastroSuisse Branchenspiegel 2025.'></div>
     <div class="target-callout reveal">
-      <span class="badge" data-sk="Menovaný cieľ" data-en="Named target">Menovaný cieľ</span>
-      <p data-sk='<b>Nooch Asian Kitchen</b> (skupina FWG Gastronomie) — reálny švajčiarsky reťazec s 10+ pobočkami, z toho tri už v kantóne Bern (Aarbergergasse, Viktoriaplatz, Westside) — priamo sedí na stratégiu kantón-najprv. Identifikovaný 13.7.2026 ako prvý účet na oslovenie, keď pilot potvrdí produkt — zatiaľ žiadny kontakt, nie je to podpísaný ani rozbehnutý obchod.' data-en='<b>Nooch Asian Kitchen</b> (FWG Gastronomie group) — a real 10+-location Swiss chain with three restaurants already in canton Bern (Aarbergergasse, Viktoriaplatz, Westside), a direct fit for the canton-first strategy above. Identified 2026-07-13 as the first account to approach once the pilot validates the product — no contact made yet, not a signed or in-progress deal.'></p>
+      <span class="badge" data-sk="Vstupný klin" data-en="Go-to-market wedge">Vstupný klin</span>
+      <p data-sk='<b>Trójsky kôň do reťazca:</b> keď pilot potvrdí produkt, získať <b>jednu pobočku</b> viacpobočkovej bernskej skupiny ako bežného Restaurant zákazníka — nie hneď enterprise zmluvu. Jedna prevádzka dokáže štandard, centrálne zdieľané recepty sú presne bolesť reťazcov, a expanzia na ďalšie pobočky prichádza prirodzene. Zatiaľ ide o stratégiu, nie o rozbehnutý obchod.' data-en='<b>Trojan horse into a chain:</b> once the pilot validates the product, land <b>one venue</b> of a Bern multi-location group as a normal Restaurant customer — not an enterprise contract up front. One venue proves the standard, centrally shared recipes are exactly a chain&#39;s pain, and expansion to further venues follows naturally. This is a strategy, not an in-progress deal.'></p>
     </div>
 
     <div class="group-label reveal" data-sk="Pre koho to je" data-en="Who it's for">Pre koho to je</div>
@@ -533,7 +550,7 @@
       <div class="vcard">
         <div class="persona-role" data-sk="Prevádzkovateľ viacerých podnikov" data-en="Multi-venue operator">Prevádzkovateľ viacerých podnikov</div>
         <p class="persona-quote" data-sk="„Ako udržím rovnaký štandard na piatich miestach?“" data-en="&quot;How do I hold the same standard across five venues?&quot;">„Ako udržím rovnaký štandard na piatich miestach?“</p>
-        <p data-sk="Tímy, roly a zdieľané recepty naprieč prevádzkami — jeden štandard, replikovateľný. Presne profil ako Nooch (menovaný cieľ vyššie)." data-en="Teams, roles and shared recipes across venues — one standard, replicable. Exactly the Nooch profile (the named target above)."></p>
+        <p data-sk="Tímy, roly a zdieľané recepty naprieč prevádzkami — jeden štandard, replikovateľný. Presne profil viacpobočkovej bernskej skupiny — vstupný klin go-to-market vyššie." data-en="Teams, roles and shared recipes across venues — one standard, replicable. Exactly the multi-venue Bern group profile — the go-to-market wedge above."></p>
       </div>
     </div>
   </section>
@@ -566,7 +583,7 @@
       </div>
       <div class="money-callout">
         <div class="tag" data-sk="Náklady na build doteraz" data-en="Build cost to date">Náklady na build doteraz</div>
-        <p data-sk='<b>~CHF 296 hotovosť</b> (API kredity + Claude predplatné ~233, Gamma 20, domény chefos.ch 5 + sautero.ch/.com 15, Supabase Pro ~22/mes) + <b>~102 h času zakladateľa</b> (×45 CHF/h ≈ CHF 4 577; od 13.7. merané z git histórie). Funkčný multi-feature produkt pre jednu pilotnú kuchynskú skupinu, postavený sólo šéfkuchárom-founderom s AI agentom, žiadne iné inžinierske výdavky. Self-reported, neauditované — detail: costs.html.' data-en='<b>~CHF 296 cash</b> (API credits + Claude subscriptions ~233, Gamma 20, domains chefos.ch 5 + sautero.ch/.com 15, Supabase Pro ~22/mo) + <b>~102 h founder time</b> (× CHF 45/h ≈ CHF 4,577; measured from git history since Jul 13). A working multi-feature product for one pilot kitchen group, built by a solo chef-founder with an AI agent, no other engineering spend. Self-reported, not audited — detail: costs.html.'></p>
+        <p data-sk='<b>~CHF 274 hotovosť</b> (Claude/API predplatné ~233, Gamma 20, domény chefos.ch 5 + sautero.ch/.com 15, denný ingredient agent ~1) + <b>~120 h času zakladateľa</b> (×45 CHF/h ≈ CHF 5 400; z toho 80 h presne z git histórie od 13.7. + ~40 h odhad za 8.–12.7.). Funkčný multi-feature produkt pre jednu pilotnú kuchynskú skupinu, postavený sólo šéfkuchárom-founderom s AI agentom, žiadne iné inžinierske výdavky. Self-reported, neauditované — detail: costs.html.' data-en='<b>~CHF 274 cash</b> (Claude/API subscriptions ~233, Gamma 20, domains chefos.ch 5 + sautero.ch/.com 15, daily ingredient agent ~1) + <b>~120 h founder time</b> (× CHF 45/h ≈ CHF 5,400; of which 80 h measured from git history since Jul 13 + ~40 h estimate for Jul 8–12). A working multi-feature product for one pilot kitchen group, built by a solo chef-founder with an AI agent, no other engineering spend. Self-reported, not audited — detail: costs.html.'></p>
       </div>
     </div>
 
@@ -608,6 +625,39 @@
         <table class="assumptions-table" id="assumptionsTable"></table>
       </div>
       <div class="disclaimer" data-sk='<b>Len ilustračná projekcia — nie skutočný ani prisľúbený príjem.</b> Zdola-nahor, nie rastová krivka: počty platiacich kuchýň vyššie sú hypotetický predpoklad adopcie (od ~3 500 podnikov kantónu Bern, ~12% odhad švajčiarskeho celku) × blended CHF 89/mesiac/kuchyňa (60 % Chef Pro CHF 49, 40 % Restaurant CHF 149).' data-en="<b>Illustrative projection only — not actual or committed revenue.</b> Bottom-up, not a top-line growth curve: paying-kitchen counts above are a hypothetical adoption assumption (starting with canton Bern's ~3,500 establishments, ~12% estimate of the Swiss total) × a blended CHF 89/month/kitchen (60% Chef Pro CHF 49, 40% Restaurant CHF 149)."></div>
+    </div>
+
+    <!-- Revenue streams beyond the subscription backbone (models from monetization.html) -->
+    <div class="group-label reveal" data-sk="Príjmové toky za hranicou predplatného" data-en="Revenue streams beyond the subscription">Príjmové toky za hranicou predplatného</div>
+    <p class="section-desc reveal" style="margin-bottom:20px;" data-sk="Predplatné je chrbtica. Okolo neho stojí diverzifikovaný, čestne odstupňovaný rebríček tokov — z plnej analýzy 14 modelov (monetization.html). Nič z „neskôr“ sa netvári ako dnešný príjem; hviezdičky sú verdikt expertného panelu, nie prísľub." data-en="Subscriptions are the backbone. Around it sits a diversified, honestly staged ladder of streams — from the full 14-model analysis (monetization.html). Nothing in &quot;later&quot; pretends to be today's revenue; the stars are the expert panel's verdict, not a promise."></p>
+
+    <div class="stream-stages reveal">
+      <div class="stream-stage">
+        <div class="stage-head now" data-sk="Teraz / prvý príjem" data-en="Now / first revenue">Teraz / prvý príjem</div>
+        <div class="scard"><div class="sh"><span class="si">🏛️</span><h5 data-sk="Predplatné na kuchyňu" data-en="Subscription per kitchen">Predplatné na kuchyňu</h5></div><p class="sm" data-sk="CHF 49 Chef Pro · 149 Restaurant/mes. Chrbtica — predvídateľný MRR, multi-tenant architektúra už hotová." data-en="CHF 49 Chef Pro · 149 Restaurant/mo. The backbone — predictable MRR, the multi-tenant architecture already built."></p><div class="sstars">★★★★★</div></div>
+        <div class="scard"><div class="sh"><span class="si">🎟️</span><h5 data-sk="Founding pre-sale" data-en="Founding pre-sale">Founding pre-sale</h5></div><p class="sm" data-sk="Prvých 10 kuchýň CHF 490/rok vopred počas augustového trialu. Cash bez dlhu a bez investora, najtvrdšia validácia." data-en="First 10 kitchens at CHF 490/year up front during the August trial. Cash with no debt or investor, the hardest validation."></p><div class="sstars">★★★★★</div></div>
+        <div class="scard"><div class="sh"><span class="si">🧑‍🍳</span><h5 data-sk="Platený onboarding" data-en="Paid onboarding">Platený onboarding</h5></div><p class="sm" data-sk="~CHF 990: zakladateľ osobne zdigitalizuje kuchyňu. Vysoká marža (AI robí väčšinu), chef-only výhoda + dátový zámok." data-en="~CHF 990: the founder personally digitizes the kitchen. High margin (AI does most), a chef-only edge + a data moat."></p><div class="sstars">★★★★☆</div></div>
+        <div class="scard"><div class="sh"><span class="si">🎓</span><h5 data-sk="Workshopy" data-en="Workshops">Workshopy</h5></div><p class="sm" data-sk="CHF 500–1500 za poldeň. Jediný tok nezávislý od hotového produktu — a zároveň priamy predajný kanál." data-en="CHF 500–1500 per half-day. The only stream independent of a finished product — and a direct sales channel too."></p><div class="sstars">★★★☆☆</div></div>
+      </div>
+      <div class="stream-stage">
+        <div class="stage-head after" data-sk="Po triale / rast" data-en="After trial / growth">Po triale / rast</div>
+        <div class="scard"><div class="sh"><span class="si">🤖</span><h5 data-sk="AI kredity / tokeny" data-en="AI credits / tokens">AI kredity / tokeny</h5></div><p class="sm" data-sk="Metered AI nad fair-use limitom + token flywheel: variabilné náklady (Anthropic API) presne kopírujú príjem, nulové riziko „power usera“." data-en="Metered AI above a fair-use limit + a token flywheel: variable cost (Anthropic API) tracks revenue exactly, zero power-user risk."></p><div class="sstars">★★★☆☆</div></div>
+        <div class="scard"><div class="sh"><span class="si">🪪</span><h5 data-sk="Dokumenty v identite klienta" data-en="Client-identity documents">Dokumenty v identite klienta</h5></div><p class="sm" data-sk="Recepty, prep sheety a štítky automaticky v brandingu každej reštaurácie (farby, font, logo) — prémiový add-on nad tlačou." data-en="Recipes, prep sheets and labels auto-generated in each restaurant's own branding (colours, font, logo) — a premium add-on over printing."></p><div class="sstars">★★★☆☆</div></div>
+        <div class="scard"><div class="sh"><span class="si">🧩</span><h5 data-sk="Modulárne add-ony" data-en="Modular add-ons">Modulárne add-ony</h5></div><p class="sm" data-sk="Základ lacno + moduly (Working Time, Food Cost, AI) za príplatok. Expanzia príjmu bez získavania nových zákazníkov." data-en="A cheap base + modules (Working Time, Food Cost, AI) as paid upgrades. Revenue expansion without new customers."></p><div class="sstars">★★★☆☆</div></div>
+        <div class="scard"><div class="sh"><span class="si">🏢</span><h5 data-sk="Enterprise / reťazce" data-en="Enterprise / chains">Enterprise / reťazce</h5></div><p class="sm" data-sk="Multi-location licencia, centrálne recepty na pobočky, per-location cena. Jeden podpis = 10× MRR. Cieľ 2027+, cez „trójskeho koňa“ jednej pobočky." data-en="Multi-location licence, central recipes pushed to venues, per-location pricing. One signature = 10× MRR. A 2027+ target, via the one-venue trojan horse."></p><div class="sstars">★★★★☆</div></div>
+      </div>
+      <div class="stream-stage">
+        <div class="stage-head vision" data-sk="Vízia / dlhý chvost" data-en="Vision / long tail">Vízia / dlhý chvost</div>
+        <div class="scard"><div class="sh"><span class="si">🔮</span><h5 data-sk="Dátová inteligencia & predikcie" data-en="Data intelligence & predictions">Dátová inteligencia & predikcie</h5></div><p class="sm" data-sk="Benchmarking food costu, AI prep odporúčania, predikcia dopytu podľa počasia/dňa/sviatkov. LEN opt-in, po 100+ kuchyniach a zmene podmienok — dnešné sľuby to výslovne zakazujú. Rok 2028+." data-en="Food-cost benchmarking, AI prep recommendations, demand prediction by weather/weekday/holidays. Opt-in ONLY, after 100+ kitchens and a terms change — today's promises explicitly forbid it. 2028+."></p><div class="sstars">★★★☆☆</div></div>
+        <div class="scard"><div class="sh"><span class="si">🤝</span><h5 data-sk="Dodávateľský marketplace" data-en="Supplier marketplace">Dodávateľský marketplace</h5></div><p class="sm" data-sk="% z objednávok cez Order List napojený na švajčiarskych dodávateľov (Transgourmet, Prodega). Potenciálne najväčší tok — rádovo nad predplatné. Dlhodobá vízia." data-en="A % of orders via an Order List wired to Swiss suppliers (Transgourmet, Prodega). Potentially the biggest stream — an order of magnitude above subscriptions. A long-term vision."></p><div class="sstars">★★★☆☆</div></div>
+        <div class="scard" style="border-style:dashed;"><div class="sh"><span class="si">🗂️</span><h5 data-sk="Ďalšie v analýze" data-en="More in the analysis">Ďalšie v analýze</h5></div><p class="sm" data-sk="Sponzorované umiestnenie lokálnych dodávateľov, hardware + spotrebný materiál, obsahová knižnica, gamifikovaný free tier — všetkých 14 modelov s verdiktmi: monetization.html." data-en="Sponsored local-supplier placement, hardware + consumables, a content library, a gamified free tier — all 14 models with verdicts: monetization.html."></p><div class="sstars" style="color:var(--ink-faint);">★★☆☆☆ →</div></div>
+      </div>
+    </div>
+
+    <div class="chart-card reveal" style="margin-top:22px;">
+      <div class="chart-legend" id="streamLegend"></div>
+      <div id="streamMatrixWrap"></div>
+      <div class="disclaimer" data-sk="<b>Kvalitatívna mapa, nie čísla príjmu.</b> Poloha je verdikt panelu — vodorovne pripravenosť (dnes → vízia), zvisle potenciál toku. Chrbtica (predplatné) je hore-vpravo: vysoký potenciál, spustiteľné hneď. Najväčší potenciál (marketplace, dáta) leží zámerne ďaleko vo vízii." data-en="<b>A qualitative map, not revenue numbers.</b> Position is the panel's verdict — horizontally readiness (today → vision), vertically the stream's potential. The backbone (subscription) sits top-right: high potential, launchable now. The biggest potential (marketplace, data) sits deliberately far out in vision."></div>
     </div>
   </section>
 
@@ -757,7 +807,7 @@ const REVENUE_ILLUSTRATIVE_CHF = REVENUE_KITCHENS.map(k => k * BLENDED_ARPU_MONT
 
 const DECK_HOURS = [
   ['2026-07-08',8.0],['2026-07-09',8.0],['2026-07-10',8.0],['2026-07-11',8.0],['2026-07-12',8.0],
-  ['2026-07-13',7.7],['2026-07-14',7.4],['2026-07-15',11.6],['2026-07-16',14.8],['2026-07-17',6.4],['2026-07-18',5.1],
+  ['2026-07-13',7.7],['2026-07-14',7.4],['2026-07-15',11.6],['2026-07-16',14.8],['2026-07-17',6.4],['2026-07-18',12.4],['2026-07-19',3.9],['2026-07-20',15.8],
 ];
 const DECK_HOURS_MEASURED_FROM = '2026-07-13';
 
@@ -796,7 +846,7 @@ let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
 function DL(en, sk){ return (_lang==='sk' && sk) ? sk : en; }
 function rerenderDeck(){
   renderHeadlineStats(); renderMarket(); renderKPIGroups(); renderMaturity(); renderHoursBars();
-  renderProcess(); renderGantt(); renderRevenueChart(); renderAssumptionsTable();
+  renderProcess(); renderGantt(); renderRevenueChart(); renderAssumptionsTable(); renderStreamMatrix();
 }
 function renderHeadlineStats(){
   document.getElementById('headlineStats').innerHTML = HEADLINE_STATS.map(s=>`
@@ -967,6 +1017,61 @@ function renderAssumptionsTable(){
   `;
 }
 
+/* Revenue-stream map — qualitative positioning (readiness × potential), the panel's verdict,
+   not revenue numbers. Colours match the three staged columns above. */
+const STREAMS = [
+  {x:.95,y:.82,s:'now',   l:'Subscription',        l_sk:'Predplatné'},
+  {x:.88,y:.42,s:'now',   l:'Founding pre-sale',   l_sk:'Founding pre-sale'},
+  {x:.83,y:.54,s:'now',   l:'Onboarding',          l_sk:'Onboarding'},
+  {x:.79,y:.30,s:'now',   l:'Workshops',           l_sk:'Workshopy'},
+  {x:.55,y:.46,s:'after', l:'AI credits / tokens', l_sk:'AI kredity / tokeny'},
+  {x:.47,y:.33,s:'after', l:'Branded docs',        l_sk:'Dokumenty v identite'},
+  {x:.55,y:.62,s:'after', l:'Modular add-ons',     l_sk:'Modulárne add-ony'},
+  {x:.34,y:.86,s:'after', l:'Enterprise / chains', l_sk:'Enterprise / reťazce'},
+  {x:.17,y:.76,s:'vision',l:'Data intelligence',   l_sk:'Dátová inteligencia'},
+  {x:.12,y:.96,s:'vision',l:'Supplier marketplace',l_sk:'Dodávateľský marketplace'},
+];
+const STREAM_COLORS = { now:'#34F7D7', after:'#F7C948', vision:'#8B93FF' };
+function renderStreamMatrix(){
+  const wrap = document.getElementById('streamMatrixWrap');
+  if(!wrap) return;
+  const W=640,H=320,padL=44,padR=150,padT=22,padB=40;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  let grid='';
+  for(let i=0;i<=4;i++){
+    const gx=padL+(i/4)*plotW, gy=padT+(i/4)*plotH;
+    grid+=`<line x1="${gx.toFixed(1)}" y1="${padT}" x2="${gx.toFixed(1)}" y2="${padT+plotH}" stroke="var(--rule-soft)" stroke-width="1"/>`;
+    grid+=`<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${padL+plotW}" y2="${gy.toFixed(1)}" stroke="var(--rule-soft)" stroke-width="1"/>`;
+  }
+  const dots = STREAMS.map(s=>{
+    const cx=padL+s.x*plotW, cy=padT+(1-s.y)*plotH;
+    const col=STREAM_COLORS[s.s];
+    const label=DL(s.l,s.l_sk);
+    const right = cx < padL+plotW-70;
+    const tx = right ? cx+9 : cx-9;
+    const anchor = right ? 'start' : 'end';
+    return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="6" fill="${col}" stroke="var(--bg)" stroke-width="1.5"><title>${label}</title></circle>
+      <text x="${tx.toFixed(1)}" y="${(cy+3.5).toFixed(1)}" text-anchor="${anchor}" font-size="10.5" fill="var(--ink-dim)">${label}</text>`;
+  }).join('');
+  const midY = padT+plotH/2;
+  const axisLabels = `
+    <text x="${padL}" y="${H-8}" text-anchor="start" font-size="10" fill="var(--ink-faint)">${_lang==='sk'?'← vízia / dlhodobé':'← vision / long-term'}</text>
+    <text x="${padL+plotW}" y="${H-8}" text-anchor="end" font-size="10" fill="var(--ink-faint)">${_lang==='sk'?'spustiteľné teraz →':'launchable now →'}</text>
+    <text x="14" y="${midY.toFixed(1)}" font-size="10" fill="var(--ink-faint)" transform="rotate(-90 14 ${midY.toFixed(1)})" text-anchor="middle">${_lang==='sk'?'← nižší    potenciál toku    vyšší →':'← lower    stream potential    higher →'}</text>`;
+  wrap.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; min-width:520px; height:auto; display:block;">
+    ${grid}
+    <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="var(--rule)" stroke-width="1.5"/>
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="var(--rule)" stroke-width="1.5"/>
+    ${dots}
+    ${axisLabels}
+  </svg>`;
+  const legend=document.getElementById('streamLegend');
+  if(legend){
+    const L=[['now', _lang==='sk'?'Teraz':'Now'],['after',_lang==='sk'?'Po triale':'After trial'],['vision',_lang==='sk'?'Vízia':'Vision']];
+    legend.innerHTML = L.map(([k,lab])=>`<span><i class="legend-dot" style="border-radius:50%; background:${STREAM_COLORS[k]};"></i>${lab}</span>`).join('');
+  }
+}
+
 /* Active-section highlight in the sticky nav via IntersectionObserver. */
 function initPageNav(){
   const links = Array.from(document.querySelectorAll('#pageNav a'));
@@ -1013,6 +1118,7 @@ renderProcess();
 renderGantt();
 renderRevenueChart();
 renderAssumptionsTable();
+renderStreamMatrix();
 initPageNav();
 initReveal();
 initProgress();

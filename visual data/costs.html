@@ -124,13 +124,13 @@ function toggleLang(){
    dates are honest estimates and say so in the item note. ---------- */
 const PROJECT_START = '2026-07-08';
 const SPEND_RATE = 45;
-const WORK_HOURS = { '2026-07-08':8.0,'2026-07-09':8.0,'2026-07-10':8.0,'2026-07-11':8.0,'2026-07-12':8.0,'2026-07-13':7.7,'2026-07-14':7.4,'2026-07-15':11.6,'2026-07-16':14.8,'2026-07-17':6.4,'2026-07-18':12.4,'2026-07-19':3.7 };
+const WORK_HOURS = { '2026-07-08':8.0,'2026-07-09':8.0,'2026-07-10':8.0,'2026-07-11':8.0,'2026-07-12':8.0,'2026-07-13':7.7,'2026-07-14':7.4,'2026-07-15':11.6,'2026-07-16':14.8,'2026-07-17':6.4,'2026-07-18':12.4,'2026-07-19':3.9,'2026-07-20':15.8 };
 const SPEND_ITEMS = [
   { key:'time', color:'#8B93FF',
-    sk:'⏱️ Čas zakladateľa — 104,0 h × 45 CHF/h', en:'⏱️ Founder time — 104.0 h × CHF 45/h',
-    meta_sk:'64,0 h presne z git histórie (od 13.7., vrátane nočnej 18.→19.7. a 19.7. sweep sedenia) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť.',
-    meta_en:'64.0 h measured from git history (since Jul 13, incl. the 18→19 Jul night shift and the Jul 19 sweep session) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash.',
-    amount:'~CHF 4 680',
+    sk:'⏱️ Čas zakladateľa — 120,0 h × 45 CHF/h', en:'⏱️ Founder time — 120.0 h × CHF 45/h',
+    meta_sk:'80,0 h presne z git histórie (od 13.7., vrátane nočnej 18.→19.7. a sedení 19.–20.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť.',
+    meta_en:'80.0 h measured from git history (since Jul 13, incl. the 18→19 Jul night shift and the Jul 19–20 sessions) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash.',
+    amount:'~CHF 5 400',
     events: Object.entries(WORK_HOURS).map(([d,h])=>({ date:d, chf: h*SPEND_RATE })),
     note_sk:'Denné hodiny × 45 CHF. Dni 8.–12.7. sú odhad ~8 h/deň (pred gitom), od 13.7. presne z git histórie.',
     note_en:'Daily hours × CHF 45. Jul 8–12 are ~8 h/day estimates (pre-git); measured from git history since Jul 13.' },
