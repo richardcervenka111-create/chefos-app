@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     const rawBody = await req.text();
     let parsedBody: Record<string, unknown> | null = null;
     try { parsedBody = JSON.parse(rawBody); } catch (_e) { /* forwarded as-is below */ }
-    const shareGrant = parsedBody?._share_grant === 'recipe_sautero';
+    const shareGrant = parsedBody?._share_grant === 'recipe_chefos';
     if (shareGrant && parsedBody) delete parsedBody._share_grant;
     const body = shareGrant && parsedBody ? JSON.stringify(parsedBody) : rawBody;
 
