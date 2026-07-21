@@ -71,6 +71,8 @@
   .autotask p{ margin:0; font-size:12.5px; color:var(--ink-dim); line-height:1.6; }
   .autotask .out{ font-size:11.5px; color:var(--ink-dim); border-top:1px solid var(--rule); padding-top:9px; margin-top:2px; }
   .autotask .out code{ background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:4px; color:var(--accent); font-size:11px; }
+  .autotask.cancelled{ opacity:.55; }
+  .autotask .when.off{ color:var(--danger); background:rgba(255,122,104,0.1); border-color:var(--danger-dim); }
   .autotask .cost{ font-family:"SF Mono",Menlo,monospace; font-size:13px; font-weight:700; color:var(--gold); }
 
   /* ---------- Cost log ---------- */
@@ -135,8 +137,8 @@
     <h1 class="title" data-sk="Čo beží samo, kedy, a za koľko" data-en="What runs on its own, when, and for how much"></h1>
     <p class="lede" data-sk="Každá opakujúca sa úloha, ktorú appka/Claude spúšťa bez toho, aby si o to musel požiadať — čo presne robí, kedy sa spúšťa, kam ukladá výsledok, a self-reported odhad ceny. Nič skryté, nič bez stropu." data-en="Every recurring task the app/Claude runs on its own without you having to ask — exactly what it does, when it runs, where the result lands, and a self-reported cost estimate. Nothing hidden, nothing uncapped."></p>
     <div class="meta-row">
-      <div class="meta-card"><div class="meta-label" data-sk="Aktívne automatizácie" data-en="Active automations"></div><div class="meta-value">9</div></div>
-      <div class="meta-card"><div class="meta-label" data-sk="Mesačný strop (AI úlohy) · CI roboti CHF 0" data-en="Monthly cap (AI tasks) · CI robots CHF 0"></div><div class="meta-value">CHF 30</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Aktívne automatizácie (všetky zadarmo)" data-en="Active automations (all free)"></div><div class="meta-value">6</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Platené AI úlohy — všetky ZRUŠENÉ 22.7." data-en="Paid AI tasks — all CANCELLED Jul 22"></div><div class="meta-value">CHF 0</div></div>
       <div class="meta-card clickable" onclick="toggleTimeline()" id="totalCard">
         <div class="meta-label" data-sk="Celkový beh projektu (self-reported)" data-en="Total project run (self-reported)"></div>
         <div class="meta-value">~CHF 238.73 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
@@ -168,10 +170,10 @@
     <div class="section-label"><span class="n">02</span><h2 data-sk="Aktívne automatizácie" data-en="Active automations"></h2><div class="rule"></div></div>
 
     <div class="task-grid">
-      <div class="autotask">
+      <div class="autotask cancelled">
         <div class="icon">🩺</div>
         <h3 data-sk="Denná kontrola zdravia appky" data-en="Daily feature health check"></h3>
-        <span class="when" data-sk="Denne o 06:00" data-en="Daily at 06:00"></span>
+        <span class="when off" data-sk="ZRUŠENÉ 22.7. — úlohu prevzal Health Report zadarmo (CI)" data-en="CANCELLED Jul 22 — superseded by the free Health Report (CI)"></span>
         <p data-sk="Statický code-audit — nie živé testovanie (agent nemá prehliadač ani telefón). Kontroluje: zhodu tlačidiel s funkciami, tabuľky v kóde vs. migrácie, štrukturálnu integritu súborov, zastarané nespustené migrácie." data-en="Static code audit — not live testing (the agent has no browser or phone). Checks: button-to-function matches, tables referenced in code vs. migrations, file structural integrity, aging unrun migrations."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>visual data/feature_status.html</code> <span data-sk="(features.html zrušený 17.7. pri konsolidácii dokumentov)" data-en="(features.html retired Jul 17 in the docs consolidation)"></span></div>
         <div class="cost" data-sk="~CHF 0.02–0.08 / beh" data-en="~CHF 0.02–0.08 / run"></div>
@@ -186,28 +188,28 @@
         <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
       </div>
 
-      <div class="autotask">
+      <div class="autotask cancelled">
         <div class="icon">🤖</div>
         <h3 data-sk="Denný ingredient agent" data-en="Daily ingredient agent"></h3>
-        <span class="when" data-sk="Denne o 06:30" data-en="Daily at 06:30"></span>
+        <span class="when off" data-sk="ZRUŠENÉ 22.7. — bežal 15.–21.7." data-en="CANCELLED Jul 22 — ran Jul 15–21"></span>
         <p data-sk="Sám si vyberie jedno malé vylepšenie ingrediencií (overí ceny, doplní chýbajúce polia, alebo pridá chýbajúce položky) a zapíše ho ako novú SQL migráciu — nikdy priamo do produkcie." data-en="Picks one small ingredient improvement itself (verifies prices, fills missing fields, or adds missing items) and writes it as a new SQL migration — never straight to production."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>db/*.sql</code> + <code>docs/ingredient_agent_log.md</code></div>
         <div class="cost" data-sk="~CHF 0.05–1.50 / beh · strop CHF 30/mesiac" data-en="~CHF 0.05–1.50 / run · cap CHF 30/month"></div>
       </div>
 
-      <div class="autotask">
+      <div class="autotask cancelled">
         <div class="icon">📸</div>
         <h3 data-sk="Nedeľný snapshot" data-en="Sunday snapshot"></h3>
-        <span class="when" data-sk="Nedeľa o 20:00" data-en="Sunday at 20:00"></span>
+        <span class="when off" data-sk="ZRUŠENÉ 22.7. — nahradený /audit na požiadanie" data-en="CANCELLED Jul 22 — replaced by on-demand /audit"></span>
         <p data-sk="Poskladá celý obsah app/, docs/ a git históriu do jedného dátovaného súboru — surový podklad, z ktorého Claude následne píše samotný infografický Critical Review (docs/CRITICAL_REVIEW_&lt;dátum&gt;.html), na Richardovu žiadosť od 15.7.2026." data-en="Assembles the full content of app/, docs/, and git history into one dated file — the raw material Claude then uses to write the actual infographic Critical Review itself (docs/CRITICAL_REVIEW_&lt;date&gt;.html), at Richard's request as of Jul 15, 2026."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>docs/snapshots/&lt;dátum&gt;.md</code></div>
         <div class="cost" data-sk="~CHF 0.05–0.20 / beh" data-en="~CHF 0.05–0.20 / run"></div>
       </div>
 
-      <div class="autotask">
+      <div class="autotask cancelled">
         <div class="icon">🚨</div>
         <h3 data-sk="Pondelková kontrola deadline" data-en="Monday deadline check"></h3>
-        <span class="when" data-sk="Pondelok o 14:40" data-en="Monday at 14:40"></span>
+        <span class="when off" data-sk="ZRUŠENÉ 22.7. — bežala do 21.7." data-en="CANCELLED Jul 22 — ran until Jul 21"></span>
         <p data-sk="Skontroluje, či dnes pribudol nový Critical Review — ak nie, zvýrazneným 🚨 blokom pripomenie zmeškaný 14:30 deadline. Len číta, nič nezapisuje okrem nákladového riadku." data-en="Checks whether a new Critical Review appeared today — if not, a highlighted 🚨 block flags the missed 14:30 deadline. Read-only, except for the cost line."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><span data-sk="upozornenie v chate" data-en="a chat alert"></span></div>
         <div class="cost" data-sk="~CHF 0.01–0.03 / beh" data-en="~CHF 0.01–0.03 / run"></div>
@@ -363,6 +365,6 @@ renderTimeline();
 })();
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 21. 7. 2026, 22:51" data-en="🔄 Sautero state as of Jul 21, 2026, 22:51">🔄 Stav Sautero k 21. 7. 2026, 22:51</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 22. 7. 2026, 00:36" data-en="🔄 Sautero state as of Jul 22, 2026, 00:36">🔄 Stav Sautero k 22. 7. 2026, 00:36</div>
 </body>
 </html>

@@ -47,7 +47,7 @@
   .tl-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
   .tl-title{ font-size:13.5px; font-weight:700; }
   .tl-close{ background:none; border:none; color:var(--ink-dim); font-size:16px; cursor:pointer; padding:2px 6px; }
-  .sautero-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  .sautero-stamp{ position:fixed; bottom:14px; right:14px; z-index:90; background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7; font-size:10.5px; font-weight:700; font-family:'SF Mono',Menlo,Consolas,monospace; padding:6px 12px; border-radius:999px; pointer-events:none; }
   @media print{ .sautero-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
@@ -124,13 +124,21 @@ function toggleLang(){
    dates are honest estimates and say so in the item note. ---------- */
 const PROJECT_START = '2026-07-08';
 const SPEND_RATE = 45;
-const WORK_HOURS = { '2026-07-08':8.0 /*odhad*/, '2026-07-09':8.0 /*odhad*/, '2026-07-10':8.0 /*odhad*/, '2026-07-11':8.0 /*odhad*/, '2026-07-12':8.0 /*odhad*/, '2026-07-13':7.7, '2026-07-14':7.4, '2026-07-15':11.6, '2026-07-16':14.8, '2026-07-17':6.4, '2026-07-18':12.4, '2026-07-19':3.9, '2026-07-20':17.3, '2026-07-21':5.0 };
+const WORK_HOURS = { '2026-07-08':8.0 /*odhad*/, '2026-07-09':8.0 /*odhad*/, '2026-07-10':8.0 /*odhad*/, '2026-07-11':8.0 /*odhad*/, '2026-07-12':8.0 /*odhad*/, '2026-07-13':7.7, '2026-07-14':7.4, '2026-07-15':11.6, '2026-07-16':14.8, '2026-07-17':6.4, '2026-07-18':12.4, '2026-07-19':3.9, '2026-07-20':17.3, '2026-07-21':5.2 };
+/* Founder time is COMPUTED from WORK_HOURS (which work_hours.py rewrites from git on every
+   commit) — the label/amount/total can never drift from the История hours again (22.7. fix:
+   the hand-written "120,0 h" and "~CHF 4 976" had gone stale vs the live 126.5 h). */
+const FOUNDER_H = Object.values(WORK_HOURS).reduce((a,h)=>a+h,0);
+const FOUNDER_MEASURED_H = FOUNDER_H - 40;  // minus the ~8h/day pre-git estimates (8.-12.7.)
+const FOUNDER_CHF = Math.round(FOUNDER_H * SPEND_RATE);
+const fmtHsk = h => h.toFixed(1).replace('.', ',');
+const fmtChf = v => v.toLocaleString('de-CH');
 const SPEND_ITEMS = [
   { key:'time', color:'#8B93FF',
-    sk:'⏱️ Čas zakladateľa — 120,0 h × 45 CHF/h', en:'⏱️ Founder time — 120.0 h × CHF 45/h',
-    meta_sk:'80,0 h presne z git histórie (od 13.7., vrátane nočnej 18.→19.7. a sedení 19.–20.7.) + ~40 h odhad za 8.–12.7.; aktualizuje sa denne s meračom hodín. Hodnota času, nie hotovosť.',
-    meta_en:'80.0 h measured from git history (since Jul 13, incl. the 18→19 Jul night shift and the Jul 19–20 sessions) + ~40 h estimate for Jul 8–12; updated daily with the hours meter. Value of time, not cash.',
-    amount:'~CHF 5 400',
+    sk:`⏱️ Čas zakladateľa — ${fmtHsk(FOUNDER_H)} h × 45 CHF/h`, en:`⏱️ Founder time — ${FOUNDER_H.toFixed(1)} h × CHF 45/h`,
+    meta_sk:`${fmtHsk(FOUNDER_MEASURED_H)} h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; počíta sa živo z merača hodín, ručne sa neudržiava. Hodnota času, nie hotovosť.`,
+    meta_en:`${FOUNDER_MEASURED_H.toFixed(1)} h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; computed live from the hours meter, never hand-maintained. Value of time, not cash.`,
+    amount:`~CHF ${fmtChf(FOUNDER_CHF)}`,
     events: Object.entries(WORK_HOURS).map(([d,h])=>({ date:d, chf: h*SPEND_RATE })),
     note_sk:'Denné hodiny × 45 CHF. Dni 8.–12.7. sú odhad ~8 h/deň (pred gitom), od 13.7. presne z git histórie.',
     note_en:'Daily hours × CHF 45. Jul 8–12 are ~8 h/day estimates (pre-git); measured from git history since Jul 13.' },
@@ -212,7 +220,7 @@ function renderSpendRows(){
       <div class="spend-amount">${it.amount}</div>
     </div>`).join('') + `
     <div class="spend-total">
-      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 296 (vrátane 1. mesiaca Supabase + domén sautero.ch/.com) · s časom zakladateľa ~CHF 4 976 · plánované nákupy ~CHF 255','Cash to date ~CHF 296 (incl. first Supabase month + sautero.ch/.com domains) · incl. founder time ~CHF 4,976 · planned purchases ~CHF 255')}</div>
+      <div class="spend-what" style="cursor:default;">${L('Hotovosť doteraz ~CHF 296 (vrátane 1. mesiaca Supabase + domén sautero.ch/.com) · s časom zakladateľa ~CHF ' + fmtChf(FOUNDER_CHF) + ' · plánované nákupy ~CHF 255','Cash to date ~CHF 296 (incl. first Supabase month + sautero.ch/.com domains) · incl. founder time ~CHF ' + fmtChf(FOUNDER_CHF) + ' · planned purchases ~CHF 255')}</div>
     </div>`;
 }
 
