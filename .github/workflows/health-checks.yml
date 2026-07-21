@@ -22,3 +22,5 @@ jobs:
         run: node scripts/calc_unit_test.js
       - name: Worked-hours freshness (WORK_HOURS in docs must match git — no missing days)
         run: python3 scripts/work_hours.py --check
+      - name: Every Internal Doc carries a date stamp (docs_autofix guard)
+        run: python3 scripts/docs_autofix.py --check

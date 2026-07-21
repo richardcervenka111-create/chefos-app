@@ -18,6 +18,11 @@ fi
 # source doc so it can never drift or go stale (the 20.7/21.7-missing incident, 21.7.).
 python3 scripts/work_hours.py --write
 git add "visual data/costs.html" "visual data/tasklist.html" 2>/dev/null || true
+# Robots auto-fix the safe class (Richard, 21.7. — "roboti nech chyby aj opravia"): ensure every
+# Internal Doc carries a bottom-right date stamp, adding one only where genuinely absent (never a
+# duplicate next to a doc's own badge). Layout/content findings stay report-only in the QA robots.
+python3 scripts/docs_autofix.py
+git add "visual data/" 2>/dev/null || true
 # Merged internal docs (produkt/plan/biznis/znacka/poznamky) are GENERATED from the source
 # documents — regenerate them here so they can never go stale (17.7. consolidation).
 python3 scripts/build_docs.py

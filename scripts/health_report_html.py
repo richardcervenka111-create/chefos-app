@@ -179,6 +179,7 @@ def render(report):
   .st-fail{{background:rgba(255,92,122,.16);color:#FF5C7A;}}
   .foot{{color:var(--mut);font-size:12px;margin-top:24px;text-align:center;line-height:1.7;}}
   .foot code{{color:var(--teal);background:rgba(255,255,255,.04);padding:1px 6px;border-radius:6px;}}
+  .datestamp{{position:fixed;right:9px;bottom:8px;z-index:60;font-size:10.5px;font-weight:600;color:var(--mut);background:rgba(6,17,31,.85);border:1px solid var(--line);border-radius:8px;padding:3px 9px;pointer-events:none;}}
 </style></head>
 <body><div class="wrap">
   <div class="topbar">
@@ -203,6 +204,7 @@ def render(report):
     {_t('Build-blocking checks live in', 'Build blokujúce kontroly sú v')} <code>audit_app.py</code> · <code>audit_db.py</code> · <code>calc_unit_test.js</code>.
   </div>
 </div>
+<div class="datestamp" data-sk="Aktualizované {html.escape(report['generated'].split()[0])}" data-en="Updated {html.escape(report['generated'].split()[0])}">Aktualizované {html.escape(report['generated'].split()[0])}</div>
 <script>
   var KEY='sautero_doc_lang';
   function applyLang(l){{
