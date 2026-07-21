@@ -1,0 +1,229 @@
+{
+  "generated": "2026-07-21 21:54 (Bern)",
+  "overall_score": 90,
+  "overall_grade": "A",
+  "blocks": [
+    {
+      "name": "Architecture",
+      "score": 75,
+      "grade": "C",
+      "checks": [
+        {
+          "name": "Single-file app size",
+          "status": "warn",
+          "value": "23,755 lines / 1232 KB",
+          "detail": "One 23k-line HTML file is the known central architectural constraint — the consolidation work (zero-feature-loss) is the standing plan to reduce it."
+        },
+        {
+          "name": "Functions defined",
+          "status": "ok",
+          "value": "980",
+          "detail": "Total named functions in the app."
+        },
+        {
+          "name": "Duplicate function names",
+          "status": "ok",
+          "value": "0",
+          "detail": "No shadowed function names."
+        },
+        {
+          "name": "Dead functions (defined, never referenced)",
+          "status": "warn",
+          "value": "3",
+          "detail": "e.g. eventDateKey, openAddAdmin, openCreateTeam"
+        },
+        {
+          "name": "Functions > 150 lines",
+          "status": "warn",
+          "value": "2",
+          "detail": "longest: showDetail (240), renderTeamGate (152)"
+        },
+        {
+          "name": "DB tables created",
+          "status": "ok",
+          "value": "49",
+          "detail": "170 migrations."
+        },
+        {
+          "name": "Orphan tables (created, app never queries)",
+          "status": "warn",
+          "value": "3",
+          "detail": "feedback, profile_private, schedule_entries"
+        },
+        {
+          "name": "Ghost tables (queried, never created)",
+          "status": "ok",
+          "value": "0",
+          "detail": "None — audit_app guards this."
+        }
+      ],
+      "extra": {
+        "longest": [
+          [
+            "showDetail",
+            240
+          ],
+          [
+            "renderTeamGate",
+            152
+          ],
+          [
+            "runInvoiceScan",
+            120
+          ],
+          [
+            "renderPrepSheet",
+            117
+          ],
+          [
+            "renderForm",
+            111
+          ]
+        ],
+        "dead": [
+          "eventDateKey",
+          "openAddAdmin",
+          "openCreateTeam"
+        ]
+      }
+    },
+    {
+      "name": "Security",
+      "score": 94,
+      "grade": "A",
+      "checks": [
+        {
+          "name": "audit_app gate (structure, secrets, XSS guard, ratchet)",
+          "status": "ok",
+          "value": "PASS",
+          "detail": "The build-blocking app auditor."
+        },
+        {
+          "name": "audit_db gate (RLS, tenant scoping, destructive SQL)",
+          "status": "ok",
+          "value": "PASS",
+          "detail": "The build-blocking DB auditor."
+        },
+        {
+          "name": "Off-site scripts/styles loaded",
+          "status": "ok",
+          "value": "0",
+          "detail": "No third-party script/style hosts."
+        },
+        {
+          "name": "Cross-kitchen XSS escapers wired",
+          "status": "ok",
+          "value": "yes",
+          "detail": "sanitizeForeignRecipe + sanitizeForeignIngredient guard foreign innerHTML."
+        },
+        {
+          "name": "innerHTML sinks",
+          "status": "warn",
+          "value": "310",
+          "detail": "High but expected for a render-by-innerHTML single-file app; foreign data is escaped at the data boundary (see escapers above)."
+        },
+        {
+          "name": "Explicit kitchen_id filters in app reads",
+          "status": "ok",
+          "value": "38 / 295 sb.from()",
+          "detail": "Defence-in-depth on top of RLS; not every query needs it (RLS enforces isolation)."
+        },
+        {
+          "name": "Tables with RLS enabled",
+          "status": "ok",
+          "value": "49",
+          "detail": "audit_db fails the build if any kitchen-scoped table lacks RLS + a policy."
+        },
+        {
+          "name": "Secrets in edge functions",
+          "status": "ok",
+          "value": "0",
+          "detail": "No hard-coded API keys in supabase/functions."
+        }
+      ],
+      "extra": {}
+    },
+    {
+      "name": "Documentation",
+      "score": 100,
+      "grade": "A",
+      "checks": [
+        {
+          "name": "Leftover \"ChefOS\" brand in docs",
+          "status": "ok",
+          "value": "0",
+          "detail": "All docs are on-brand (Sautero)."
+        },
+        {
+          "name": "Bilingual docs complete (SK/EN)",
+          "status": "ok",
+          "value": "22/22",
+          "detail": "Every doc with a language toggle carries both languages."
+        },
+        {
+          "name": "build_docs sources missing",
+          "status": "ok",
+          "value": "0",
+          "detail": "All merge sources exist."
+        },
+        {
+          "name": "Dashboards in visual data/",
+          "status": "ok",
+          "value": "22",
+          "detail": "Investor deck, status, backlog, monetization, brand, health, etc."
+        },
+        {
+          "name": "Docs carrying a date stamp",
+          "status": "ok",
+          "value": "22/22",
+          "detail": "A dated stamp lets a reader trust freshness."
+        }
+      ],
+      "extra": {}
+    },
+    {
+      "name": "Technical Debt",
+      "score": 92,
+      "grade": "A",
+      "checks": [
+        {
+          "name": "TODO / FIXME / HACK / XXX markers",
+          "status": "ok",
+          "value": "0",
+          "detail": "Tracked debt notes in the code; not bugs, but the backlog of \"come back to this\"."
+        },
+        {
+          "name": "Stray console.log",
+          "status": "ok",
+          "value": "0",
+          "detail": "No debug logging left in production."
+        },
+        {
+          "name": "Stray debugger statements",
+          "status": "ok",
+          "value": "0",
+          "detail": "None."
+        },
+        {
+          "name": "Unchecked mutation ratchet",
+          "status": "ok",
+          "value": "8",
+          "detail": "Silent-no-op delete/update call sites; audit_app fails if this number grows."
+        },
+        {
+          "name": "Dead functions",
+          "status": "warn",
+          "value": "3",
+          "detail": "Defined but never referenced — safe to prune during consolidation."
+        },
+        {
+          "name": "DB-contract rebrand debt (guarded)",
+          "status": "ok",
+          "value": "4/4 tokens",
+          "detail": "chefos-named DB identifiers kept on purpose (live schema); a coordinated migration is the only correct way to rename them. Guarded by check_db_contract."
+        }
+      ],
+      "extra": {}
+    }
+  ]
+}

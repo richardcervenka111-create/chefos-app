@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sautero · Health Report</title>
+<style>
+  :root{--navy:#0A1A2F;--navy2:#06111F;--card:#0E2338;--teal:#34F7D7;--ink:#E8F1F8;--mut:#8FA9BF;--line:rgba(255,255,255,.08);}
+  *{box-sizing:border-box;min-width:0;}
+  html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
+  body{background:radial-gradient(1200px 600px at 50% -10%,#12293f 0%,var(--navy) 45%,var(--navy2) 100%);
+    color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.5;font-variant-numeric:tabular-nums;}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:26px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--teal);box-shadow:0 0 14px var(--teal);}
+  .brand small{color:var(--mut);font-weight:500;letter-spacing:.14em;text-transform:uppercase;font-size:11px;}
+  .langtog{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--ink);
+    border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+  .langtog .on{color:var(--teal);}
+  .langtog .off{color:var(--mut);}
+  .hero{background:linear-gradient(180deg,rgba(52,247,215,.06),rgba(255,255,255,0));border:1px solid var(--line);
+    border-radius:22px;padding:26px;display:flex;align-items:center;gap:26px;margin-bottom:14px;}
+  .hero .htext h1{margin:0 0 4px;font-size:26px;letter-spacing:-.01em;text-wrap:balance;}
+  .hero .htext p{margin:0;color:var(--mut);font-size:14px;}
+  .hero .grade-big{margin-left:auto;font-size:56px;font-weight:800;line-height:1;color:#34F7D7;}
+  .ring .ring-num{font-size:34px;font-weight:800;}
+  .ring .ring-sub{font-size:12px;fill:var(--mut);}
+  .stamp{color:var(--mut);font-size:12.5px;margin:2px 0 22px;letter-spacing:.02em;}
+  .audit{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:13px;overflow:hidden;}
+  .audit>summary{list-style:none;cursor:pointer;padding:16px 18px;}
+  .audit>summary::-webkit-details-marker{display:none;}
+  .au-head{display:flex;align-items:center;gap:16px;}
+  .au-ring{flex:none;}
+  .au-meta{flex:1;}
+  .au-meta h3{margin:0;font-size:18px;letter-spacing:-.01em;}
+  .au-blurb{margin:2px 0 0;color:var(--mut);font-size:13px;}
+  .au-grade{font-size:30px;font-weight:800;line-height:1;}
+  .au-caret{color:var(--mut);transition:transform .2s;font-size:14px;}
+  .audit[open] .au-caret{transform:rotate(180deg);}
+  .rows{border-top:1px solid var(--line);padding:6px 18px 16px;}
+  .row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+  .row:last-child{border-bottom:none;}
+  .rc{flex:1;}
+  .rn{font-size:14.5px;font-weight:600;}
+  .rd{color:var(--mut);font-size:12.8px;margin-top:2px;}
+  .rv{flex:none;font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;}
+  .pill{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;margin-top:1px;}
+  .st-ok{background:rgba(52,247,215,.14);color:var(--teal);}
+  .st-warn{background:rgba(247,201,72,.16);color:#F7C948;}
+  .st-fail{background:rgba(255,92,122,.16);color:#FF5C7A;}
+  .foot{color:var(--mut);font-size:12px;margin-top:24px;text-align:center;line-height:1.7;}
+  .foot code{color:var(--teal);background:rgba(255,255,255,.04);padding:1px 6px;border-radius:6px;}
+</style></head>
+<body><div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>SAUTERO&nbsp;<small>Health Report</small></div>
+    <button class="langtog" onclick="toggleLang()"><span id="lcEn">EN</span> / <span id="lcSk">SK</span></button>
+  </div>
+
+  <div class="hero">
+    <div class="hring"><svg width="132" height="132" viewBox="0 0 132 132" class="ring">
+      <circle cx="66.0" cy="66.0" r="60.5" stroke="rgba(255,255,255,.08)" stroke-width="11" fill="none"/>
+      <circle cx="66.0" cy="66.0" r="60.5" stroke="#34F7D7" stroke-width="11" fill="none"
+        stroke-linecap="round" stroke-dasharray="380.1" stroke-dashoffset="38.0"
+        transform="rotate(-90 66.0 66.0)"/>
+      <text x="50%" y="48%" text-anchor="middle" dominant-baseline="middle" fill="#34F7D7"
+        style="font-size:34px;font-weight:800;">90</text>
+      <text x="50%" y="70%" text-anchor="middle" dominant-baseline="middle" fill="#8FA9BF"
+        style="font-size:13px;">/ 100</text>
+    </svg></div>
+    <div class="htext">
+      <h1><span data-en="Codebase Health" data-sk="Zdravie kódovej bázy">Codebase Health</span></h1>
+      <p><span data-en="Four automated audits over the real repository." data-sk="Štyri automatické audity nad reálnym repozitárom.">Four automated audits over the real repository.</span></p>
+    </div>
+    <div class="grade-big">A</div>
+  </div>
+  <div class="stamp"><span data-en="Generated" data-sk="Vygenerované">Generated</span>: 2026-07-21 21:54 (Bern) · <span data-en="auto-generated 2×/day, never hand-edited" data-sk="auto-generované 2×/deň, ručne needitované">auto-generated 2×/day, never hand-edited</span></div>
+
+  <details class="audit">
+          <summary>
+            <div class="au-head">
+              <div class="au-ring"><svg width="74" height="74" viewBox="0 0 74 74" class="ring">
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none"/>
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="#F7C948" stroke-width="7" fill="none"
+        stroke-linecap="round" stroke-dasharray="210.5" stroke-dashoffset="52.6"
+        transform="rotate(-90 37.0 37.0)"/>
+      <text x="50%" y="48%" text-anchor="middle" dominant-baseline="middle" fill="#F7C948"
+        style="font-size:19px;font-weight:800;">75</text>
+      <text x="50%" y="70%" text-anchor="middle" dominant-baseline="middle" fill="#8FA9BF"
+        style="font-size:7px;">/ 100</text>
+    </svg></div>
+              <div class="au-meta">
+                <h3><span data-en="Architecture" data-sk="Architektúra">Architecture</span></h3>
+                <p class="au-blurb"><span data-en="Code structure: size, functions, tables, coupling." data-sk="Štruktúra kódu: veľkosť, funkcie, tabuľky, väzby.">Code structure: size, functions, tables, coupling.</span></p>
+              </div>
+              <div class="au-grade" style="color:#F7C948">C</div>
+              <div class="au-caret">▾</div>
+            </div>
+          </summary>
+          <div class="rows"><div class="row">
+                <span class="pill st-warn"><span data-en="warn" data-sk="pozor">warn</span></span>
+                <div class="rc"><div class="rn"><span data-en="Single-file app size" data-sk="Veľkosť single-file appky">Single-file app size</span></div>
+                  <div class="rd" data-en="One 23k-line HTML file is the known central architectural constraint — the consolidation work (zero-feature-loss) is the standing plan to reduce it." data-sk="One 23k-line HTML file is the known central architectural constraint — the consolidation work (zero-feature-loss) is the standing plan to reduce it.">One 23k-line HTML file is the known central architectural constraint — the consolidation work (zero-feature-loss) is the standing plan to reduce it.</div></div>
+                <span class="rv">23,755 lines / 1232 KB</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Functions defined" data-sk="Definované funkcie">Functions defined</span></div>
+                  <div class="rd" data-en="Total named functions in the app." data-sk="Total named functions in the app.">Total named functions in the app.</div></div>
+                <span class="rv">980</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Duplicate function names" data-sk="Duplicitné názvy funkcií">Duplicate function names</span></div>
+                  <div class="rd" data-en="No shadowed function names." data-sk="No shadowed function names.">No shadowed function names.</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-warn"><span data-en="warn" data-sk="pozor">warn</span></span>
+                <div class="rc"><div class="rn"><span data-en="Dead functions (defined, never referenced)" data-sk="Mŕtve funkcie (definované, nepoužité)">Dead functions (defined, never referenced)</span></div>
+                  <div class="rd" data-en="e.g. eventDateKey, openAddAdmin, openCreateTeam" data-sk="e.g. eventDateKey, openAddAdmin, openCreateTeam">e.g. eventDateKey, openAddAdmin, openCreateTeam</div></div>
+                <span class="rv">3</span>
+              </div><div class="row">
+                <span class="pill st-warn"><span data-en="warn" data-sk="pozor">warn</span></span>
+                <div class="rc"><div class="rn"><span data-en="Functions &gt; 150 lines" data-sk="Funkcie nad 150 riadkov">Functions &gt; 150 lines</span></div>
+                  <div class="rd" data-en="longest: showDetail (240), renderTeamGate (152)" data-sk="longest: showDetail (240), renderTeamGate (152)">longest: showDetail (240), renderTeamGate (152)</div></div>
+                <span class="rv">2</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="DB tables created" data-sk="Vytvorené DB tabuľky">DB tables created</span></div>
+                  <div class="rd" data-en="170 migrations." data-sk="170 migrations.">170 migrations.</div></div>
+                <span class="rv">49</span>
+              </div><div class="row">
+                <span class="pill st-warn"><span data-en="warn" data-sk="pozor">warn</span></span>
+                <div class="rc"><div class="rn"><span data-en="Orphan tables (created, app never queries)" data-sk="Osirelé tabuľky (appka ich nikdy nečíta)">Orphan tables (created, app never queries)</span></div>
+                  <div class="rd" data-en="feedback, profile_private, schedule_entries" data-sk="feedback, profile_private, schedule_entries">feedback, profile_private, schedule_entries</div></div>
+                <span class="rv">3</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Ghost tables (queried, never created)" data-sk="Duchové tabuľky (čítané, nikdy nevytvorené)">Ghost tables (queried, never created)</span></div>
+                  <div class="rd" data-en="None — audit_app guards this." data-sk="None — audit_app guards this.">None — audit_app guards this.</div></div>
+                <span class="rv">0</span>
+              </div></div>
+        </details><details class="audit">
+          <summary>
+            <div class="au-head">
+              <div class="au-ring"><svg width="74" height="74" viewBox="0 0 74 74" class="ring">
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none"/>
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="#34F7D7" stroke-width="7" fill="none"
+        stroke-linecap="round" stroke-dasharray="210.5" stroke-dashoffset="12.6"
+        transform="rotate(-90 37.0 37.0)"/>
+      <text x="50%" y="48%" text-anchor="middle" dominant-baseline="middle" fill="#34F7D7"
+        style="font-size:19px;font-weight:800;">94</text>
+      <text x="50%" y="70%" text-anchor="middle" dominant-baseline="middle" fill="#8FA9BF"
+        style="font-size:7px;">/ 100</text>
+    </svg></div>
+              <div class="au-meta">
+                <h3><span data-en="Security" data-sk="Bezpečnosť">Security</span></h3>
+                <p class="au-blurb"><span data-en="App defences: RLS, XSS boundaries, secrets, off-site resources." data-sk="Obrany appky: RLS, XSS hranice, tajomstvá, cudzie zdroje.">App defences: RLS, XSS boundaries, secrets, off-site resources.</span></p>
+              </div>
+              <div class="au-grade" style="color:#34F7D7">A</div>
+              <div class="au-caret">▾</div>
+            </div>
+          </summary>
+          <div class="rows"><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="audit_app gate (structure, secrets, XSS guard, ratchet)" data-sk="audit_app brána (štruktúra, tajomstvá, XSS, ratchet)">audit_app gate (structure, secrets, XSS guard, ratchet)</span></div>
+                  <div class="rd" data-en="The build-blocking app auditor." data-sk="The build-blocking app auditor.">The build-blocking app auditor.</div></div>
+                <span class="rv">PASS</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="audit_db gate (RLS, tenant scoping, destructive SQL)" data-sk="audit_db brána (RLS, tenant scoping, deštruktívne SQL)">audit_db gate (RLS, tenant scoping, destructive SQL)</span></div>
+                  <div class="rd" data-en="The build-blocking DB auditor." data-sk="The build-blocking DB auditor.">The build-blocking DB auditor.</div></div>
+                <span class="rv">PASS</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Off-site scripts/styles loaded" data-sk="Načítané cudzie skripty/štýly">Off-site scripts/styles loaded</span></div>
+                  <div class="rd" data-en="No third-party script/style hosts." data-sk="No third-party script/style hosts.">No third-party script/style hosts.</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Cross-kitchen XSS escapers wired" data-sk="XSS escapery medzi kuchyňami zapojené">Cross-kitchen XSS escapers wired</span></div>
+                  <div class="rd" data-en="sanitizeForeignRecipe + sanitizeForeignIngredient guard foreign innerHTML." data-sk="sanitizeForeignRecipe + sanitizeForeignIngredient guard foreign innerHTML.">sanitizeForeignRecipe + sanitizeForeignIngredient guard foreign innerHTML.</div></div>
+                <span class="rv">yes</span>
+              </div><div class="row">
+                <span class="pill st-warn"><span data-en="warn" data-sk="pozor">warn</span></span>
+                <div class="rc"><div class="rn"><span data-en="innerHTML sinks" data-sk="innerHTML miesta">innerHTML sinks</span></div>
+                  <div class="rd" data-en="High but expected for a render-by-innerHTML single-file app; foreign data is escaped at the data boundary (see escapers above)." data-sk="High but expected for a render-by-innerHTML single-file app; foreign data is escaped at the data boundary (see escapers above).">High but expected for a render-by-innerHTML single-file app; foreign data is escaped at the data boundary (see escapers above).</div></div>
+                <span class="rv">310</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Explicit kitchen_id filters in app reads" data-sk="Explicitné kitchen_id filtre v čítaniach">Explicit kitchen_id filters in app reads</span></div>
+                  <div class="rd" data-en="Defence-in-depth on top of RLS; not every query needs it (RLS enforces isolation)." data-sk="Defence-in-depth on top of RLS; not every query needs it (RLS enforces isolation).">Defence-in-depth on top of RLS; not every query needs it (RLS enforces isolation).</div></div>
+                <span class="rv">38 / 295 sb.from()</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Tables with RLS enabled" data-sk="Tabuľky so zapnutým RLS">Tables with RLS enabled</span></div>
+                  <div class="rd" data-en="audit_db fails the build if any kitchen-scoped table lacks RLS + a policy." data-sk="audit_db fails the build if any kitchen-scoped table lacks RLS + a policy.">audit_db fails the build if any kitchen-scoped table lacks RLS + a policy.</div></div>
+                <span class="rv">49</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Secrets in edge functions" data-sk="Tajomstvá v edge funkciách">Secrets in edge functions</span></div>
+                  <div class="rd" data-en="No hard-coded API keys in supabase/functions." data-sk="No hard-coded API keys in supabase/functions.">No hard-coded API keys in supabase/functions.</div></div>
+                <span class="rv">0</span>
+              </div></div>
+        </details><details class="audit">
+          <summary>
+            <div class="au-head">
+              <div class="au-ring"><svg width="74" height="74" viewBox="0 0 74 74" class="ring">
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none"/>
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="#34F7D7" stroke-width="7" fill="none"
+        stroke-linecap="round" stroke-dasharray="210.5" stroke-dashoffset="0.0"
+        transform="rotate(-90 37.0 37.0)"/>
+      <text x="50%" y="48%" text-anchor="middle" dominant-baseline="middle" fill="#34F7D7"
+        style="font-size:19px;font-weight:800;">100</text>
+      <text x="50%" y="70%" text-anchor="middle" dominant-baseline="middle" fill="#8FA9BF"
+        style="font-size:7px;">/ 100</text>
+    </svg></div>
+              <div class="au-meta">
+                <h3><span data-en="Documentation" data-sk="Dokumentácia">Documentation</span></h3>
+                <p class="au-blurb"><span data-en="Docs health: brand, bilingual completeness, freshness." data-sk="Zdravie dokumentov: značka, dvojjazyčnosť, aktuálnosť.">Docs health: brand, bilingual completeness, freshness.</span></p>
+              </div>
+              <div class="au-grade" style="color:#34F7D7">A</div>
+              <div class="au-caret">▾</div>
+            </div>
+          </summary>
+          <div class="rows"><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Leftover &quot;ChefOS&quot; brand in docs" data-sk="Zvyšky značky „ChefOS&quot; v dokumentoch">Leftover &quot;ChefOS&quot; brand in docs</span></div>
+                  <div class="rd" data-en="All docs are on-brand (Sautero)." data-sk="All docs are on-brand (Sautero).">All docs are on-brand (Sautero).</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Bilingual docs complete (SK/EN)" data-sk="Dvojjazyčné dokumenty kompletné (SK/EN)">Bilingual docs complete (SK/EN)</span></div>
+                  <div class="rd" data-en="Every doc with a language toggle carries both languages." data-sk="Every doc with a language toggle carries both languages.">Every doc with a language toggle carries both languages.</div></div>
+                <span class="rv">22/22</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="build_docs sources missing" data-sk="Chýbajúce zdroje build_docs">build_docs sources missing</span></div>
+                  <div class="rd" data-en="All merge sources exist." data-sk="All merge sources exist.">All merge sources exist.</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Dashboards in visual data/" data-sk="Dashboardy v visual data/">Dashboards in visual data/</span></div>
+                  <div class="rd" data-en="Investor deck, status, backlog, monetization, brand, health, etc." data-sk="Investor deck, status, backlog, monetization, brand, health, etc.">Investor deck, status, backlog, monetization, brand, health, etc.</div></div>
+                <span class="rv">22</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Docs carrying a date stamp" data-sk="Dokumenty s dátumovou pečiatkou">Docs carrying a date stamp</span></div>
+                  <div class="rd" data-en="A dated stamp lets a reader trust freshness." data-sk="A dated stamp lets a reader trust freshness.">A dated stamp lets a reader trust freshness.</div></div>
+                <span class="rv">22/22</span>
+              </div></div>
+        </details><details class="audit">
+          <summary>
+            <div class="au-head">
+              <div class="au-ring"><svg width="74" height="74" viewBox="0 0 74 74" class="ring">
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="rgba(255,255,255,.08)" stroke-width="7" fill="none"/>
+      <circle cx="37.0" cy="37.0" r="33.5" stroke="#34F7D7" stroke-width="7" fill="none"
+        stroke-linecap="round" stroke-dasharray="210.5" stroke-dashoffset="16.8"
+        transform="rotate(-90 37.0 37.0)"/>
+      <text x="50%" y="48%" text-anchor="middle" dominant-baseline="middle" fill="#34F7D7"
+        style="font-size:19px;font-weight:800;">92</text>
+      <text x="50%" y="70%" text-anchor="middle" dominant-baseline="middle" fill="#8FA9BF"
+        style="font-size:7px;">/ 100</text>
+    </svg></div>
+              <div class="au-meta">
+                <h3><span data-en="Technical Debt" data-sk="Technický dlh">Technical Debt</span></h3>
+                <p class="au-blurb"><span data-en="Accumulated debt: markers, dead code, ratchet." data-sk="Nahromadený dlh: značky, mŕtvy kód, ratchet.">Accumulated debt: markers, dead code, ratchet.</span></p>
+              </div>
+              <div class="au-grade" style="color:#34F7D7">A</div>
+              <div class="au-caret">▾</div>
+            </div>
+          </summary>
+          <div class="rows"><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="TODO / FIXME / HACK / XXX markers" data-sk="TODO / FIXME / HACK / XXX značky">TODO / FIXME / HACK / XXX markers</span></div>
+                  <div class="rd" data-en="Tracked debt notes in the code; not bugs, but the backlog of &quot;come back to this&quot;." data-sk="Tracked debt notes in the code; not bugs, but the backlog of &quot;come back to this&quot;.">Tracked debt notes in the code; not bugs, but the backlog of &quot;come back to this&quot;.</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Stray console.log" data-sk="Zabudnuté console.log">Stray console.log</span></div>
+                  <div class="rd" data-en="No debug logging left in production." data-sk="No debug logging left in production.">No debug logging left in production.</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Stray debugger statements" data-sk="Zabudnuté debugger príkazy">Stray debugger statements</span></div>
+                  <div class="rd" data-en="None." data-sk="None.">None.</div></div>
+                <span class="rv">0</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="Unchecked mutation ratchet" data-sk="Ratchet neoverených mutácií">Unchecked mutation ratchet</span></div>
+                  <div class="rd" data-en="Silent-no-op delete/update call sites; audit_app fails if this number grows." data-sk="Silent-no-op delete/update call sites; audit_app fails if this number grows.">Silent-no-op delete/update call sites; audit_app fails if this number grows.</div></div>
+                <span class="rv">8</span>
+              </div><div class="row">
+                <span class="pill st-warn"><span data-en="warn" data-sk="pozor">warn</span></span>
+                <div class="rc"><div class="rn"><span data-en="Dead functions" data-sk="Mŕtve funkcie">Dead functions</span></div>
+                  <div class="rd" data-en="Defined but never referenced — safe to prune during consolidation." data-sk="Defined but never referenced — safe to prune during consolidation.">Defined but never referenced — safe to prune during consolidation.</div></div>
+                <span class="rv">3</span>
+              </div><div class="row">
+                <span class="pill st-ok"><span data-en="ok" data-sk="v poriadku">ok</span></span>
+                <div class="rc"><div class="rn"><span data-en="DB-contract rebrand debt (guarded)" data-sk="Dlh DB-kontraktu z rebrandu (strážený)">DB-contract rebrand debt (guarded)</span></div>
+                  <div class="rd" data-en="chefos-named DB identifiers kept on purpose (live schema); a coordinated migration is the only correct way to rename them. Guarded by check_db_contract." data-sk="chefos-named DB identifiers kept on purpose (live schema); a coordinated migration is the only correct way to rename them. Guarded by check_db_contract.">chefos-named DB identifiers kept on purpose (live schema); a coordinated migration is the only correct way to rename them. Guarded by check_db_contract.</div></div>
+                <span class="rv">4/4 tokens</span>
+              </div></div>
+        </details>
+
+  <div class="foot">
+    <span data-en="Static analysis only — it grades, it does not block the build." data-sk="Iba statická analýza — hodnotí, nezastavuje build.">Static analysis only — it grades, it does not block the build.</span><br>
+    <span data-en="Build-blocking checks live in" data-sk="Build blokujúce kontroly sú v">Build-blocking checks live in</span> <code>audit_app.py</code> · <code>audit_db.py</code> · <code>calc_unit_test.js</code>.
+  </div>
+</div>
+<script>
+  var KEY='sautero_doc_lang';
+  function applyLang(l){
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      var v=el.getAttribute('data-'+l); if(v!=null) el.textContent=v;
+    });
+    var en=document.getElementById('lcEn'), sk=document.getElementById('lcSk');
+    if(en&&sk){ en.className=(l==='en'?'on':'off'); sk.className=(l==='sk'?'on':'off'); }
+    document.documentElement.lang=l;
+  }
+  function toggleLang(){
+    var cur=localStorage.getItem(KEY)==='sk'?'sk':'en';
+    var nxt=cur==='sk'?'en':'sk'; localStorage.setItem(KEY,nxt); applyLang(nxt);
+  }
+  applyLang(localStorage.getItem(KEY)==='sk'?'sk':'en');
+</script>
+</body></html>

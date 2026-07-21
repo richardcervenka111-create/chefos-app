@@ -49,6 +49,11 @@ jobs:
       # filters/search/percentage work). This is obscurity, not real access control: nothing
       # requires a login, anyone who learns/guesses the path can view it — chosen deliberately
       # over adding real auth for a same-day fix, revisit if that stops being good enough.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Generate fresh Health Report dashboard (so the deployed report matches live code)
+        run: python3 scripts/health_report.py
       - name: Build combined Pages artifact
         run: |
           mkdir -p _site
