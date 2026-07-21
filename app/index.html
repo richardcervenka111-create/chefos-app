@@ -12334,6 +12334,23 @@ async function saveAdminPermsEdits(){
     renderAdminDirectory();
     return;
   }
+  // Turning OFF Company Admin for someone who's IN a team — ask whether to also take them out of
+  // the company (Richard, 21.7.). Removing the perm alone only downgrades them to a member; this
+  // control question lets you fully reset them to a solo account in one step. Personal recipes
+  // stay private either way. Head Admin does it via the super-admin update (db/164); kitchen_id
+  // null → they get a fresh personal kitchen on their next login (ensure_personal_kitchen).
+  if(wasCompanyAdmin && !nowCompanyAdmin && t.in_team){
+    const removeFromCompany = await appConfirm(`${name} is no longer a Company Admin. Also remove them from their company and reset them to a solo account?`, { okLabel:'Remove from company', cancelLabel:'Keep in the team' });
+    if(removeFromCompany){
+      const { data: rem, error: remErr } = await sb.from('profiles').update({ kitchen_id: null, in_team: false, account_type: 'personal' }).eq('id', t.id).select('id');
+      if(remErr || !rem || !rem.length){ statusEl.textContent = 'Perm saved, but could not remove them from the company: ' + (remErr ? remErr.message : 'no rows'); renderEditAdminPermsList(); renderAdminDirectory(); return; }
+      t.kitchen_id = null; t.in_team = false; t.account_type = 'personal';
+      statusEl.textContent = 'Saved — removed from the company. They get a fresh solo account next time they open the app.';
+      renderEditAdminPermsList();
+      renderAdminDirectory();
+      return;
+    }
+  }
   statusEl.textContent = 'Saved.';
   renderEditAdminPermsList();
   renderAdminDirectory();
