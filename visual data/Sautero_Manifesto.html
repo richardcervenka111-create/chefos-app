@@ -256,6 +256,11 @@
   footer{ padding: 60px 0 70px 0; }
   footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12.5px; color:var(--ink-faint); }
 
+  /* Reading-progress bar — consistency with the elevated Investor Deck (21.7.). */
+  #mprogress{ position:fixed; top:0; left:0; height:3px; width:0; z-index:100;
+    background:linear-gradient(90deg, #0F6E56, #34F7D7); box-shadow:0 0 12px rgba(52,247,215,0.4); transition:width .08s linear; }
+  @media print{ #mprogress{ display:none; } }
+
   /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
      carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
   .chefos-stamp{
@@ -279,6 +284,7 @@
 </style>
 </head>
 <body>
+<div id="mprogress"></div>
 <div class="hero">
   <div class="wrap">
     <div class="hero-mark"><span class="pulse"></span>Sautero — an operating system for professional kitchens</div>
@@ -471,9 +477,16 @@
   } else {
     document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));
   }
+  (function(){
+    const bar = document.getElementById('mprogress');
+    if(!bar) return;
+    const onScroll = ()=>{ const h=document.documentElement; const max=h.scrollHeight-h.clientHeight;
+      bar.style.width = (max>0 ? (h.scrollTop/max)*100 : 0) + '%'; };
+    window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
+  })();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20">🔄 Stav Sautero k 18. 7. 2026, 14:20</div>
+<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 21. 7. 2026" data-en="🔄 Sautero state as of Jul 21, 2026">🔄 Stav Sautero k 21. 7. 2026</div>
 <button class="chefos-lang-fab" id="chefosLangFab" onclick="chefosToggleLang()">EN</button>
 
 <script>
