@@ -2338,7 +2338,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div class="login-mark">🏢</div>
     <h1 class="title display">Name your restaurant</h1>
     <p class="lede">You're set up as the main admin of your own kitchen. Give it a name — this is what your team will see. You can change it anytime in Settings.</p>
-    <input class="form-field" id="nameKitchenGateInput" type="text" placeholder="e.g. Nooch Asian Kitchen — Bern" style="margin-top:14px;" onkeydown="if(event.key==='Enter') submitNameKitchenGate();">
+    <input class="form-field" id="nameKitchenGateInput" type="text" placeholder="Your restaurant / company name" style="margin-top:14px;" onkeydown="if(event.key==='Enter') submitNameKitchenGate();">
     <button class="save-btn" style="width:100%; margin-top:10px;" onclick="submitNameKitchenGate()">Save &amp; continue</button>
     <div class="form-status" id="nameKitchenGateStatus"></div>
   </div>
@@ -2778,7 +2778,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">📊 Share My Hours with Admin</div>
-    <p class="sheet-text">Off by default. If ON, your kitchen admin can see YOUR name next to your logged Working Time hours in Kitchen Reports. If OFF, only anonymous team totals are ever shown — never your name. You can change this anytime.</p>
+    <p class="sheet-text">Off by default. If ON, your company admin can see YOUR name next to your logged Working Time hours in the Company Report. If OFF, only anonymous team totals are ever shown — never your name. You can change this anytime.</p>
     <div class="chip" id="performanceConsentChip" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; gap:10px;" onclick="togglePerformanceConsent()">
       <span><strong id="performanceConsentLabel"></strong></span>
       <span id="performanceConsentState"></span>
@@ -2793,7 +2793,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
 <div id="kitchenReportsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeKitchenReports()">
   <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" id="krTitle">📊 Kitchen Reports</div>
+    <div class="sheet-title" id="krTitle">📊 Company Report</div>
     <!-- Illustration-data switch (Richard, 17.7.) — HARD-GATED to exactly chefos@protonmail.com
          (his own kitchen-admin test account), per explicit instruction: nobody else ever sees
          this, not even other admins. Display-only, same no-DB-writes design as Working Time's. -->
@@ -7784,20 +7784,15 @@ async function enterApp(){
     // and the RPC call below still run; claim_company_admin's own server-side invariant (caller
     // already in the kitchen + seat still empty) is what actually decides pass/fail now.
     if(inviteRow && inviteRow.grants_company_admin){
-      const { data: k } = await sb.from('kitchens').select('name').eq('id', inviteRow.kitchen_id).maybeSingle();
-      const kitchenName = (k && k.name) || 'a new kitchen';
-      if(confirm(`Richard invited you to become the main admin of "${kitchenName}". Accept? Your account will move to that kitchen.`)){
-        const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id, in_team: true, team_join_seen: true, account_type: 'company', pending_company_invite: null }).eq('id', currentUser.id);
-        if(moveErr){ alert('Could not accept: ' + moveErr.message); return; }
-        const { data: claimed, error: claimErr } = await sb.rpc('claim_company_admin', { p_invite: inviteParam });
-        // This invite WAS an admin invite — a silent no-op here is exactly how the protonmail
-        // account ended up in the kitchen without its role (16.7.). Say it out loud instead.
-        if(claimErr || claimed === false){
-          alert("You've joined the kitchen, but the admin role could not be applied (" + (claimErr ? claimErr.message : 'invite already used') + ") — ask Richard to grant it from Admin Directory.");
-        }
-        alert(`You're now the main admin of "${kitchenName}". The app will reload with your new kitchen.`);
-        location.reload();
-      }
+      // Clicking the offer link IS the acceptance — move them into the new company and reload
+      // straight onto the in-app "Name your restaurant" step (no native browser dialogs, Richard
+      // 21.7.). The company_admin role was already granted by the Head Admin who sent the offer,
+      // so the claim below is best-effort (the guard trigger blocks non-super-admins from touching
+      // admin_perms — harmless here since the role is already set).
+      const { error: moveErr } = await sb.from('profiles').update({ kitchen_id: inviteRow.kitchen_id, in_team: true, team_join_seen: true, account_type: 'company', pending_company_invite: null }).eq('id', currentUser.id);
+      if(moveErr){ logClientError('company-offer accept move failed: ' + moveErr.message); return; }
+      await sb.rpc('claim_company_admin', { p_invite: inviteParam });
+      location.reload();
     }
   }
 }
@@ -8592,7 +8587,7 @@ function krLabel(text){ return `<div style="font-size:11px; font-weight:800; let
 /* ---------- root hub ---------- */
 async function krRenderRoot(){
   _krSection = null;
-  document.getElementById('krTitle').textContent = '📊 Kitchen Reports';
+  document.getElementById('krTitle').textContent = '📊 Company Report';
   document.getElementById('krPeriodChips').style.display = 'none';
   const el = document.getElementById('kitchenReportsBody');
   const mkHub = (icon, name, meta, onclick)=>`
@@ -11871,7 +11866,7 @@ const ADMIN_PERM_DEFS = [
   { key:'view_email_contacts', label:'Email Contacts', desc:'View the Email Contacts directory' },
   { key:'approve_access', label:'Approve Access', desc:'Approve/deny new Sautero access requests — platform-wide, grant with care' },
   { key:'create_teams', label:'Create Teams', desc:'Create new restaurant/kitchen teams and generate their join codes — grant with care' },
-  { key:'view_kitchen_reports', label:'View Kitchen Reports', desc:"See their kitchen's recipe/Check List activity + hours for employees who've consented" },
+  { key:'view_kitchen_reports', label:'View Company Report', desc:"See their company's recipe/Check List activity + hours for employees who've consented" },
   { key:'company_admin', label:'Company Admin', desc:"Main admin of their restaurant/kitchen — normally granted automatically by accepting an Add Company invite, not by hand" },
   { key:'assistant', label:'Assistant', desc:"Designated by their kitchen's Company Admin — helper role within their own kitchen" },
 ];
@@ -11905,7 +11900,7 @@ const ADMIN_TILE_DEFS = [
   /* Kitchen Reports (bod 2, 16.7. — db/99) — same 📊 icon as Head Admin's Internal Docs, but
      scoped to THIS kitchen only and available to any Kitchen Admin with the perm, not just
      Richard. Named employee data only ever shows for people who opted in (Settings). */
-  { key:'kitchenReports', icon:'📊', staticLabel:'Kitchen Reports', onclick:'openKitchenReports()', adminOnly:()=>hasAdminPerm('view_kitchen_reports') },
+  { key:'kitchenReports', icon:'📊', staticLabel:'Company Report', onclick:'openKitchenReports()', adminOnly:()=>hasAdminPerm('view_kitchen_reports') || !!currentAdminPerms.company_admin },
   /* Internal Docs (bod, 16.7.) — Richard specifically, by exact email, not just is_admin: since
      today's own Head Admin feature means is_admin is no longer guaranteed to be only him going
      forward. Links out to visual data/ (backlog, status, monetization...), deployed to an
