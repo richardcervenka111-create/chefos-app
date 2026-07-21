@@ -2807,7 +2807,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="krTitle">📊 Company Report</div>
-    <!-- Illustration-data switch (Richard, 17.7.) — HARD-GATED to exactly sautero@protonmail.com
+    <!-- Illustration-data switch (Richard, 17.7.) — HARD-GATED to exactly chefos@protonmail.com
          (his own kitchen-admin test account), per explicit instruction: nobody else ever sees
          this, not even other admins. Display-only, same no-DB-writes design as Working Time's. -->
     <button class="task-status-btn" id="krDemoToggle" style="display:none; margin-bottom:8px;" onclick="toggleKrDemo()">🎭 Demo: OFF</button>
@@ -8510,7 +8510,7 @@ function closeKitchenReports(){ document.getElementById('kitchenReportsOverlay')
    and every existing AND future demo toggle picks it up automatically. */
 function demoModeAllowed(){
   const email = currentUser && currentUser.email && currentUser.email.toLowerCase();
-  return !!email && ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'sautero@protonmail.com'].includes(email);
+  return !!email && ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'].includes(email);
 }
 
 /* Kitchen Reports illustration mode — display only, nothing ever touches the database, turning
@@ -11738,11 +11738,11 @@ function closeEmailContacts(){ document.getElementById('emailContactsOverlay').c
    them live — today / this month / all time per account, founder test accounts flagged, plus
    a by-feature split. The Claude Platform dashboard remains the authority for the org total;
    this is the split it can never show (it only sees the one central key). ---------- */
-const FOUNDER_TEST_EMAILS = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'sautero@protonmail.com'];
+const FOUNDER_TEST_EMAILS = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'];
 const AI_USD_TO_CHF = 0.87;
 let _aiUsageRows = [], _aiUsageWho = {};
 /* Demo dataset for AI Usage (Richard, 17.7. večer) — same illustration mode as Kitchen
-   Reports (sautero@protonmail.com only, toggled there): believable varied numbers for showing
+   Reports (chefos@protonmail.com only, toggled there): believable varied numbers for showing
    the screen to a prospect without exposing anyone's real usage. Deterministic, no DB. */
 function aiUsageDemoData(){
   const people = [

@@ -1,4 +1,4 @@
--- Sautero — one-off fix (Richard, 16.7.): sautero@protonmail.com was created earlier today
+-- Sautero — one-off fix (Richard, 16.7.): chefos@protonmail.com was created earlier today
 -- through the OLD friend-QR flow (before the personal-invites-are-social change), which pulled
 -- it into Richard's own kitchen — so it still sees his Check List projects ("Burito").
 --
@@ -12,7 +12,7 @@ declare
   v_user uuid;
   v_kitchen uuid;
 begin
-  select id into v_user from auth.users where email = 'sautero@protonmail.com';
+  select id into v_user from auth.users where email = 'chefos@protonmail.com';
   if v_user is null then
     raise exception 'No user with that email — nothing changed.';
   end if;

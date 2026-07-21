@@ -157,7 +157,7 @@ def check_db_contract(s, violations):
     # must match the migrations / live schema, not the brand. Renaming them needs a coordinated
     # migration, never a text replace. This guard fails if the mangled (non-existent) variants
     # reappear, so the same rebrand mistake can never silently ship again.
-    GHOST_DB_TOKENS = ['shared_with_sautero', 'sautero_master_id', "'recipe_sautero'", "'sautero'"]
+    GHOST_DB_TOKENS = ['shared_with_sautero', 'sautero_master_id', "'recipe_sautero'", "'sautero'", 'sautero@protonmail.com']
     for tok in GHOST_DB_TOKENS:
         if tok in s:
             violations.append(

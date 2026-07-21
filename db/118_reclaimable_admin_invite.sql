@@ -1,5 +1,5 @@
 -- Sautero — "nech sa to už nestáva" (Richard, 16.7. večer): the admin-invite claim is now
--- tolerant of the exact failure that hit sautero@protonmail.com — a single-use invite consumed
+-- tolerant of the exact failure that hit chefos@protonmail.com — a single-use invite consumed
 -- by an earlier open (mail previews, double taps), leaving the person inside the kitchen but
 -- without the role.
 --
