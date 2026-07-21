@@ -2660,6 +2660,19 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
+<!-- Themed in-app dialog (Richard, 21.7.) — Sautero-identity replacement for native
+     alert()/confirm()/prompt() so no announcement window looks like a raw browser box. Driven by
+     appAlert() / appConfirm() / appPrompt() (promise-based). -->
+<div id="appDialogOverlay" class="sheet-overlay" style="z-index:200;">
+  <div class="sheet" style="max-width:420px;">
+    <div class="sheet-handle"></div>
+    <p class="sheet-text" id="appDialogMessage" style="white-space:pre-wrap; font-size:15px;"></p>
+    <input class="form-field" id="appDialogInput" type="text" style="display:none; margin-top:12px;">
+    <button class="save-btn" id="appDialogOk" style="width:100%; margin-top:14px;">OK</button>
+    <button class="sheet-cancel" id="appDialogCancel" style="width:100%; margin-top:8px; display:none;">Cancel</button>
+  </div>
+</div>
+
 <!-- Internal Docs (bod, 16.7.) — Richard-only (exact email, see ADMIN_TILE_DEFS). Plain links,
      each opens in a new tab; the underlying deployed path is unlisted anywhere else. -->
 <div id="internalDocsOverlay" class="sheet-overlay" onclick="if(event.target===this) closeInternalDocs()">
@@ -7667,6 +7680,32 @@ function quickToggleAccountType(){
   const target = currentAccountType === 'company' ? 'personal' : 'company';
   setAccountTypeFromSettings(target);
 }
+/* Themed in-app dialogs (Richard, 21.7.) — promise-based appAlert/appConfirm/appPrompt using
+   #appDialogOverlay (Sautero identity) instead of native alert()/confirm()/prompt(). */
+function _appDialog(opts){
+  const { message, mode, okLabel, cancelLabel, defaultValue } = opts;
+  return new Promise(resolve=>{
+    const ov = document.getElementById('appDialogOverlay');
+    const ok = document.getElementById('appDialogOk');
+    const cancel = document.getElementById('appDialogCancel');
+    const input = document.getElementById('appDialogInput');
+    document.getElementById('appDialogMessage').textContent = message || '';
+    ok.textContent = okLabel || 'OK';
+    cancel.textContent = cancelLabel || 'Cancel';
+    cancel.style.display = mode === 'alert' ? 'none' : 'block';
+    input.style.display = mode === 'prompt' ? 'block' : 'none';
+    if(mode === 'prompt') input.value = defaultValue || '';
+    const done = (val)=>{ ov.classList.remove('open'); ok.onclick = null; cancel.onclick = null; input.onkeydown = null; resolve(val); };
+    ok.onclick = ()=> done(mode === 'prompt' ? input.value : (mode === 'confirm' ? true : undefined));
+    cancel.onclick = ()=> done(mode === 'prompt' ? null : false);
+    if(mode === 'prompt') input.onkeydown = (e)=>{ if(e.key === 'Enter') done(input.value); };
+    ov.classList.add('open');
+    if(mode === 'prompt') setTimeout(()=>input.focus(), 120);
+  });
+}
+function appAlert(message, opts){ return _appDialog({ message, mode:'alert', okLabel: opts && opts.okLabel }); }
+function appConfirm(message, opts){ return _appDialog({ message, mode:'confirm', okLabel: opts && opts.okLabel, cancelLabel: opts && opts.cancelLabel }); }
+function appPrompt(message, defaultValue, opts){ return _appDialog({ message, mode:'prompt', defaultValue: defaultValue || '', okLabel: opts && opts.okLabel }); }
 function showNameKitchenGate(){
   ['homeView','teamGateView','privacyGateView','confidentialityGateView','passwordGateView','myProfileGateView','accountTypeGateView','loginView','comingSoonView'].forEach(id=>{ const el = document.getElementById(id); if(el) el.style.display = 'none'; });
   const inp = document.getElementById('nameKitchenGateInput');
@@ -10045,10 +10084,10 @@ async function acceptScannedFriend(){
    in; renaming a kitchen he isn't a member of (e.g. one made purely via Add Company) would need
    a kitchen directory screen, which doesn't exist yet. */
 async function renameCurrentKitchen(currentName){
-  const next = prompt('Rename this kitchen/team:', currentName);
+  const next = await appPrompt('Rename this kitchen/team:', currentName);
   if(!next || !next.trim() || next.trim() === currentName) return;
   const { error } = await sb.from('kitchens').update({ name: next.trim() }).eq('id', currentKitchenId);
-  if(error){ alert('Could not rename: ' + error.message); return; }
+  if(error){ await appAlert('Could not rename: ' + error.message); return; }
   await showTeamInvite();
 }
 /* ---------- My Team: invite link + QR ---------- */
@@ -10212,7 +10251,7 @@ async function getOrCreateActiveInvite(){
   return created.id;
 }
 async function revokeAndRegenerateInvite(){
-  if(!confirm("Revoke the current invite link? Anyone who already has it won't be able to use it anymore — you'll get a fresh one right after.")) return;
+  if(!(await appConfirm("Revoke the current invite link? Anyone who already has it won't be able to use it anymore — you'll get a fresh one right after."))) return;
   await sb.from('kitchen_invites').update({ revoked: true }).eq('kitchen_id', currentKitchenId).eq('revoked', false);
   await showTeamInvite();
 }
@@ -10263,7 +10302,7 @@ async function toggleMemberAssistant(memberId, on){
   renderTeamMembersList(_teamMembersContainerId);
 }
 async function removeTeamMember(userId, name){
-  if(!confirm(`Remove ${name} from this kitchen? They'll keep their own personal Sautero — they just lose access to this kitchen's data.`)) return;
+  if(!(await appConfirm(`Remove ${name} from this kitchen? They'll keep their own personal Sautero — they just lose access to this kitchen's data.`))) return;
   // SECURITY DEFINER RPC (db/124, softened db/125), not a direct profiles update — Postgres
   // required the UPDATED row to stay visible to the caller via SELECT policies, and a removed
   // member is invisible to their ex-admin by design, so the direct update could never succeed
@@ -12014,16 +12053,16 @@ async function grantKitchenAdminPreset(){
   if(error){ alert('Could not save: ' + error.message); return; }
   const name = _addAdminCandidate.full_name || _addAdminCandidate.email;
   closeAddAdminLevel();
-  alert(`${name} is now a Kitchen Admin.`);
+  await appAlert(`${name} is now a Company Admin.`);
 }
 async function grantHeadAdminPreset(){
   if(!_addAdminCandidate) return;
   const name = _addAdminCandidate.full_name || _addAdminCandidate.email;
-  if(!confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
+  if(!(await appConfirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`))) return;
   const { error } = await sb.from('profiles').update({ is_admin: true }).eq('id', _addAdminCandidate.id);
   if(error){ alert('Could not save: ' + error.message); return; }
   closeAddAdminLevel();
-  alert(`${name} is now a Head Admin.`);
+  await appAlert(`${name} is now a Head Admin.`);
 }
 
 /* ---------- Admin Directory: search everyone, edit permissions per person ---------- */
@@ -12134,9 +12173,9 @@ function _editAdminPermsDirty(){
   for(const k of keys){ if(!!orig[k] !== !!d.perms[k]) return true; }
   return false;
 }
-function closeEditAdminPerms(){
+async function closeEditAdminPerms(){
   // Don't silently drop pending permission edits.
-  if(_editAdminPermsDirty() && !confirm('Discard unsaved permission changes?')) return;
+  if(_editAdminPermsDirty() && !(await appConfirm('Discard unsaved permission changes?'))) return;
   document.getElementById('editAdminPermsOverlay').classList.remove('open');
   _editAdminPermsTarget = null;
   _editAdminPermsDraft = null;
@@ -12242,8 +12281,8 @@ async function saveAdminPermsEdits(){
   // space is created_by-scoped and stays private + untouched — we only give them a new team.
   const startOnboarding = nowCompanyAdmin && !wasCompanyAdmin && !t.in_team;
   // Strong confirm only for the super-admin bit, fired once at the real commit.
-  if(adminChanged && d.is_admin && !confirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`)) return;
-  if(adminChanged && !d.is_admin && !confirm(`Remove Head Admin from ${name}?`)) return;
+  if(adminChanged && d.is_admin && !(await appConfirm(`Make ${name} a Head Admin? This gives them full super-admin access, same as you.`))) return;
+  if(adminChanged && !d.is_admin && !(await appConfirm(`Remove Head Admin from ${name}?`))) return;
   // Send ONLY the columns that changed (mirrors the old per-column writes that worked), and
   // .select() the row back: a 0-row result means RLS silently refused the write, so surface that
   // LOUDLY instead of a false "Saved." (Richard, 20.7. — nothing was persisting because a Head
