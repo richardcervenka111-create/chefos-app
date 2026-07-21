@@ -22,7 +22,7 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: DB migration audit (tenant scoping, RLS, destructive statements)
         run: python3 scripts/audit_db.py
       - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)
@@ -35,7 +35,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
       # app/ stays at the site root exactly as before (app.chefos.ch/index.html etc.,
       # unchanged). visual data/ (backlog, status, monetization...) additionally gets copied
