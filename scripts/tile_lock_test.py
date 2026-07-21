@@ -73,8 +73,58 @@ def login(page, url, email, password):
 #     duration; a logged break is deducted."""
 #     ...open the tile, act, assert on real outcomes, clean up...
 #
+def check_working_time(page, ctx):
+    """Locked 22.7.2026 (Richard: "working time funguje správne"). Behaviours under lock:
+    check-in creates a running entry, the status card shows the live clock, check-out (with its
+    confirm dialog) stores a checkout time within a sane distance of the check-in, and the entry
+    is a real DB row. The test creates ONE real entry on the QA account and deletes it at the
+    end with a row-count-verified delete (the 20.7 silent-no-op rule)."""
+    page.on('dialog', lambda d: d.accept())
+
+    # self-heal: a leftover open entry from a crashed earlier run would block check-in
+    leftover = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
+
+    page.locator('.home-tile', has_text='Working Time').first.click(timeout=8000)
+    page.wait_for_timeout(1500)
+
+    if leftover:
+        page.evaluate("""async (id) => { await sb.from('time_entries').delete().eq('id', id).select();
+                         _activeTimeEntry = null; }""", leftover)
+        page.wait_for_timeout(500)
+
+    # 1) check in
+    btn = page.locator("button:has-text('Check In')").first
+    assert btn.is_visible(), 'Check In button not visible on the Working Time screen'
+    btn.click()
+    page.wait_for_timeout(2500)
+    entry_id = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
+    assert entry_id, 'check-in did not create an active entry (_activeTimeEntry is null)'
+    assert page.locator('#wtElapsed').is_visible(), 'running clock (#wtElapsed) not shown after check-in'
+
+    # 2) check out (auto-accepts the "Check out now?" confirm)
+    page.locator("button:has-text('Check Out')").first.click()
+    page.wait_for_timeout(3000)
+    row = page.evaluate("""async (id) => {
+        const { data } = await sb.from('time_entries').select('check_in, check_out').eq('id', id).single();
+        return data; }""", entry_id)
+    assert row and row.get('check_out'), f'check-out did not store a checkout time (row: {row})'
+    from datetime import datetime
+    ci = datetime.fromisoformat(row['check_in'].replace('Z', '+00:00'))
+    co = datetime.fromisoformat(row['check_out'].replace('Z', '+00:00'))
+    dur = (co - ci).total_seconds()
+    assert 0 <= dur < 180, f'stored duration {dur:.0f}s is not the ~5s the test actually worked'
+    still = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
+    assert not still, 'after check-out the app still thinks an entry is running'
+
+    # 3) cleanup — row-count-verified delete (never a silent no-op)
+    deleted = page.evaluate("""async (id) => {
+        const { data, error } = await sb.from('time_entries').delete().eq('id', id).select();
+        return { n: (data || []).length, err: error ? error.message : null }; }""", entry_id)
+    assert deleted['err'] is None and deleted['n'] == 1, f'cleanup delete failed: {deleted}'
+
+
 CHECKS = {
-    # (no tiles locked yet — the first lock adds its suite here)
+    'working_time': check_working_time,
 }
 # ---------------------------------------------------------------------------
 
