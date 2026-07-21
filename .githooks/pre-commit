@@ -7,6 +7,13 @@ set -e
 echo "pre-commit: running Sautero auditors…"
 python3 scripts/audit_db.py
 python3 scripts/audit_app.py
+# Money-path calc unit tests — pure, fast. Only when node is present (there is no local JS
+# engine on Richard's machine); CI (health-checks + deploy gate) always runs them regardless.
+if command -v node >/dev/null 2>&1; then
+  node scripts/calc_unit_test.js
+else
+  echo "pre-commit: node not found — skipping calc unit tests locally (CI still runs them)."
+fi
 # Merged internal docs (produkt/plan/biznis/znacka) are GENERATED from the 11 source
 # documents — regenerate them here so they can never go stale (17.7. consolidation).
 python3 scripts/build_docs.py
