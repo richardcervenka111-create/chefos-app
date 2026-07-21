@@ -129,7 +129,16 @@ def refresh_sautero_stamps(check_only, changed):
         dt = git_datetime(rel, changed)
         sk_new = f'{dt.day}. {dt.month}. {dt.year}, {dt.strftime("%H:%M")}'
         en_new = f'{SK_MONTHS_EN[dt.month]} {dt.day}, {dt.year}, {dt.strftime("%H:%M")}'
-        m = re.search(r'Stav Sautero k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})', s)
+        # ONLY the stamp's own contexts — the data-sk/data-en ATTRIBUTES and the inner text of a
+        # div whose class contains sautero-stamp. NEVER free prose: the first version matched any
+        # "Stav Sautero k …" up to the next '<' and ATE a whole sentence of Critical Review body
+        # text where the phrase appeared in prose (22.7. 00:10 incident). Detection and rewrite
+        # now both anchor on the same safe contexts.
+        PAT_ATTR_SK = r'(data-sk="🔄 Stav Sautero k )[^"]*(")'
+        PAT_ATTR_EN = r'(data-en="🔄 Sautero state as of )[^"]*(")'
+        PAT_ELEM = r'(<div[^>]*class="[^"]*sautero-stamp[^"]*"[^>]*>[^<]*?Stav Sautero k )[^<]*(</div>)'
+        m = (re.search(r'data-sk="🔄 Stav Sautero k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})', s)
+             or re.search(r'sautero-stamp[^"]*"[^>]*>[^<]*?Stav Sautero k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})', s))
         if not m:
             continue
         old_day = (int(m.group(3)), int(m.group(2)), int(m.group(1)))
@@ -137,8 +146,9 @@ def refresh_sautero_stamps(check_only, changed):
             continue  # stamp already carries the right day — don't churn the time
         stale.append(rel)
         if not check_only:
-            s = re.sub(r'(Stav Sautero k )[0-9][^"<]*', r'\g<1>' + sk_new, s)
-            s = re.sub(r'(Sautero state as of )[A-Z][^"<]*', r'\g<1>' + en_new, s)
+            s = re.sub(PAT_ATTR_SK, r'\g<1>' + sk_new + r'\g<2>', s)
+            s = re.sub(PAT_ATTR_EN, r'\g<1>' + en_new + r'\g<2>', s)
+            s = re.sub(PAT_ELEM, r'\g<1>' + sk_new + r'\g<2>', s)
             open(f, 'w', encoding='utf-8').write(s)
             fixed.append(f'{os.path.basename(f)}→{dt.day}.{dt.month}.')
     return fixed, stale
