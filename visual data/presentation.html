@@ -24,8 +24,8 @@
     --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
     --maxw:1080px;
   }
-  *{ box-sizing:border-box; }
-  html,body{ margin:0; padding:0; }
+  *{ box-sizing:border-box; min-width:0; }
+  html,body{ margin:0; padding:0; overflow-x:hidden; max-width:100%; }
   html{ scroll-behavior:smooth; }
   body{
     background:
@@ -51,7 +51,7 @@
   @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
 
   /* ---------- Hero ---------- */
-  header.hero{ position:relative; padding:78px 0 46px 0; border-bottom:1px solid var(--rule); overflow:hidden; }
+  header.hero{ position:relative; padding:78px 0 46px 0; border-bottom:1px solid var(--rule); overflow:hidden; max-width:100%; }
   header.hero::before{
     content:''; position:absolute; top:-200px; left:50%; transform:translateX(-50%);
     width:1000px; height:560px; pointer-events:none;
@@ -336,6 +336,7 @@
   .scard .sm{ margin:9px 0 0 0; font-size:12px; color:var(--ink-dim); line-height:1.5; }
   .scard .sstars{ font-size:11px; color:var(--gold); letter-spacing:2px; margin-top:9px; }
   #streamMatrix text{ font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; }
+  #streamMatrixWrap{ overflow-x:auto; }
 
   /* ---------- Sautero stamp + language fab ---------- */
   .chefos-stamp{
