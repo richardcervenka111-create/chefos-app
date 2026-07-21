@@ -23,6 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Python lint (pyflakes)
+        run: |
+          pip3 install --quiet pyflakes
+          python3 -m pyflakes scripts/*.py
       - name: DB migration audit (tenant scoping, RLS, destructive statements)
         run: python3 scripts/audit_db.py
       - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)

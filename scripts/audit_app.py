@@ -170,6 +170,24 @@ def check_db_contract(s, violations):
         violations.append('app/index.html: shared_with_chefos (the real recipes column) is no longer '
                           'referenced — recipe AI-sharing save would hit a non-existent column.')
 
+def check_docs_matrix(s, violations):
+    # The docs-qa.yml robot fleet must cover EXACTLY the documents the app's Internal Docs list
+    # links (one robot per doc — Richard, 21.7.). Without this guard, adding a doc to the app
+    # silently leaves it unguarded, and removing one leaves a ghost robot. (22.7.)
+    wf_path = os.path.join(REPO, '.github', 'workflows', 'docs-qa.yml')
+    if not os.path.exists(wf_path):
+        violations.append('.github/workflows/docs-qa.yml is missing — the Internal-Docs robot fleet is gone.')
+        return
+    m = re.search(r'const INTERNAL_DOCS = \[(.*?)\];', s, re.S)
+    app_docs = set(re.findall(r"file:'([^']+)'", m.group(1))) if m else set()
+    wf = open(wf_path, encoding='utf-8').read()
+    matrix = set(re.findall(r'^\s+-\s+([A-Za-z_/]+\.html)\s*$', wf, re.M))
+    for d in sorted(app_docs - matrix):
+        violations.append(f'docs-qa.yml: app Internal Docs links "{d}" but the robot matrix does not test it — add it to the matrix.')
+    for d in sorted(matrix - app_docs):
+        violations.append(f'docs-qa.yml: matrix tests "{d}" which the app Internal Docs no longer links — remove the ghost robot or re-link the doc.')
+
+
 def main():
     violations = []
     app_index = os.path.join(REPO, 'app', 'index.html')
@@ -189,6 +207,7 @@ def main():
     check_mutation_ratchet(s, violations)
     check_recipe_xss_guard(s, violations)
     check_db_contract(s, violations)
+    check_docs_matrix(s, violations)
 
     if violations:
         print(f'audit_app: {len(violations)} violation(s):')

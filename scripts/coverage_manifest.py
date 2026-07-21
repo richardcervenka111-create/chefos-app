@@ -27,6 +27,8 @@ SWEEP = os.path.join(REPO, 'visual data', 'test_sweep.html')
 #             password/code toggle, safe failing login); no QA secrets, runs 2x/day always
 #   calc    = calc_unit_test.js unit-tests this module's money math (recipe cost, payroll +
 #             shift hours) against verified golden values; runs on every push + deploy gate
+#   docsqa  = docs_qa_test.py robot fleet renders every Internal Docs page 2x/day (nothing
+#             flies, EN/SK toggle in the top bar, no missing data); matrix guarded by audit_app
 #   audit   = audit_app / audit_db static guards apply to its code/migrations (always)
 COVERAGE = {
     'login & gates':      ['smoke', 'gates'],   # gates test covers the exact 20.7 pre-login bugs
@@ -45,6 +47,7 @@ COVERAGE = {
     'admin':              ['smoke', 'tenant'],
     'settings':           ['smoke'],
     'profile':            ['smoke'],
+    'documents':          ['docsqa'],   # the Internal-Docs robot fleet (one robot per doc)
 }
 AUDIT_ALWAYS = 'audit'  # the static auditors protect every module's code/migrations by default
 

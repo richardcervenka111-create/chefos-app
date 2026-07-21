@@ -1,0 +1,41 @@
+name: Tile locks (behavioural guards on locked tiles)
+
+# Sautero tile-lock enforcement (Richard, 22.7.2026 — perfect a tile, then LOCK it forever).
+# Runs the behavioural lock tests (scripts/tile_lock_test.py) against the LIVE app:
+#   * after every successful deploy (workflow_run) — so it tests the NEW version, which a
+#     pre-deploy gate cannot do (the gates would only see the old deployment),
+#   * plus 2x/day on the standing schedule, and on demand.
+# With zero tiles locked the run is a no-op that stays green; the first lock arms it.
+
+on:
+  workflow_run:
+    workflows: ["Deploy app/ to GitHub Pages"]
+    types: [completed]
+  schedule:
+    - cron: '0 6 * * *'    # 06:00 UTC (08:00 Bern)
+    - cron: '0 16 * * *'   # 16:00 UTC (18:00 Bern)
+  workflow_dispatch: {}
+
+jobs:
+  locks:
+    # after a deploy, only run when the deploy actually succeeded
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Playwright
+        run: |
+          pip3 install playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Enforce locked tiles
+        env:
+          SAUTERO_QA_EMAIL: ${{ secrets.SAUTERO_QA_EMAIL }}
+          SAUTERO_QA_PASSWORD: ${{ secrets.SAUTERO_QA_PASSWORD }}
+          SAUTERO_QA_MEMBER_EMAIL: ${{ secrets.SAUTERO_QA_MEMBER_EMAIL }}
+          SAUTERO_QA_MEMBER_PASSWORD: ${{ secrets.SAUTERO_QA_MEMBER_PASSWORD }}
+          SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
+          SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
+        run: python3 scripts/tile_lock_test.py
