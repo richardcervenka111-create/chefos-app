@@ -46,6 +46,17 @@ except ImportError:
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REGISTRY = os.path.join(REPO, 'scripts', 'locked_tiles.json')
 
+# Same tutorial mute as e2e_smoke_test.py — a fresh QA context triggers the first-run tutorial
+# overlay, which sits ON TOP of the tile's buttons and made the first lock run time out on
+# "waiting for element to be visible" (run #7, 22.7.). Pretend every tutorial was seen.
+TUTORIAL_MUTE_SCRIPT = """() => {
+    const orig = Storage.prototype.getItem;
+    Storage.prototype.getItem = function(k){
+        if (k === 'chefos_tutorial_seen' || (typeof k === 'string' && k.indexOf('chefos_vtut_') === 0)) return '1';
+        return orig.call(this, k);
+    };
+}"""
+
 
 def login(page, url, email, password):
     """Shared login helper — the same gate flow the smoke test uses."""
@@ -164,6 +175,7 @@ def main():
         for tile in locked:
             context = browser.new_context()
             page = context.new_page()
+            page.add_init_script(TUTORIAL_MUTE_SCRIPT)
             errors = []
             page.on('pageerror', lambda exc: errors.append(f'[pageerror] {exc}'))
             try:

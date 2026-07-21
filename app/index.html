@@ -2223,7 +2223,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Kitchen data</b> — recipes, ingredients, Check List activity, schedules — needed to run the app's core features.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Working hours</b> — only if you separately opt in under Settings → Share My Hours with Admin. Off by default.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Feedback</b> you choose to send.</p>
-      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Recipe sharing</b> — recipes you create may be added to the shared Sautero recipe library, where other kitchens can cook from them. Your own copy always stays yours to edit or delete; in return, AI help on your recipes is free.</p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Recipe sharing</b> — recipes you create may be added to the shared Sautero recipe library, where other kitchens can cook from them. Your own copy always stays yours to edit or delete; in return, AI help on your recipes is 50% off.</p>
       <p style="margin:0 0 10px 0;">Some features (Chef Assistant, recipe/photo scanning) send the relevant text or image to Anthropic (our AI provider) to work. Everything is hosted on Supabase (our database/hosting provider). Neither sells your data or uses it to train their own models on Sautero's behalf.</p>
       <p style="margin:0 0 10px 0;">Under GDPR (EU) and the Swiss Federal Act on Data Protection, you can ask to see, correct, export, or delete your data at any time — contact your kitchen admin or richard.cervenka@icloud.com.</p>
       <p style="margin:0;">This is a plain-language summary, not the full policy, and not a lawyer-drafted document — see Settings → Privacy & Terms for the complete draft, currently pending legal review.</p>
@@ -22107,7 +22107,7 @@ function openMenuScanRecipeForm(i){
    No = recipe stays private and AI charges credit as normal. null = not asked yet. */
 /* Richard, 22.7.: the per-save/per-AI-use share question is GONE — recipe sharing with the
    Sautero library is consented to once, in the Privacy & Terms gate at sign-up (its summary
-   carries the clause). Sharing stays on by default; AI help on recipes is free accordingly. */
+   carries the clause). Sharing stays on by default; shared-recipe AI is 50% off (billing logic itself still TODO — see Poznámky 22.7.). */
 let _recipeAiShare = true;
 function maybeAskRecipeAiShare(){
   return _recipeAiShare;

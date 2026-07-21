@@ -92,6 +92,11 @@
    updated whenever anything changes. FULLY BILINGUAL — standing rule (Richard, 18.7. večer):
    every doc has the SK/EN toggle and BOTH views must be complete, modals included. */
 const NOTES = [
+  { sec:'do', icon:'💳', badge:{sk:'UROBIŤ (22.7.)',en:'TO DO (Jul 22)'}, badgeCls:'do',
+    t:{sk:'AI pri zdieľaných receptoch: nie zadarmo, ale −50 %', en:'AI on shared recipes: not free — 50% off'},
+    m:{sk:'Rozhodnutie 22.7.: za zdieľanie receptu do Sautero knižnice nie je AI pomoc zadarmo, ale so 50 % zľavou z kreditov. Text v podmienkach pri prihlásení už hovorí „50% off" — treba dorobiť samotné účtovanie.', en:'Decision Jul 22: sharing a recipe into the Sautero library gives 50% OFF AI credits, not free AI. The sign-up terms already say "50% off" — the actual billing logic still needs to be built.'},
+    s:{sk:'Richard, 22.7.2026 · čaká na implementáciu v kreditovom systéme', en:'Richard, Jul 22, 2026 · awaiting implementation in the credit system'},
+    b:{sk:'<b>Stav:</b> podmienky pri prihlásení už sľubujú −50 % (opravené z pôvodného „zadarmo", aby sme nesľubovali viac, než účtujeme). <b>Zostáva:</b> v kreditovom systéme (claude-proxy / ai_usage) zmeniť logiku „zdieľaný recept = 0 kreditov" na „zdieľaný recept = 50 % ceny“ — dnes appka pri zdieľanom recepte neúčtuje nič, čiže do implementácie je používateľ vo výhode, nie my v riziku. Po dorobení over v AI Usage, že sa polovičná cena reálne odpočítava.', en:'<b>State:</b> the sign-up terms already promise −50% (corrected from the original "free", so we never promise more than we charge). <b>Remaining:</b> change the credit logic (claude-proxy / ai_usage) from "shared recipe = 0 credits" to "shared recipe = 50% of price" — today the app charges nothing on a shared recipe, so until implemented the user is ahead, not us at risk. After building it, verify in AI Usage that the half price is actually deducted.'} },
   { sec:'idea', icon:'🎬', badge:{sk:'NÁPAD (22.7.)',en:'IDEA (Jul 22)'}, badgeCls:'idea',
     t:{sk:'AI generovanie fotky/videa k receptu', en:'AI photo/video generation for recipes'},
     m:{sk:'Ku každému receptu vygenerovať ilustračnú fotku jedla (prípadne krátke video postupu). Zapísané ako nápad — zatiaľ sa nestavia.', en:'Generate an illustrative dish photo (or a short method video) for each recipe. Logged as an idea — not being built yet.'},
