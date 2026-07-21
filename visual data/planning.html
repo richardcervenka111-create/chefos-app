@@ -194,15 +194,15 @@
    Add a new day by pushing one object to DAYS; week/month grouping
    is computed automatically. Keep TOP3 current each session.
    ============================================================ */
-const GENERATED = '2026-07-18';
+const GENERATED = '2026-07-21';
 
 const TOP3 = {
   day: {
-    range: 'Nedeľa 19. 7. 2026',
+    range: 'Pondelok 21. 7. 2026',
     items: [
-      { text: '🔍 KOMPLETNÁ KONTROLA VŠETKÝCH FUNKCIÍ s Richardom — checklist pripravený (docs/FEATURE_VERIFICATION_CHECKLIST.md, 15 sekcií × 4 perspektívy), ideme hneď po zobudení', text_en: '🔍 COMPLETE VERIFICATION OF EVERY FEATURE with Richard — checklist ready (docs/FEATURE_VERIFICATION_CHECKLIST.md, 15 sections × 4 perspectives), starting the moment he wakes up', status: 'progress' },
-      { text: '🔐 Dokončiť personal/company split: zoznamy ingrediencií + projekty receptov (rovnaký vzor ako db/156/159) — ďalší atomický krok po kontrole', text_en: '🔐 Finish the personal/company split: ingredient lists + recipe projects (same pattern as db/156/159) — the next atomic step after the sweep', status: 'planned' },
-      { text: '📄 Nebenerwerb + Einzelfirma — TERMÍN ZAJTRA 20. 7. (oba len Richard, drafty hotové vo VYRIEŠIŤ DO 20.7.2026/)', text_en: '📄 Side-business consent + sole proprietorship — DUE TOMORROW 20 Jul (both Richard-only, drafts ready in VYRIEŠIŤ DO 20.7.2026/)', status: 'planned' },
+      { text: '🏢 Company-admin onboarding DOTIAHNUTÝ end-to-end: offer→accept→pomenuj si reštauráciu, kontrolná otázka pri odobratí, značkový e-mail cez notify-company-offer (opravený chýbajúci RESEND_API_KEY) — Richard potvrdil „fungujeme!!!"', text_en: '🏢 Company-admin onboarding finished end-to-end: offer→accept→name your restaurant, the control question on removal, the branded email via notify-company-offer (fixed the missing RESEND_API_KEY) — Richard confirmed "we\'re live!!!"', status: 'done' },
+      { text: '🔍 General audit + regression: audit_app aj audit_db clean, company-admin parity overená (UI aj RLS), potvrdené že reset odobratého admina nič nemaže, opravený bilingválny off-by-one v status.html', text_en: '🔍 General audit + regression: audit_app and audit_db both clean, company-admin parity verified (UI and RLS), confirmed a removed admin\'s reset deletes nothing, fixed a bilingual off-by-one in status.html', status: 'done' },
+      { text: '📄 Nebenerwerb + Einzelfirma — príjmové blokátory, oba len Richard (drafty hotové vo VYRIEŠIŤ DO 20.7.2026/)', text_en: '📄 Side-business consent + sole proprietorship — revenue blockers, both Richard-only (drafts ready in VYRIEŠIŤ DO 20.7.2026/)', status: 'planned' },
     ]
   },
   week: {
@@ -483,6 +483,22 @@ const DAYS = [
     ],
     planned: 'Hneď po Richardovom zobudení: kompletná kontrola všetkých funkcií podľa checklistu, kus po kuse. Potom: personal split zoznamov (ingredient_lists + recipe_lists), Fáza 2.2 ikon, prekopanie Značky & vízie s infografikami (t176), Nebenerwerb + Einzelfirma (termín 20.7.!).'
   },
+  {
+    date: '2026-07-21',
+    headline: '🏢 Company-admin onboarding dotiahnutý end-to-end + značkový e-mail sfunkčnený + general audit s regression testom',
+    accomplished: [
+      '🏢 Onboarding company admina prerobený na OFFER-ACCEPT: udelenie Company Admin cez Admin Directory vytvorí PONUKU (e-mail + notifikácia v jeho profile) — neprehodí ho ticho; on ju sám prijme a až potom si pomenuje vlastnú company/reštauráciu. Osobné dáta ostávajú vždy súkromné a nedotknuté (db/164 super-admin update profilov, db/165 premenovanie vlastnej kuchyne, db/167 pending_company_invite).',
+      '🔀 Pri odobratí funkcie kontrolná otázka „nechať v tíme / odstrániť z company" — jedným krokom reset na solo účet; overené naživo (predtým nevyskočila, lebo Richardov prehliadač servíroval starú cache).',
+      '📧 Cesta A: značkový e-mail „You\'re now a Company Admin" cez novú edge funkciu notify-company-offer (Resend, odosielateľ noreply@sautero.ch, magic link). Príčina, prečo predtým e-mail nechodil: v projekte CHÝBAL secret RESEND_API_KEY (funkcia padala na HTTP 500 ešte pred odoslaním) — diagnostikované z Invocations logu, Richard doplnil kľúč, e-mail potvrdený „fungujeme!!!“.',
+      '📊 Company Report viditeľný a funkčný pre KAŽDÉHO company admina (db/168 pridal company_admin do RLS na time_entries; premenované z Kitchen Report).',
+      '🪪 Personal-kitchen-name label v profile pod e-mailom (db/166) + tématické in-app dialógy v Sautero identite namiesto natívnych okien (admin flow).',
+      '🔴→✅ Opravené tiché zlyhanie admin save: 0-riadkový RLS zápis PostgREST hlásil ako úspech („Saved“, no nič sa neuložilo) — db/164 pridal super-admin UPDATE policy + appka teraz .select()-uje a hlási prázdny výsledok nahlas.',
+      '🔍 GENERAL AUDIT + REGRESSION: audit_app aj audit_db clean (168 migrácií, 49 tabuliek, všetko RLS+policies); build_docs up-to-date; app/index.html identický s pushnutou živou verziou. Overená company-admin parity — každé pravidlo pôvodne pre „kitchen admin“ platí aj pre „company admin“ naprieč UI gate-mi (Admin tile, Team Members, Add Team Member, AI Usage, Company Report, projekty, prep zámky) aj RLS (db/145 join-code, db/142 AI usage, db/168 reporty, db/165 rename, db/164 profily). Aditívne zosúladený „Company Admin preset“ s kanonickým claim_company_admin balíkom (doplnený view_kitchen_reports).',
+      '🛡️ Potvrdená bezpečnosť dát: reset odobratého admina do čerstvej personal kuchyne NIČ nemaže — ensure_personal_kitchen je čisto ne-deštruktívne, 31 cascade constraintov spustí len zmazanie rodičovského riadka (čo tento tok nerobí), osobné dáta sú created_by-scoped a prežijú.',
+      '🌐 Opravený bilingválny off-by-one v status.html (69 SK vs 68 EN tiketov — celý anglický Done stĺpec bol posunutý o jeden); doplnený chýbajúci EN záznam, teraz 69/69.',
+    ],
+    planned: 'Bod 4 z Richardovho zoznamu: prerobiť VŠETKY zvyšné natívne alert/confirm okná (~174) do Sautero identity — počká na spoločné prejdenie. Ďalej: personal split zoznamov (ingredient_lists + recipe_lists), Nebenerwerb + Einzelfirma (príjmové blokátory).'
+  },
 ];
 /* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
    is the key); the forEach glues headline_en/accomplished_en/planned_en onto each entry.
@@ -679,6 +695,17 @@ const DAYS_EN = [
     '🔴→✅ Richard\'s evening privacy reports: projects/lists visible across accounts and modes — projects fixed (db/159), ingredient/recipe lists = the next step; the "missing" AI Details + Invoice Scan on the Sautero shelf = a deliberate 18 Jul hiding, restored for admins',
     '🔍 docs/FEATURE_VERIFICATION_CHECKLIST.md prepared — 15 sections, 4 perspectives (Head Admin/member × personal/company), incl. the known gaps and a note to decide events per-mode',
   ], p:'The moment Richard wakes up: the complete feature verification, piece by piece, per the checklist. Then: the personal split of lists (ingredient_lists + recipe_lists), icons step 2.2, the Brand & Vision overhaul with infographics (t176), the side-business consent + sole proprietorship (due 20 Jul!).' },
+  { h:'🏢 Company-admin onboarding finished end-to-end + the branded email made to work + a general audit with regression testing', a:[
+    '🏢 New company-admin onboarding reworked into an OFFER-ACCEPT flow: granting Company Admin from the Admin Directory creates an OFFER (an email + a notification in their own profile) — it doesn\'t silently move them; they accept it themselves and only then name their own company/restaurant. Personal data always stays private and untouched (db/164 super-admin profile update, db/165 renaming your own kitchen, db/167 pending_company_invite).',
+    '🔀 Turning the role off asks a control question "keep in the team / remove from the company" — a one-step reset to a solo account; verified live (it hadn\'t appeared before because Richard\'s browser was serving a stale cache).',
+    '📧 Path A: the branded "You\'re now a Company Admin" email via the new notify-company-offer edge function (Resend, sender noreply@sautero.ch, a magic link). Why the email hadn\'t arrived before: the project was MISSING the RESEND_API_KEY secret (the function returned HTTP 500 before sending) — diagnosed from the Invocations log, Richard added the key, the email confirmed "we\'re live!!!".',
+    '📊 The Company Report visible and working for EVERY company admin (db/168 added company_admin to the time_entries RLS; renamed from Kitchen Report).',
+    '🪪 A personal-kitchen-name label in the profile under the email (db/166) + themed in-app dialogs in the Sautero identity instead of native ones (admin flow).',
+    '🔴→✅ Fixed the silent admin-save failure: a 0-row RLS write was reported as success by PostgREST ("Saved" while nothing persisted) — db/164 added the super-admin UPDATE policy + the app now .select()s and reports an empty result loudly.',
+    '🔍 GENERAL AUDIT + REGRESSION: audit_app and audit_db both clean (168 migrations, 49 tables, all RLS+policies); build_docs up to date; app/index.html identical to the pushed live version. Company-admin parity verified — every rule originally for "kitchen admin" also holds for "company admin" across UI gates (Admin tile, Team Members, Add Team Member, AI Usage, Company Report, projects, prep locks) and RLS (db/145 join-code, db/142 AI usage, db/168 reports, db/165 rename, db/164 profiles). Additively aligned the "Company Admin preset" with the canonical claim_company_admin bundle (added view_kitchen_reports).',
+    '🛡️ Data safety confirmed: resetting a removed admin into a fresh personal kitchen deletes NOTHING — ensure_personal_kitchen is purely non-destructive, the 31 cascade constraints only fire on a parent-row delete (which this flow never does), and personal data is created_by-scoped so it survives.',
+    '🌐 Fixed a bilingual off-by-one in status.html (69 SK vs 68 EN tickets — the whole English Done column was shifted by one); added the missing EN entry, now 69/69.',
+  ], p:'Point 4 from Richard\'s list: rework ALL remaining native alert/confirm dialogs (~174) into the Sautero identity — waiting to go through them together. Next: the personal split of lists (ingredient_lists + recipe_lists), side-business consent + sole proprietorship (revenue blockers).' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
 

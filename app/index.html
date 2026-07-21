@@ -12145,7 +12145,7 @@ function grantPresetFromEditor(kind){
     // Company Admin preset (Richard, 21.7.): this must set company_admin — that's the perm that
     // makes them a company's main admin AND triggers the onboarding offer on Save. Without it the
     // preset only handed out helper perms and nothing happened. Bundle the useful ones too.
-    _editAdminPermsDraft.perms = { ..._editAdminPermsDraft.perms, company_admin:true, manage_invites:true, manage_team:true, language_audit:true };
+    _editAdminPermsDraft.perms = { ..._editAdminPermsDraft.perms, company_admin:true, manage_invites:true, manage_team:true, view_kitchen_reports:true, language_audit:true };
   }
   document.getElementById('editAdminPermsStatus').textContent = kind === 'head'
     ? 'Head Admin set in the draft — press Save changes to apply.'
