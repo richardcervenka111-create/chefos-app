@@ -484,8 +484,25 @@ const DAYS = [
     planned: 'Hneď po Richardovom zobudení: kompletná kontrola všetkých funkcií podľa checklistu, kus po kuse. Potom: personal split zoznamov (ingredient_lists + recipe_lists), Fáza 2.2 ikon, prekopanie Značky & vízie s infografikami (t176), Nebenerwerb + Einzelfirma (termín 20.7.!).'
   },
   {
+    date: '2026-07-20',
+    headline: '📱 Deň odolnosti a prihlásenia: appka beží aj na starých telefónoch a pri výpadku CDN, opravené prihlasovacie brány, prvý E2E smoke test „ako v reálnych SaaS firmách", a štart company-admin onboardingu',
+    accomplished: [
+      '🌐 Appka prestala závisieť na cudzích CDN: Supabase aj jsQR sú teraz vendorované lokálne — pri výpadku Supabase CDN už nenastane totálny lockout (nález z Huawei/Chrome); + 20s timeout na prihlásení, nikdy nezamrzne na „Signing in…".',
+      '🕸️ Podpora starých prehliadačov: Supabase pinnutý na v2.86.0 (posledný build bezpečný pre Chrome 83), aby appka bežala aj na starších zariadeniach.',
+      '📲 Android/Huawei klávesnica prekrývala polia vo formulároch — vyriešené cez visualViewport lift + interactive-widget=resizes-content (5 pokusov, diagnostika z fotky sautero_android zariadenia).',
+      '🚪 Prihlasovacie brány: „Already have an account? Sign in" na coming-soon stene, login cez ňu ide default na heslo (nie kód), a opravené odkazy na obnovu hesla (appka ich predtým vôbec neriešila — len ťa prihlásili).',
+      '🧪 Prvý E2E smoke test (Richard: „ako v reálnych SaaS firmách testujú") — golden-path naprieč rolami (solo / člen / kitchen admin / head admin), overuje že sa dlaždica otvorí a nič nespadne (JS chyba / 5xx); + admin viewer Error Logs.',
+      '🎭 HACCP demo mód rozšírený na každú dlaždicu (Richard: „pridaj všetky dlaždice"), cez prepínač v hornej lište pre každú kategóriu.',
+      '🎓 Opravené tutoriály, čo viseli na zlej obrazovke (HACCP ukazoval návod pre Ingrediencie).',
+      '🔒 Invite-token dotazy strážené kontrolou tvaru UUID (odolnosť voči nezmyselným tokenom).',
+      '🏢 Štart company-admin onboardingu prerobeného na offer-accept (db/164 super-admin update, db/165 premenovanie vlastnej kuchyne) — dokončené 21.7.',
+      '🌐 test_sweep.html: kompletný anglický preklad + oprava chybného tvrdenia „13 dlaždíc".',
+    ],
+    planned: 'Dokončiť company-admin onboarding end-to-end + značkový e-mail; general audit s regression testom.'
+  },
+  {
     date: '2026-07-21',
-    headline: '🏢 Company-admin onboarding dotiahnutý end-to-end + značkový e-mail sfunkčnený + general audit s regression testom',
+    headline: '🏢 Company-admin onboarding dotiahnutý end-to-end + značkový e-mail sfunkčnený + general audit — a k tomu opravené rebrand-následky a postavená celá SaaS-testovacia vrstva (health report, roboti, guardy)',
     accomplished: [
       '🏢 Onboarding company admina prerobený na OFFER-ACCEPT: udelenie Company Admin cez Admin Directory vytvorí PONUKU (e-mail + notifikácia v jeho profile) — neprehodí ho ticho; on ju sám prijme a až potom si pomenuje vlastnú company/reštauráciu. Osobné dáta ostávajú vždy súkromné a nedotknuté (db/164 super-admin update profilov, db/165 premenovanie vlastnej kuchyne, db/167 pending_company_invite).',
       '🔀 Pri odobratí funkcie kontrolná otázka „nechať v tíme / odstrániť z company" — jedným krokom reset na solo účet; overené naživo (predtým nevyskočila, lebo Richardov prehliadač servíroval starú cache).',
@@ -496,6 +513,11 @@ const DAYS = [
       '🔍 GENERAL AUDIT + REGRESSION: audit_app aj audit_db clean (168 migrácií, 49 tabuliek, všetko RLS+policies); build_docs up-to-date; app/index.html identický s pushnutou živou verziou. Overená company-admin parity — každé pravidlo pôvodne pre „kitchen admin“ platí aj pre „company admin“ naprieč UI gate-mi (Admin tile, Team Members, Add Team Member, AI Usage, Company Report, projekty, prep zámky) aj RLS (db/145 join-code, db/142 AI usage, db/168 reporty, db/165 rename, db/164 profily). Aditívne zosúladený „Company Admin preset“ s kanonickým claim_company_admin balíkom (doplnený view_kitchen_reports).',
       '🛡️ Potvrdená bezpečnosť dát: reset odobratého admina do čerstvej personal kuchyne NIČ nemaže — ensure_personal_kitchen je čisto ne-deštruktívne, 31 cascade constraintov spustí len zmazanie rodičovského riadka (čo tento tok nerobí), osobné dáta sú created_by-scoped a prežijú.',
       '🌐 Opravený bilingválny off-by-one v status.html (69 SK vs 68 EN tiketov — celý anglický Done stĺpec bol posunutý o jeden); doplnený chýbajúci EN záznam, teraz 69/69.',
+      '🛡️ NEČAKANÝ NÁLEZ: rebrand chefos→sautero potichu premenoval aj ŽIVÉ DB identifikátory — recepty sa neukladali (stĺpec shared_with_chefos), poličky padali (hodnota shelf \'chefos\'), zdieľanie cez AI (\'recipe_chefos\' v appke aj edge funkcii) a reálny Proton účet stratil prístup (chefos@protonmail.com v allowliste). Všetky 4 vrátené a ZAMKNUTÉ guardom check_db_contract — tá istá chyba už potichu neprejde.',
+      '🤖 Postavená celá SaaS-testovacia vrstva: money-path unit testy (cena receptu, výplatné + rozvrhové hodiny) pri každom commite, credential-free test prihlasovacích brán 2×/deň, únikový test medzi kuchyňami rozšírený 21→36 tabuliek + audit ktorý zlyhá keď nová tenant tabuľka nemá test, coverage manifest nad test_sweep.',
+      '🩺 Health Report (architektúra · bezpečnosť · dokumentácia · technický dlh = 90/100 A) generovaný pri každom nasadení + flotila 11 docs-robotov (1 na dokument, 2×/deň): nič nelieta, EN/SK prepínač v lište, žiadne chýbajúce dáta.',
+      '⏱️ Odpracované hodiny sa teraz zapisujú z gitu do všetkých dokumentov automaticky (koniec ručného rozchádzania — doplnené chýbajúce 20.7=17.3h a 21.7) + guard čerstvosti, ktorý sám označí zastarané denníkové dokumenty.',
+      '🧹 Investor deck + Manifesto + Visual Guide (Značka & vízia) prekopané na investorskú úroveň; automation.html doplnený o celú novú CI vrstvu; opravený mŕtvy kód (eventDateKey) a rebrand-preklep v histórii názvu.',
     ],
     planned: 'Bod 4 z Richardovho zoznamu: prerobiť VŠETKY zvyšné natívne alert/confirm okná (~174) do Sautero identity — počká na spoločné prejdenie. Ďalej: personal split zoznamov (ingredient_lists + recipe_lists), Nebenerwerb + Einzelfirma (príjmové blokátory).'
   },
@@ -695,7 +717,19 @@ const DAYS_EN = [
     '🔴→✅ Richard\'s evening privacy reports: projects/lists visible across accounts and modes — projects fixed (db/159), ingredient/recipe lists = the next step; the "missing" AI Details + Invoice Scan on the Sautero shelf = a deliberate 18 Jul hiding, restored for admins',
     '🔍 docs/FEATURE_VERIFICATION_CHECKLIST.md prepared — 15 sections, 4 perspectives (Head Admin/member × personal/company), incl. the known gaps and a note to decide events per-mode',
   ], p:'The moment Richard wakes up: the complete feature verification, piece by piece, per the checklist. Then: the personal split of lists (ingredient_lists + recipe_lists), icons step 2.2, the Brand & Vision overhaul with infographics (t176), the side-business consent + sole proprietorship (due 20 Jul!).' },
-  { h:'🏢 Company-admin onboarding finished end-to-end + the branded email made to work + a general audit with regression testing', a:[
+  { h:'📱 A day of resilience and sign-in: the app runs on old phones and through a CDN outage, the login gates fixed, the first E2E smoke test "like real SaaS companies", and the company-admin onboarding started', a:[
+    '🌐 The app stopped depending on third-party CDNs: both Supabase and jsQR are now vendored locally — a Supabase CDN outage no longer causes a total lockout (found on Huawei/Chrome); + a 20s sign-in timeout, never hangs on "Signing in…".',
+    '🕸️ Old-browser support: Supabase pinned to v2.86.0 (the last Chrome-83-safe build) so the app runs on older devices too.',
+    '📲 The Android/Huawei keyboard was covering form fields — fixed via a visualViewport lift + interactive-widget=resizes-content (5 attempts, diagnosed from a photo of the sautero_android device).',
+    '🚪 Login gates: "Already have an account? Sign in" on the coming-soon wall, signing in through it defaults to a password (not a code), and fixed password-recovery links (the app had zero handling before — they just logged you in).',
+    '🧪 The first E2E smoke test (Richard: "the way real SaaS companies test") — a golden path across roles (solo / member / kitchen admin / head admin), asserting a tile opens and nothing breaks (JS error / 5xx); + an Error Logs admin viewer.',
+    '🎭 HACCP demo mode extended to every tile (Richard: "add all the tiles"), via a top-bar toggle for each category.',
+    '🎓 Fixed tutorials lingering on the wrong screen (HACCP was showing the Ingredients guide).',
+    '🔒 Invite-token lookups guarded by a UUID-shape check (resilience against malformed tokens).',
+    '🏢 Started the company-admin onboarding reworked into offer-accept (db/164 super-admin update, db/165 renaming your own kitchen) — finished on 21 Jul.',
+    '🌐 test_sweep.html: a full English translation + fixed the wrong "13 tiles" claim.',
+  ], p:'Finish the company-admin onboarding end-to-end + the branded email; a general audit with regression testing.' },
+  { h:'🏢 Company-admin onboarding finished end-to-end + the branded email made to work + a general audit — plus the rebrand fallout fixed and a whole SaaS testing layer built (health report, robots, guards)', a:[
     '🏢 New company-admin onboarding reworked into an OFFER-ACCEPT flow: granting Company Admin from the Admin Directory creates an OFFER (an email + a notification in their own profile) — it doesn\'t silently move them; they accept it themselves and only then name their own company/restaurant. Personal data always stays private and untouched (db/164 super-admin profile update, db/165 renaming your own kitchen, db/167 pending_company_invite).',
     '🔀 Turning the role off asks a control question "keep in the team / remove from the company" — a one-step reset to a solo account; verified live (it hadn\'t appeared before because Richard\'s browser was serving a stale cache).',
     '📧 Path A: the branded "You\'re now a Company Admin" email via the new notify-company-offer edge function (Resend, sender noreply@sautero.ch, a magic link). Why the email hadn\'t arrived before: the project was MISSING the RESEND_API_KEY secret (the function returned HTTP 500 before sending) — diagnosed from the Invocations log, Richard added the key, the email confirmed "we\'re live!!!".',
@@ -705,6 +739,11 @@ const DAYS_EN = [
     '🔍 GENERAL AUDIT + REGRESSION: audit_app and audit_db both clean (168 migrations, 49 tables, all RLS+policies); build_docs up to date; app/index.html identical to the pushed live version. Company-admin parity verified — every rule originally for "kitchen admin" also holds for "company admin" across UI gates (Admin tile, Team Members, Add Team Member, AI Usage, Company Report, projects, prep locks) and RLS (db/145 join-code, db/142 AI usage, db/168 reports, db/165 rename, db/164 profiles). Additively aligned the "Company Admin preset" with the canonical claim_company_admin bundle (added view_kitchen_reports).',
     '🛡️ Data safety confirmed: resetting a removed admin into a fresh personal kitchen deletes NOTHING — ensure_personal_kitchen is purely non-destructive, the 31 cascade constraints only fire on a parent-row delete (which this flow never does), and personal data is created_by-scoped so it survives.',
     '🌐 Fixed a bilingual off-by-one in status.html (69 SK vs 68 EN tickets — the whole English Done column was shifted by one); added the missing EN entry, now 69/69.',
+    '🛡️ UNEXPECTED FIND: the chefos→sautero rebrand had silently renamed LIVE DB identifiers too — recipes wouldn\'t save (column shared_with_chefos), shelves broke (value shelf \'chefos\'), AI sharing (\'recipe_chefos\' in the app and the edge function) and a real Proton account lost access (chefos@protonmail.com in an allowlist). All 4 reverted and LOCKED by the check_db_contract guard — the same mistake can\'t silently ship again.',
+    '🤖 Built a whole SaaS-style testing layer: money-path unit tests (recipe cost, payroll + shift hours) on every commit, a credential-free login-gates test 2×/day, the cross-kitchen leak test expanded 21→36 tables + an audit that fails when a new tenant table has no test, a coverage manifest over test_sweep.',
+    '🩺 A Health Report (architecture · security · documentation · technical debt = 90/100 A) generated on every deploy + a fleet of 11 docs-robots (one per document, 2×/day): nothing flies, the EN/SK toggle in the top bar, no missing data.',
+    '⏱️ Worked hours are now written from git into every document automatically (no more manual drift — backfilled the missing 20 Jul = 17.3h and 21 Jul) + a freshness guard that flags stale day-log docs by itself.',
+    '🧹 The investor deck + Manifesto + Visual Guide (Brand & Vision) rebuilt to investor grade; automation.html backfilled with the whole new CI layer; dead code (eventDateKey) and a rebrand typo in the naming history fixed.',
   ], p:'Point 4 from Richard\'s list: rework ALL remaining native alert/confirm dialogs (~174) into the Sautero identity — waiting to go through them together. Next: the personal split of lists (ingredient_lists + recipe_lists), side-business consent + sole proprietorship (revenue blockers).' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
