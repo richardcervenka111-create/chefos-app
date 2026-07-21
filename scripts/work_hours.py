@@ -109,10 +109,16 @@ def cmd_check():
     data, _ = full_per_day()
     problems = []
     files = source_files()
+    # TODAY is always in motion: the hook writes hours BEFORE the commit exists, then CI
+    # recomputes WITH that commit — today's number legitimately differs by the last session's
+    # tail every single push. Exact-matching it made the guard fail on its own commit (CI run
+    # #299). So: every day must be PRESENT, past (finished) days must match exactly, and
+    # today only has to be present — tomorrow it becomes a past day and is enforced exactly.
+    today = datetime.datetime.now(BERN).strftime('%Y-%m-%d')
     for f in files:
         have = parse_hours(open(f, encoding='utf-8').read())
         missing = [d for d in data if d not in have]
-        wrong = [d for d in data if d in have and abs(have[d] - data[d]) > 0.05]
+        wrong = [d for d in data if d in have and d != today and abs(have[d] - data[d]) > 0.05]
         if missing or wrong:
             problems.append(f'{os.path.basename(f)}: missing {missing or "-"}, wrong {wrong or "-"}')
     if problems:

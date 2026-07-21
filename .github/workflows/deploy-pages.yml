@@ -27,9 +27,9 @@ jobs:
         run: python3 scripts/audit_db.py
       - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)
         run: python3 scripts/audit_app.py
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Calculation unit tests (recipe cost, payroll hours, shift hours — money paths)
         run: node scripts/calc_unit_test.js
 
