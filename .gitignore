@@ -23,3 +23,6 @@ backups/
 # Weekly working snapshots (large generated artifacts, per the Sunday automation)
 docs/snapshots/
 _archive_local/
+
+# Claude Code personal settings (local only)
+.claude/settings.local.json
