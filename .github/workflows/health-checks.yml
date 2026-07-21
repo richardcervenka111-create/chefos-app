@@ -16,6 +16,10 @@ jobs:
                            # history, not the default shallow (1-commit) clone, or it computes
                            # wrong hours and the guard becomes meaningless. (Found 21.7 answering
                            # "how do we know the robots have current data".)
+      - name: Python lint (pyflakes — catches undefined names before the Playwright robots do)
+        run: |
+          pip3 install --quiet pyflakes
+          python3 -m pyflakes scripts/*.py
       - name: DB migration audit (tenant scoping, RLS, destructive statements)
         run: python3 scripts/audit_db.py
       - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)

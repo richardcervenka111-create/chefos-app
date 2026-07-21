@@ -114,6 +114,7 @@ def run(base, doc, headed):
 
         # 2) toggle + 3) data — assessed at desktop (last render), values already in r
         tog = r['toggle']
+        notes = []
         if not tog['found']:
             problems.append('NO EN/SK TOGGLE: this doc has no language switch — it must have one in the top bar.')
         else:

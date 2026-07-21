@@ -7,6 +7,11 @@ set -e
 echo "pre-commit: running Sautero auditors…"
 python3 scripts/audit_db.py
 python3 scripts/audit_app.py
+# Static Python lint — catches undefined names (a NameError shipped once: docs_qa_test.py
+# 'notes', 21.7.) before they reach CI/the robots. Only when pyflakes is installed.
+if python3 -c "import pyflakes" 2>/dev/null; then
+  python3 -m pyflakes scripts/*.py
+fi
 # Money-path calc unit tests — pure, fast. Only when node is present (there is no local JS
 # engine on Richard's machine); CI (health-checks + deploy gate) always runs them regardless.
 if command -v node >/dev/null 2>&1; then

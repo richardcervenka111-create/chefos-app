@@ -224,8 +224,6 @@ def documentation_audit():
             if ('data-en' in s or 'data-sk' in s or 'MSK' in s or 'applyLang' in s):
                 bilingual += 1
 
-    # MEMORY.md pointers resolve to real files
-    mem_dir = os.path.join(REPO, '..', '..', '.claude', 'projects')  # not in repo; skip if absent
     # build_docs sources exist
     bd_path = os.path.join(REPO, 'scripts', 'build_docs.py')
     missing_sources = []
@@ -278,7 +276,6 @@ def documentation_audit():
 # ---------------------------------------------------------------- Technical Debt ----
 def techdebt_audit():
     checks = []
-    todos = re.findall(r'(?://|<!--|/\*)\s*(TODO|FIXME|HACK|XXX)\b[:\s].{0,80}', APP)
     todo_n = len(re.findall(r'\b(?:TODO|FIXME|HACK|XXX)\b', APP))
     consolelog = APP.count('console.log')
     debugger = APP.count('debugger')

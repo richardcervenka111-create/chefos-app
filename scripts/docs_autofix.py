@@ -23,7 +23,6 @@ present + current) and standalone.
   python3 scripts/docs_autofix.py --check    # report only, exit 1 if any stamp is missing/stale
 """
 import os
-import re
 import sys
 import glob
 import subprocess
