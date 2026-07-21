@@ -149,6 +149,27 @@ def check_recipe_xss_guard(s, violations):
     elif 'sanitizeForeignIngredient(' not in re.sub(r'function sanitizeForeignIngredient\(ing\)\s*\{.*?\n\}', '', s, flags=re.S):
         violations.append('app/index.html: sanitizeForeignIngredient() is defined but never called — foreign (Public-shelf) ingredients would reach innerHTML unescaped (stored XSS).')
 
+def check_db_contract(s, violations):
+    # 2026-07-21 incident: a blind "chefos"->"sautero" rebrand renamed LIVE DB identifiers in the
+    # app — the recipes.shared_with_chefos column, the chefos_master_id column, the 'chefos' shelf
+    # value, the 'recipe_chefos' share grant. Production still uses the chefos names, so recipe
+    # save + shelf filtering broke (schema-cache "column not found"). These are DB CONTRACT: they
+    # must match the migrations / live schema, not the brand. Renaming them needs a coordinated
+    # migration, never a text replace. This guard fails if the mangled (non-existent) variants
+    # reappear, so the same rebrand mistake can never silently ship again.
+    GHOST_DB_TOKENS = ['shared_with_sautero', 'sautero_master_id', "'recipe_sautero'", "'sautero'"]
+    for tok in GHOST_DB_TOKENS:
+        if tok in s:
+            violations.append(
+                f'app/index.html: references "{tok}" — that DB identifier/value does not exist in the '
+                f'live schema, which uses the chefos-named equivalent (shared_with_chefos / '
+                f'chefos_master_id / \'recipe_chefos\' / shelf_scope \'chefos\'). These are DB contract, '
+                f'not brand — change them only via a coordinated migration, never a text replace. '
+                f'(Regression guard for the 21.7 rebrand incident.)')
+    if 'shared_with_chefos' not in s:
+        violations.append('app/index.html: shared_with_chefos (the real recipes column) is no longer '
+                          'referenced — recipe AI-sharing save would hit a non-existent column.')
+
 def main():
     violations = []
     app_index = os.path.join(REPO, 'app', 'index.html')
@@ -167,6 +188,7 @@ def main():
     check_ghost_tables(s, violations)
     check_mutation_ratchet(s, violations)
     check_recipe_xss_guard(s, violations)
+    check_db_contract(s, violations)
 
     if violations:
         print(f'audit_app: {len(violations)} violation(s):')

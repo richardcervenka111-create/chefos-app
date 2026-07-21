@@ -8812,7 +8812,7 @@ function krRenderRecipes(){
   const company = krDemoActive() ? krDemoCompanyRecipes() : allRecipes().filter(r=>r.createdBy && !r.isPersonal && r.kitchenId === currentKitchenId);
   if(_krShelf === null){
     krSectionShell('📖 Recipes', `
-      <div class="task-row" style="cursor:pointer;" onclick="_krShelf='sautero'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
+      <div class="task-row" style="cursor:pointer;" onclick="_krShelf='chefos'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
         <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">✨ Sautero</div><div class="meta">${sautero.length} recipes — the built-in library</div></div><div class="chevron">›</div></div>
       </div>
       <div class="task-row" style="cursor:pointer;" onclick="_krShelf='company'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
@@ -8821,8 +8821,8 @@ function krRenderRecipes(){
     `);
     return;
   }
-  const recipes = _krShelf === 'sautero' ? sautero : company;
-  const shelfName = _krShelf === 'sautero' ? '✨ Sautero' : '🏢 Company Recipes';
+  const recipes = _krShelf === 'chefos' ? sautero : company;
+  const shelfName = _krShelf === 'chefos' ? '✨ Sautero' : '🏢 Company Recipes';
   const withTimes = recipes.filter(r=>(r.time && (r.time.active || r.time.passive)) || r.productionTime).length;
   const withMethod = recipes.filter(r=>(r.sections||[]).some(s=>s.type==='steps' && s.items && s.items.length)).length;
   const withCost = recipes.filter(r=>r.cost && (r.cost.total != null || r.cost.perKg != null)).length;
@@ -10487,7 +10487,7 @@ async function callClaudeAPI(body, opts){
   if(!freeGrant && !currentAiTestingMode && currentAccountType === 'personal' && !(currentAiCreditChf > 0)){
     throw new Error('Your AI credit is used up. Ask your admin to top it up (Admin Directory).');
   }
-  if(freeGrant) body = { ...body, _share_grant: 'recipe_sautero' };
+  if(freeGrant) body = { ...body, _share_grant: 'recipe_chefos' };
   const { data, error } = await sb.functions.invoke('claude-proxy', { body });
   if(error){
     let detail = error.message || 'Anthropic API error';
@@ -10752,7 +10752,7 @@ function setRecipeIngredientSource(src){
   buildIngredientLookup();
 }
 function ingredientMatchesSource(ing, srcId){
-  if(srcId === 'sautero') return !ing.is_personal;
+  if(srcId === 'chefos') return !ing.is_personal;
   if(srcId === 'mine') return !!ing.is_personal && !ing.list_id;
   return ing.list_id === srcId;
 }
@@ -11355,7 +11355,7 @@ function diffTextClass(d){
 let activeCategory = "Favorites";
 /* Recipe source filter (bod 5, 15.7. — extends the earlier 2-way AI Playground toggle into 3):
    'mine' = recipes YOU personally added (r.createdBy === currentUser.id), excluding AI ones.
-   'sautero' = anything tagged 'AI-generated' (Ask Chef's Assistant, Chef Challenge, Menu Scan
+   'chefos' = anything tagged 'AI-generated' (Ask Chef's Assistant, Chef Challenge, Menu Scan
    output) — same set the old "AI Playground" option showed, just relabeled. 'company' = every
    non-AI recipe in the kitchen regardless of who added it (the whole shared recipe book).
    Reset to 'mine' on every showList() open, same reasoning as activeCategory above. */
@@ -11371,7 +11371,7 @@ let CUSTOM_RECIPE_CATEGORIES = [];
 // Recipes/Company Recipes/every project).
 let _categoryIconRows = [];
 function refreshCustomCategoryState(){
-  const rows = _categoryIconRows.filter(r => (r.shelf_scope || 'sautero') === recipeSourceFilter);
+  const rows = _categoryIconRows.filter(r => (r.shelf_scope || 'chefos') === recipeSourceFilter);
   _customCategoryIcons = {};
   rows.forEach(r=>{ _customCategoryIcons[r.category] = r.icon; });
   CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
@@ -12593,7 +12593,7 @@ function renderRecipeSummaryBar(){
   // Company, never anything about what teammates see.
   const showPersonalInCompany = currentAccountType === 'company' && localStorage.getItem('chefos_show_personal_in_company') === '1';
   if((recipeSourceFilter === 'mine' && currentAccountType === 'company' && !showPersonalInCompany) || (recipeSourceFilter === 'company' && currentAccountType === 'personal')){
-    recipeSourceFilter = 'sautero';
+    recipeSourceFilter = 'chefos';
   }
   el.innerHTML = `
     <div class="prep-summary-row2" style="padding:8px 18px 12px 18px;">
@@ -12612,7 +12612,7 @@ function renderRecipeSummaryBar(){
 // This just names whichever shelf is currently open, so a "back" from Home doesn't lose context.
 function currentRecipeShelfName(){
   if(recipeSourceFilter === 'mine') return '📖 My Recipes';
-  if(recipeSourceFilter === 'sautero') return '✨ Sautero';
+  if(recipeSourceFilter === 'chefos') return '✨ Sautero';
   if(recipeSourceFilter === 'company') return '🏢 Company Recipes';
   const l = _recipeLists.find(x=>x.id === recipeSourceFilter);
   return '🗂️ ' + ((l && l.name) || 'Project');
@@ -12790,7 +12790,7 @@ async function saveEditRecipeCategory(){
   delete _customCategoryIcons[oldCat];
   _customCategoryIcons[newCat] = _editRecipeCategoryIcon;
   const ci = CUSTOM_RECIPE_CATEGORIES.indexOf(oldCat); if(ci > -1) CUSTOM_RECIPE_CATEGORIES.splice(ci, 1, newCat);
-  const riOld = _categoryIconRows.findIndex(r=>r.category===oldCat && (r.shelf_scope||'sautero')===recipeSourceFilter);
+  const riOld = _categoryIconRows.findIndex(r=>r.category===oldCat && (r.shelf_scope||'chefos')===recipeSourceFilter);
   if(riOld > -1) _categoryIconRows.splice(riOld, 1);
   _categoryIconRows.push({ category: newCat, icon: _editRecipeCategoryIcon, shelf_scope: recipeSourceFilter });
   _recipes.forEach(r=>{ if(r.category === oldCat && recipeOnCurrentShelf(r)) r.category = newCat; });
@@ -12810,7 +12810,7 @@ async function deleteRecipeCategory(cat){
   await sb.from('recipe_category_icons').delete().eq('kitchen_id', currentKitchenId).eq('category', cat).eq('shelf_scope', recipeSourceFilter);
   delete _customCategoryIcons[cat];
   CUSTOM_RECIPE_CATEGORIES = CUSTOM_RECIPE_CATEGORIES.filter(c=>c!==cat);
-  _categoryIconRows = _categoryIconRows.filter(r=>!(r.category===cat && (r.shelf_scope||'sautero')===recipeSourceFilter));
+  _categoryIconRows = _categoryIconRows.filter(r=>!(r.category===cat && (r.shelf_scope||'chefos')===recipeSourceFilter));
   _recipes.forEach(r=>{ if(r.category === cat && recipeOnCurrentShelf(r)) r.category = 'Uncategorized'; });
   setSyncStatus('saved');
   if(activeCategory === cat) activeCategory = 'Favorites';
@@ -12892,7 +12892,7 @@ let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false,
    never re-derived separately (that's exactly how Sautero's own sections ended up leaking into
    My Recipes/Company Recipes, 16.7. neskoro večer). */
 function recipeOnCurrentShelf(r){
-  if(recipeSourceFilter === 'sautero') return !r.createdBy;
+  if(recipeSourceFilter === 'chefos') return !r.createdBy;
   // Public = published by ANY chef in ANY kitchen (db/131) — the community shelf.
   if(recipeSourceFilter === 'public') return !!r.isPublic;
   // Company = every authored, NON-personal recipe — including your own (Richard's bug,
@@ -12912,7 +12912,7 @@ function recipeOnCurrentShelf(r){
    JS predicate — used by section rename/delete so renaming "Soups" on My Recipes can't touch a
    same-named section's recipes on a different shelf. */
 function applyRecipeShelfQueryFilter(query){
-  if(recipeSourceFilter === 'sautero') return query.is('created_by', null);
+  if(recipeSourceFilter === 'chefos') return query.is('created_by', null);
   if(recipeSourceFilter === 'public') return query.eq('is_public', true);
   // Mirrors recipeOnCurrentShelf() exactly (17.7. fix): company = authored + non-personal,
   // kitchen-scoped (db/131 loads foreign public recipes too).
@@ -14249,7 +14249,7 @@ function showList(){
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
   activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
-  // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'sautero' on
+  // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'chefos' on
   // every single call, silently undoing whatever shelf showRecipesHome()'s picker just set,
   // e.g. tapping "My Recipes" landed back on Sautero every time. It only went unnoticed while a
   // pill switcher inside this same screen let you flip it back manually; removing that pill
@@ -14545,11 +14545,11 @@ async function saveFormBody(){
   // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
   // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
   // same convention as ingredients' custom lists.
-  const inRecipeProject = recipeSourceFilter !== 'sautero' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine';
+  const inRecipeProject = recipeSourceFilter !== 'chefos' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine';
   setSyncStatus('saving');
   let error, savedId = formEditingId;
   if(formEditingId){
-    if(_recipeAiShare === true) payload.shared_with_sautero = true; // never silently un-shares
+    if(_recipeAiShare === true) payload.shared_with_chefos = true; // never silently un-shares
     ({ error } = await sb.from('recipes').update(payload).eq('id', formEditingId));
   } else {
     let inserted;
@@ -14557,7 +14557,7 @@ async function saveFormBody(){
       .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
         is_personal: inRecipeProject ? true : currentAccountType === 'personal',
         list_id: inRecipeProject ? recipeSourceFilter : null,
-        shared_with_sautero: _recipeAiShare === true })
+        shared_with_chefos: _recipeAiShare === true })
       .select().single());
     if(inserted) savedId = inserted.id;
   }
@@ -14598,7 +14598,7 @@ function toggleIngredientFilterValue(list, value){
   if(i > -1) list.splice(i, 1); else list.push(value);
 }
 
-let ingredientSourceFilter = 'sautero'; // 'sautero' | 'mine' — bod 1, 16.7., db/97
+let ingredientSourceFilter = 'chefos'; // 'chefos' | 'mine' — bod 1, 16.7., db/97
 let showHiddenIngredients = false; // bod 1, 16.7. — db/107
 /* ---------- Recipes landing (bod 4, 16.7. večer) ---------- */
 let _recipeLists = [];
@@ -14641,7 +14641,7 @@ function renderRecipeShelvesGrid(){
   if(currentAccountType !== 'company' || showPersonalInCompany){
     fixedTile('mine', '📖', 'My Recipes', 'share');
   }
-  fixedTile('sautero', '✨', 'Sautero');
+  fixedTile('chefos', '✨', 'Sautero');
   // Public shelf (db/131) — every account type sees it, like the Sautero library.
   fixedTile('public', '🌍', 'Public');
   if(currentAccountType === 'company'){
@@ -14750,7 +14750,7 @@ function renderIngredientListsGrid(){
     addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openIngredientShelf(key),
       ()=>openItemContextMenu('ingredientShelf', key, label, isHidden, false));
   };
-  fixedTile('sautero', '✨', 'Sautero');
+  fixedTile('chefos', '✨', 'Sautero');
   // Company Ingredients (Richard, 18.7.): the kitchen's own shared additions — mirror of the
   // Company Recipes tile, shown in Company mode only.
   if(currentAccountType === 'company') fixedTile('company', '🏢', 'Company Ingredients');
@@ -14966,7 +14966,7 @@ function closeIngredientShareSheet(){
 }
 function currentIngredientListName(){
   if(ingredientSourceFilter === 'mine') return '👤 My Ingredients';
-  if(ingredientSourceFilter === 'sautero') return '✨ Sautero Ingredients';
+  if(ingredientSourceFilter === 'chefos') return '✨ Sautero Ingredients';
   if(ingredientSourceFilter === 'company') return '🏢 Company Ingredients';
   if(ingredientSourceFilter === 'public') return '🌍 Public Ingredients';
   const l = _ingredientLists.find(x=>x.id === ingredientSourceFilter);
@@ -14985,12 +14985,12 @@ function ingredientOnCurrentShelf(ing){
   // Company Ingredients). A list is a sub-grouping OF Company Ingredients, not a thing beside
   // it — so a list item (is_personal + list_id, team-visible via db/146) shows here too, and
   // also under its own list tile. Only truly private My Ingredients (list_id null) stay out.
-  if(ingredientSourceFilter === 'sautero') return !ing.is_personal && !ing.created_by;
+  if(ingredientSourceFilter === 'chefos') return !ing.is_personal && !ing.created_by;
   if(ingredientSourceFilter === 'company') return !!ing.created_by && (!ing.is_personal || !!ing.list_id);
   if(ingredientSourceFilter === 'mine') return !!ing.is_personal && !ing.list_id;
   return ing.list_id === ingredientSourceFilter;
 }
-function ingredientShelfIsShared(f){ return f === 'sautero' || f === 'company'; }
+function ingredientShelfIsShared(f){ return f === 'chefos' || f === 'company'; }
 /* Adding to the shared Sautero shelf is admin-only (Richard, 16.7.) — any kind of admin (Head
    Admin or a Kitchen Admin with any admin_perms), matching the RLS check in db/105. My
    Ingredients (is_personal) stays open to everyone regardless. */
@@ -15003,12 +15003,12 @@ function showIngredients(){
   // projects.
   const personalAllowed = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
   if(!personalAllowed && ingredientSourceFilter === 'mine'){
-    ingredientSourceFilter = 'sautero';
+    ingredientSourceFilter = 'chefos';
   }
   // Company shelf exists only in Company mode — Personal mode redirects to Sautero (mirror of
   // the recipes rule).
   if(currentAccountType !== 'company' && ingredientSourceFilter === 'company'){
-    ingredientSourceFilter = 'sautero';
+    ingredientSourceFilter = 'chefos';
   }
   logEvent('view_opened', {view:'ingredients', source:ingredientSourceFilter});
   hideAllViews();
@@ -20561,7 +20561,7 @@ function scanTargetFilter(){ return _pendingScanTargetFilter || ingredientSource
 function scanTargetListName(){
   const f = scanTargetFilter();
   if(f === 'mine') return '👤 My Ingredients';
-  if(f === 'sautero') return '✨ Sautero Ingredients';
+  if(f === 'chefos') return '✨ Sautero Ingredients';
   if(f === 'company') return '🏢 Company Ingredients';
   const l = _ingredientLists.find(x=>x.id === f);
   return l ? ('📋 ' + l.name) : currentIngredientListName();

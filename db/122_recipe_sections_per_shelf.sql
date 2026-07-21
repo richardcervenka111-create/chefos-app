@@ -6,11 +6,11 @@
 -- tagged with it) was one flat kitchen-wide pool shared by every shelf. Each shelf should start
 -- with just Favorites/All and build up its own sections independently from there.
 --
--- shelf_scope mirrors the app's own recipeSourceFilter values exactly: 'sautero' | 'mine' |
--- 'company' | a recipe_lists.id (custom project). Existing rows default to 'sautero' — the
+-- shelf_scope mirrors the app's own recipeSourceFilter values exactly: 'chefos' | 'mine' |
+-- 'company' | a recipe_lists.id (custom project). Existing rows default to 'chefos' — the
 -- official Sautero taxonomy keeps working exactly as it did before this migration.
 
-alter table recipe_category_icons add column if not exists shelf_scope text not null default 'sautero';
+alter table recipe_category_icons add column if not exists shelf_scope text not null default 'chefos';
 
 -- The old (kitchen_id, category) uniqueness would block "Soups" existing as its own section in
 -- both My Recipes and Company Recipes at once — scope is now part of the identity.

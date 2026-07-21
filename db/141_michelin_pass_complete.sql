@@ -11,7 +11,7 @@
 --   * Scope question resolved by reality: the pilot is Burrito Bandito (Mexican) and the
 --     first sales target is Nooch (Asian) — Asian recipes are fully in scope now; the old
 --     batches' Asian exclusions are filled in here.
---   * Part 1 promotes the community recipes users shared with Sautero (shared_with_sautero =
+--   * Part 1 promotes the community recipes users shared with Sautero (shared_with_chefos =
 --     true, 10 unique titles as of 17.7.) into the library: one copy per kitchen, common
 --     chefos_master_id, created_by null — exactly like the original 173.
 --
@@ -28,7 +28,7 @@ declare
 begin
   for src in
     select distinct on (title) * from recipes
-    where shared_with_sautero and created_by is not null
+    where shared_with_chefos and created_by is not null
     order by title, created_at
   loop
     if exists (select 1 from recipes where created_by is null and title = src.title) then
