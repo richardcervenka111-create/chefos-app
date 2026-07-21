@@ -53,6 +53,34 @@ def status(ok, warn=False):
     return 'fail' if not ok and not warn else ('warn' if warn else 'ok')
 
 
+def _git_latest():
+    os.environ['TZ'] = 'Europe/Zurich'
+    try:
+        ts = int(subprocess.check_output(['git', '-C', REPO, 'log', '-1', '--format=%ct']).strip())
+        return datetime.datetime.fromtimestamp(ts).date()
+    except Exception:
+        return datetime.date.today()
+
+
+def _newest_date(text):
+    """Newest calendar date mentioned in a doc — handles YYYY-MM-DD, D.M.YYYY, and bare D.M.
+    (assumed current year). Used to tell whether a day-log doc has fallen behind the work."""
+    cands = []
+    for y, mo, d in re.findall(r'(20\d{2})-(\d{2})-(\d{2})', text):
+        try: cands.append(datetime.date(int(y), int(mo), int(d)))
+        except ValueError: pass
+    for d, mo, y in re.findall(r'\b(\d{1,2})\.\s?(\d{1,2})\.\s?(20\d{2})\b', text):
+        try: cands.append(datetime.date(int(y), int(mo), int(d)))
+        except ValueError: pass
+    yr = datetime.date.today().year
+    for d, mo in re.findall(r'\b(\d{1,2})\.\s?(\d{1,2})\.(?!\s?\d)', text):
+        try: cands.append(datetime.date(yr, int(mo), int(d)))
+        except ValueError: pass
+    horizon = datetime.date.today() + datetime.timedelta(days=1)
+    cands = [c for c in cands if c <= horizon]
+    return max(cands) if cands else None
+
+
 # ---------------------------------------------------------------- Architecture ----
 def architecture_audit():
     checks = []
@@ -214,6 +242,21 @@ def documentation_audit():
         if m:
             stamps.append(os.path.basename(f))
 
+    # STALE DAILY/LOG DOCS — the "20.7/21.7 data missing" class. The day-tracking prose docs
+    # (diary, automations, status) must not fall behind the actual work: if their newest date is
+    # >3 days behind the latest git commit, they went stale and someone has to notice — this makes
+    # the robot notice instead. (Worked hours are auto-written from git by work_hours.py, so those
+    # can't drift; this covers the hand-written day logs.)
+    git_latest = _git_latest()
+    stale = []
+    for name in ['planning.html', 'automation.html', 'status.html']:
+        p = os.path.join(REPO, 'visual data', name)
+        if not os.path.exists(p):
+            continue
+        nd = _newest_date(read(p))
+        if nd is None or (git_latest - nd).days > 3:
+            stale.append(f'{name}→{nd or "?"}')
+
     checks.append(('Leftover "ChefOS" brand in docs', status(brand_hits == 0), f'{brand_hits}',
                    (', '.join(brand_files[:8])) if brand_hits else 'All docs are on-brand (Sautero).'))
     checks.append(('Bilingual docs complete (SK/EN)', status(bilingual == lang_docs),
@@ -222,6 +265,9 @@ def documentation_audit():
                    else 'Some toggled docs are missing a language.'))
     checks.append(('build_docs sources missing', status(not missing_sources), f'{len(missing_sources)}',
                    (', '.join(missing_sources)) if missing_sources else 'All merge sources exist.'))
+    checks.append(('Daily/log docs fresh (≤3 days behind git)', status(not stale, warn=bool(stale)),
+                   f'{len(stale)} stale', (', '.join(stale)) if stale
+                   else f'diary / automations / status current with git ({git_latest}).'))
     checks.append(('Dashboards in visual data/', 'ok', f'{len(DOCS)}',
                    'Investor deck, status, backlog, monetization, brand, health, etc.'))
     checks.append(('Docs carrying a date stamp', 'ok', f'{len(stamps)}/{len(DOCS)}',

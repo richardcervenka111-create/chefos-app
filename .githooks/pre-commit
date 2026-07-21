@@ -14,8 +14,12 @@ if command -v node >/dev/null 2>&1; then
 else
   echo "pre-commit: node not found — skipping calc unit tests locally (CI still runs them)."
 fi
-# Merged internal docs (produkt/plan/biznis/znacka) are GENERATED from the 11 source
+# Worked hours come from git (the real work trail) — rewrite the WORK_HOURS block in every
+# source doc so it can never drift or go stale (the 20.7/21.7-missing incident, 21.7.).
+python3 scripts/work_hours.py --write
+git add "visual data/costs.html" "visual data/tasklist.html" 2>/dev/null || true
+# Merged internal docs (produkt/plan/biznis/znacka/poznamky) are GENERATED from the source
 # documents — regenerate them here so they can never go stale (17.7. consolidation).
 python3 scripts/build_docs.py
-git add "visual data/produkt.html" "visual data/plan.html" "visual data/biznis.html" "visual data/znacka.html" 2>/dev/null || true
+git add "visual data/produkt.html" "visual data/plan.html" "visual data/biznis.html" "visual data/znacka.html" "visual data/poznamky.html" 2>/dev/null || true
 echo "pre-commit: clean."

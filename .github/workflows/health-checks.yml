@@ -20,3 +20,5 @@ jobs:
           node-version: '20'
       - name: Calculation unit tests (recipe cost, payroll hours, shift hours — money paths)
         run: node scripts/calc_unit_test.js
+      - name: Worked-hours freshness (WORK_HOURS in docs must match git — no missing days)
+        run: python3 scripts/work_hours.py --check

@@ -135,8 +135,8 @@
     <h1 class="title" data-sk="Čo beží samo, kedy, a za koľko" data-en="What runs on its own, when, and for how much"></h1>
     <p class="lede" data-sk="Každá opakujúca sa úloha, ktorú appka/Claude spúšťa bez toho, aby si o to musel požiadať — čo presne robí, kedy sa spúšťa, kam ukladá výsledok, a self-reported odhad ceny. Nič skryté, nič bez stropu." data-en="Every recurring task the app/Claude runs on its own without you having to ask — exactly what it does, when it runs, where the result lands, and a self-reported cost estimate. Nothing hidden, nothing uncapped."></p>
     <div class="meta-row">
-      <div class="meta-card"><div class="meta-label" data-sk="Aktívne automatizácie" data-en="Active automations"></div><div class="meta-value">4</div></div>
-      <div class="meta-card"><div class="meta-label" data-sk="Mesačný strop (opakované úlohy)" data-en="Monthly cap (recurring tasks)"></div><div class="meta-value">CHF 30</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Aktívne automatizácie" data-en="Active automations"></div><div class="meta-value">9</div></div>
+      <div class="meta-card"><div class="meta-label" data-sk="Mesačný strop (AI úlohy) · CI roboti CHF 0" data-en="Monthly cap (AI tasks) · CI robots CHF 0"></div><div class="meta-value">CHF 30</div></div>
       <div class="meta-card clickable" onclick="toggleTimeline()" id="totalCard">
         <div class="meta-label" data-sk="Celkový beh projektu (self-reported)" data-en="Total project run (self-reported)"></div>
         <div class="meta-value">~CHF 238.73 <span class="expand-hint" data-sk="▸ rozklikni" data-en="▸ click to expand"></span></div>
@@ -211,6 +211,57 @@
         <p data-sk="Skontroluje, či dnes pribudol nový Critical Review — ak nie, zvýrazneným 🚨 blokom pripomenie zmeškaný 14:30 deadline. Len číta, nič nezapisuje okrem nákladového riadku." data-en="Checks whether a new Critical Review appeared today — if not, a highlighted 🚨 block flags the missed 14:30 deadline. Read-only, except for the cost line."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><span data-sk="upozornenie v chate" data-en="a chat alert"></span></div>
         <div class="cost" data-sk="~CHF 0.01–0.03 / beh" data-en="~CHF 0.01–0.03 / run"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label"><span class="n">02+</span><h2 data-sk="Testy &amp; CI roboti (od 18.7. — zadarmo, žiadne AI)" data-en="Tests &amp; CI robots (from Jul 18 — free, no AI)"></h2><div class="rule"></div></div>
+    <p class="lede" style="margin:0 0 16px 0; font-size:12.5px;" data-sk="Táto vrstva vznikla 18.–21.7. Nič z nej nestojí ani cent — sú to skripty a GitHub Actions roboti, žiadne AI tokeny. Chránia appku aj tieto dokumenty pred tým, aby sa niečo tíško pokazilo alebo aby dáta zastarali." data-en="This layer was built Jul 18–21. None of it costs a cent — plain scripts and GitHub Actions robots, no AI tokens. They protect the app and these very documents from silently breaking or going stale."></p>
+    <div class="autotasks">
+      <div class="autotask">
+        <div class="icon">🛡️</div>
+        <h3 data-sk="Gaty pri každom commite" data-en="Gates on every commit"></h3>
+        <span class="when" data-sk="Každý commit + pred nasadením" data-en="Every commit + before deploy"></span>
+        <p data-sk="Blokujú nasadenie: audit_app + audit_db (štruktúra, RLS, tajomstvá, XSS, DB-kontrakt), money-path unit testy (cena receptu, výplatné + rozvrhové hodiny) a kontrola odpracovaných hodín (musia sedieť s gitom). Chyba, čo raz spadla, sa už nedostane ku kuchyni." data-en="Block the deploy: audit_app + audit_db (structure, RLS, secrets, XSS, DB-contract), money-path unit tests (recipe cost, payroll + shift hours) and the worked-hours check (must match git). A bug that fell once can't reach the kitchen again."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><span data-sk="zablokovaný commit/deploy s presnou chybou" data-en="a blocked commit/deploy with the exact violation"></span></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
+      </div>
+
+      <div class="autotask">
+        <div class="icon">🔒</div>
+        <h3 data-sk="Únikový test medzi kuchyňami" data-en="Cross-kitchen leak test"></h3>
+        <span class="when" data-sk="2×/deň (08:00 + 18:00)" data-en="2×/day (08:00 + 18:00)"></span>
+        <p data-sk="Preukáže hlasným zlyhaním, že užívateľ jednej kuchyne nevidí ani jeden riadok inej kuchyne — naprieč 36 tabuľkami. Číta cez impersonáciu ako reálny prihlásený user, v transakcii ktorá sa zahodí." data-en="Proves with a loud failure that a user of one kitchen cannot read a single row of another — across 36 tables. Reads via impersonation like a real logged-in user, in a rolled-back transaction."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>tenant_isolation_test.sql</code></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
+      </div>
+
+      <div class="autotask">
+        <div class="icon">🚪</div>
+        <h3 data-sk="Roboti na prihlásenie + dlaždice" data-en="Login + tiles robots"></h3>
+        <span class="when" data-sk="2×/deň" data-en="2×/day"></span>
+        <p data-sk="Živý prehliadač: kontrola neprihlásených brán (coming-soon stena, „mám účet", prepínač heslo/kód, bezpečné zlyhanie loginu — bez hesiel) a smoke test prihlásených dlaždíc naprieč rolami (obrazovka sa otvorí, žiadna JS chyba / 5xx)." data-en="Live browser: pre-login gates (coming-soon wall, 'already have an account', password/code toggle, safe failing login — no secrets) plus a smoke test of the logged-in tiles across roles (screen opens, no JS error / 5xx)."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>unauth_gates_test.py</code> · <code>e2e_smoke_test.py</code></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
+      </div>
+
+      <div class="autotask">
+        <div class="icon">🩺</div>
+        <h3 data-sk="Health Report" data-en="Health Report"></h3>
+        <span class="when" data-sk="Pri nasadení + 2×/deň" data-en="On deploy + 2×/day"></span>
+        <p data-sk="Štyri automatické audity nad reálnym kódom (architektúra, bezpečnosť, dokumentácia, technický dlh) → známkovaný dashboard. Čísla sú počítané, nie ručné; generuje sa pri každom nasadení, nech vždy sedí s tým, čo je naživo." data-en="Four automated audits over the real code (architecture, security, documentation, technical debt) → a graded dashboard. Numbers are computed, not hand-entered; regenerated on every deploy so it always matches what's live."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>visual data/health.html</code></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
+      </div>
+
+      <div class="autotask">
+        <div class="icon">📄</div>
+        <h3 data-sk="Flotila docs-robotov (1 na dokument)" data-en="Docs robot fleet (1 per document)"></h3>
+        <span class="when" data-sk="2×/deň, paralelne" data-en="2×/day, in parallel"></span>
+        <p data-sk="Jeden robot na každý dokument v Internal Docs. Každý vykreslí dokument na mobile aj desktope a stráži tri veci: nič nelieta (žiadne pretekanie), EN/SK prepínač je vo vrchnej lište a nič ho neprekrýva, a nechýbajú dáta (undefined/NaN/jednostranný preklad). Plus coverage manifest — stráži, že žiadny modul nevypadne z pokrytia." data-en="One robot per Internal Docs page. Each renders the doc on mobile and desktop and guards three things: nothing flies (no overflow), the EN/SK toggle is in the top bar and not overlapped, and no missing data (undefined/NaN/one-sided translation). Plus the coverage manifest — guards that no module drops out of coverage."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>docs_qa_test.py</code> · <code>coverage_manifest.py</code></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
       </div>
     </div>
   </section>

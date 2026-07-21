@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-21 22:25 (Bern)",
+  "generated": "2026-07-21 22:51 (Bern)",
   "overall_score": 90,
   "overall_grade": "A",
   "blocks": [
@@ -164,6 +164,12 @@
           "status": "ok",
           "value": "0",
           "detail": "All merge sources exist."
+        },
+        {
+          "name": "Daily/log docs fresh (≤3 days behind git)",
+          "status": "ok",
+          "value": "0 stale",
+          "detail": "diary / automations / status current with git (2026-07-21)."
         },
         {
           "name": "Dashboards in visual data/",
