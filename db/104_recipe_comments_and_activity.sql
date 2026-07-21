@@ -1,7 +1,7 @@
--- ChefOS — Recipe comments + activity feed (Richard, 16.7., bod 2). Scoped to recipes only for
+-- Sautero — Recipe comments + activity feed (Richard, 16.7., bod 2). Scoped to recipes only for
 -- now (his own call, narrower than "everything shared") — Check List/Ingredients comments can
 -- follow later using the same pattern if wanted. Notifications are in-app only (an activity
--- list you check when you open ChefOS), not real push — also his own call.
+-- list you check when you open Sautero), not real push — also his own call.
 --
 -- Visibility is deliberately NOT duplicated from recipes' own RLS (kitchen-wide, or personal +
 -- friend-shared via db/89/db/97) — a comment is readable/postable exactly when its recipe is,

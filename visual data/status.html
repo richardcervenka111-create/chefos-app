@@ -221,14 +221,14 @@
 
   /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
      carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
-  .chefos-stamp{
+  .sautero-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
     font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
     padding:6px 12px; border-radius:999px;
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
   }
-  .chefos-lang-fab{
+  .sautero-lang-fab{
     position:fixed; bottom:14px; left:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
     font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -237,8 +237,8 @@
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     transition:border-color .15s, color .15s;
   }
-  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
-  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
+  .sautero-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .sautero-stamp, .sautero-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -334,8 +334,8 @@
           <div class="ticket"><b>💬 Zdieľané komentáre + 🎓 tutoriály pre každé okno — 17.7.</b><span>Komentáre na Sautero receptoch konečne viditeľné naprieč kuchyňami (db/129 denormalizácia master id) + počítadlo na tlačidle aj bublinka v zozname (1–9, potom 9+); komentovať sa dá aj cudzie verejné recepty (db/132). Každá obrazovka má vlastný podrobný tutoriál (otvorí sa pri prvom otvorení, ❓ v lište na zopakovanie); úvodný sprievodca zoštíhlený na Home; What's New srdiečko zmazané. Firemný recept sa už NIKDY neukáže na osobnej polici (db/130).</span></div>
           <div class="ticket"><b>📧 Email Contacts číslované + detail · Feedback iba Head Admin — 17.7.</b><span>Email kontakty dostali číslovanie (#1 najstarší naspodu) a ťuknutím sa hlavnému adminovi otvorí celý detail vrátane napojeného Sautero účtu. Feedback inbox potvrdený ako výhradne Head-Admin (DB is_super_admin() aj UI). AI Details teraz vysvetľuje pôvod dát (typické referenčné hodnoty, nie meranie).</span></div>
           <div class="ticket" style="border-color:var(--danger);"><b style="color:var(--danger);">🔴 → ✅ Bezpečnostný bug: Remove z tímu nefungoval, odstránený člen si ponechal plný prístup (16.7. neskoro v noci)</b><span>"Remove" v Admin/My Team vždy zlyhal ("new row violates row-level security policy") — db/90-tka UPDATE politika nemala WITH CHECK, Postgres defaultne vyžadoval kitchen_id NOT NULL, presný opak toho čo Remove robí. Kým bug trval, odstránený člen reálne VIDEL ďalej všetky dáta kuchyne — appkine "not in any team" hlásenie je len text, skutočný prístup rozhoduje kitchen_id v RLS. db/121 pridáva správny WITH CHECK, potvrdené opravené naživo. Nový "👥 Team Members" tile priamo v Admin hube (Make Assistant/Remove)</span></div>
-          <div class="ticket"><b>📚 Recepty: sekcie a projekty po policiach + colored-book ikony (16.7. neskoro v noci)</b><span>Sekcie (Bakery &amp; Bread, Sushi Basics…) sa počítali zo VŠETKÝCH receptov v kuchyni bez ohľadu na policu — My Recipes/Company Recipes ukazovali celú Sautero taxonómiu aj s nulou zodpovedajúcich receptov. db/122 pridáva shelf_scope, každá polica (aj každý nový projekt) má teraz vlastný nezávislý zoznam sekcií (štart: len Favorites/All). Bug tiež nájdený v showList() — natvrdo resetovala policu na 'chefos' pri každom otvorení, po odstránení malého prepínača v zozname sa prejavil naplno ("Sautero recepty všade a vždy"), opravené. Nové projekty ("Add Project") dostali výber z 8 farebných kníh (db/123). Sautero komentáre opravené naprieč kuchyňami cez nový chefos_master_id (db/119) — predtým neviditeľné, lebo každá kuchyňa má vlastnú fyzickú kópiu receptu</span></div>
-          <div class="ticket"><b>🔑 Reálne členstvo v tíme + trvalá oprava admin-invite bugu (16.7. neskoro večer)</b><span>Prepnutie na Company účet už nie je otvorené pre hocikoho — iba pre reálne pripojených (invite link/mail, team kód, alebo kitchen admin rola); profiles.in_team (db/116). Scan QR na tímovú pozvánku teraz pýta potvrdenie "chceš sa stať členom tímu X?" namiesto tichého presmerovania. My Profile pridáva ROLE riadok (Head Admin/Admin/Admin Assistant/Member). Nahlásený bug — chefos@protonmail.com prijal Add Company pozvánku, no admin rola sa nepriznala (vypálený jednorazový odkaz) — opravený jednorazovo (db/117) AJ trvalo (db/118: claim_company_admin teraz akceptuje aj spotrebovaný odkaz, pokiaľ je volajúci už reálne v danej kuchyni a admin stoličkа je stále voľná) + hlasný alert namiesto tichého zlyhania</span></div>
+          <div class="ticket"><b>📚 Recepty: sekcie a projekty po policiach + colored-book ikony (16.7. neskoro v noci)</b><span>Sekcie (Bakery &amp; Bread, Sushi Basics…) sa počítali zo VŠETKÝCH receptov v kuchyni bez ohľadu na policu — My Recipes/Company Recipes ukazovali celú Sautero taxonómiu aj s nulou zodpovedajúcich receptov. db/122 pridáva shelf_scope, každá polica (aj každý nový projekt) má teraz vlastný nezávislý zoznam sekcií (štart: len Favorites/All). Bug tiež nájdený v showList() — natvrdo resetovala policu na 'sautero' pri každom otvorení, po odstránení malého prepínača v zozname sa prejavil naplno ("Sautero recepty všade a vždy"), opravené. Nové projekty ("Add Project") dostali výber z 8 farebných kníh (db/123). Sautero komentáre opravené naprieč kuchyňami cez nový chefos_master_id (db/119) — predtým neviditeľné, lebo každá kuchyňa má vlastnú fyzickú kópiu receptu</span></div>
+          <div class="ticket"><b>🔑 Reálne členstvo v tíme + trvalá oprava admin-invite bugu (16.7. neskoro večer)</b><span>Prepnutie na Company účet už nie je otvorené pre hocikoho — iba pre reálne pripojených (invite link/mail, team kód, alebo kitchen admin rola); profiles.in_team (db/116). Scan QR na tímovú pozvánku teraz pýta potvrdenie "chceš sa stať členom tímu X?" namiesto tichého presmerovania. My Profile pridáva ROLE riadok (Head Admin/Admin/Admin Assistant/Member). Nahlásený bug — sautero@protonmail.com prijal Add Company pozvánku, no admin rola sa nepriznala (vypálený jednorazový odkaz) — opravený jednorazovo (db/117) AJ trvalo (db/118: claim_company_admin teraz akceptuje aj spotrebovaný odkaz, pokiaľ je volajúci už reálne v danej kuchyni a admin stoličkа je stále voľná) + hlasný alert namiesto tichého zlyhania</span></div>
           <div class="ticket"><b>🍽️ Long-press systém + vlastné zoznamy ingrediencií + poličky pre recepty (16.7. večer)</b><span>Jednotné podržanie prstom/pravé tlačidlo (Premenovať/Skryť/Zmazať/Zdieľať) na ingredienciách, prep-jedlách aj vlastných zoznamoch — Sautero a My Ingredients ostávajú natrvalo nezmazateľné. Nové pomenované zoznamy ingrediencií (ingredient_lists, db/112) so zdieľaním priateľom (db/114, len na čítanie). Recepty dostali rovnaký výber políc ako ingrediencie (Moje/Sautero pre osobné, Sautero/Firemné pre firemné)</span></div>
           <div class="ticket"><b>🖨️ Branded tlač v2 + hlavičkový pás + Add to Check List (16.7. večer)</b><span>Tlač receptu prerobená na plne synchrónnu (Safari blokoval async print()) — dvojstĺpcový layout, meta pás, Chef's Notes. Nový vždy-viditeľný horný pás (Kitchen Notebook/Sautero + Späť/Domov) na každej obrazovke okrem hlavného menu, CSS double-offset bug nájdený a opravený. Add to Check List teraz vždy najprv pýta projekt (auto ak je len jeden), potom stanicu. HACCP a Team Meetings skryté z osobných účtov (admin aj firemné účty ich vidia naďalej)</span></div>
           <div class="ticket"><b>🔧 Sken .xlsx + AI Details + Kitchen Reports drill-down + branded email (16.7. večer)</b><span>Excel (.xlsx) sken ingrediencií bez knižnice (ručný ZIP/XML parser). "AI Details" dopĺňa chýbajúce kategórie/sklad/sezónu dávkovo, nikdy neprepisuje existujúce dáta. Kitchen Reports dostal admin adresár kuchýň + drill-down do receptov (police → kategórie → recept). Opravené odosielanie Feedbacku (duplicitný overlay prepisoval polia) + email_contacts databáza dostala DB trigger namiesto krehkého client-side zápisu. Centrálny Anthropic API kľúč (Claude Console workspace "Sautero Users") — user spend oddelene sledovaný od Richardovho vlastného. Značkové Supabase auth emaily (magic link aj confirm-signup) v identite Sautero</span></div>
@@ -460,7 +460,7 @@
    data-sk/data-en pairs. Historical ticket text in the Prep board predates this pattern
    and stays as originally written — translating every ticket is a separate, larger job,
    deliberately not rushed into this batch. */
-let _statusLang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _statusLang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLangChrome(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     const val = _statusLang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
@@ -472,7 +472,7 @@ function applyLangChrome(){
 }
 window.toggleLang = function(){
   _statusLang = _statusLang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _statusLang);
+  localStorage.setItem('sautero_doc_lang', _statusLang);
   applyLangChrome();
   renderTop5();
   renderPulse();
@@ -511,8 +511,8 @@ const TICKETS_EN = [
  {b:"💬 Shared comments + 🎓 tutorials for every screen — 17 Jul", s:"Comments on Sautero recipes finally visible across kitchens (db/129 master-id denormalisation) + a counter on the button and a bubble in the list (1–9, then 9+); foreign public recipes can be commented on too (db/132). Every screen has its own detailed tutorial (opens on first visit, ❓ in the bar to replay); the intro guide slimmed to Home; the What's New heart deleted. A company recipe NEVER shows on the personal shelf again (db/130)."},
  {b:"📧 Email Contacts numbered + detail · Feedback Main-Admin only — 17 Jul", s:"Email contacts got numbering (#1 oldest at the bottom) and tapping opens the full detail for the main admin including the linked Sautero account. The Feedback inbox confirmed as exclusively Main-Admin (DB is_super_admin() and the UI). AI Details now explains where its data comes from (typical reference values, not measurements)."},
 {b:"🔴 → ✅ Security bug: team Remove didn't work, the removed member kept full access (16 Jul late night)", s:"\"Remove\" in Admin/My Team always failed (\"new row violates row-level security policy\") — the db/90 UPDATE policy had no WITH CHECK, Postgres by default demanded kitchen_id NOT NULL, the exact opposite of what Remove does. While the bug lasted, a removed member genuinely KEPT seeing all kitchen data — the app's \"not in any team\" message is just text, real access is decided by kitchen_id in RLS. db/121 adds the proper WITH CHECK, confirmed fixed live. A new \"👥 Team Members\" tile right in the Admin hub (Make Assistant/Remove)"},
- {b:"📚 Recipes: sections and projects per shelf + coloured-book icons (16 Jul late night)", s:"Sections (Bakery & Bread, Sushi Basics…) were computed from ALL kitchen recipes regardless of shelf — My Recipes/Company Recipes showed the whole Sautero taxonomy even with zero matching recipes. db/122 adds shelf_scope; every shelf (and every new project) now has its own independent section list (start: just Favorites/All). A bug also found in showList() — it hard-reset the shelf to 'chefos' on every open; after removing a small switch in the list it showed fully (\"Sautero recipes everywhere, always\"), fixed. New projects (\"Add Project\") got a choice of 8 coloured books (db/123). Sautero comments fixed across kitchens via the new chefos_master_id (db/119) — previously invisible because every kitchen holds its own physical copy of a recipe"},
- {b:"🔑 Real team membership + the permanent admin-invite fix (16 Jul late evening)", s:"Switching to a Company account is no longer open to anyone — only to the genuinely joined (invite link/mail, team code, or a kitchen-admin role); profiles.in_team (db/116). Scanning a team-invite QR now asks \"do you want to become a member of team X?\" instead of silently redirecting. My Profile adds a ROLE row (Head Admin/Admin/Admin Assistant/Member). A reported bug — chefos@protonmail.com accepted an Add Company invite but the admin role wasn't granted (a burned single-use link) — fixed one-off (db/117) AND permanently (db/118: claim_company_admin now accepts a consumed link as long as the caller is already genuinely in that kitchen and the admin seat is still free) + a loud alert instead of a silent failure"},
+ {b:"📚 Recipes: sections and projects per shelf + coloured-book icons (16 Jul late night)", s:"Sections (Bakery & Bread, Sushi Basics…) were computed from ALL kitchen recipes regardless of shelf — My Recipes/Company Recipes showed the whole Sautero taxonomy even with zero matching recipes. db/122 adds shelf_scope; every shelf (and every new project) now has its own independent section list (start: just Favorites/All). A bug also found in showList() — it hard-reset the shelf to 'sautero' on every open; after removing a small switch in the list it showed fully (\"Sautero recipes everywhere, always\"), fixed. New projects (\"Add Project\") got a choice of 8 coloured books (db/123). Sautero comments fixed across kitchens via the new chefos_master_id (db/119) — previously invisible because every kitchen holds its own physical copy of a recipe"},
+ {b:"🔑 Real team membership + the permanent admin-invite fix (16 Jul late evening)", s:"Switching to a Company account is no longer open to anyone — only to the genuinely joined (invite link/mail, team code, or a kitchen-admin role); profiles.in_team (db/116). Scanning a team-invite QR now asks \"do you want to become a member of team X?\" instead of silently redirecting. My Profile adds a ROLE row (Head Admin/Admin/Admin Assistant/Member). A reported bug — sautero@protonmail.com accepted an Add Company invite but the admin role wasn't granted (a burned single-use link) — fixed one-off (db/117) AND permanently (db/118: claim_company_admin now accepts a consumed link as long as the caller is already genuinely in that kitchen and the admin seat is still free) + a loud alert instead of a silent failure"},
  {b:"🍽️ The long-press system + custom ingredient lists + recipe shelves (16 Jul evening)", s:"A unified press-and-hold/right-click (Rename/Hide/Delete/Share) on ingredients, prep dishes and custom lists — Sautero and My Ingredients stay permanently undeletable. New named ingredient lists (ingredient_lists, db/112) with friend sharing (db/114, read-only). Recipes got the same shelf picker as ingredients (Mine/Sautero for personal, Sautero/Company for company)"},
  {b:"🖨️ Branded print v2 + the header strip + Add to Check List (16 Jul evening)", s:"Recipe printing rebuilt fully synchronous (Safari blocked async print()) — a two-column layout, a meta strip, Chef's Notes. The new always-visible top strip (Kitchen Notebook/Sautero + Back/Home) on every screen except the main menu; a CSS double-offset bug found and fixed. Add to Check List now always asks the project first (auto if there's only one), then the station. HACCP and Team Meetings hidden from personal accounts (admins and company accounts keep seeing them)"},
  {b:"🔧 The .xlsx scan + AI Details + Kitchen Reports drill-down + branded email (16 Jul evening)", s:"An Excel (.xlsx) ingredient scan with no library (a hand-written ZIP/XML parser). \"AI Details\" fills missing categories/storage/season in batches, never overwriting existing data. Kitchen Reports got the admin kitchen directory + a drill-down into recipes (shelves → categories → recipe). Feedback sending fixed (a duplicate overlay overwrote the fields) + the email_contacts database got a DB trigger instead of the fragile client-side write. The central Anthropic API key (the \"Sautero Users\" Claude Console workspace) — user spend tracked apart from Richard's own. Branded Supabase auth emails (magic link and confirm-signup) in the Sautero identity"},
@@ -688,7 +688,7 @@ function renderTop5(){
       const el = li[i];
       el.querySelector('.task-text').textContent = text;
       el.dataset.enhanced = '1';
-      if(localStorage.getItem('chefos_status_selected_title') === text){
+      if(localStorage.getItem('sautero_status_selected_title') === text){
         el.classList.add('selected-next');
         const flag = document.createElement('span');
         flag.className = 'ticket-next-flag';
@@ -726,7 +726,7 @@ setInterval(renderTop5, 60000);
 function selectTicketToWorkOn(btn){
   const title = btn.dataset.title;
   const desc = btn.dataset.desc;
-  localStorage.setItem('chefos_status_selected_title', title);
+  localStorage.setItem('sautero_status_selected_title', title);
   document.querySelectorAll('.ticket.selected-next, li.selected-next').forEach(t=>{
     t.classList.remove('selected-next');
     const flag = t.querySelector('.ticket-next-flag');
@@ -762,7 +762,7 @@ function enhanceTickets(){
     const title = titleEl ? titleEl.textContent.trim() : ticket.textContent.trim().slice(0,60);
     const desc = descEl ? descEl.textContent.trim() : '';
     ticket.classList.add('clickable-ticket');
-    if(localStorage.getItem('chefos_status_selected_title') === title){
+    if(localStorage.getItem('sautero_status_selected_title') === title){
       ticket.classList.add('selected-next');
       const flag = document.createElement('span');
       flag.className = 'ticket-next-flag';
@@ -804,6 +804,6 @@ renderPulse();
 </script>
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
 </body>
 </html>

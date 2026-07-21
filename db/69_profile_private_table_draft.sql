@@ -1,4 +1,4 @@
--- ChefOS — DRAFT: proper fix for per-person private fields (2026-07-15).
+-- Sautero — DRAFT: proper fix for per-person private fields (2026-07-15).
 --
 -- NOT YET WIRED INTO THE APP. This is a schema-only draft for the correct long-term fix to the
 -- bug db/68 just emergency-patched. Column-level GRANT/REVOKE (db/62's approach) can't

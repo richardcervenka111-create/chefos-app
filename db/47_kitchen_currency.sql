@@ -1,4 +1,4 @@
--- ChefOS — kitchen-wide display currency (Richard: "chcem mať možnosť v hlavnom menu zmeniť
+-- Sautero — kitchen-wide display currency (Richard: "chcem mať možnosť v hlavnom menu zmeniť
 -- menu eura frank dolár"). Every ingredient price is still stored in EUR (matches the existing
 -- 535+ ingredient rows and every cost calculation in the app) — this column only controls how
 -- prices are *displayed*, for the whole team at once, via a fixed approximate conversion rate

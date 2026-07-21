@@ -135,7 +135,7 @@
   .modal .m-close{ display:block; width:100%; margin-top:16px; background:none; border:1px solid var(--rule); border-radius:10px; color:var(--ink-dim); font:inherit; font-size:13px; padding:9px 0; cursor:pointer; }
   .modal .m-close:hover{ border-color:var(--accent-dim); color:var(--ink); }
 
-  .chefos-stamp{ text-align:center; font-size:12px; color:var(--ink-faint); margin-top:50px; padding-top:20px; border-top:1px solid var(--rule); }
+  .sautero-stamp{ text-align:center; font-size:12px; color:var(--ink-faint); margin-top:50px; padding-top:20px; border-top:1px solid var(--rule); }
 </style>
 </head>
 <body>
@@ -148,7 +148,7 @@
           <button id="acctPersonalBtn" onclick="setAcctView('personal')">👤 Personal</button>
           <button id="acctCompanyBtn" onclick="setAcctView('company')">🏢 Company</button>
         </div>
-        <!-- SK/EN toggle (Richard, 17.7.) — same shared chefos_doc_lang key as every other doc.
+        <!-- SK/EN toggle (Richard, 17.7.) — same shared sautero_doc_lang key as every other doc.
              Chrome is fully bilingual; feature names/descriptions stay Slovak for now (same
              honest boundary as monetization card bodies). -->
         <button class="lang-toggle" id="langBtn" onclick="toggleLang()">EN</button>
@@ -181,7 +181,7 @@
 <div class="wrap" id="modulesWrap"></div>
 
 <div class="wrap">
-  <div class="chefos-stamp" id="stamp">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
+  <div class="sautero-stamp" id="stamp">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
 </div>
 
 <!-- Feature detail modal -->
@@ -323,7 +323,7 @@ const MODULES = [
   ]},
   { icon:'🛡️', title:'Admin', title_en:'Admin', items:[
     { name:'Add Admin (Head / Kitchen Admin)', name_en:'Add Admin (Main / Kitchen Admin)', desc_en:'Two levels: Main Admin (Richard, full reach) and Kitchen Admin (selected rights via switches — invites, team, reports…).', status:'ok', role:'admin', desc:'Dve úrovne: Head Admin (Richard, plný dosah) a Kitchen Admin (vybrané práva cez prepínače — pozvánky, tím, reporty…).' },
-    { name:'Add Company (jednorazová pozvánka)', name_en:'Add Company (single-use invite)', desc_en:'Richard creates the company and sends ONE invite by email — whoever accepts automatically becomes that kitchen\'s main admin. Resilient to a "burned" link (email preview) — verified on chefos@protonmail.com.', status:'ok', role:'admin', desc:'Richard založí firmu a pošle JEDNU pozvánku emailom — kto ju prijme, automaticky sa stane hlavným adminom tej kuchyne. Odolné aj voči "spálenému" odkazu (email preview) — overené na chefos@protonmail.com.' },
+    { name:'Add Company (jednorazová pozvánka)', name_en:'Add Company (single-use invite)', desc_en:'Richard creates the company and sends ONE invite by email — whoever accepts automatically becomes that kitchen\'s main admin. Resilient to a "burned" link (email preview) — verified on sautero@protonmail.com.', status:'ok', role:'admin', desc:'Richard založí firmu a pošle JEDNU pozvánku emailom — kto ju prijme, automaticky sa stane hlavným adminom tej kuchyne. Odolné aj voči "spálenému" odkazu (email preview) — overené na sautero@protonmail.com.' },
     { name:'Admin Directory', name_en:'Admin Directory', desc_en:'An overview of all accounts with on/off right switches, account type and AI credit (if any).', status:'ok', role:'admin', desc:'Prehľad všetkých účtov s on/off prepínačmi práv, typom účtu a AI kreditom (ak nejaký má).' },
     { name:'Access Requests', name_en:'Access Requests', desc_en:'Approving new requests for access to Sautero — the app is invite-only; nobody gets in without approval.', status:'ok', role:'admin', desc:'Schvaľovanie nových žiadostí o prístup do Sautero — appka je invite-only, bez schválenia sa nikto nedostane dnu.' },
     { name:'Kitchen Reports (hub + grafy + predikcia)', name_en:'Kitchen Reports (hub + charts + prediction)', desc_en:'A report hub like Internal Docs: Team Members (attendance, hours, activity — pie and bar charts, only with the employee\'s consent), Recipes (Sautero/Company shelves, completeness of times and prices, section mix), Ingredients (% with prices and filled data), Check List (states, remaining minutes per station, projects) — each section with a 🔮 pace prediction. HACCP reports still "in the works".', status:'test', acct:'company', role:'admin', desc:'Reportový hub ako Internal Docs: Team Members (dochádzka, hodiny, aktivita — koláčové a stĺpcové grafy, len so súhlasom zamestnanca), Recepty (police Sautero/Company, kompletnosť časov a cien, mix sekcií), Ingrediencie (% s cenami a doplnenými dátami), Check List (stavy, zostávajúce minúty per stanica, projekty) — každá sekcia s 🔮 predikciou tempa. HACCP reporty zatiaľ ako "pracujeme na tom".' },
@@ -497,10 +497,10 @@ function closeFeatureModal(){
 }
 document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeFeatureModal(); });
 
-/* SK/EN toggle (Richard, 17.7.) — shared chefos_doc_lang key across every /visual data/ doc.
+/* SK/EN toggle (Richard, 17.7.) — shared sautero_doc_lang key across every /visual data/ doc.
    Chrome is bilingual; feature names/descs stay Slovak for now (honest boundary, noted in the
    EN lede). */
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
@@ -516,7 +516,7 @@ function applyLang(){
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLang();
   renderModules();
 }

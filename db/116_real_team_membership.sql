@@ -1,4 +1,4 @@
--- ChefOS — real team membership flag (Richard, 16.7. večer): switching to a Company account
+-- Sautero — real team membership flag (Richard, 16.7. večer): switching to a Company account
 -- is no longer open to anyone — only to people who ACTUALLY joined a team (via an invite
 -- link/email or a team join code) or hold a kitchen-admin role. profiles.in_team records the
 -- real join event; a personal account's auto-created solo kitchen never sets it.

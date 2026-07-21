@@ -1,4 +1,4 @@
--- ChefOS — Working Time: real check-in/check-out time tracking. Overtime is a fixed 8h/day
+-- Sautero — Working Time: real check-in/check-out time tracking. Overtime is a fixed 8h/day
 -- threshold (Richard's own rule — "ak človek pracuje viac ako osem hodín v daný deň" — not
 -- tied to the contracted weekly hours below).
 --

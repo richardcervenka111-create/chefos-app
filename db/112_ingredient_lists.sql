@@ -1,12 +1,12 @@
--- ChefOS — custom ingredient lists (Richard, 16.7. večer): people can create ADDITIONAL
--- ingredient lists alongside the two fixed shelves (ChefOS and My Ingredients, which are
+-- Sautero — custom ingredient lists (Richard, 16.7. večer): people can create ADDITIONAL
+-- ingredient lists alongside the two fixed shelves (Sautero and My Ingredients, which are
 -- hard-wired and can never be renamed/deleted). Long-press on a list tile in the Ingredients
 -- menu offers Rename / Hide / Delete — for custom lists only.
 --
 -- Model: a custom list is a named container owned by its creator, private to them (same
 -- privacy rule as My Ingredients). Its items live in the normal `ingredients` table with
 -- is_personal = true (so all existing privacy RLS from db/97 applies untouched) plus a
--- list_id pointing here. My Ingredients = is_personal items with list_id NULL. The ChefOS
+-- list_id pointing here. My Ingredients = is_personal items with list_id NULL. The Sautero
 -- shelf (is_personal = false) never mixes with any of this.
 
 create table if not exists ingredient_lists (

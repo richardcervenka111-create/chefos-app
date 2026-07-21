@@ -1,4 +1,4 @@
--- ChefOS — adds standard nutrition-label values (per 100g/100ml) to each ingredient.
+-- Sautero — adds standard nutrition-label values (per 100g/100ml) to each ingredient.
 -- The app computes a recipe's total nutrition from these the same way it already computes
 -- recipe cost from ingredient prices — matching ingredient lines by name, converting units,
 -- and summing.

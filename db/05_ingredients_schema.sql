@@ -1,4 +1,4 @@
--- ChefOS — ingredients master list (pricing database)
+-- Sautero — ingredients master list (pricing database)
 -- Run this in the Supabase SQL Editor, AFTER 01-04. Creates the "price book" table —
 -- one row per distinct ingredient, with a current reference price you can edit any time.
 

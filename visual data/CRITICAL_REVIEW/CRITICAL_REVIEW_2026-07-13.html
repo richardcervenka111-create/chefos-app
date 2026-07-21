@@ -695,11 +695,11 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
 <button class="sautero-lang-fab" id="sauteroLangFab" onclick="sauteroToggleLang()">EN</button>
 
 <script>
-/* Shared SK/EN toggle for /visual data/ docs without their own — same chefos_doc_lang key as
+/* Shared SK/EN toggle for /visual data/ docs without their own — same sautero_doc_lang key as
    the rest, so one switch follows you across every document. Translates [data-sk]/[data-en]
    pairs (chrome + stamp); untagged content stays in its original language. */
 (function(){
-  let lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  let lang = localStorage.getItem('sautero_doc_lang') || 'sk';
   function apply(){
     document.querySelectorAll('[data-sk]').forEach(el=>{
       const val = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
@@ -711,7 +711,7 @@ footer{margin-top:110px;border-top:1px solid var(--rule);padding-top:26px;font-s
   }
   window.sauteroToggleLang = function(){
     lang = lang === 'sk' ? 'en' : 'sk';
-    localStorage.setItem('chefos_doc_lang', lang);
+    localStorage.setItem('sautero_doc_lang', lang);
     apply();
   };
   apply();

@@ -1,4 +1,4 @@
--- ChefOS -- Michelin-chef pass, batch 4: Plated Desserts, part 2 (2026-07-15/16).
+-- Sautero -- Michelin-chef pass, batch 4: Plated Desserts, part 2 (2026-07-15/16).
 --
 -- Continuation of db/91 (batch 3, part 1) -- same treatment, same 6-kitchen id-set pattern per
 -- distinct dish (see db/91's header for why every dish needs 6 ids, not 1).

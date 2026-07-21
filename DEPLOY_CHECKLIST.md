@@ -1,6 +1,6 @@
 # Sautero — Deploy checklist
 
-Pushing `main` auto-deploys `app/` to production (app.chefos.ch) via GitHub Pages,
+Pushing `main` auto-deploys `app/` to production (app.sautero.ch) via GitHub Pages,
 **gated by CI health checks** (`.github/workflows/deploy-pages.yml` — a failing auditor
 blocks the deploy). The local pre-push hook prints this contract on every push to main.
 

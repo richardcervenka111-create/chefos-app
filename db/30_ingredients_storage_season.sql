@@ -1,4 +1,4 @@
--- ChefOS — extends ingredients with two new filterable dimensions Richard asked for, scoped
+-- Sautero — extends ingredients with two new filterable dimensions Richard asked for, scoped
 -- down from the full "master ingredient database" spec to what's actually needed for the
 -- Ingredients season/storage-type filter (not the full 20k-row/multi-table architecture —
 -- that's a separate, paused decision). Adds columns only; the data fill (existing 535

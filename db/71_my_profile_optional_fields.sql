@@ -1,4 +1,4 @@
--- ChefOS — My Profile: optional extra fields (2026-07-15).
+-- Sautero — My Profile: optional extra fields (2026-07-15).
 --
 -- Richard wants My Profile to hold more info about people, with these as optional (not part of
 -- the mandatory first-login gate, which stays just name/age/gender to keep onboarding fast).

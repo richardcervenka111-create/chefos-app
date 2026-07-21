@@ -1,8 +1,8 @@
--- ChefOS — removal from a team must NOT lock the person out of ChefOS entirely (Richard,
+-- Sautero — removal from a team must NOT lock the person out of Sautero entirely (Richard,
 -- 16.7. ~23:40): db/124 left the removed member with kitchen_id NULL, which renderTeamGate
 -- treats as "no access — invite-only". Correct behavior: they lose the COMPANY kitchen only,
 -- and immediately get their own fresh personal "My Kitchen" (the kitchens-insert triggers from
--- db/74/db/87 seed the standard ChefOS ingredient + recipe shelves automatically), flipped to
+-- db/74/db/87 seed the standard Sautero ingredient + recipe shelves automatically), flipped to
 -- personal account mode. Their personal (is_personal) recipes/ingredients follow created_by,
 -- not kitchen_id (db/97), so nothing of their own is lost in the move.
 

@@ -1,4 +1,4 @@
--- ChefOS — "My Recipes" must NEVER show company saves (Richard, 17.7.: recipe saved in
+-- Sautero — "My Recipes" must NEVER show company saves (Richard, 17.7.: recipe saved in
 -- company mode kept appearing on the personal shelf).
 --
 -- Root cause: the shelf predicate had a legacy exception — in PERSONAL mode it showed ALL of

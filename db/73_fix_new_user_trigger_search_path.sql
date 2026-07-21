@@ -1,4 +1,4 @@
--- ChefOS — CRITICAL: fix "Database error saving new user" blocking every new signup (2026-07-14).
+-- Sautero — CRITICAL: fix "Database error saving new user" blocking every new signup (2026-07-14).
 --
 -- Root cause (confirmed live in Supabase's Postgres logs while Richard was testing a brand new
 -- gmail address): handle_new_user() -- the trigger that creates a profiles row the moment
@@ -10,7 +10,7 @@
 -- have `public` on its search_path, so the unqualified `profiles` reference can't resolve.
 --
 -- This has been silently blocking every brand-new signup (anyone who has never logged into
--- ChefOS before) since 34_teams_access_gate.sql last redefined this function -- existing users
+-- Sautero before) since 34_teams_access_gate.sql last redefined this function -- existing users
 -- were never affected because the trigger only runs once, at account creation. Client-side, this
 -- surfaced as a misleading "too many emails, wait an hour" message, because
 -- friendlyAuthErrorMessage() in app/index.html treats any unrecognized/malformed error as a rate

@@ -1,4 +1,4 @@
--- ChefOS -- Admin lockdown (Richard, 15.7.): nobody has admin functions except
+-- Sautero -- Admin lockdown (Richard, 15.7.): nobody has admin functions except
 -- richard.cervenka@icloud.com, until Richard personally approves someone.
 --
 -- STAGING FIRST -- this UPDATEs live data (resets is_admin) and adds a trigger.
@@ -34,7 +34,7 @@ begin
     if auth.uid() in (select id from auth.users where lower(email) = 'richard.cervenka@icloud.com') then
       return new; -- the super-admin himself, acting from inside the app
     end if;
-    raise exception 'is_admin can only be changed by the ChefOS super-admin';
+    raise exception 'is_admin can only be changed by the Sautero super-admin';
   end if;
   return new;
 end;

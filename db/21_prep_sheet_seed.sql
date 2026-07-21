@@ -1,4 +1,4 @@
--- ChefOS — real SKY prep sheet (dishes + items), from Richard's actual paper prep sheet.
+-- Sautero — real SKY prep sheet (dishes + items), from Richard's actual paper prep sheet.
 -- Run after 20_prep_sheet_schema.sql. Priority left at the default (3) and prep_time
 -- left empty for every item, same as the paper sheet's blank 'status' column — Richard
 -- fills those in himself, through the app.

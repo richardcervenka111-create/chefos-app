@@ -28,11 +28,11 @@
 <link rel="manifest" href="manifest.json">
 <!-- -v2 filenames (18.7.): Safari/iPadOS caches a tab/home-screen favicon per-device and often
      ignores query-string cache-busting on it — a genuinely new file path was the only reliable
-     way to force tablets still showing the old ChefOS icon to actually fetch the new Sautero
+     way to force tablets still showing the old Sautero icon to actually fetch the new Sautero
      one. If a tablet already has an old Add-to-Home-Screen icon, that snapshot is frozen at
      iOS's OS level regardless of anything served here — remove and re-add it once. -->
 <!-- -v3 (20.7.): same Sautero art, new file paths again — some desktop browsers (Richard's Mac)
-     still showed the old cached ChefOS tab icon after -v2; a fresh path is the only bust those
+     still showed the old cached Sautero tab icon after -v2; a fresh path is the only bust those
      honour. A pinned tab / bookmark / desktop shortcut created earlier keeps its own frozen
      snapshot regardless — remove and re-add it once to pick this up. -->
 <link rel="icon" href="icons/icon-32-v3.png" sizes="32x32">
@@ -2807,7 +2807,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet" style="max-height:85vh;">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="krTitle">📊 Company Report</div>
-    <!-- Illustration-data switch (Richard, 17.7.) — HARD-GATED to exactly chefos@protonmail.com
+    <!-- Illustration-data switch (Richard, 17.7.) — HARD-GATED to exactly sautero@protonmail.com
          (his own kitchen-admin test account), per explicit instruction: nobody else ever sees
          this, not even other admins. Display-only, same no-DB-writes design as Working Time's. -->
     <button class="task-status-btn" id="krDemoToggle" style="display:none; margin-bottom:8px;" onclick="toggleKrDemo()">🎭 Demo: OFF</button>
@@ -4457,8 +4457,8 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div class="sheet-title">Appearance</div>
     <p class="sheet-text">Pick how Sautero looks on this device. This is per-device — everyone on your team can choose their own.</p>
     <div class="sheet-row">
-      <button class="task-status-btn" id="appearanceDarkBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('dark')">🌙 Dark</button>
-      <button class="task-status-btn" id="appearanceLightBtn" style="flex:1; padding:16px 0;" onclick="setChefosTheme('light')">☀️ Light</button>
+      <button class="task-status-btn" id="appearanceDarkBtn" style="flex:1; padding:16px 0;" onclick="setSauteroTheme('dark')">🌙 Dark</button>
+      <button class="task-status-btn" id="appearanceLightBtn" style="flex:1; padding:16px 0;" onclick="setSauteroTheme('light')">☀️ Light</button>
     </div>
     <!-- Vzhľad aplikácie: Klasický / Nový (redesign-ui) — visible ONLY to the founder's exact
          email (same gate as Internal Docs); per-device, localStorage chefos_ui_theme. The New
@@ -4466,8 +4466,8 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div id="uiThemeBlock" style="display:none; margin-top:14px; border-top:1px solid var(--rule); padding-top:12px;">
       <label class="form-label">Vzhľad aplikácie (len tvoje zariadenie)</label>
       <div class="sheet-row">
-        <button class="task-status-btn" id="uiThemeClassicBtn" style="flex:1; padding:16px 0;" onclick="setChefosUiTheme('classic')">🗂 Klasický</button>
-        <button class="task-status-btn" id="uiThemeNewBtn" style="flex:1; padding:16px 0;" onclick="setChefosUiTheme('new')">✨ Nový</button>
+        <button class="task-status-btn" id="uiThemeClassicBtn" style="flex:1; padding:16px 0;" onclick="setSauteroUiTheme('classic')">🗂 Klasický</button>
+        <button class="task-status-btn" id="uiThemeNewBtn" style="flex:1; padding:16px 0;" onclick="setSauteroUiTheme('new')">✨ Nový</button>
       </div>
       <p class="sheet-text" style="margin-top:8px; font-size:12px;">Nový = redesign v testovaní: rovnaké farby a font, hlbšie vrstvenie, glow, mikrointerakcie. Kým je zapnutý, prebíja voľbu Light. Ostatní užívatelia tento prepínač nevidia.</p>
     </div>
@@ -7043,7 +7043,7 @@ function logEvent(name, meta){
    (Richard: "nepoužívaj takú farbu") for a quieter, more botanical/artisanal pairing that's
    still drawn straight from the app's own palette (--ink/--sage), not a new color introduced
    from nowhere. */
-function chefOSLogoMarkSvg(size){
+function sauteroLogoMarkSvg(size){
   return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <circle cx="32" cy="32" r="30" fill="#ffffff"/>
     <circle cx="32" cy="32" r="29" fill="none" stroke="#223d57" stroke-width="1"/>
@@ -7542,7 +7542,7 @@ async function enableFaceIdOnDevice(){
         rp: { name: 'Sautero', id: location.hostname },
         user: {
           id: new TextEncoder().encode(currentUser.id),
-          name: currentUser.email || 'chefos-user',
+          name: currentUser.email || 'sautero-user',
           displayName: currentUserName || currentUser.email || 'Sautero user'
         },
         pubKeyCredParams: [{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
@@ -7758,7 +7758,7 @@ async function enterApp(){
   // Default UI theme for the founder's account (redesign-ui): first login on a device with no
   // stored choice → New. Everyone else stays Classic and never sees the switch.
   if(uiThemeSwitchAllowed() && localStorage.getItem('chefos_ui_theme') === null){
-    setChefosUiTheme('new');
+    setSauteroUiTheme('new');
   }
 
   if(!localStorage.getItem('chefos_tutorial_seen')) openTutorial();
@@ -8510,7 +8510,7 @@ function closeKitchenReports(){ document.getElementById('kitchenReportsOverlay')
    and every existing AND future demo toggle picks it up automatically. */
 function demoModeAllowed(){
   const email = currentUser && currentUser.email && currentUser.email.toLowerCase();
-  return !!email && ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'].includes(email);
+  return !!email && ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'sautero@protonmail.com'].includes(email);
 }
 
 /* Kitchen Reports illustration mode — display only, nothing ever touches the database, turning
@@ -8808,12 +8808,12 @@ function krDemoCompanyRecipes(){
 function krRenderRecipes(){
   _krSection = 'recipes';
   document.getElementById('krPeriodChips').style.display = 'none';
-  const chefos = allRecipes().filter(r=>!r.createdBy);
+  const sautero = allRecipes().filter(r=>!r.createdBy);
   const company = krDemoActive() ? krDemoCompanyRecipes() : allRecipes().filter(r=>r.createdBy && !r.isPersonal && r.kitchenId === currentKitchenId);
   if(_krShelf === null){
     krSectionShell('📖 Recipes', `
-      <div class="task-row" style="cursor:pointer;" onclick="_krShelf='chefos'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
-        <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">✨ Sautero</div><div class="meta">${chefos.length} recipes — the built-in library</div></div><div class="chevron">›</div></div>
+      <div class="task-row" style="cursor:pointer;" onclick="_krShelf='sautero'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
+        <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">✨ Sautero</div><div class="meta">${sautero.length} recipes — the built-in library</div></div><div class="chevron">›</div></div>
       </div>
       <div class="task-row" style="cursor:pointer;" onclick="_krShelf='company'; _krLevel='root'; _krCategory=null; krRenderRecipes();">
         <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">🏢 Company Recipes</div><div class="meta">${company.length} recipes — authored by your team</div></div><div class="chevron">›</div></div>
@@ -8821,8 +8821,8 @@ function krRenderRecipes(){
     `);
     return;
   }
-  const recipes = _krShelf === 'chefos' ? chefos : company;
-  const shelfName = _krShelf === 'chefos' ? '✨ Sautero' : '🏢 Company Recipes';
+  const recipes = _krShelf === 'sautero' ? sautero : company;
+  const shelfName = _krShelf === 'sautero' ? '✨ Sautero' : '🏢 Company Recipes';
   const withTimes = recipes.filter(r=>(r.time && (r.time.active || r.time.passive)) || r.productionTime).length;
   const withMethod = recipes.filter(r=>(r.sections||[]).some(s=>s.type==='steps' && s.items && s.items.length)).length;
   const withCost = recipes.filter(r=>r.cost && (r.cost.total != null || r.cost.perKg != null)).length;
@@ -9298,7 +9298,7 @@ function getJoinTargetFromUrl(){
    UI (so nobody even sees the option) and at the database level (db/81 — kitchen_invites can
    only be created/revoked by an admin), the same belt-and-suspenders pattern as the admin
    lockdown itself. */
-const CHEFOS_SUPER_ADMIN_EMAIL = 'richard.cervenka@icloud.com';
+const SAUTERO_SUPER_ADMIN_EMAIL = 'richard.cervenka@icloud.com';
 
 async function renderTeamGate(){
   document.getElementById('teamGateView').style.display = 'block';
@@ -9306,7 +9306,7 @@ async function renderTeamGate(){
   el.innerHTML = `<p class="lede">Checking your access…</p>`;
 
   const email = (currentUser.email || '').toLowerCase();
-  const isSuperAdmin = email === CHEFOS_SUPER_ADMIN_EMAIL;
+  const isSuperAdmin = email === SAUTERO_SUPER_ADMIN_EMAIL;
   let { data: reqRow } = await sb.from('access_requests').select('*').eq('email', email).order('requested_at', { ascending:false }).limit(1).maybeSingle();
 
   if(!reqRow){
@@ -10122,7 +10122,7 @@ async function showTeamInvite(){
   if(!currentIsAdmin && !currentAdminPerms.company_admin){
     el.innerHTML = `
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
-        ${chefOSLogoMarkSvg(40)}
+        ${sauteroLogoMarkSvg(40)}
         <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">Sautero</span>
       </div>
       <label class="form-label">Your Kitchen</label>
@@ -10146,7 +10146,7 @@ async function showTeamInvite(){
 
   el.innerHTML = `
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
-      ${chefOSLogoMarkSvg(40)}
+      ${sauteroLogoMarkSvg(40)}
       <span style="font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:19px; letter-spacing:0.01em; color:var(--copper);">Sautero</span>
     </div>
 
@@ -10190,7 +10190,7 @@ async function showTeamInvite(){
   qr.make();
   const holder = document.getElementById('inviteQrHolder');
   holder.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2 }) +
-    `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:20%; height:20%;">${chefOSLogoMarkSvg('100%')}</div>`;
+    `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:20%; height:20%;">${sauteroLogoMarkSvg('100%')}</div>`;
 
   renderTeamMembersList();
 }
@@ -10487,7 +10487,7 @@ async function callClaudeAPI(body, opts){
   if(!freeGrant && !currentAiTestingMode && currentAccountType === 'personal' && !(currentAiCreditChf > 0)){
     throw new Error('Your AI credit is used up. Ask your admin to top it up (Admin Directory).');
   }
-  if(freeGrant) body = { ...body, _share_grant: 'recipe_chefos' };
+  if(freeGrant) body = { ...body, _share_grant: 'recipe_sautero' };
   const { data, error } = await sb.functions.invoke('claude-proxy', { body });
   if(error){
     let detail = error.message || 'Anthropic API error';
@@ -10564,7 +10564,7 @@ function dbRowToRecipe(row){
     isPublic: !!row.is_public,
     sharedWithFriends: !!row.shared_with_friends,
     kitchenId: row.kitchen_id || null,
-    chefosMasterId: row.chefos_master_id || null,
+    sauteroMasterId: row.chefos_master_id || null,
     listId: row.list_id || null
   };
   // Neutralise recipes from OTHER kitchens before they ever reach innerHTML (see sanitizeForeign-
@@ -10752,7 +10752,7 @@ function setRecipeIngredientSource(src){
   buildIngredientLookup();
 }
 function ingredientMatchesSource(ing, srcId){
-  if(srcId === 'chefos') return !ing.is_personal;
+  if(srcId === 'sautero') return !ing.is_personal;
   if(srcId === 'mine') return !!ing.is_personal && !ing.list_id;
   return ing.list_id === srcId;
 }
@@ -11355,11 +11355,11 @@ function diffTextClass(d){
 let activeCategory = "Favorites";
 /* Recipe source filter (bod 5, 15.7. — extends the earlier 2-way AI Playground toggle into 3):
    'mine' = recipes YOU personally added (r.createdBy === currentUser.id), excluding AI ones.
-   'chefos' = anything tagged 'AI-generated' (Ask Chef's Assistant, Chef Challenge, Menu Scan
+   'sautero' = anything tagged 'AI-generated' (Ask Chef's Assistant, Chef Challenge, Menu Scan
    output) — same set the old "AI Playground" option showed, just relabeled. 'company' = every
    non-AI recipe in the kitchen regardless of who added it (the whole shared recipe book).
    Reset to 'mine' on every showList() open, same reasoning as activeCategory above. */
-let recipeSourceFilter = "chefos";
+let recipeSourceFilter = "sautero";
 let activeQuery = "";
 let currentScale = 1;
 let _customCategoryIcons = {};
@@ -11371,7 +11371,7 @@ let CUSTOM_RECIPE_CATEGORIES = [];
 // Recipes/Company Recipes/every project).
 let _categoryIconRows = [];
 function refreshCustomCategoryState(){
-  const rows = _categoryIconRows.filter(r => (r.shelf_scope || 'chefos') === recipeSourceFilter);
+  const rows = _categoryIconRows.filter(r => (r.shelf_scope || 'sautero') === recipeSourceFilter);
   _customCategoryIcons = {};
   rows.forEach(r=>{ _customCategoryIcons[r.category] = r.icon; });
   CUSTOM_RECIPE_CATEGORIES = Object.keys(_customCategoryIcons);
@@ -11562,7 +11562,7 @@ const SETTINGS_TILE_DEFS = [
   { key:'myProfile', icon:'👤', staticLabel:'My Profile & Security', onclick:'openMyProfileSettings()' },
   { key:'scanSettings', icon:'🔑', staticLabel:'AI & Scan Settings', onclick:'openScanSettings()' },
   { key:'language', icon:'🌐', staticLabel:'Language', onclick:'openLanguagePicker()' },
-  { key:'appearance', icon:'🌗', staticLabel:'Appearance', onclick:'openAppearanceSettings()', dynamicLabel:()=> 'Appearance: ' + (getChefosTheme()==='light' ? 'Light' : 'Dark') },
+  { key:'appearance', icon:'🌗', staticLabel:'Appearance', onclick:'openAppearanceSettings()', dynamicLabel:()=> 'Appearance: ' + (getSauteroTheme()==='light' ? 'Light' : 'Dark') },
   { key:'currency', icon:'💱', staticLabel:'Currency', onclick:'openCurrencySettings()', adminOnly:true },
   { key:'accountType', icon:'📖', staticLabel:'Account Type', onclick:'openAccountTypeSettings()', dynamicLabel:()=> 'Account Type: ' + (currentAccountType==='company' ? 'Company' : currentAccountType==='personal' ? 'Personal' : 'Not set') },
   { key:'previewAsUser', icon:'👁️', staticLabel:'Preview as Normal User', onclick:'togglePreviewAsUser()', adminOnly:true },
@@ -11738,11 +11738,11 @@ function closeEmailContacts(){ document.getElementById('emailContactsOverlay').c
    them live — today / this month / all time per account, founder test accounts flagged, plus
    a by-feature split. The Claude Platform dashboard remains the authority for the org total;
    this is the split it can never show (it only sees the one central key). ---------- */
-const FOUNDER_TEST_EMAILS = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'];
+const FOUNDER_TEST_EMAILS = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'sautero@protonmail.com'];
 const AI_USD_TO_CHF = 0.87;
 let _aiUsageRows = [], _aiUsageWho = {};
 /* Demo dataset for AI Usage (Richard, 17.7. večer) — same illustration mode as Kitchen
-   Reports (chefos@protonmail.com only, toggled there): believable varied numbers for showing
+   Reports (sautero@protonmail.com only, toggled there): believable varied numbers for showing
    the screen to a prospect without exposing anyone's real usage. Deterministic, no DB. */
 function aiUsageDemoData(){
   const people = [
@@ -11982,7 +11982,7 @@ const INTERNAL_DOCS = [
   { name:'🗺️ Plán (teraz + denník + roadmapa)', file:'plan.html' },
   { name:'💰 Biznis (monetizácia + automatizácie + náklady)', file:'biznis.html' },
   { name:'🥘 Gronda research (konkurencia + inšpirácie)', file:'gronda.html' },
-  { name:'🏷️ Názov & značka (prečo Sautero — ChefOS US problém)', file:'nazov.html' },
+  { name:'🏷️ Názov & značka (prečo Sautero — Sautero US problém)', file:'nazov.html' },
   { name:'🎨 Značka & vízia (deck + manifest + guide)', file:'znacka.html' },
   { name:'📝 Poznámky (živý zápisník — nápady + na dokončenie)', file:'poznamky.html' },
   { name:'🤝 Aare Ventures (investori Bern — ako nám pomôžu)', file:'aare.html' },
@@ -12593,7 +12593,7 @@ function renderRecipeSummaryBar(){
   // Company, never anything about what teammates see.
   const showPersonalInCompany = currentAccountType === 'company' && localStorage.getItem('chefos_show_personal_in_company') === '1';
   if((recipeSourceFilter === 'mine' && currentAccountType === 'company' && !showPersonalInCompany) || (recipeSourceFilter === 'company' && currentAccountType === 'personal')){
-    recipeSourceFilter = 'chefos';
+    recipeSourceFilter = 'sautero';
   }
   el.innerHTML = `
     <div class="prep-summary-row2" style="padding:8px 18px 12px 18px;">
@@ -12612,7 +12612,7 @@ function renderRecipeSummaryBar(){
 // This just names whichever shelf is currently open, so a "back" from Home doesn't lose context.
 function currentRecipeShelfName(){
   if(recipeSourceFilter === 'mine') return '📖 My Recipes';
-  if(recipeSourceFilter === 'chefos') return '✨ Sautero';
+  if(recipeSourceFilter === 'sautero') return '✨ Sautero';
   if(recipeSourceFilter === 'company') return '🏢 Company Recipes';
   const l = _recipeLists.find(x=>x.id === recipeSourceFilter);
   return '🗂️ ' + ((l && l.name) || 'Project');
@@ -12790,7 +12790,7 @@ async function saveEditRecipeCategory(){
   delete _customCategoryIcons[oldCat];
   _customCategoryIcons[newCat] = _editRecipeCategoryIcon;
   const ci = CUSTOM_RECIPE_CATEGORIES.indexOf(oldCat); if(ci > -1) CUSTOM_RECIPE_CATEGORIES.splice(ci, 1, newCat);
-  const riOld = _categoryIconRows.findIndex(r=>r.category===oldCat && (r.shelf_scope||'chefos')===recipeSourceFilter);
+  const riOld = _categoryIconRows.findIndex(r=>r.category===oldCat && (r.shelf_scope||'sautero')===recipeSourceFilter);
   if(riOld > -1) _categoryIconRows.splice(riOld, 1);
   _categoryIconRows.push({ category: newCat, icon: _editRecipeCategoryIcon, shelf_scope: recipeSourceFilter });
   _recipes.forEach(r=>{ if(r.category === oldCat && recipeOnCurrentShelf(r)) r.category = newCat; });
@@ -12810,7 +12810,7 @@ async function deleteRecipeCategory(cat){
   await sb.from('recipe_category_icons').delete().eq('kitchen_id', currentKitchenId).eq('category', cat).eq('shelf_scope', recipeSourceFilter);
   delete _customCategoryIcons[cat];
   CUSTOM_RECIPE_CATEGORIES = CUSTOM_RECIPE_CATEGORIES.filter(c=>c!==cat);
-  _categoryIconRows = _categoryIconRows.filter(r=>!(r.category===cat && (r.shelf_scope||'chefos')===recipeSourceFilter));
+  _categoryIconRows = _categoryIconRows.filter(r=>!(r.category===cat && (r.shelf_scope||'sautero')===recipeSourceFilter));
   _recipes.forEach(r=>{ if(r.category === cat && recipeOnCurrentShelf(r)) r.category = 'Uncategorized'; });
   setSyncStatus('saved');
   if(activeCategory === cat) activeCategory = 'Favorites';
@@ -12892,7 +12892,7 @@ let dietFilter = { vegetarian:false, vegan:false, pescatarian:false, keto:false,
    never re-derived separately (that's exactly how Sautero's own sections ended up leaking into
    My Recipes/Company Recipes, 16.7. neskoro večer). */
 function recipeOnCurrentShelf(r){
-  if(recipeSourceFilter === 'chefos') return !r.createdBy;
+  if(recipeSourceFilter === 'sautero') return !r.createdBy;
   // Public = published by ANY chef in ANY kitchen (db/131) — the community shelf.
   if(recipeSourceFilter === 'public') return !!r.isPublic;
   // Company = every authored, NON-personal recipe — including your own (Richard's bug,
@@ -12912,7 +12912,7 @@ function recipeOnCurrentShelf(r){
    JS predicate — used by section rename/delete so renaming "Soups" on My Recipes can't touch a
    same-named section's recipes on a different shelf. */
 function applyRecipeShelfQueryFilter(query){
-  if(recipeSourceFilter === 'chefos') return query.is('created_by', null);
+  if(recipeSourceFilter === 'sautero') return query.is('created_by', null);
   if(recipeSourceFilter === 'public') return query.eq('is_public', true);
   // Mirrors recipeOnCurrentShelf() exactly (17.7. fix): company = authored + non-personal,
   // kitchen-scoped (db/131 loads foreign public recipes too).
@@ -13347,7 +13347,7 @@ async function callClaudeGenerateRecipe(title, shortDescription, context){
    refreshCommentCountBadge. Keyed by chefos_master_id when the recipe is a Sautero copy
    (comments are shared across kitchens, db/129), else by the recipe's own id. */
 let _commentCounts = {};
-function recipeCommentCount(r){ return _commentCounts[r.chefosMasterId || r.id] || 0; }
+function recipeCommentCount(r){ return _commentCounts[r.sauteroMasterId || r.id] || 0; }
 function commentCountLabel(n){ return n > 9 ? '9+' : String(n); }
 
 function buildRecipeRowEl(r, idx, i){
@@ -13756,7 +13756,7 @@ async function openRecipeComments(){
   const r = allRecipes()[window.currentDetailIdx];
   if(!r) return;
   _currentCommentsRecipeId = r.id;
-  _currentCommentsMasterId = r.chefosMasterId || null;
+  _currentCommentsMasterId = r.sauteroMasterId || null;
   document.getElementById('recipeCommentInput').value = '';
   document.getElementById('recipeCommentStatus').textContent = '';
   document.getElementById('recipeCommentsList').innerHTML = '<p class="lede">Loading…</p>';
@@ -13816,7 +13816,7 @@ async function deleteRecipeComment(id){
 
 /* ---------- Activity feed (bod 2, 16.7. — db/104; extended 17.7. večer) — comments on
    recipes YOU created AND on recipes you FAVORITED (Richard: "ak niekto komentuje
-   public/chefos recept a ja ho mám vo favorite tak ma to upozorní"). Favorited Sautero/public
+   public/sautero recept a ja ho mám vo favorite tak ma to upozorní"). Favorited Sautero/public
    recipes are matched by chefos_master_id too, so a comment written in ANOTHER kitchen on the
    same underlying Sautero recipe (db/129) still triggers the dot. ---------- */
 function activityWatchTargets(){
@@ -13824,7 +13824,7 @@ function activityWatchTargets(){
   allRecipes().forEach(r=>{
     if(r.createdBy === currentUser.id || isFavorite(r.id)){
       ids.push(r.id);
-      if(r.chefosMasterId) masters.push(r.chefosMasterId);
+      if(r.sauteroMasterId) masters.push(r.sauteroMasterId);
     }
   });
   return { ids: [...new Set(ids)], masters: [...new Set(masters)] };
@@ -13869,7 +13869,7 @@ async function openActivityFeed(){
   else {
     el.innerHTML = rows.map(c=>{
       const r = allRecipes().find(rr=>rr.id === c.recipe_id)
-        || (c.chefos_master_id ? allRecipes().find(rr=>rr.chefosMasterId === c.chefos_master_id) : null);
+        || (c.chefos_master_id ? allRecipes().find(rr=>rr.sauteroMasterId === c.chefos_master_id) : null);
       const yours = r && r.createdBy === currentUser.id;
       return `
       <div class="task-row" onclick="closeActivityFeed(); jumpToRecipeById('${r ? r.id : c.recipe_id}');" style="cursor:pointer;">
@@ -13973,10 +13973,10 @@ async function refreshCommentCountBadge(r){
   if(!badge) return;
   badge.style.display = 'none';
   let q = sb.from('recipe_comments').select('id', { count:'exact', head:true });
-  q = r.chefosMasterId ? q.eq('chefos_master_id', r.chefosMasterId) : q.eq('recipe_id', r.id);
+  q = r.sauteroMasterId ? q.eq('chefos_master_id', r.sauteroMasterId) : q.eq('recipe_id', r.id);
   const { count } = await q;
   // Keep the list-row bubble in sync — this is the freshest count we have for this recipe.
-  if(typeof count === 'number') _commentCounts[r.chefosMasterId || r.id] = count;
+  if(typeof count === 'number') _commentCounts[r.sauteroMasterId || r.id] = count;
   if(count && count > 0){
     badge.textContent = count > 9 ? '9+' : String(count);
     badge.style.display = 'block';
@@ -14249,7 +14249,7 @@ function showList(){
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
   activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
-  // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'chefos' on
+  // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'sautero' on
   // every single call, silently undoing whatever shelf showRecipesHome()'s picker just set,
   // e.g. tapping "My Recipes" landed back on Sautero every time. It only went unnoticed while a
   // pill switcher inside this same screen let you flip it back manually; removing that pill
@@ -14545,11 +14545,11 @@ async function saveFormBody(){
   // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
   // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
   // same convention as ingredients' custom lists.
-  const inRecipeProject = recipeSourceFilter !== 'chefos' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine';
+  const inRecipeProject = recipeSourceFilter !== 'sautero' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine';
   setSyncStatus('saving');
   let error, savedId = formEditingId;
   if(formEditingId){
-    if(_recipeAiShare === true) payload.shared_with_chefos = true; // never silently un-shares
+    if(_recipeAiShare === true) payload.shared_with_sautero = true; // never silently un-shares
     ({ error } = await sb.from('recipes').update(payload).eq('id', formEditingId));
   } else {
     let inserted;
@@ -14557,7 +14557,7 @@ async function saveFormBody(){
       .insert({ ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
         is_personal: inRecipeProject ? true : currentAccountType === 'personal',
         list_id: inRecipeProject ? recipeSourceFilter : null,
-        shared_with_chefos: _recipeAiShare === true })
+        shared_with_sautero: _recipeAiShare === true })
       .select().single());
     if(inserted) savedId = inserted.id;
   }
@@ -14598,7 +14598,7 @@ function toggleIngredientFilterValue(list, value){
   if(i > -1) list.splice(i, 1); else list.push(value);
 }
 
-let ingredientSourceFilter = 'chefos'; // 'chefos' | 'mine' — bod 1, 16.7., db/97
+let ingredientSourceFilter = 'sautero'; // 'sautero' | 'mine' — bod 1, 16.7., db/97
 let showHiddenIngredients = false; // bod 1, 16.7. — db/107
 /* ---------- Recipes landing (bod 4, 16.7. večer) ---------- */
 let _recipeLists = [];
@@ -14641,7 +14641,7 @@ function renderRecipeShelvesGrid(){
   if(currentAccountType !== 'company' || showPersonalInCompany){
     fixedTile('mine', '📖', 'My Recipes', 'share');
   }
-  fixedTile('chefos', '✨', 'Sautero');
+  fixedTile('sautero', '✨', 'Sautero');
   // Public shelf (db/131) — every account type sees it, like the Sautero library.
   fixedTile('public', '🌍', 'Public');
   if(currentAccountType === 'company'){
@@ -14750,7 +14750,7 @@ function renderIngredientListsGrid(){
     addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openIngredientShelf(key),
       ()=>openItemContextMenu('ingredientShelf', key, label, isHidden, false));
   };
-  fixedTile('chefos', '✨', 'Sautero');
+  fixedTile('sautero', '✨', 'Sautero');
   // Company Ingredients (Richard, 18.7.): the kitchen's own shared additions — mirror of the
   // Company Recipes tile, shown in Company mode only.
   if(currentAccountType === 'company') fixedTile('company', '🏢', 'Company Ingredients');
@@ -14966,7 +14966,7 @@ function closeIngredientShareSheet(){
 }
 function currentIngredientListName(){
   if(ingredientSourceFilter === 'mine') return '👤 My Ingredients';
-  if(ingredientSourceFilter === 'chefos') return '✨ Sautero Ingredients';
+  if(ingredientSourceFilter === 'sautero') return '✨ Sautero Ingredients';
   if(ingredientSourceFilter === 'company') return '🏢 Company Ingredients';
   if(ingredientSourceFilter === 'public') return '🌍 Public Ingredients';
   const l = _ingredientLists.find(x=>x.id === ingredientSourceFilter);
@@ -14985,12 +14985,12 @@ function ingredientOnCurrentShelf(ing){
   // Company Ingredients). A list is a sub-grouping OF Company Ingredients, not a thing beside
   // it — so a list item (is_personal + list_id, team-visible via db/146) shows here too, and
   // also under its own list tile. Only truly private My Ingredients (list_id null) stay out.
-  if(ingredientSourceFilter === 'chefos') return !ing.is_personal && !ing.created_by;
+  if(ingredientSourceFilter === 'sautero') return !ing.is_personal && !ing.created_by;
   if(ingredientSourceFilter === 'company') return !!ing.created_by && (!ing.is_personal || !!ing.list_id);
   if(ingredientSourceFilter === 'mine') return !!ing.is_personal && !ing.list_id;
   return ing.list_id === ingredientSourceFilter;
 }
-function ingredientShelfIsShared(f){ return f === 'chefos' || f === 'company'; }
+function ingredientShelfIsShared(f){ return f === 'sautero' || f === 'company'; }
 /* Adding to the shared Sautero shelf is admin-only (Richard, 16.7.) — any kind of admin (Head
    Admin or a Kitchen Admin with any admin_perms), matching the RLS check in db/105. My
    Ingredients (is_personal) stays open to everyone regardless. */
@@ -15003,12 +15003,12 @@ function showIngredients(){
   // projects.
   const personalAllowed = currentAccountType !== 'company' || localStorage.getItem('chefos_show_personal_in_company') === '1';
   if(!personalAllowed && ingredientSourceFilter === 'mine'){
-    ingredientSourceFilter = 'chefos';
+    ingredientSourceFilter = 'sautero';
   }
   // Company shelf exists only in Company mode — Personal mode redirects to Sautero (mirror of
   // the recipes rule).
   if(currentAccountType !== 'company' && ingredientSourceFilter === 'company'){
-    ingredientSourceFilter = 'chefos';
+    ingredientSourceFilter = 'sautero';
   }
   logEvent('view_opened', {view:'ingredients', source:ingredientSourceFilter});
   hideAllViews();
@@ -18818,7 +18818,7 @@ function wtDemoAll(){
   };
   for(let d = new Date(start); d < today; d.setDate(d.getDate() + 1)){ // up to yesterday — a "shift" later today would look like time travel
     const dayStr = d.toISOString().slice(0,10);
-    const rnd = _wtDemoRand('chefos-demo-' + dayStr);
+    const rnd = _wtDemoRand('sautero-demo-' + dayStr);
     const dow = d.getDay();
     if(dow === 0 && rnd() < 0.8) continue;          // most Sundays off
     if(rnd() < 0.14) continue;                       // ~1 extra free day a week
@@ -19596,7 +19596,7 @@ async function exportWorkingTimeData(){
     schedule_forecast: forecastRes.data || [],
     profile: profileRes.data || {}
   };
-  downloadJSON(`chefos-working-time-${new Date().toISOString().slice(0,10)}.json`, backup);
+  downloadJSON(`sautero-working-time-${new Date().toISOString().slice(0,10)}.json`, backup);
   statusEl.textContent = 'Saved to your device.';
 }
 function handleWorkingTimeImportSelected(e){
@@ -20561,7 +20561,7 @@ function scanTargetFilter(){ return _pendingScanTargetFilter || ingredientSource
 function scanTargetListName(){
   const f = scanTargetFilter();
   if(f === 'mine') return '👤 My Ingredients';
-  if(f === 'chefos') return '✨ Sautero Ingredients';
+  if(f === 'sautero') return '✨ Sautero Ingredients';
   if(f === 'company') return '🏢 Company Ingredients';
   const l = _ingredientLists.find(x=>x.id === f);
   return l ? ('📋 ' + l.name) : currentIngredientListName();
@@ -21250,10 +21250,10 @@ function maybeShowViewTutorial(key){
    possible (see the inline <script> right after this file's <style> block) to avoid a flash of
    the wrong theme on load. Dark stays the default so nobody's existing look changes underneath
    them; Light is opt-in. */
-function getChefosTheme(){
+function getSauteroTheme(){
   return localStorage.getItem('chefos_theme') === 'light' ? 'light' : 'dark';
 }
-function setChefosTheme(theme){
+function setSauteroTheme(theme){
   theme = theme === 'light' ? 'light' : 'dark';
   localStorage.setItem('chefos_theme', theme);
   document.documentElement.dataset.theme = theme;
@@ -21275,15 +21275,15 @@ const UI_THEME_OWNER_EMAIL = 'richard.cervenka@icloud.com';
 function uiThemeSwitchAllowed(){
   return !!(currentUser && currentUser.email && currentUser.email.toLowerCase() === UI_THEME_OWNER_EMAIL);
 }
-function getChefosUiTheme(){ return localStorage.getItem('chefos_ui_theme') === 'new' ? 'new' : 'classic'; }
-function setChefosUiTheme(theme){
+function getSauteroUiTheme(){ return localStorage.getItem('chefos_ui_theme') === 'new' ? 'new' : 'classic'; }
+function setSauteroUiTheme(theme){
   theme = theme === 'new' ? 'new' : 'classic';
   localStorage.setItem('chefos_ui_theme', theme);
   document.documentElement.classList.toggle('theme-new', theme === 'new');
   const metaTheme = document.querySelector('meta[name="theme-color"]');
-  if(metaTheme) metaTheme.setAttribute('content', theme === 'new' ? '#081525' : (getChefosTheme() === 'light' ? '#F2F6FA' : '#0A1A2F'));
+  if(metaTheme) metaTheme.setAttribute('content', theme === 'new' ? '#081525' : (getSauteroTheme() === 'light' ? '#F2F6FA' : '#0A1A2F'));
   if(theme === 'new') document.documentElement.style.colorScheme = 'dark';
-  else document.documentElement.style.colorScheme = getChefosTheme();
+  else document.documentElement.style.colorScheme = getSauteroTheme();
   const cb = document.getElementById('uiThemeClassicBtn');
   if(cb){
     cb.classList.toggle('active', theme==='classic');
@@ -21291,14 +21291,14 @@ function setChefosUiTheme(theme){
   }
 }
 function openAppearanceSettings(){
-  const theme = getChefosTheme();
+  const theme = getSauteroTheme();
   document.getElementById('appearanceDarkBtn').classList.toggle('active', theme==='dark');
   document.getElementById('appearanceLightBtn').classList.toggle('active', theme==='light');
   const block = document.getElementById('uiThemeBlock');
   if(block){
     block.style.display = uiThemeSwitchAllowed() ? 'block' : 'none';
     if(uiThemeSwitchAllowed()){
-      const t = getChefosUiTheme();
+      const t = getSauteroUiTheme();
       document.getElementById('uiThemeClassicBtn').classList.toggle('active', t==='classic');
       document.getElementById('uiThemeNewBtn').classList.toggle('active', t==='new');
     }

@@ -1,4 +1,4 @@
--- ChefOS — ingredient price verification, batch 1 (daily ingredient agent, 2026-07-14)
+-- Sautero — ingredient price verification, batch 1 (daily ingredient agent, 2026-07-14)
 --
 -- Context: db/06_ingredients_seed.sql explicitly flagged that all 535 starter prices were
 -- ESTIMATES, never checked against a real source (web search was rate-limited at the time).

@@ -1,4 +1,4 @@
--- ChefOS — feedback unification (Richard, 16.7.: "feedback nefunguje odoslať").
+-- Sautero — feedback unification (Richard, 16.7.: "feedback nefunguje odoslať").
 --
 -- Root cause of the broken sending was app-side, not SQL: yesterday's new Send Feedback
 -- overlay (db/98) reused the element ids the OLD global feedback button (💬, db/61) already

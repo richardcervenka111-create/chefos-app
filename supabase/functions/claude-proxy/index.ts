@@ -1,4 +1,4 @@
-// ChefOS — server-side Claude proxy (2026-07-13).
+// Sautero — server-side Claude proxy (2026-07-13).
 //
 // Why this exists: every AI feature in app/index.html used to call
 // https://api.anthropic.com/v1/messages directly from the browser, with the user's own
@@ -29,9 +29,9 @@ const CORS_HEADERS = {
 };
 
 // AI credit balance (Richard, 16.7. — db/102): Personal accounts pay a CHF amount, get 70% of
-// it as usable credit (ChefOS keeps ~30% margin), and every real call here deducts its actual
+// it as usable credit (Sautero keeps ~30% margin), and every real call here deducts its actual
 // Anthropic cost from that balance. Prices are per Anthropic's published per-million-token
-// rates for the models ChefOS actually calls (see app/index.html's callClaudeXxx() functions).
+// rates for the models Sautero actually calls (see app/index.html's callClaudeXxx() functions).
 // Fixed USD->CHF rate, same "not live FX" convention as the app's own CURRENCY_INFO table.
 const MODEL_PRICING_USD_PER_MILLION: Record<string, { input: number; output: number }> = {
   'claude-sonnet-5': { input: 3, output: 15 },
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
   try {
     // Identify the calling user from their own auth token (automatically attached by
     // supabase-js's `functions.invoke()` on the client) — this is what lets us look up
-    // *their* key, and also what stops a stranger with no ChefOS account from calling this
+    // *their* key, and also what stops a stranger with no Sautero account from calling this
     // function at all and burning API credits for free.
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -94,8 +94,8 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const isPersonal = !profileError && profile?.account_type === 'personal';
 
-    // Share-with-ChefOS grant (Richard, 17.7.): AI help on a recipe the user agreed to share
-    // with the ChefOS library is free — skip the credit gate AND the metering for this call.
+    // Share-with-Sautero grant (Richard, 17.7.): AI help on a recipe the user agreed to share
+    // with the Sautero library is free — skip the credit gate AND the metering for this call.
     // HONEST NOTE: the flag is client-declared, so a determined user could set it on any call
     // to get free AI. Accepted for the pre-trial phase (the blast radius is one free call, and
     // shared recipes are curated by Richard, so a fake "share" earns nothing else); tighten to
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     const rawBody = await req.text();
     let parsedBody: Record<string, unknown> | null = null;
     try { parsedBody = JSON.parse(rawBody); } catch (_e) { /* forwarded as-is below */ }
-    const shareGrant = parsedBody?._share_grant === 'recipe_chefos';
+    const shareGrant = parsedBody?._share_grant === 'recipe_sautero';
     if (shareGrant && parsedBody) delete parsedBody._share_grant;
     const body = shareGrant && parsedBody ? JSON.stringify(parsedBody) : rawBody;
 
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Central key model (Richard, 16.7.): ALL AI calls run on ChefOS's own Anthropic key —
+    // Central key model (Richard, 16.7.): ALL AI calls run on Sautero's own Anthropic key —
     // the ANTHROPIC_API_KEY project secret (set once via `supabase secrets set`). Nobody has
     // to bring their own key anymore; who's ALLOWED to use AI is governed entirely by the
     // credit/testing-mode gate above (Personal accounts pay → credit with the agreed margins).

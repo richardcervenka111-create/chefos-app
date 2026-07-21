@@ -1,4 +1,4 @@
--- ChefOS -- Michelin-chef pass, batch 2: Dressings & Cold Sauces (8 of 11 recipes) (2026-07-15).
+-- Sautero -- Michelin-chef pass, batch 2: Dressings & Cold Sauces (8 of 11 recipes) (2026-07-15).
 --
 -- Same treatment as batch 1 (db/64): fill in the blank professional fields
 -- (chef_notes/storage/shelf_life/equipment/plating_suggestions), leave the already-solid

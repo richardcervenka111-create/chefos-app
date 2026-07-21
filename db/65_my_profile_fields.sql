@@ -1,4 +1,4 @@
--- ChefOS — "My Profile" mandatory first-login fields (2026-07-15).
+-- Sautero — "My Profile" mandatory first-login fields (2026-07-15).
 --
 -- Richard: every first-time user must fill in their name, age, and gender before they can use
 -- the app ("registrácia" / My Profile). full_name already exists on profiles (db/01_schema.sql);

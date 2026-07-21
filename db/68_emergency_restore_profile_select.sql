@@ -1,4 +1,4 @@
--- ChefOS — EMERGENCY: restore full SELECT on profiles for authenticated (2026-07-15).
+-- Sautero — EMERGENCY: restore full SELECT on profiles for authenticated (2026-07-15).
 --
 -- Richard reported: Working Time contract data (uploaded via photo scan) disappears after a
 -- page refresh, after trying it 2-3 times. Root cause found: db/62's fix for the "teammates can

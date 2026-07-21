@@ -1,7 +1,7 @@
 -- DESTRUCTIVE: drops and rebuilds the v1 schedule tables (deliberate v1->v2 rebuild,
 -- executed 2026-07-09 before any real schedule data existed; annotated retroactively by the
 -- 2026-07-15 health check -- scripts/audit_db.py now requires this acknowledgement).
--- ChefOS — Schedule v2: replaces the v1 sketch with the real shape from Richard's actual
+-- Sautero — Schedule v2: replaces the v1 sketch with the real shape from Richard's actual
 -- work roster (Hotel Schweizerhof Bern AG "Dienstplan Küchenteam"): a grid of staff × date,
 -- where each cell holds a shift CODE (e.g. "PJM", "BKFST", "FR") drawn from a fixed dictionary
 -- of codes with real start/end times and breaks — not a free-text per-day list.

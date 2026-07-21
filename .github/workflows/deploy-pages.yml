@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
-      # app/ stays at the site root exactly as before (app.chefos.ch/index.html etc.,
+      # app/ stays at the site root exactly as before (app.sautero.ch/index.html etc.,
       # unchanged). visual data/ (backlog, status, monetization...) additionally gets copied
       # into an unlisted, unlinked subpath (Richard, 16.7. — needed a way to open these on his
       # phone, since a locally-shared file opens in a no-JS previewer and none of the

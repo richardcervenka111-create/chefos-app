@@ -47,8 +47,8 @@
   .tl-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
   .tl-title{ font-size:13.5px; font-weight:700; }
   .tl-close{ background:none; border:none; color:var(--ink-dim); font-size:16px; cursor:pointer; padding:2px 6px; }
-  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
-  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
+  .sautero-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  @media print{ .sautero-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
 <body>
@@ -93,10 +93,10 @@
   </div>
 
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00"></div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00"></div>
 <script>
 /* Shared doc-language key — same as every other visual data document. */
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     const val = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
@@ -110,7 +110,7 @@ function applyLang(){
 function L(sk,en){ return _lang==='sk' ? sk : en; }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLang();
   renderSpendDonut();
   renderSpendRows();

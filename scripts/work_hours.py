@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ChefOS work-hours meter (Richard, 17.7.2026: "pridaj presný počet hodín koľko sme zatiaľ
+"""Sautero work-hours meter (Richard, 17.7.2026: "pridaj presný počet hodín koľko sme zatiaľ
 pracovali a odteraz tento čas zaznamenávaj").
 
 Derives real working time from git history — commits are the project's actual work trail.

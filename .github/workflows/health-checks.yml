@@ -1,6 +1,6 @@
 name: Health checks
 
-# Health check 2026-07-15: run the ChefOS auditors on EVERY push and pull request, on
+# Health check 2026-07-15: run the Sautero auditors on EVERY push and pull request, on
 # every branch — not just main. This is the layer that cannot be skipped locally.
 on:
   push:

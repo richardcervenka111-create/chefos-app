@@ -1,4 +1,4 @@
--- ChefOS — prep sheets for Hot Line, Garde Manger, and Desserts, built the same way as SKY.
+-- Sautero — prep sheets for Hot Line, Garde Manger, and Desserts, built the same way as SKY.
 -- Source: Richard's real menu documents — 'Frühlingskarte Beschreib 2026.pdf' (Hotel Schweizerhof
 -- spring menu, 18 dishes) and 'Küche beschreibung Menu 2.docx' (4-course tasting menu). No CHF
 -- prices were given for these dishes (unlike SKY), so price is left NULL. Station assignment

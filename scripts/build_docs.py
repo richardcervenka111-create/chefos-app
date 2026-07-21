@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ChefOS merged-docs builder (Richard, 17.7.2026 — "z 11 dokumentov spravíme 5").
+"""Sautero merged-docs builder (Richard, 17.7.2026 — "z 11 dokumentov spravíme 5").
 
 The 11 source documents in `visual data/` stay the EDITABLE sources (every standing
 workflow keeps updating feature_status.html, backlog.html, … exactly as before).
@@ -94,7 +94,7 @@ def build_one(spec):
 
     # Bilingual shell (Richard, 18.7.: "NEZABUDNI NA HORNÝ BANER") — nav titles, the subtitle
     # and the tab labels all carry data-sk/data-en; a tiny script applies the shared
-    # chefos_doc_lang and re-applies whenever an inner document's toggle writes localStorage.
+    # sautero_doc_lang and re-applies whenever an inner document's toggle writes localStorage.
     nav_html = ''.join(
         f'<a href="{f}" class="doc-link{" current" if f == spec["file"] else ""}">{i} <span data-sk="{t}" data-en="{te}">{t}</span></a>'
         for i, t, te, f in NAV
@@ -189,16 +189,16 @@ function openTab(n){{
   frames[n].classList.add('show');
 }}
 openTab(0);
-/* Shell language: follows the shared chefos_doc_lang key. Inner iframes write it on toggle —
+/* Shell language: follows the shared sautero_doc_lang key. Inner iframes write it on toggle —
    the parent gets a 'storage' event and re-applies; focus/visibility changes re-check too. */
 function applyShellLang(){{
-  const lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+  const lang = localStorage.getItem('sautero_doc_lang') || 'sk';
   document.querySelectorAll('[data-sk]').forEach(el=>{{
     el.textContent = lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
   }});
   document.documentElement.lang = lang;
 }}
-window.addEventListener('storage', e=>{{ if(!e || !e.key || e.key === 'chefos_doc_lang') applyShellLang(); }});
+window.addEventListener('storage', e=>{{ if(!e || !e.key || e.key === 'sautero_doc_lang') applyShellLang(); }});
 setInterval(applyShellLang, 1500);
 applyShellLang();
 </script>

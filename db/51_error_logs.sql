@@ -1,4 +1,4 @@
--- ChefOS — basic client-side error tracking (2026-07-13).
+-- Sautero — basic client-side error tracking (2026-07-13).
 -- Backlog v2 (QA Lead): "keď sa niečo pokazí u cudzieho človeka na jeho telefóne, nedozvieš sa
 -- to, kým ti sám nenapíše." This is the minimal version — no third-party service (Sentry etc.),
 -- just a table + a window.onerror handler that logs to it (app/index.html).

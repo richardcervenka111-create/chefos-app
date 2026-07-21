@@ -1,4 +1,4 @@
--- ChefOS — two small additions:
+-- Sautero — two small additions:
 --
 -- 1) Print Labels: per-product shelf life (days), used to auto-compute the "use by" date
 --    printed on a label from the actual print date. Kitchen-wide (everyone printing "Ravioli"

@@ -1,4 +1,4 @@
--- ChefOS — Order List: per-station checklist of ingredients to order, with quantity + unit.
+-- Sautero — Order List: per-station checklist of ingredients to order, with quantity + unit.
 -- A row existing here means "this ingredient is currently on this station's order list" —
 -- unchecking an item in the app deletes its row rather than flagging it inactive.
 create table if not exists order_list_items (

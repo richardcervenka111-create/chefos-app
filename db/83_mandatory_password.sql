@@ -1,4 +1,4 @@
--- ChefOS -- Mandatory password (Richard, 15.7. late night, bod 7).
+-- Sautero -- Mandatory password (Richard, 15.7. late night, bod 7).
 --
 -- Safe straight to production: pure additive column, no data mutation, defaults everyone to
 -- "not set yet" so the new gate in app/index.html (hasSetPassword/savePasswordGate, shown

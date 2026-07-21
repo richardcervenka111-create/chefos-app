@@ -1,6 +1,6 @@
--- ChefOS — custom recipe collections ("Add Project", Richard, 16.7. bod 8), exact mirror of
+-- Sautero — custom recipe collections ("Add Project", Richard, 16.7. bod 8), exact mirror of
 -- ingredient_lists (db/112). A project is a named container owned by its creator, private to
--- them, sitting alongside the two fixed shelves (My Recipes / ChefOS, or ChefOS / Company
+-- them, sitting alongside the two fixed shelves (My Recipes / Sautero, or Sautero / Company
 -- Recipes) on the Recipes picker screen. Its recipes live in the normal `recipes` table with
 -- is_personal = true (all existing privacy RLS from db/97 already applies untouched) plus a
 -- list_id pointing here — My Recipes = is_personal recipes with list_id NULL, exactly like My

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ChefOS DB migration auditor — the permanent guard for the multi-tenant bug class.
+"""Sautero DB migration auditor — the permanent guard for the multi-tenant bug class.
 
 Scans every db/*.sql migration and fails loudly when:
   1. a table is created WITHOUT a kitchen_id column (unless whitelisted as
@@ -29,7 +29,7 @@ Scans every db/*.sql migration and fails loudly when:
      all storage config lives in a migration (db/134 onward), and any private
      per-user bucket must be non-public AND owner-scoped on read.
 
-Why this exists (health check 2026-07-15): ChefOS had three real RLS incidents
+Why this exists (health check 2026-07-15): Sautero had three real RLS incidents
 in one week (db/53 recursion outage, db/62 column-grant lockout, the pre-db/34
 open-access era). Every one shipped because nothing checked migrations
 automatically before they reached the SQL editor. This script is that check —
@@ -61,7 +61,7 @@ NO_TENANT_OK = {
     'recipe_notes',                # per-user (user_id PK half), RLS own-rows
     'access_requests',             # platform access gate — exists BEFORE the user has any kitchen
     'profile_private',             # per-user sensitive columns (db/69 draft), keyed by user id
-    'email_contacts',              # ChefOS-operator outreach list, not per-kitchen data
+    'email_contacts',              # Sautero-operator outreach list, not per-kitchen data
     'chef_connections',            # person-to-person, not kitchen-to-kitchen (db/84)
     'recipe_shares',               # person-to-person recipe sharing across kitchens (db/143)
     'app_config',                  # single-row global app setting (coming-soon wall), not tenant data at all (db/96)

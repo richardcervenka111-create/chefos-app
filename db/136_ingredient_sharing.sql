@@ -1,4 +1,4 @@
--- ChefOS — ingredient sharing (Richard, 17.7. bod 5+6): a personal-profile chef can share their
+-- Sautero — ingredient sharing (Richard, 17.7. bod 5+6): a personal-profile chef can share their
 -- own My-Ingredients rows PUBLICLY (a cross-kitchen Public shelf, mirroring recipes db/131) or
 -- with their chef FRIENDS (per-ingredient, mirroring the recipe friend model db/89). Company
 -- profiles can share NOTHING (point 5) — enforced app-side AND by the guard trigger below.
@@ -44,7 +44,7 @@ begin
     if not new.is_personal
        or new.created_by is distinct from auth.uid()
        or coalesce((select account_type from profiles where id = auth.uid()), '') <> 'personal' then
-      raise exception 'Only your own personal ingredients can be shared, and only from a Personal profile (ChefOS terms).';
+      raise exception 'Only your own personal ingredients can be shared, and only from a Personal profile (Sautero terms).';
     end if;
   end if;
   return new;

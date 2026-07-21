@@ -1,4 +1,4 @@
--- ChefOS — multi-team support (each restaurant is its own "kitchen") + a manual access gate
+-- Sautero — multi-team support (each restaurant is its own "kitchen") + a manual access gate
 -- for the closed public trial. Two independent things:
 --
 -- 1) TEAMS: `kitchens` + `profiles.kitchen_id` already scoped every table's RLS by kitchen

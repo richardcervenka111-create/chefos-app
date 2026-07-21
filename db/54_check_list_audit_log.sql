@@ -1,4 +1,4 @@
--- ChefOS — Check List audit log (2026-07-13).
+-- Sautero — Check List audit log (2026-07-13).
 -- Backlog v2 (Solution Architect + PM): the MVP promise is "everyone sees what's done
 -- and what's not, without a single conversation about whose fault it is" — but until now
 -- nothing recorded WHO changed an item, only its current state. This adds a lightweight

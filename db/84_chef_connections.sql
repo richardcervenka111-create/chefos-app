@@ -1,4 +1,4 @@
--- ChefOS -- Connections (bod 6, 15.7. late night): "Add Friend" via personal QR, backing the
+-- Sautero -- Connections (bod 6, 15.7. late night): "Add Friend" via personal QR, backing the
 -- new Connections hub (renamed + rebuilt from My Team).
 --
 -- Deliberately NOT kitchen-scoped -- a connection is between two PEOPLE, not two kitchens, so

@@ -1,4 +1,4 @@
--- ChefOS — minimal usage analytics (2026-07-13).
+-- Sautero — minimal usage analytics (2026-07-13).
 -- Backlog v2 (PM + CTO): "bez telemetrie nevieš, či 25 ľudí appku reálne používa alebo len raz
 -- otvorilo." No third-party analytics — a plain events table, logged from app/index.html at
 -- login and whenever a top-level module (Recipes, Check List, Ingredients, ...) is opened.

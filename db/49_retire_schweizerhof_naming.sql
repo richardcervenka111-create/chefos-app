@@ -1,4 +1,4 @@
--- ChefOS — retiring Hotel Schweizerhof branding from recipe/dish names (2026-07-13).
+-- Sautero — retiring Hotel Schweizerhof branding from recipe/dish names (2026-07-13).
 --
 -- Richard: the pilot kitchen is changing to Burrito Bandito & Lido, and the concrete thing that
 -- needs to go is anything literally named/branded after the old employer — not the general

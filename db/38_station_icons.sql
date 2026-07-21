@@ -1,4 +1,4 @@
--- ChefOS — custom icon per section, chosen when creating it (instead of always falling back
+-- Sautero — custom icon per section, chosen when creating it (instead of always falling back
 -- to the generic 📍 pin for anything not in the hardcoded STATION_ICONS map). Kitchen-wide
 -- (not device-local like hidden-station-tiles/print-queue) since an icon is part of a
 -- section's shared identity — everyone on the team should see the same one.

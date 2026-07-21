@@ -1,4 +1,4 @@
--- ChefOS — Kitchen Reports (Richard, 16.7., bod 2): the same 📊 icon Head Admin has for
+-- Sautero — Kitchen Reports (Richard, 16.7., bod 2): the same 📊 icon Head Admin has for
 -- Internal Docs, but for a Kitchen Admin at their own restaurant — an infographic of THEIR
 -- kitchen's own data (recipe count, Check List activity, team size) plus per-employee hours,
 -- gated behind that employee's own explicit consent (Richard's answer to the follow-up

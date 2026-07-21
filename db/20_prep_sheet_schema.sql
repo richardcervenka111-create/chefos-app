@@ -1,4 +1,4 @@
--- ChefOS — Prep Sheet: a dish-grouped view inside Mise en Place, matching Richard's real
+-- Sautero — Prep Sheet: a dish-grouped view inside Mise en Place, matching Richard's real
 -- paper prep sheet (dish header with price, then its component items underneath). Built
 -- generally so any station can use this style later, not just SKY.
 create table if not exists prep_dishes (

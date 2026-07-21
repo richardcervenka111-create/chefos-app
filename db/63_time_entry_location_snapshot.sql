@@ -1,8 +1,8 @@
--- ChefOS — Working Time: one-time location snapshot at check-in/check-out (2026-07-14).
+-- Sautero — Working Time: one-time location snapshot at check-in/check-out (2026-07-14).
 --
 -- Richard asked for Working Time to know where the device was. Continuous movement tracking
 -- would be legally sensitive (Swiss employee-GPS-tracking proportionality rules) and isn't
--- reliably possible for a locked-phone web app anyway (see chefos-founder feature-backlog notes
+-- reliably possible for a locked-phone web app anyway (see sautero-founder feature-backlog notes
 -- on "GPS-legal" being parked). Instead: capture the device's location ONCE, at the exact moment
 -- of check-in and check-out only — enough to confirm "checked in from the actual kitchen", not a
 -- movement history. If the browser denies/lacks geolocation, these columns just stay null; it

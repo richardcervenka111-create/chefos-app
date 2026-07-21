@@ -550,7 +550,7 @@ much vertical drift, clicks whatever `.back-btn` the current screen already has 
 each view's existing back-navigation rather than a separate destination map.
 
 **Master ingredient database — paused for a decision, not started (2026-07-10):** Richard
-attached `CLAUDE CHEFOS MASTER DB.md`, a full spec for a ~20,000-row, multi-table ingredient
+attached `CLAUDE SAUTERO MASTER DB.md`, a full spec for a ~20,000-row, multi-table ingredient
 database (suppliers + real SKUs, HACCP storage rules, portioning/yield %, full nutrition +
 allergens, sustainability/carbon footprint, culinary pairing notes, image pipeline, FTS5
 search, REST API, SQLite-first with Postgres migration notes) — a fundamentally different,
@@ -1831,7 +1831,7 @@ to reset all 4 filters + search was clicking "All" on each row individually).
    a "No section" bucket for manually-typed labels that never got one).
 4. **Minimalist Sautero logo** — a simple circular monogram (white circle, copper ring, copper
    "C") kept deliberately plain so it stays legible at the tiny size it needs to sit at.
-   `chefOSLogoMarkSvg(size)` renders it inline as SVG (no image asset). Applied it live in two
+   `sauteroLogoMarkSvg(size)` renders it inline as SVG (no image asset). Applied it live in two
    places on the My Team screen: a small brand header, and centered on top of the invite QR
    code itself — bumped the QR's error-correction level from 'M' to 'H' since the logo now
    covers real modules and needs the extra correction headroom to keep scanning reliably.
@@ -1910,7 +1910,7 @@ itself depends on font rendering. Colors moved off copper entirely to a deep sag
 cream, still pulled from the app's own existing palette (not a new color introduced from
 nowhere). The "Sautero" wordmark next to it on My Team also got a pass — was plain bold sans,
 now Georgia italic in sage, a more editorial/elegant pairing with the mark. Same
-`chefOSLogoMarkSvg(size)` function, so both the small brand header and the QR-code overlay pick
+`sauteroLogoMarkSvg(size)` function, so both the small brand header and the QR-code overlay pick
 up the new design automatically with no other code changes.
 
 ## Pinned ingredient-count in the topbar (2026-07-13, later still)

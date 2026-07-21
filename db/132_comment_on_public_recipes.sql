@@ -1,4 +1,4 @@
--- ChefOS — commenting on PUBLIC recipes (Richard's live test, 17.7.: gmail/icloud accounts got
+-- Sautero — commenting on PUBLIC recipes (Richard's live test, 17.7.: gmail/icloud accounts got
 -- "new row violates row-level security policy for table recipe_comments" on a public recipe).
 --
 -- db/131's header claimed comment INSERT would work automatically because db/104's policy

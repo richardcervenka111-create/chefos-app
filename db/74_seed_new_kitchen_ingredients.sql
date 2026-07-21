@@ -1,4 +1,4 @@
--- ChefOS — new kitchens start with zero ingredients (2026-07-14).
+-- Sautero — new kitchens start with zero ingredients (2026-07-14).
 --
 -- Richard: "iné ako moje maily pravdepodobne nemajú ingrediencie... zisti a oprav to." Confirmed:
 -- `ingredients` is scoped per kitchen_id (db/05), and the 2000-item database only ever got

@@ -1,4 +1,4 @@
--- ChefOS — make email_contacts reliable (Richard, 16.7.): patriklachky@gmail.com was approved
+-- Sautero — make email_contacts reliable (Richard, 16.7.): patriklachky@gmail.com was approved
 -- but never showed up in Email Contacts — the same class of gap as the paulapanizzon@gmail.com
 -- miss from 15.7. (back then blamed on a policy fixed by db/86; this happening AGAIN means the
 -- real cause is that the client-side upsert in renderTeamGate() is only best-effort — any

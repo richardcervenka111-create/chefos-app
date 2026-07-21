@@ -1,4 +1,4 @@
--- ChefOS — AI credit follow-ups (Richard, 16.7.):
+-- Sautero — AI credit follow-ups (Richard, 16.7.):
 -- 1) First top-up keeps the 30% margin (70% credited); every top-up after that only takes 10%
 --    margin (90% credited) — tracked with a simple "has this person ever topped up" flag rather
 --    than trying to infer it from the current balance (which can legitimately hit zero again

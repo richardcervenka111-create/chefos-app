@@ -1,4 +1,4 @@
--- ChefOS — Order List: don't let one person's save wipe out someone else's (bod 4, 2026-07-15).
+-- Sautero — Order List: don't let one person's save wipe out someone else's (bod 4, 2026-07-15).
 --
 -- Richard: order list should stay shared with the whole team, sum quantities when the same
 -- ingredient is ordered more than once, and let the kitchen admin see who ordered what before

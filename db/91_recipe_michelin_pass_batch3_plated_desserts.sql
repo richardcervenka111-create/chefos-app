@@ -1,4 +1,4 @@
--- ChefOS -- Michelin-chef pass, batch 3: Plated Desserts, part 1 (2026-07-15/16).
+-- Sautero -- Michelin-chef pass, batch 3: Plated Desserts, part 1 (2026-07-15/16).
 --
 -- Same treatment as batch 1 (db/64, Salads) and batch 2 (db/66, Dressings): fill in the blank
 -- professional fields (chef_notes/storage/shelf_life/equipment/plating_suggestions), leave the
@@ -11,7 +11,7 @@
 -- The first pull (created_by is null, category = 'Plated Desserts', chef_notes blank, ORDER BY
 -- title, LIMIT 20) showed only 4 distinct dishes among those 20 rows, each appearing up to 6
 -- times with a different id. Verified this is CORRECT, not a data bug: there are 6 kitchens, each
--- holding its own full 173-recipe ChefOS-shelf copy (seeded by db/87) -- 173 x 6 = 1038 total
+-- holding its own full 173-recipe Sautero-shelf copy (seeded by db/87) -- 173 x 6 = 1038 total
 -- created_by-null rows across the table, confirmed per-kitchen (each kitchen: 173 rows, 173
 -- distinct dishes, zero internal duplication). Any query against `recipes` that doesn't scope by
 -- kitchen_id will show every dish once per kitchen -- expected multi-tenant shape, not a dedup

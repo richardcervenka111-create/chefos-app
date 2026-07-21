@@ -1,4 +1,4 @@
--- ChefOS — ingredient price history (Richard, 17.7.): every price set by the new Invoice Scan
+-- Sautero — ingredient price history (Richard, 17.7.): every price set by the new Invoice Scan
 -- (and manual price edits) is logged as an append-only row, so Kitchen Reports can show HOW
 -- prices move over time and project a trend — something the live `ingredients.price` column
 -- alone can never answer (it only knows the latest number).

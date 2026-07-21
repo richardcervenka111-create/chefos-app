@@ -1,8 +1,8 @@
--- ChefOS — sharing ingredient lists with chef friends (Richard, 16.7. večer, bod 4). Same
+-- Sautero — sharing ingredient lists with chef friends (Richard, 16.7. večer, bod 4). Same
 -- opt-in model as Share My Recipes (db/89): the owner flips a per-list Share toggle
 -- (long-press the list tile), and connected friends (chef_connections) can then READ that
 -- list and its items — never edit, never see anything not explicitly shared. The two fixed
--- shelves (ChefOS, My Ingredients) are not shareable; only custom lists (db/112).
+-- shelves (Sautero, My Ingredients) are not shareable; only custom lists (db/112).
 
 alter table ingredient_lists add column if not exists shared boolean not null default false;
 

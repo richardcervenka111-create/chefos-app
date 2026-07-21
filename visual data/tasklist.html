@@ -158,14 +158,14 @@
 
   /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
      carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
-  .chefos-stamp{
+  .sautero-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
     font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
     padding:6px 12px; border-radius:999px;
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
   }
-  .chefos-lang-fab{
+  .sautero-lang-fab{
     position:fixed; bottom:14px; left:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
     font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -174,8 +174,8 @@
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     transition:border-color .15s, color .15s;
   }
-  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
-  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
+  .sautero-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .sautero-stamp, .sautero-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -378,7 +378,7 @@
    JS-om nižšie) — nie stovky jednotlivých položiek úloh a časovej osi nižšie, ktoré ostávajú
    v pôvodnom jazyku (väčšinou anglicky) v oboch režimoch. Preklad každej historickej položky
    je samostatná väčšia úloha, zámerne neurobená narýchlo v jednej dávke. ---------- */
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
@@ -391,14 +391,14 @@ function applyLang(){
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLang();
   renderTimeline();
   // Charts carry language in their legends/labels — re-render them too (17.7. fix).
   if(typeof renderWorkHours === 'function') renderWorkHours();
   if(typeof renderTasksPerDay === 'function') renderTasksPerDay();
   if(typeof renderFeaturesOverTime === 'function') renderFeaturesOverTime();
-  if(typeof toggleHero === 'function') toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
+  if(typeof toggleHero === 'function') toggleHero(localStorage.getItem('sautero_tasklist_hero_hidden') === '1');
 }
 function L(sk, en){ return _lang === 'sk' ? sk : en; }
 
@@ -633,7 +633,7 @@ const DAYS=[
     '🏷️ Appka naživo na app.sautero.ch: DNS (Hostpoint CNAME), GitHub Pages custom domain, HTTPS certifikát, Supabase Site URL + allowlist; staré app.chefos.ch odstavené',
     '✉️ E-maily v novej značke: šablóny Magic link + Confirm signup prebrandované, odosielateľ „Sautero"; prihlasovacie maily poslané na všetky 3 zakladateľské účty',
     '🎨 Nové logo: serifové teal „S" na navy (všetky ikony 32–512 + maskable + apple-touch) namiesto starého „C"',
-    '🧹 691 náhrad ChefOS→Sautero naprieč celým projektom (zmluvy, reviews, security, snapshoty, root); NAMING_RISK uzavretý s poučením; 2 zabudnuté kópie súborov odložené',
+    '🧹 691 náhrad Sautero→Sautero naprieč celým projektom (zmluvy, reviews, security, snapshoty, root); NAMING_RISK uzavretý s poučením; 2 zabudnuté kópie súborov odložené',
     '➕ Add Team Member (db/145): kód + QR + link + email pre VLASTNÚ kuchyňu; Create Team dlaždica úplne odstránená (nové kuchyne = Add Company)',
     '👥 Tímové zdieľanie: zoznamy ingrediencií (db/146) aj projekty receptov (db/147) viditeľné celému tímu so značkou 👥; Company Ingredients agreguje aj zoznamy; sken/faktúra presúva spárované položky na Company policu',
     '🌐 Dvojjazyčnosť: mapa funkcií 112/112 kariet + 13 modulov SK/EN; nové dokumenty Poznámky (živý zápisník s Poučeniami) a Aare Ventures research — plne bilingválne; História dostala DAYS_I18N',
@@ -804,7 +804,7 @@ const DAYS_I18N = {
     '🏷️ The app live at app.sautero.ch: DNS (Hostpoint CNAME), GitHub Pages custom domain, HTTPS certificate, Supabase Site URL + allowlist; old app.chefos.ch retired',
     '✉️ Emails in the new brand: Magic link + Confirm signup templates rebranded, sender "Sautero"; sign-in emails sent to all 3 founder accounts',
     '🎨 New logo: a serif teal "S" on navy (all icons 32–512 + maskable + apple-touch) replacing the old "C"',
-    '🧹 691 ChefOS→Sautero replacements across the whole project (contracts, reviews, security, snapshots, root); NAMING_RISK closed with the lesson; 2 forgotten file copies set aside',
+    '🧹 691 Sautero→Sautero replacements across the whole project (contracts, reviews, security, snapshots, root); NAMING_RISK closed with the lesson; 2 forgotten file copies set aside',
     '➕ Add Team Member (db/145): code + QR + link + email for YOUR OWN kitchen; the Create Team tile removed entirely (new kitchens = Add Company)',
     '👥 Team sharing: ingredient lists (db/146) and recipe projects (db/147) visible to the whole team with the 👥 mark; Company Ingredients aggregates lists too; scans/invoices move matched items onto the Company shelf',
     '🌐 Bilinguality: the feature map 112/112 cards + 13 modules SK/EN; new documents Poznámky (a live notebook with Lessons) and the Aare Ventures research — fully bilingual; História got DAYS_I18N',
@@ -1077,7 +1077,7 @@ function toggleHero(force){
   document.getElementById('heroToggle').textContent = hidden
     ? (_lang==='sk' ? '▸ Zobraziť prehľad' : '▸ Show overview')
     : (_lang==='sk' ? '▾ Skryť prehľad' : '▾ Hide overview');
-  localStorage.setItem('chefos_tasklist_hero_hidden', hidden ? '1' : '0');
+  localStorage.setItem('sautero_tasklist_hero_hidden', hidden ? '1' : '0');
 }
 
 applyLang();
@@ -1085,9 +1085,9 @@ renderTimeline();
 renderWorkHours();
 renderTasksPerDay();
 renderFeaturesOverTime();
-toggleHero(localStorage.getItem('chefos_tasklist_hero_hidden') === '1');
+toggleHero(localStorage.getItem('sautero_tasklist_hero_hidden') === '1');
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
 </body>
 </html>

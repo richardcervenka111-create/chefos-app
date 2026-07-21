@@ -1,4 +1,4 @@
--- ChefOS -- admin-only custom ingredients, as a separate list from the main ingredients
+-- Sautero -- admin-only custom ingredients, as a separate list from the main ingredients
 -- catalog (Richard, 16.7., bod 2): "ingrediencie v admin účtoch musia mať možnosť pridať
 -- vlastné ingrediencie s funkciou vloženia súboru rôznych formátov, tieto budú v novej funkcii
 -- vo vrchnej lište ako separátny zoznam" -- admin accounts get a way to add custom ingredients

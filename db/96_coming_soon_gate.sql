@@ -1,4 +1,4 @@
--- ChefOS -- "Coming soon" wall for uninvited strangers (Richard, 16.7.).
+-- Sautero -- "Coming soon" wall for uninvited strangers (Richard, 16.7.).
 --
 -- Scope, exact as confirmed: ONLY someone who reaches the page with zero invitation context --
 -- no ?invite=/?join=/?friend= in the URL AND no existing session on this device -- sees a

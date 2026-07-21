@@ -1,4 +1,4 @@
--- ChefOS — URGENT fix for a live outage: infinite recursion in profiles RLS (2026-07-13).
+-- Sautero — URGENT fix for a live outage: infinite recursion in profiles RLS (2026-07-13).
 --
 -- db/53 added two policies ON `profiles` that query `profiles` again inside their own USING
 -- clause (aliased p2) to find the caller's kitchen_id / admin status:

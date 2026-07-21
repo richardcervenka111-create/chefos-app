@@ -1,11 +1,11 @@
--- ChefOS — personal onboarding via friend invite (Richard, 16.7., follow-up to the "Join Mr.
+-- Sautero — personal onboarding via friend invite (Richard, 16.7., follow-up to the "Join Mr.
 -- Woof woof" report).
 --
 -- Until now the Add Friend QR/email doubled as a kitchen invite, so a brand-new person invited
 -- by a friend got pulled INTO the inviter's kitchen — seeing their kitchen name at signup and
 -- their Check List projects (the "Burito" he saw) once inside. Richard's new rule: a friend
 -- invite from a PERSONAL account is purely social — the new person gets their OWN kitchen,
--- starting empty (Check List shows only "+ Add Project"), with the standard ChefOS shelves
+-- starting empty (Check List shows only "+ Add Project"), with the standard Sautero shelves
 -- (the kitchens-insert triggers from db/74/db/87 seed ingredients + recipes automatically).
 --
 -- Why an RPC: db/101 deliberately closed direct kitchen creation to team-creator roles only.

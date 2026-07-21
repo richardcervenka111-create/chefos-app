@@ -1,4 +1,4 @@
--- ChefOS — fix for "Database error saving new user" on first login
+-- Sautero — fix for "Database error saving new user" on first login
 -- Run this once in the Supabase SQL Editor. It replaces the auto-profile-on-signup
 -- function from 01_schema.sql with a version that explicitly points at the "public"
 -- schema, instead of relying on it being found automatically (which doesn't always

@@ -1,4 +1,4 @@
--- ChefOS — restrict contract/pay-adjacent profile columns to the row owner only (2026-07-14).
+-- Sautero — restrict contract/pay-adjacent profile columns to the row owner only (2026-07-14).
 --
 -- Found while restyling the "AI note on your contract" screen (Richard's request: teammates must
 -- never see this about each other). The "read kitchen teammates" policy on profiles (db/55) is a

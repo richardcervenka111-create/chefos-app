@@ -1,4 +1,4 @@
--- ChefOS — force every device to log out and require a fresh email code (run on demand).
+-- Sautero — force every device to log out and require a fresh email code (run on demand).
 --
 -- This is not a schema change — it's a one-off action, safe to run again anytime the same
 -- way. It deletes every active session (Supabase Auth cascades this to the matching refresh

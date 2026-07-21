@@ -1,8 +1,8 @@
--- ChefOS -- Personal vs Company account type (Richard, 16.7.): every account picks one, once,
+-- Sautero -- Personal vs Company account type (Richard, 16.7.): every account picks one, once,
 -- at login. Controls which Recipe shelves a person sees:
---   personal -> Moje (Mine) + ChefOS
---   company  -> ChefOS + Firemné (Company)
--- ChefOS itself (the shared built-in library, created_by IS NULL) is always visible either way
+--   personal -> Moje (Mine) + Sautero
+--   company  -> Sautero + Firemné (Company)
+-- Sautero itself (the shared built-in library, created_by IS NULL) is always visible either way
 -- -- only the OTHER shelf (Moje vs Firemné) is exclusive to one account type. Editable later in
 -- Settings, not locked in forever.
 --

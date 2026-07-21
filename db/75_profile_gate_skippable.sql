@@ -1,4 +1,4 @@
--- ChefOS — My Profile gate must be skippable, not force a real name (bod 4, 2026-07-14).
+-- Sautero — My Profile gate must be skippable, not force a real name (bod 4, 2026-07-14).
 --
 -- Richard: "musí byť optional profil info - nie povinne reálne meno." The name field was always
 -- free text (nothing ever checked it was someone's REAL legal name), but the gate itself

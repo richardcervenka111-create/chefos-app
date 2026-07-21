@@ -1,15 +1,15 @@
--- ChefOS -- new kitchens start with zero recipes, same bug class as db/74's ingredients gap
+-- Sautero -- new kitchens start with zero recipes, same bug class as db/74's ingredients gap
 -- (Richard, 16.7., bod 1): "nový uživatelia musia mať recipes ale všetky budú v priečinku
--- chefos" -- new users must have recipes, but all of them go into the ChefOS shelf.
+-- sautero" -- new users must have recipes, but all of them go into the Sautero shelf.
 --
 -- recipes is kitchen_id-scoped (db/01) and the 173 migrated library recipes only ever got
 -- seeded into one kitchen. The three-way shelf filter (app/index.html, setRecipeSourceFilter)
--- reads the shelf straight off created_by: NULL = ChefOS (the built-in library), = me = Moje,
+-- reads the shelf straight off created_by: NULL = Sautero (the built-in library), = me = Moje,
 -- = someone else = Firemné. Copying "all recipes" the way db/74 copies ingredients would be
 -- wrong here -- it would drag a reference kitchen's personally-authored (Moje) recipes into
 -- every new kitchen too, landing them in the new kitchen's Firemné shelf (since created_by
 -- would no longer be the new kitchen's own user). This migration only ever copies rows where
--- created_by IS NULL, and keeps created_by NULL on the copy -- exactly "all in the ChefOS
+-- created_by IS NULL, and keeps created_by NULL on the copy -- exactly "all in the Sautero
 -- folder", nothing else leaks across kitchens.
 --
 -- Same dynamic-column-list approach as db/74, for the same reason: recipes has picked up new
@@ -24,7 +24,7 @@ declare
   col_list text;
   select_list text;
 begin
-  -- Whichever kitchen currently holds the most ChefOS-shelf (created_by IS NULL) recipes is
+  -- Whichever kitchen currently holds the most Sautero-shelf (created_by IS NULL) recipes is
   -- the reference library -- not just "most recipes overall", which could be skewed by one
   -- kitchen's personal (Moje) collection.
   select kitchen_id into reference_kitchen_id
@@ -66,7 +66,7 @@ create trigger on_kitchen_created_seed_recipes
   after insert on kitchens
   for each row execute function seed_new_kitchen_recipes();
 
--- ---------- Backfill: fix kitchens that were already created with zero ChefOS-shelf recipes ----------
+-- ---------- Backfill: fix kitchens that were already created with zero Sautero-shelf recipes ----------
 do $$
 declare
   reference_kitchen_id uuid;

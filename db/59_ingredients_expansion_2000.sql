@@ -1,4 +1,4 @@
--- ChefOS -- ingredient database expansion to 2,000 rows (Richard's explicit target, 2026-07-13).
+-- Sautero -- ingredient database expansion to 2,000 rows (Richard's explicit target, 2026-07-13).
 --
 -- 646 new ingredients across every category: raw meat/veal/pork/lamb/game cuts, poultry,
 -- charcuterie (incl. Swiss IGP/AOP sausages), species-level fish/shellfish, vegetable and potato

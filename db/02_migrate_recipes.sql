@@ -1,4 +1,4 @@
--- ChefOS — Phase 1a data migration
+-- Sautero — Phase 1a data migration
 -- Auto-generated from Recipe_Book_v2.html. Run AFTER 01_schema.sql, in the same
 -- Supabase SQL Editor. Safe to re-run only after clearing the recipes table first.
 

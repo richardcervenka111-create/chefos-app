@@ -1,5 +1,5 @@
 #!/bin/sh
-# ChefOS pre-push guard: same auditors as pre-commit (cheap, seconds), plus a
+# Sautero pre-push guard: same auditors as pre-commit (cheap, seconds), plus a
 # loud reminder of the deploy contract — pushing main auto-deploys app/ to
 # production via GitHub Pages.
 set -e
@@ -8,7 +8,7 @@ python3 scripts/audit_app.py
 branch=$(git rev-parse --abbrev-ref HEAD)
 if [ "$branch" = "main" ]; then
   echo ""
-  echo "⚠️  Pushing MAIN = deploying app/ to production (app.chefos.ch)."
+  echo "⚠️  Pushing MAIN = deploying app/ to production (app.sautero.ch)."
   echo "   Contract (see DEPLOY_CHECKLIST.md): new SQL goes staging-first,"
   echo "   app changes get a live check on a real phone when feasible."
   echo ""

@@ -1,4 +1,4 @@
--- ChefOS — Mise en Place / prep task list
+-- Sautero — Mise en Place / prep task list
 -- A task can optionally point at a recipe (to borrow its title/production time) or stand
 -- entirely on its own. Priority 1 = critical, 5 = low. Kitchen-scoped (same pattern as
 -- recipes/ingredients) so this is ready for a shared team board later without a schema

@@ -1,4 +1,4 @@
--- ChefOS — backfills storage_type and seasons for all 533 existing ingredients (added by
+-- Sautero — backfills storage_type and seasons for all 533 existing ingredients (added by
 -- 30_ingredients_storage_season.sql, currently NULL/empty on every row), and splits the
 -- generic 'Produce' category into 'Fruit' / 'Vegetable' so the Ingredients screen can filter
 -- on something more useful than one catch-all bucket.

@@ -1,7 +1,7 @@
--- ChefOS -- Email contacts database (Richard, 15.7. late night, bod 8).
+-- Sautero -- Email contacts database (Richard, 15.7. late night, bod 8).
 --
 -- Interpretation (stated plainly since "vytvor databazu emailov" is otherwise ambiguous):
--- a single admin-viewable table of every email address ChefOS has ever touched, with WHY it's
+-- a single admin-viewable table of every email address Sautero has ever touched, with WHY it's
 -- there -- useful for founding-member outreach later (monetization plan) and because right now
 -- nothing records who an invite email actually went to (sendInviteByEmail() calls Supabase's
 -- OTP sender directly and never saved the address anywhere in our own tables -- a real gap,
@@ -31,7 +31,7 @@ create table if not exists email_contacts (
 alter table email_contacts enable row level security;
 
 -- Admin-only, kitchen-wide read/write is deliberately NOT how this works -- this is
--- ChefOS-operator data (Richard's own outreach list), not per-kitchen operational data, so it
+-- Sautero-operator data (Richard's own outreach list), not per-kitchen operational data, so it
 -- has no kitchen_id tenant scoping requirement the way most tables do.
 create policy "admin reads email contacts" on email_contacts
   for select using (exists (select 1 from profiles where id = auth.uid() and is_admin));

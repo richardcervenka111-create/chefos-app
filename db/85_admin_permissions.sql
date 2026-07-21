@@ -1,7 +1,7 @@
--- ChefOS -- Granular admin permissions (Richard, 16.7., bod 1).
+-- Sautero -- Granular admin permissions (Richard, 16.7., bod 1).
 --
 -- Two kinds of admin from now on:
---   - is_admin (unchanged, db/80): the ChefOS super-admin. Richard only. Full reach
+--   - is_admin (unchanged, db/80): the Sautero super-admin. Richard only. Full reach
 --     everywhere, including granting/editing everyone else's admin_perms below.
 --   - admin_perms (new): a per-person jsonb bag of DELEGABLE, kitchen-scoped capabilities.
 --     Someone with admin_perms set is explicitly NOT is_admin -- "admin kuchyne bude rovnaky
@@ -13,7 +13,7 @@
 --   manage_team         -- remove team members from their own kitchen
 --   language_audit      -- run Language Audit (rewrites Check List names) for their own kitchen
 --   view_email_contacts -- view the Email Contacts directory
---   approve_access      -- approve/deny new ChefOS access requests (platform-wide -- kept OFF
+--   approve_access      -- approve/deny new Sautero access requests (platform-wide -- kept OFF
 --                          the "Kitchen Admin" quick-add preset by default; grant individually)
 --
 -- Also adds profiles.email: the Admin Directory (search by email/name, list every profile)
@@ -59,7 +59,7 @@ begin
     if auth.uid() in (select id from auth.users where lower(email) = 'richard.cervenka@icloud.com') then
       return new; -- the super-admin himself, acting from inside the app
     end if;
-    raise exception 'is_admin and admin_perms can only be changed by the ChefOS super-admin';
+    raise exception 'is_admin and admin_perms can only be changed by the Sautero super-admin';
   end if;
   return new;
 end;

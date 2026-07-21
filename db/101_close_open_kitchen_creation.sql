@@ -1,4 +1,4 @@
--- ChefOS — close the old open "create kitchen" hole (Richard, 16.7., follow-up to db/97).
+-- Sautero — close the old open "create kitchen" hole (Richard, 16.7., follow-up to db/97).
 --
 -- db/34 (13.7.) let ANY logged-in person create a new kitchen row directly, before Head Admin
 -- existed as a concept. db/97 added a properly-gated path (create_team() + create_teams

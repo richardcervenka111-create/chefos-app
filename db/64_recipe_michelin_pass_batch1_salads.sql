@@ -1,4 +1,4 @@
--- ChefOS -- Michelin-chef pass, batch 1: Salads & Starters (11 recipes) (2026-07-14).
+-- Sautero -- Michelin-chef pass, batch 1: Salads & Starters (11 recipes) (2026-07-14).
 --
 -- Richard asked Claude (acting as a 30-year Michelin-starred chef) to improve the 173 real
 -- recipes, excluding the spa recipe, sushi, and Asian-cuisine recipes. Reading the actual

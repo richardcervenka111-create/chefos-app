@@ -1,4 +1,4 @@
--- ChefOS — Working Time: a note per calendar day (not per check-in entry), auto-saved, with an
+-- Sautero — Working Time: a note per calendar day (not per check-in entry), auto-saved, with an
 -- optional photo. Richard's own example: something worth remembering about a specific day at
 -- work (an incident, a reason hours were off, anything) — independent of how many check-in
 -- entries that day happens to have.

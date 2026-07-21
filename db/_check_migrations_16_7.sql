@@ -1,4 +1,4 @@
--- ChefOS — read-only kontrola (Richard, 16.7.): overí, že všetko z dnešných migrácií
+-- Sautero — read-only kontrola (Richard, 16.7.): overí, že všetko z dnešných migrácií
 -- (db/97 – db/110) v databáze naozaj existuje. NIČ NEMENÍ — len číta a vypíše tabuľku
 -- s ✅/❌ pre každý kus. Ak je všetko ✅, dnešný balík je kompletný.
 -- (Podčiarkovník v názve súboru = nie je to migrácia, len pomocná kontrola.)

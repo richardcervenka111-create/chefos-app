@@ -6,7 +6,7 @@
 -- a fresh environment, run db/90 immediately after this file. The auditor's recursion check
 -- (scripts/audit_db.py check #6) skips exactly this file via RECURSIVE_POLICY_SUPERSEDED.
 --
--- ChefOS -- wire the granular admin_perms (db/85) into actual RLS policies, and fix a real
+-- Sautero -- wire the granular admin_perms (db/85) into actual RLS policies, and fix a real
 -- bug found while doing this: email_contacts' INSERT policy required is_admin, but the app
 -- inserts an access_request-sourced row from renderTeamGate() for EVERY new signup, almost
 -- none of whom are admins -- meaning most access-request contacts have been silently failing

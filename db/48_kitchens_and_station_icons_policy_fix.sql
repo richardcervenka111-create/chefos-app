@@ -1,4 +1,4 @@
--- ChefOS — two missing RLS policies found while auditing everything built this session against
+-- Sautero — two missing RLS policies found while auditing everything built this session against
 -- the actual database policies (Richard asked "aký SQL ti chýba?" — good catch to check).
 -- Both would fail SILENTLY under RLS (Postgres RLS defaults to deny, no error surfaced unless
 -- the code checks for it) rather than loudly, so neither would have been obvious until someone

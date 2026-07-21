@@ -1,6 +1,6 @@
--- ChefOS — Public recipes shelf (Richard, 17.7.): any chef can PUBLISH their own recipe, and
+-- Sautero — Public recipes shelf (Richard, 17.7.): any chef can PUBLISH their own recipe, and
 -- it appears on a new "Public" shelf visible to every account across every kitchen — the same
--- reach as the ChefOS library, but community-built. Unlike ChefOS recipes (which are COPIED
+-- reach as the Sautero library, but community-built. Unlike Sautero recipes (which are COPIED
 -- into each kitchen), a public recipe stays ONE row owned by its author; everyone else reads
 -- that same row via the new select policy below.
 

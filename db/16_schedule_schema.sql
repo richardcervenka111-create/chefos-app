@@ -1,4 +1,4 @@
--- ChefOS — Schedule: a simple daily staff roster, organized by station.
+-- Sautero — Schedule: a simple daily staff roster, organized by station.
 -- Sketch-level v1 (plain staff names as text, not full user accounts) — refine once there's
 -- a real reference (e.g. the roster format Richard already uses at work) to match against.
 create table if not exists schedule_entries (

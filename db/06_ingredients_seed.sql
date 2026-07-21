@@ -1,4 +1,4 @@
--- ChefOS — starter ingredient price list
+-- Sautero — starter ingredient price list
 -- Auto-generated. Run in the Supabase SQL Editor AFTER 05_ingredients_schema.sql.
 -- All prices below are ESTIMATED reference prices (Central European market, EUR) based on
 -- general culinary/wholesale domain knowledge — NOT individually verified online (web search

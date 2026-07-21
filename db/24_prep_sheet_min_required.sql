@@ -1,4 +1,4 @@
--- ChefOS — adds min_required (par level) to prep items, and flips the default/current
+-- Sautero — adds min_required (par level) to prep items, and flips the default/current
 -- status of every prep item to DONT DO (Richard's instruction: items are opted OUT of
 -- today's prep by default, he ticks TO DO for what's actually needed).
 -- min_required is a random 3-6 placeholder per Richard's instruction — NOT real kitchen

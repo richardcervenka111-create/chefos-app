@@ -1,11 +1,11 @@
--- ChefOS -- Check List projects (Richard, 16.7.): opening Check List now lands on a
+-- Sautero -- Check List projects (Richard, 16.7.): opening Check List now lands on a
 -- Home-styled picker of "restaurant/project" tiles first, each one its own independent
 -- instance of the exact same stations/prep-sheet system Check List already had. A kitchen can
 -- hold multiple projects; picking (or creating) one is what used to just be "open Check List".
 --
 -- Also fixes a real leak while building this: DEFAULT_STATIONS/the "All stations" overview both
 -- unconditionally offered SKY/Garde Manger/Lobby (sections from the hotel Richard prototyped
--- ChefOS against) to every kitchen, empty, forever -- not real cross-kitchen data (RLS already
+-- Sautero against) to every kitchen, empty, forever -- not real cross-kitchen data (RLS already
 -- prevented that), but the STATION NAMES themselves leaking as available options to everyone.
 -- Trimmed the app-side generic default down to what's actually common to any restaurant (Hot
 -- Line, Entremetier, BQT, Desserts, Extra); Richard's original data (SKY included) is preserved

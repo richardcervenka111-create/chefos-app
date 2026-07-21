@@ -1,4 +1,4 @@
--- ChefOS -- Invite-only lockdown (Richard, 15.7. late night, bod 5): "nikto okrem
+-- Sautero -- Invite-only lockdown (Richard, 15.7. late night, bod 5): "nikto okrem
 -- richard.cervenka@icloud.com sa dnu nedostane, iba ja môžem vytvárať invitation QR kódy
 -- alebo posielať linky."
 --

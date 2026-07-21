@@ -1,4 +1,4 @@
--- ChefOS — Fridge Temperature: manual logging v1 (name the units, log a reading, see
+-- Sautero — Fridge Temperature: manual logging v1 (name the units, log a reading, see
 -- whether it's in range). Wireless-sensor auto-logging is future work — this is the
 -- practical starting point: usable today, without needing any hardware.
 create table if not exists fridges (

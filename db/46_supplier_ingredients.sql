@@ -1,4 +1,4 @@
--- ChefOS -- REAL supplier-priced ingredients from Swiss wholesaler price lists (DRAFT for review).
+-- Sautero -- REAL supplier-priced ingredients from Swiss wholesaler price lists (DRAFT for review).
 --
 -- Source 1: Caviezel Giovanettoni AG, 2026 frozen/fresh food supplier price list (92-page PDF,
 --   pre-extracted to text). All prices below are quoted "article no." references back to this

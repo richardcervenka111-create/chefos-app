@@ -1,4 +1,4 @@
--- ChefOS — HACCP wave 2 (15.7.): Label Expiry tracking.
+-- Sautero — HACCP wave 2 (15.7.): Label Expiry tracking.
 --
 -- Until now the app never remembered what labels were printed — printing was just
 -- window.print() and the queue lived only in localStorage. This table records every printed

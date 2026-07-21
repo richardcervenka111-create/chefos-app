@@ -1,4 +1,4 @@
--- ChefOS — Head-admin kitchen directory (Richard, 16.7. večer, bod 3): his Kitchen Reports
+-- Sautero — Head-admin kitchen directory (Richard, 16.7. večer, bod 3): his Kitchen Reports
 -- opens with a list of every kitchen — the name its admin chose + that admin's name/email +
 -- member count. SECURITY DEFINER because kitchens' members/admins live behind kitchen-scoped
 -- RLS; the function itself refuses anyone but the Head Admin.

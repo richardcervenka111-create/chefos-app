@@ -1,4 +1,4 @@
--- ChefOS — yield/waste factor for ingredients (backlog t27, 2026-07-13).
+-- Sautero — yield/waste factor for ingredients (backlog t27, 2026-07-13).
 -- Professional food cost accounts for trim loss (peeled veg, filleted fish, boned meat) — the
 -- price on an ingredient is for the raw product as bought, but a recipe line is written in
 -- usable/prepped quantity. Without a yield factor, cost is systematically underestimated,

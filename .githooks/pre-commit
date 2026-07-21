@@ -1,10 +1,10 @@
 #!/bin/sh
-# ChefOS pre-commit guard (health check 2026-07-15).
+# Sautero pre-commit guard (health check 2026-07-15).
 # Runs the two auditors that catch this project's actual historical bug classes
 # BEFORE anything reaches a commit. CI runs the same checks, so skipping this
 # hook locally (--no-verify) only delays the failure, it can't ship it.
 set -e
-echo "pre-commit: running ChefOS auditors…"
+echo "pre-commit: running Sautero auditors…"
 python3 scripts/audit_db.py
 python3 scripts/audit_app.py
 # Merged internal docs (produkt/plan/biznis/znacka) are GENERATED from the 11 source

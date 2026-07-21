@@ -1,4 +1,4 @@
--- ChefOS — Remove-from-team moved into a SECURITY DEFINER RPC (16.7. neskoro v noci, part 2 of
+-- Sautero — Remove-from-team moved into a SECURITY DEFINER RPC (16.7. neskoro v noci, part 2 of
 -- the remove bug). db/121's WITH CHECK fix was necessary but NOT sufficient: live bisection on
 -- production (temporarily ALTERing one policy at a time inside a rolled-back transaction)
 -- proved the remaining blocker was the "read kitchen teammates" SELECT policy — Postgres

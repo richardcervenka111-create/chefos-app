@@ -1,6 +1,6 @@
--- ChefOS — real personal/company data privacy + team join system (Richard, 16.7., bod 1)
+-- Sautero — real personal/company data privacy + team join system (Richard, 16.7., bod 1)
 --
--- Until now, "Moje / Firemné / ChefOS" recipe shelves (and the account_type gate) were purely
+-- Until now, "Moje / Firemné / Sautero" recipe shelves (and the account_type gate) were purely
 -- client-side UI filters. The RLS policy "read kitchen recipes" grants access to EVERY recipe
 -- in the same kitchen_id, so a personal-account user's own recipe was already technically
 -- visible to any teammate who opened the "Firemné" filter. Same story for `ingredients`. This
@@ -41,12 +41,12 @@ create policy "delete own personal recipes" on recipes
   for delete using (is_personal and created_by = auth.uid());
 
 -- 2) INGREDIENTS — new "My Ingredients" (personal, private) alongside the existing kitchen-wide
---    catalog (now labelled "ChefOS" in the UI, same convention as the recipe shelves). ---------
+--    catalog (now labelled "Sautero" in the UI, same convention as the recipe shelves). ---------
 alter table ingredients add column if not exists is_personal boolean not null default false;
 grant select (is_personal) on ingredients to authenticated;
 
 -- the old uniqueness (kitchen_id, name) would block a personal ingredient sharing a name with
--- a shared/ChefOS one, or with another chef's own personal item — split into two partial
+-- a shared/Sautero one, or with another chef's own personal item — split into two partial
 -- indexes so shared names stay deduped but personal ones are scoped to their own creator.
 drop index if exists ingredients_kitchen_name_uidx;
 create unique index if not exists ingredients_shared_name_uidx

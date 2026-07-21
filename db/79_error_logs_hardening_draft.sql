@@ -1,4 +1,4 @@
--- ChefOS -- error_logs hardening draft (health check 2026-07-15). STAGING FIRST.
+-- Sautero -- error_logs hardening draft (health check 2026-07-15). STAGING FIRST.
 --
 -- Context: db/73 deliberately opened error_logs INSERT to anonymous users so pre-login
 -- failures (the OTP-send path) can log themselves. Accepted trade-off at the time; the

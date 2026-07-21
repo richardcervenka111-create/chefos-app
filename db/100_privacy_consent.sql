@@ -1,11 +1,11 @@
--- ChefOS — Privacy & Data Protection consent (Richard, 16.7., bod 3).
+-- Sautero — Privacy & Data Protection consent (Richard, 16.7., bod 3).
 --
 -- Same exact mechanism as confidentiality_acceptances (db/60, 2026-07-13): an append-only,
 -- versioned acceptance log, gated in startApp() before someone can use the app, bumping the
 -- version forces EVERYONE (including people already using the app) to re-agree on their next
 -- login. Kept as its own table/gate rather than folded into the confidentiality one — they
 -- cover different things: confidentiality is "don't leak your kitchen's data", this is "here's
--- what ChefOS itself collects about you and why" (GDPR/Swiss nFADP-style data-processing
+-- what Sautero itself collects about you and why" (GDPR/Swiss nFADP-style data-processing
 -- consent). See /security/PRIVACY_POLICY_DRAFT.html for the full text this summarizes — that
 -- document is a DRAFT for a lawyer to review, not reviewed legal advice.
 

@@ -1,9 +1,9 @@
--- ChefOS — Phase 1a database schema
+-- Sautero — Phase 1a database schema
 -- Run this ONCE in the Supabase SQL Editor (Dashboard → SQL Editor → New query → paste → Run).
 -- Plain-language guide: this creates the "shelves" in your shared digital storeroom —
 -- one shelf (table) for kitchens, one for people, one for recipes.
 
--- 1) KITCHENS — one row per restaurant/kitchen using ChefOS. Just one row for now (yours).
+-- 1) KITCHENS — one row per restaurant/kitchen using Sautero. Just one row for now (yours).
 create table if not exists kitchens (
   id uuid primary key default gen_random_uuid(),
   name text not null,

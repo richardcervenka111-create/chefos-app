@@ -1,4 +1,4 @@
--- ChefOS — adds ~730 new ingredients to the price book, bringing the total from 533 to
+-- Sautero — adds ~730 new ingredients to the price book, bringing the total from 533 to
 -- roughly 1,263. This is the demo/presentation-scoped ~1300-ingredient set, NOT the full
 -- 20,000-row "master ingredient database" concept discussed elsewhere and separately paused —
 -- that multi-table spec does not apply here.

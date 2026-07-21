@@ -1,4 +1,4 @@
--- ChefOS — per-recipe friend sharing (Richard, 17.7.: "share with friends" on a recipe only
+-- Sautero — per-recipe friend sharing (Richard, 17.7.: "share with friends" on a recipe only
 -- ever showed PUBLIC recipes to friends, not the ones shared just with friends). Ingredients
 -- already work per-item (db/136); this brings recipes to the same model: a recipe can be shared
 -- with friends individually, and a connected friend sees exactly those (plus public ones).
@@ -35,7 +35,7 @@ begin
     if not new.is_personal
        or new.created_by is distinct from auth.uid()
        or coalesce((select account_type from profiles where id = auth.uid()), '') <> 'personal' then
-      raise exception 'Publishing/sharing is only allowed for your own personal recipes, from a Personal profile (ChefOS terms).';
+      raise exception 'Publishing/sharing is only allowed for your own personal recipes, from a Personal profile (Sautero terms).';
     end if;
   end if;
   return new;

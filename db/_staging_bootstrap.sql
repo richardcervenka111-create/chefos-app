@@ -1,4 +1,4 @@
--- ChefOS — combined bootstrap for a brand-new (staging) Supabase project.
+-- Sautero — combined bootstrap for a brand-new (staging) Supabase project.
 -- Generated 2026-07-13 by concatenating db/01 through db/56 in order.
 -- Paste this whole file into the SQL editor of a FRESH Supabase project and run it once.
 -- Do NOT run this against the production project — it's for staging only.
@@ -7,12 +7,12 @@
 -- ============================================================
 -- 01_schema.sql
 -- ============================================================
--- ChefOS — Phase 1a database schema
+-- Sautero — Phase 1a database schema
 -- Run this ONCE in the Supabase SQL Editor (Dashboard → SQL Editor → New query → paste → Run).
 -- Plain-language guide: this creates the "shelves" in your shared digital storeroom —
 -- one shelf (table) for kitchens, one for people, one for recipes.
 
--- 1) KITCHENS — one row per restaurant/kitchen using ChefOS. Just one row for now (yours).
+-- 1) KITCHENS — one row per restaurant/kitchen using Sautero. Just one row for now (yours).
 create table if not exists kitchens (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -157,7 +157,7 @@ create trigger on_auth_user_created
 -- ============================================================
 -- 02_migrate_recipes.sql
 -- ============================================================
--- ChefOS — Phase 1a data migration
+-- Sautero — Phase 1a data migration
 -- Auto-generated from Recipe_Book_v2.html. Run AFTER 01_schema.sql, in the same
 -- Supabase SQL Editor. Safe to re-run only after clearing the recipes table first.
 
@@ -341,7 +341,7 @@ insert into recipes (kitchen_id, title, subtitle, category, difficulty, yield_te
 -- ============================================================
 -- 03_fix_signup_trigger.sql
 -- ============================================================
--- ChefOS — fix for "Database error saving new user" on first login
+-- Sautero — fix for "Database error saving new user" on first login
 -- Run this once in the Supabase SQL Editor. It replaces the auto-profile-on-signup
 -- function from 01_schema.sql with a version that explicitly points at the "public"
 -- schema, instead of relying on it being found automatically (which doesn't always
@@ -359,7 +359,7 @@ $$ language plpgsql security definer set search_path = public;
 -- ============================================================
 -- 04_lock_signup_function.sql
 -- ============================================================
--- ChefOS — tighten permissions on the signup trigger function
+-- Sautero — tighten permissions on the signup trigger function
 -- Addresses Supabase's Security Advisor warnings "Public/Signed-In Users Can Execute
 -- SECURITY DEFINER Function" for handle_new_user(). The function is only meant to run
 -- automatically as part of account signup (via the trigger) — this makes sure nobody
@@ -370,7 +370,7 @@ revoke execute on function public.handle_new_user() from public, authenticated, 
 -- ============================================================
 -- 05_ingredients_schema.sql
 -- ============================================================
--- ChefOS — ingredients master list (pricing database)
+-- Sautero — ingredients master list (pricing database)
 -- Run this in the Supabase SQL Editor, AFTER 01-04. Creates the "price book" table —
 -- one row per distinct ingredient, with a current reference price you can edit any time.
 
@@ -419,7 +419,7 @@ create policy "delete kitchen ingredients" on ingredients
 -- ============================================================
 -- 06_ingredients_seed.sql
 -- ============================================================
--- ChefOS — starter ingredient price list
+-- Sautero — starter ingredient price list
 -- Auto-generated. Run in the Supabase SQL Editor AFTER 05_ingredients_schema.sql.
 -- All prices below are ESTIMATED reference prices (Central European market, EUR) based on
 -- general culinary/wholesale domain knowledge — NOT individually verified online (web search
@@ -967,7 +967,7 @@ insert into ingredients (kitchen_id, name, aliases, cuisine, category, unit, pri
 -- ============================================================
 -- 07_production_time.sql
 -- ============================================================
--- ChefOS — adds an editable "production time" to each recipe.
+-- Sautero — adds an editable "production time" to each recipe.
 -- This is separate from the existing active/passive method-time estimates (which are
 -- guessed from the written steps) — production time is something the chef sets directly,
 -- and will later be used by the Mise en Place / prep-list feature to plan a station's day.
@@ -976,7 +976,7 @@ alter table recipes add column if not exists production_time text;
 -- ============================================================
 -- 08_ingredient_substitutes.sql
 -- ============================================================
--- ChefOS — adds origin, season, and substitution info to each ingredient.
+-- Sautero — adds origin, season, and substitution info to each ingredient.
 alter table ingredients add column if not exists origin text;
 alter table ingredients add column if not exists season text;
 alter table ingredients add column if not exists substitutes text;
@@ -984,7 +984,7 @@ alter table ingredients add column if not exists substitutes text;
 -- ============================================================
 -- 09_tasks_schema.sql
 -- ============================================================
--- ChefOS — Mise en Place / prep task list
+-- Sautero — Mise en Place / prep task list
 -- A task can optionally point at a recipe (to borrow its title/production time) or stand
 -- entirely on its own. Priority 1 = critical, 5 = low. Kitchen-scoped (same pattern as
 -- recipes/ingredients) so this is ready for a shared team board later without a schema
@@ -1028,7 +1028,7 @@ create policy "delete kitchen tasks" on tasks
 -- ============================================================
 -- 10_ingredient_substitutes_seed.sql
 -- ============================================================
--- ChefOS — fills origin/season/substitutes for the existing 535 ingredients.
+-- Sautero — fills origin/season/substitutes for the existing 535 ingredients.
 -- Run AFTER 08_ingredient_substitutes.sql (which adds the columns) and after
 -- 06_ingredients_seed.sql (which creates the rows this matches against by name).
 -- Season is intentionally left blank for most meat/poultry/eggs/dry goods/spices/
@@ -1576,7 +1576,7 @@ update ingredients set origin = 'Italy', season = NULL, substitutes = 'Strong br
 -- ============================================================
 -- 11_task_status.sql
 -- ============================================================
--- ChefOS — replaces the simple done/not-done checkbox on tasks with a 3-state status:
+-- Sautero — replaces the simple done/not-done checkbox on tasks with a 3-state status:
 -- TO DO -> CHECK -> FINISH. "CHECK" is for a task that's done but wants someone (e.g. the
 -- chef) to verify it before it counts as truly finished.
 alter table tasks add column if not exists status text not null default 'todo'
@@ -1587,7 +1587,7 @@ update tasks set status = case when done then 'finish' else 'todo' end;
 -- ============================================================
 -- 12_order_list_schema.sql
 -- ============================================================
--- ChefOS — Order List: per-station checklist of ingredients to order, with quantity + unit.
+-- Sautero — Order List: per-station checklist of ingredients to order, with quantity + unit.
 -- A row existing here means "this ingredient is currently on this station's order list" —
 -- unchecking an item in the app deletes its row rather than flagging it inactive.
 create table if not exists order_list_items (
@@ -1624,7 +1624,7 @@ create policy "delete kitchen order list" on order_list_items
 -- ============================================================
 -- 13_nutrition_schema.sql
 -- ============================================================
--- ChefOS — adds standard nutrition-label values (per 100g/100ml) to each ingredient.
+-- Sautero — adds standard nutrition-label values (per 100g/100ml) to each ingredient.
 -- The app computes a recipe's total nutrition from these the same way it already computes
 -- recipe cost from ingredient prices — matching ingredient lines by name, converting units,
 -- and summing.
@@ -1636,7 +1636,7 @@ alter table ingredients add column if not exists fat_g_per_100g numeric;
 -- ============================================================
 -- 14_nutrition_seed.sql
 -- ============================================================
--- ChefOS — fills kcal/protein/carbs/fat (per 100g/100ml) for all 535 ingredients.
+-- Sautero — fills kcal/protein/carbs/fat (per 100g/100ml) for all 535 ingredients.
 -- Run AFTER 13_nutrition_schema.sql. 374/535 are standard, well-established nutrition
 -- values; 161/535 are reasoned estimates for composite/branded/prepared items where
 -- there's no single true reference value (sauces, reductions, branded chocolates,
@@ -2181,7 +2181,7 @@ update ingredients set kcal_per_100g = 344.0, protein_g_per_100g = 11.0, carbs_g
 -- ============================================================
 -- 15_user_settings.sql
 -- ============================================================
--- ChefOS — Phase 1b: stores each person's own Anthropic API key, for photo-scan.
+-- Sautero — Phase 1b: stores each person's own Anthropic API key, for photo-scan.
 -- Personal, not kitchen-scoped — nobody but the owning user can ever read or write their
 -- own row (not even other members of the same kitchen). The key is typed directly into the
 -- app's own settings screen by the user themselves and never passes through anyone else.
@@ -2201,7 +2201,7 @@ create policy "write own settings" on user_settings
 -- ============================================================
 -- 16_schedule_schema.sql
 -- ============================================================
--- ChefOS — Schedule: a simple daily staff roster, organized by station.
+-- Sautero — Schedule: a simple daily staff roster, organized by station.
 -- Sketch-level v1 (plain staff names as text, not full user accounts) — refine once there's
 -- a real reference (e.g. the roster format Richard already uses at work) to match against.
 create table if not exists schedule_entries (
@@ -2237,7 +2237,7 @@ create policy "delete kitchen schedule" on schedule_entries
 -- ============================================================
 -- 17_fridge_schema.sql
 -- ============================================================
--- ChefOS — Fridge Temperature: manual logging v1 (name the units, log a reading, see
+-- Sautero — Fridge Temperature: manual logging v1 (name the units, log a reading, see
 -- whether it's in range). Wireless-sensor auto-logging is future work — this is the
 -- practical starting point: usable today, without needing any hardware.
 create table if not exists fridges (
@@ -2282,7 +2282,7 @@ create policy "delete kitchen fridge logs" on fridge_logs
 -- ============================================================
 -- 18_schedule_v2_schema.sql
 -- ============================================================
--- ChefOS — Schedule v2: replaces the v1 sketch with the real shape from Richard's actual
+-- Sautero — Schedule v2: replaces the v1 sketch with the real shape from Richard's actual
 -- work roster (Hotel Schweizerhof Bern AG "Dienstplan Küchenteam"): a grid of staff × date,
 -- where each cell holds a shift CODE (e.g. "PJM", "BKFST", "FR") drawn from a fixed dictionary
 -- of codes with real start/end times and breaks — not a free-text per-day list.
@@ -2351,7 +2351,7 @@ create policy "delete kitchen schedule" on schedule_assignments for delete using
 -- ============================================================
 -- 19_schedule_v2_seed.sql
 -- ============================================================
--- ChefOS — real shift codes and staff roster, from Richard's actual Hotel Schweizerhof
+-- Sautero — real shift codes and staff roster, from Richard's actual Hotel Schweizerhof
 -- Bern AG kitchen team roster (06.07.2026-26.07.2026). Run after 18_schedule_v2_schema.sql.
 
 -- Shift codes (with real hours from the roster's own legend)
@@ -2416,7 +2416,7 @@ insert into staff_members (kitchen_id, name, section, sort_order) values ('11111
 -- ============================================================
 -- 20_prep_sheet_schema.sql
 -- ============================================================
--- ChefOS — Prep Sheet: a dish-grouped view inside Mise en Place, matching Richard's real
+-- Sautero — Prep Sheet: a dish-grouped view inside Mise en Place, matching Richard's real
 -- paper prep sheet (dish header with price, then its component items underneath). Built
 -- generally so any station can use this style later, not just SKY.
 create table if not exists prep_dishes (
@@ -2460,7 +2460,7 @@ create policy "delete kitchen prep items" on prep_items for delete using (kitche
 -- ============================================================
 -- 21_prep_sheet_seed.sql
 -- ============================================================
--- ChefOS — real SKY prep sheet (dishes + items), from Richard's actual paper prep sheet.
+-- Sautero — real SKY prep sheet (dishes + items), from Richard's actual paper prep sheet.
 -- Run after 20_prep_sheet_schema.sql. Priority left at the default (3) and prep_time
 -- left empty for every item, same as the paper sheet's blank 'status' column — Richard
 -- fills those in himself, through the app.
@@ -2593,7 +2593,7 @@ end $$;
 -- ============================================================
 -- 22_prep_sheet_clear_onhand.sql
 -- ============================================================
--- ChefOS — ON HAND on the SKY prep sheet changed meaning: from the recipe's gram quantity
+-- Sautero — ON HAND on the SKY prep sheet changed meaning: from the recipe's gram quantity
 -- (seeded from the paper sheet) to a 0-13 stock count of how many are currently prepped and
 -- ready. Clears the old gram values so the column starts blank for the new count-based use.
 update prep_items
@@ -2603,7 +2603,7 @@ where dish_id in (select id from prep_dishes where station = 'SKY');
 -- ============================================================
 -- 23_prep_sheet_status.sql
 -- ============================================================
--- ChefOS — adds a status field to prep items (SKY prep sheet etc.), same TO DO / CHECK /
+-- Sautero — adds a status field to prep items (SKY prep sheet etc.), same TO DO / CHECK /
 -- FINISH pattern as the regular Mise en Place task list, plus a 4th option DONT DO for items
 -- that don't need prepping today. This lives separately from priority (which stays 1-5).
 alter table prep_items add column if not exists status text not null default 'todo'
@@ -2612,7 +2612,7 @@ alter table prep_items add column if not exists status text not null default 'to
 -- ============================================================
 -- 24_prep_sheet_min_required.sql
 -- ============================================================
--- ChefOS — adds min_required (par level) to prep items, and flips the default/current
+-- Sautero — adds min_required (par level) to prep items, and flips the default/current
 -- status of every prep item to DONT DO (Richard's instruction: items are opted OUT of
 -- today's prep by default, he ticks TO DO for what's actually needed).
 -- min_required is a random 3-6 placeholder per Richard's instruction — NOT real kitchen
@@ -2740,7 +2740,7 @@ end $$;
 -- ============================================================
 -- 25_prep_sheet_stage_times.sql
 -- ============================================================
--- ChefOS — replaces the free-text 'Time to prep' with three per-status minute values
+-- Sautero — replaces the free-text 'Time to prep' with three per-status minute values
 -- per ingredient: how long TO DO / CHECK / FINISH each take (Richard's example: Kopfsalatherz
 -- = 8 / 1 / 3 min — TO DO is the full prep, CHECK is a quick recheck, FINISH is the last
 -- touch). Whichever status an item is on right now, that item's matching minute value is
@@ -2869,7 +2869,7 @@ end $$;
 -- ============================================================
 -- 26_prep_sheet_new_stations.sql
 -- ============================================================
--- ChefOS — prep sheets for Hot Line, Garde Manger, and Desserts, built the same way as SKY.
+-- Sautero — prep sheets for Hot Line, Garde Manger, and Desserts, built the same way as SKY.
 -- Source: Richard's real menu documents — 'Frühlingskarte Beschreib 2026.pdf' (Hotel Schweizerhof
 -- spring menu, 18 dishes) and 'Küche beschreibung Menu 2.docx' (4-course tasting menu). No CHF
 -- prices were given for these dishes (unlike SKY), so price is left NULL. Station assignment
@@ -3063,7 +3063,7 @@ end $$;
 -- ============================================================
 -- 27_task_notes.sql
 -- ============================================================
--- ChefOS — adds a free-text notes field to both task types in Mise en Place (the flat
+-- Sautero — adds a free-text notes field to both task types in Mise en Place (the flat
 -- checklist and the dish-grouped prep sheet), so a cook can leave a note for whoever
 -- reads it next ("only 2 left, ordered more", "swapped for X today", etc).
 alter table tasks add column if not exists notes text;
@@ -3072,7 +3072,7 @@ alter table prep_items add column if not exists notes text;
 -- ============================================================
 -- 28_prep_sheet_remaining_stations.sql
 -- ============================================================
--- ChefOS — prep sheets for Lobby, Entremetier, BQT, and Extra.
+-- Sautero — prep sheets for Lobby, Entremetier, BQT, and Extra.
 -- Lobby is built on the REAL concept of the Hotel Schweizerhof Bern Lobby Lounge Bar
 -- (Fugu-licensed sushi chef Hironori Takahashi, sashimi/sushi + mezze-style light dishes —
 -- schweizerhofbern.com/en/dining/lobby-lounge-bar) but the exact menu is an Issuu flipbook
@@ -3196,7 +3196,7 @@ end $$;
 -- ============================================================
 -- 29_translate_prep_sheets_en.sql
 -- ============================================================
--- ChefOS — translates all German prep-sheet data (dish + item names) to English, per
+-- Sautero — translates all German prep-sheet data (dish + item names) to English, per
 -- Richard's request. Name-based updates, so it doesn't matter which seed file a row came
 -- from. One genuinely ambiguous word is handled first with a scoped update: 'Salat' means
 -- 'Lettuce' on the Lobby burger/sandwich but 'Salad' on the Extra staff meal. Safe to
@@ -3423,7 +3423,7 @@ update prep_items set name = 'Chef''s Choice Bites' where name = 'Häppchen nach
 -- ============================================================
 -- 30_ingredients_storage_season.sql
 -- ============================================================
--- ChefOS — extends ingredients with two new filterable dimensions Richard asked for, scoped
+-- Sautero — extends ingredients with two new filterable dimensions Richard asked for, scoped
 -- down from the full "master ingredient database" spec to what's actually needed for the
 -- Ingredients season/storage-type filter (not the full 20k-row/multi-table architecture —
 -- that's a separate, paused decision). Adds columns only; the data fill (existing 535
@@ -3437,7 +3437,7 @@ alter table ingredients add column if not exists seasons text[] not null default
 -- ============================================================
 -- 31_ingredients_backfill_storage_season.sql
 -- ============================================================
--- ChefOS — backfills storage_type and seasons for all 533 existing ingredients (added by
+-- Sautero — backfills storage_type and seasons for all 533 existing ingredients (added by
 -- 30_ingredients_storage_season.sql, currently NULL/empty on every row), and splits the
 -- generic 'Produce' category into 'Fruit' / 'Vegetable' so the Ingredients screen can filter
 -- on something more useful than one catch-all bucket.
@@ -4083,7 +4083,7 @@ update ingredients set category = 'Fruit' where name = 'Sudachi' and kitchen_id 
 -- ============================================================
 -- 32_ingredients_expansion_new.sql
 -- ============================================================
--- ChefOS — adds ~730 new ingredients to the price book, bringing the total from 533 to
+-- Sautero — adds ~730 new ingredients to the price book, bringing the total from 533 to
 -- roughly 1,263. This is the demo/presentation-scoped ~1300-ingredient set, NOT the full
 -- 20,000-row "master ingredient database" concept discussed elsewhere and separately paused —
 -- that multi-table spec does not apply here.
@@ -4891,7 +4891,7 @@ insert into ingredients (kitchen_id, name, aliases, cuisine, category, unit, pri
 -- ============================================================
 -- 33_prep_item_time_samples.sql
 -- ============================================================
--- ChefOS — lets anyone add a real time observation to a prep item, whenever they want, instead
+-- Sautero — lets anyone add a real time observation to a prep item, whenever they want, instead
 -- of only ever seeing the original placeholder estimate. A submitted time doesn't overwrite the
 -- stored minute value outright — it's averaged in, tracked via a sample count per stage, so the
 -- number gets more accurate the more people log it. Count 0 means "still the seeded placeholder,
@@ -4905,7 +4905,7 @@ alter table prep_items add column if not exists finish_minutes_n int not null de
 -- ============================================================
 -- 34_teams_access_gate.sql
 -- ============================================================
--- ChefOS — multi-team support (each restaurant is its own "kitchen") + a manual access gate
+-- Sautero — multi-team support (each restaurant is its own "kitchen") + a manual access gate
 -- for the closed public trial. Two independent things:
 --
 -- 1) TEAMS: `kitchens` + `profiles.kitchen_id` already scoped every table's RLS by kitchen
@@ -4992,7 +4992,7 @@ create policy "admin review requests" on access_requests
 -- ============================================================
 -- 35_order_list_notes.sql
 -- ============================================================
--- ChefOS — Order List gets a free-text note per item (e.g. "ask for the smaller crates"),
+-- Sautero — Order List gets a free-text note per item (e.g. "ask for the smaller crates"),
 -- needed for the new quick "🛒 Add to Order List" button on Check List items and recipe
 -- ingredient rows.
 alter table order_list_items add column if not exists notes text;
@@ -5000,7 +5000,7 @@ alter table order_list_items add column if not exists notes text;
 -- ============================================================
 -- 36_prep_hidden.sql
 -- ============================================================
--- ChefOS — hide (not delete) a Check List item, dish, or whole section. Hidden rows stay in
+-- Sautero — hide (not delete) a Check List item, dish, or whole section. Hidden rows stay in
 -- the database (unlike delete) and can be brought back via a "Show hidden" toggle in the app.
 alter table prep_dishes add column if not exists hidden boolean not null default false;
 alter table prep_items add column if not exists hidden boolean not null default false;
@@ -5008,7 +5008,7 @@ alter table prep_items add column if not exists hidden boolean not null default 
 -- ============================================================
 -- 37_prep_soft_delete.sql
 -- ============================================================
--- ChefOS — "Delete" on a Check List item/dish/section now soft-deletes (recoverable) instead
+-- Sautero — "Delete" on a Check List item/dish/section now soft-deletes (recoverable) instead
 -- of permanently removing the row, after Richard accidentally deleted/hid real data with no
 -- way to undo it. Separate flag from `hidden` (36_prep_hidden.sql) — hidden = "skip today, on
 -- purpose, always reversible"; deleted = "meant to remove this, but mistakes happen too."
@@ -5018,7 +5018,7 @@ alter table prep_items add column if not exists deleted boolean not null default
 -- ============================================================
 -- 38_station_icons.sql
 -- ============================================================
--- ChefOS — custom icon per section, chosen when creating it (instead of always falling back
+-- Sautero — custom icon per section, chosen when creating it (instead of always falling back
 -- to the generic 📍 pin for anything not in the hardcoded STATION_ICONS map). Kitchen-wide
 -- (not device-local like hidden-station-tiles/print-queue) since an icon is part of a
 -- section's shared identity — everyone on the team should see the same one.
@@ -5043,7 +5043,7 @@ create policy "update kitchen station icons" on station_icons
 -- ============================================================
 -- 39_working_time.sql
 -- ============================================================
--- ChefOS — Working Time: real check-in/check-out time tracking. Overtime is a fixed 8h/day
+-- Sautero — Working Time: real check-in/check-out time tracking. Overtime is a fixed 8h/day
 -- threshold (Richard's own rule — "ak človek pracuje viac ako osem hodín v daný deň" — not
 -- tied to the contracted weekly hours below).
 --
@@ -5080,7 +5080,7 @@ alter table profiles add column if not exists contract_notes text;
 -- ============================================================
 -- 40_labels_shelf_life_and_scan_language.sql
 -- ============================================================
--- ChefOS — two small additions:
+-- Sautero — two small additions:
 --
 -- 1) Print Labels: per-product shelf life (days), used to auto-compute the "use by" date
 --    printed on a label from the actual print date. Kitchen-wide (everyone printing "Ravioli"
@@ -5117,7 +5117,7 @@ alter table user_settings add column if not exists scan_language text;
 -- ============================================================
 -- 41_schedule_forecast.sql
 -- ============================================================
--- ChefOS — Working Time: "Upload schedule" lets a person scan their real roster (Dienstplan
+-- Sautero — Working Time: "Upload schedule" lets a person scan their real roster (Dienstplan
 -- PDF/photo, same format as the Schedule feature) and pull out just their own row, so Working
 -- Time can show a bar chart of past AND future scheduled work days — not just what's already
 -- been checked in. Reuses the existing shift_codes dictionary (18_schedule_v2_schema.sql) to
@@ -5148,7 +5148,7 @@ create policy "delete own schedule forecast" on schedule_forecast
 -- ============================================================
 -- 42_contract_advisory_points.sql
 -- ============================================================
--- ChefOS — Working Time / contract review: the AI note is now a list of individual points
+-- Sautero — Working Time / contract review: the AI note is now a list of individual points
 -- (not one paragraph), so each one can be checked off as "handled" separately. Kept
 -- `contract_notes` (the old single-text column) untouched for anyone who already scanned a
 -- contract before this change — it still displays, just without per-point checkboxes, until
@@ -5196,7 +5196,7 @@ from (
 -- ============================================================
 -- 44_working_time_day_notes.sql
 -- ============================================================
--- ChefOS — Working Time: a note per calendar day (not per check-in entry), auto-saved, with an
+-- Sautero — Working Time: a note per calendar day (not per check-in entry), auto-saved, with an
 -- optional photo. Richard's own example: something worth remembering about a specific day at
 -- work (an incident, a reason hours were off, anything) — independent of how many check-in
 -- entries that day happens to have.
@@ -5241,7 +5241,7 @@ create policy "delete own working time note photos" on storage.objects
 -- ============================================================
 -- 45_recipe_category_icons.sql
 -- ============================================================
--- ChefOS — Recipes navigation now mirrors Check List's section picker (Richard: "tak isto ako
+-- Sautero — Recipes navigation now mirrors Check List's section picker (Richard: "tak isto ako
 -- v check liste"). Custom icon per recipe category, same pattern as station_icons
 -- (38_station_icons.sql) — kitchen-wide, so a category created on one device shows the same
 -- icon for everyone. Also lets a category exist as a browsable (empty) tile before any recipe
@@ -5269,7 +5269,7 @@ create policy "delete kitchen recipe category icons" on recipe_category_icons
 -- ============================================================
 -- 46_supplier_ingredients.sql
 -- ============================================================
--- ChefOS -- REAL supplier-priced ingredients from Swiss wholesaler price lists (DRAFT for review).
+-- Sautero -- REAL supplier-priced ingredients from Swiss wholesaler price lists (DRAFT for review).
 --
 -- Source 1: Caviezel Giovanettoni AG, 2026 frozen/fresh food supplier price list (92-page PDF,
 --   pre-extracted to text). All prices below are quoted "article no." references back to this
@@ -5459,7 +5459,7 @@ insert into ingredients (kitchen_id, name, aliases, cuisine, category, unit, pri
 -- ============================================================
 -- 47_kitchen_currency.sql
 -- ============================================================
--- ChefOS — kitchen-wide display currency (Richard: "chcem mať možnosť v hlavnom menu zmeniť
+-- Sautero — kitchen-wide display currency (Richard: "chcem mať možnosť v hlavnom menu zmeniť
 -- menu eura frank dolár"). Every ingredient price is still stored in EUR (matches the existing
 -- 535+ ingredient rows and every cost calculation in the app) — this column only controls how
 -- prices are *displayed*, for the whole team at once, via a fixed approximate conversion rate
@@ -5476,7 +5476,7 @@ alter table kitchens add column if not exists display_currency text not null def
 -- ============================================================
 -- 48_kitchens_and_station_icons_policy_fix.sql
 -- ============================================================
--- ChefOS — two missing RLS policies found while auditing everything built this session against
+-- Sautero — two missing RLS policies found while auditing everything built this session against
 -- the actual database policies (Richard asked "aký SQL ti chýba?" — good catch to check).
 -- Both would fail SILENTLY under RLS (Postgres RLS defaults to deny, no error surfaced unless
 -- the code checks for it) rather than loudly, so neither would have been obvious until someone
@@ -5502,7 +5502,7 @@ create policy "delete kitchen station icons" on station_icons
 -- ============================================================
 -- 49_retire_schweizerhof_naming.sql
 -- ============================================================
--- ChefOS — retiring Hotel Schweizerhof branding from recipe/dish names (2026-07-13).
+-- Sautero — retiring Hotel Schweizerhof branding from recipe/dish names (2026-07-13).
 --
 -- Richard: the pilot kitchen is changing to Burrito Bandito & Lido, and the concrete thing that
 -- needs to go is anything literally named/branded after the old employer — not the general
@@ -5534,7 +5534,7 @@ where name = 'Schweizerhof Schokoladenmousse' and kitchen_id = '11111111-1111-41
 -- ============================================================
 -- 50_enable_realtime.sql
 -- ============================================================
--- ChefOS — turn on Realtime for Check List's live cross-device sync (2026-07-13).
+-- Sautero — turn on Realtime for Check List's live cross-device sync (2026-07-13).
 --
 -- MVP_DEFINITION.md promises "updates visible to everyone in real time" for Check List — this
 -- was never actually true until now; every screen only loaded data once per visit. The app
@@ -5551,7 +5551,7 @@ alter publication supabase_realtime add table prep_dishes;
 -- ============================================================
 -- 51_error_logs.sql
 -- ============================================================
--- ChefOS — basic client-side error tracking (2026-07-13).
+-- Sautero — basic client-side error tracking (2026-07-13).
 -- Backlog v2 (QA Lead): "keď sa niečo pokazí u cudzieho človeka na jeho telefóne, nedozvieš sa
 -- to, kým ti sám nenapíše." This is the minimal version — no third-party service (Sentry etc.),
 -- just a table + a window.onerror handler that logs to it (app/index.html).
@@ -5583,7 +5583,7 @@ create policy "admin read error logs" on error_logs
 -- ============================================================
 -- 52_usage_events.sql
 -- ============================================================
--- ChefOS — minimal usage analytics (2026-07-13).
+-- Sautero — minimal usage analytics (2026-07-13).
 -- Backlog v2 (PM + CTO): "bez telemetrie nevieš, či 25 ľudí appku reálne používa alebo len raz
 -- otvorilo." No third-party analytics — a plain events table, logged from app/index.html at
 -- login and whenever a top-level module (Recipes, Check List, Ingredients, ...) is opened.
@@ -5610,7 +5610,7 @@ create policy "admin read usage events" on usage_events
 -- ============================================================
 -- 53_invite_expiry_and_remove_member.sql
 -- ============================================================
--- ChefOS — expiring/revocable invite links + ability to remove a team member (2026-07-13).
+-- Sautero — expiring/revocable invite links + ability to remove a team member (2026-07-13).
 -- Backlog v2 (CTO + Solution Architect): the invite link was literally the kitchen's own id —
 -- never expires, can't be revoked without breaking the kitchen itself, and there was no way to
 -- remove someone from a team at all once they joined.
@@ -5663,7 +5663,7 @@ create policy "admin remove kitchen member" on profiles
 -- ============================================================
 -- 54_check_list_audit_log.sql
 -- ============================================================
--- ChefOS — Check List audit log (2026-07-13).
+-- Sautero — Check List audit log (2026-07-13).
 -- Backlog v2 (Solution Architect + PM): the MVP promise is "everyone sees what's done
 -- and what's not, without a single conversation about whose fault it is" — but until now
 -- nothing recorded WHO changed an item, only its current state. This adds a lightweight
@@ -5701,7 +5701,7 @@ create policy "kitchen members write audit log" on check_list_audit_log
 -- ============================================================
 -- 55_fix_profiles_rls_recursion.sql
 -- ============================================================
--- ChefOS — URGENT fix for a live outage: infinite recursion in profiles RLS (2026-07-13).
+-- Sautero — URGENT fix for a live outage: infinite recursion in profiles RLS (2026-07-13).
 --
 -- db/53 added two policies ON `profiles` that query `profiles` again inside their own USING
 -- clause (aliased p2) to find the caller's kitchen_id / admin status:
@@ -5756,7 +5756,7 @@ create policy "admin remove kitchen member" on profiles
 -- ============================================================
 -- 56_force_logout_all_devices.sql
 -- ============================================================
--- ChefOS — force every device to log out and require a fresh email code (run on demand).
+-- Sautero — force every device to log out and require a fresh email code (run on demand).
 --
 -- This is not a schema change — it's a one-off action, safe to run again anytime the same
 -- way. It deletes every active session (Supabase Auth cascades this to the matching refresh

@@ -1,4 +1,4 @@
--- ChefOS -- expanded supplier-priced ingredients (backlog t51), 2026-07-13.
+-- Sautero -- expanded supplier-priced ingredients (backlog t51), 2026-07-13.
 --
 -- Source: SAME Caviezel Giovanettoni AG 2026 price list already used in db/46_supplier_ingredients.sql
 -- (db/46 extracted 104 base ingredients from this catalog; this batch adds items db/46 did NOT

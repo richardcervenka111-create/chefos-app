@@ -4,7 +4,7 @@
     {
       "name": "chefos-app",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "/Users/rc/Desktop/ChefOS/app"],
+      "runtimeArgs": ["-m", "http.server", "8791", "--directory", "/Users/rc/Desktop/Sautero/app"],
       "port": 8791
     }
   ]

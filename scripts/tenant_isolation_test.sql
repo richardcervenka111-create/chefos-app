@@ -1,4 +1,4 @@
--- ChefOS tenant-isolation test (health check 2026-07-15).
+-- Sautero tenant-isolation test (health check 2026-07-15).
 --
 -- WHAT: proves, with a loud failure, that a user from kitchen A cannot read another
 -- kitchen's rows through RLS — across every kitchen-scoped table the app uses.

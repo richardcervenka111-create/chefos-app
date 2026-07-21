@@ -130,14 +130,14 @@
 
   /* ---------- Sautero stamp + language fab (Richard, 15.7.: every /visual data/ document
      carries a last-updated-to-Sautero-state badge and an SK/EN toggle) ---------- */
-  .chefos-stamp{
+  .sautero-stamp{
     position:fixed; bottom:14px; right:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7;
     font-size:10.5px; font-weight:700; font-family:"SF Mono",Menlo,Consolas,monospace;
     padding:6px 12px; border-radius:999px;
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;
   }
-  .chefos-lang-fab{
+  .sautero-lang-fab{
     position:fixed; bottom:14px; left:14px; z-index:90;
     background:rgba(15,35,64,0.92); border:1px solid #223d57; color:#9C949E;
     font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -146,8 +146,8 @@
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     transition:border-color .15s, color .15s;
   }
-  .chefos-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
-  @media print{ .chefos-stamp, .chefos-lang-fab{ display:none; } }
+  .sautero-lang-fab:hover{ border-color:rgba(52,247,215,0.4); color:#34F7D7; }
+  @media print{ .sautero-stamp, .sautero-lang-fab{ display:none; } }
 </style>
 </head>
 <body>
@@ -355,7 +355,7 @@ const DAYS = [
       'Nasadené a naživo potvrdené: in-app tutoriál, tlačidlo „nahlásiť bug“, autocomplete ingrediencií v Print Labels a brána potvrdenia dôvernosti pri logine',
       'Externý dokument „Sautero Critical Review“ prečítaný celý a na mieste anotovaný piatimi poctivými protipoznámkami: Nebenerwerb potreboval precieliť, pomer overených cien ingrediencií sa cez noc pohol zlým smerom, päť funkcií nasadených počas týždňa, ktorý review volá freeze week (vrátane časti dnešných), a Chef Challenge je stále v trial builde napriek vlastnému verdiktu 86 v review',
       'Tutoriál prepísaný z jedného odseku na slajd na 3–4 krátke odrážky ikona+riadok podľa Richardovho feedbacku, že sa počas smeny ťažko číta',
-      'Meno zakladateľa odstránené z používateľských stránok (legal.html, monetization.html) do zriadenia skutočnej hello@chefos adresy; feedback/bug emaily už neukazujú surové kitchen UUID a plný user-agent, len krátke report ID',
+      'Meno zakladateľa odstránené z používateľských stránok (legal.html, monetization.html) do zriadenia skutočnej hello@sautero adresy; feedback/bug emaily už neukazujú surové kitchen UUID a plný user-agent, len krátke report ID',
       'Obrazovka Ingrediencií: default pohľad teraz začína max. 30 položkami v sezóne tento mesiac, potom max. 30 prichádzajúcimi do sezóny budúci mesiac, až potom bežné kategórie',
       'Working Time: pridané „Zabudli ste sa odhlásiť?“ — nastaví skutočný koniec stále otvorenej smeny cez ohraničený date/time picker, namiesto tichého bežania donekonečna',
       'Opravený rozdeľovač zmluvných poznámok na checkboxy: starý regex hraníc viet rezal cez právne skratky ako „Art. 321c OR“; teraz preferuje skutočné zalomenia riadkov a chráni známe skratky',
@@ -447,14 +447,14 @@ const DAYS = [
     date: '2026-07-18',
     headline: '🏷️ Rebrand na Sautero + dokončenie 8-bodového zoznamu (tímy, sken do zoznamu, HTML faktúry) + hĺbková aktualizácia investor decku',
     accomplished: [
-      'REBRAND Sautero: 162 viditeľných výskytov v appke premenovaných (login, tlačová hlavička Sau/tero, PWA manifest, legal, tutoriály), všetkých 15 vizuálnych dokumentov + build_docs titulky; technické identifikátory (localStorage chefos_*, chefos_master_id, app.chefos.ch) zámerne nedotknuté do kúpy domén; nazov.html má verdikt „✅ VYBRANÉ 18.7.2026“; e-mailová notifikácia žiadostí o prístup premenovaná a nasadená',
+      'REBRAND Sautero: 162 viditeľných výskytov v appke premenovaných (login, tlačová hlavička Sau/tero, PWA manifest, legal, tutoriály), všetkých 15 vizuálnych dokumentov + build_docs titulky; technické identifikátory (localStorage sautero_*, chefos_master_id, app.chefos.ch) zámerne nedotknuté do kúpy domén; nazov.html má verdikt „✅ VYBRANÉ 18.7.2026“; e-mailová notifikácia žiadostí o prístup premenovaná a nasadená',
       'Bod 2 (tímy icloud↔proton): dáta opravené + trvalá poistka — Join teraz živo načíta meno aktuálnej kuchyne a varuje „You will LEAVE …“, Create Team vysvetľuje že tvorca ostáva vo svojej kuchyni + tlačidlo „Join this team myself“',
       'Bod 3 (sken do zoznamu): cieľová polica sa zachytáva pri ŠTARTE skenu, nie pri uložení — sken na pozadí už nikdy neuloží do inej police; bonus: 🏢 Company Ingredients polica v company režime (admin pridáva, každý číta), zoznamy fungujú v oboch režimoch ako projekty receptov',
       'Bod 6 (HTML faktúry): všetkých 7 vision skenov číta HTML/MD/TXT/CSV (HTML sa čistí cez DOMParser), Invoice Scan akceptuje tieto typy; oba prompty učia: dodávateľ = hlavička s právnou formou (AG, GmbH, S.r.l., s.r.o.) + IČ DPH, príjemca („Spett.le“, „Rechnung an“) NIE je dodávateľ — otestované na nemeckej aj talianskej testovacej faktúre',
       'Body 4+5 do plánu: t170 tlač receptov v identite konkrétnej reštaurácie, t171 počasie/deň/sviatok vs. tržby (backlog.html)',
       '🌐✅ NOC: t174 DOKONČENÉ CELÉ — každý dokument plne dvojjazyčný vrátane rozkliknutí: Teraz 66 tiketov (+ oprava zastaraných: Michelin hotový, 13 účtov, 2005 položiek, 14 modelov), Roadmapa všetkých 163 úloh, Denník 12 dní, História 15 dní + deň 18, deck, monetizácia 14 modelov s walkerom, Manifesto (aj oprava Bratislava→Bern), Visual Guide (aj opravy: heslo povinné, centrálny AI kľúč, 2005) a HORNÝ BANER obálky dokumentov (nav+podtitulky+záložky, reaguje na prepnutie vo vnútri). Overované naživo po každom dokumente. Odteraz platí: nový obsah sa rodí dvojjazyčne',
       'Create Team dlaždica úplne odstránená (Richard: „vôbec ju nikde nepotrebujeme" — nové kuchyne = Add Company, ľudia do tímu = Add Team Member); nápad „viac tímov v jednej firme pre kitchen adminov" zapísaný do Poznámok; mapa funkcií 77/26/8. Predtým: t174 blok 1 — mapa funkcií kompletne dvojjazyčná (112/112 kariet + 13 modulov, overené naživo v oboch jazykoch aj s modalmi) a tímové projekty receptov (db/147, zrkadlo ingrediencií: projekt + recepty v ňom vidí celý tím, 👥 značka, My Recipes ostávajú súkromné)',
-      '🏷️→✅ VEĽKÝ DOKONČOVACÍ PRECHOD ZNAČKY (Richardov príkaz „nevynechaj ani jeden dokument"): 691 náhrad ChefOS→Sautero naprieč CELÝM projektom — gronda, 4× Critical Review, všetky docs/ (zmluvy, Nebenerwerb, ROADMAP, snapshoty), security/, db/README, root súbory; NAMING_RISK dostal RESOLVED hlavičku s poučením; nájdené a odložené 2 zabudnuté kópie (app/index 3.html, feature_status 2.html). NOVÉ LOGO: serifové teal „S" na navy (ikony 32-512 + maskable + apple-touch) namiesto starého ChefOS „C". E-maily: šablóny Magic link + Confirm signup prebrandované, odosielateľ „Sautero" (adresa @sautero.ch čaká na Resend overenie). Poznámky + Aare kompletne dvojjazyčné vrátane modalov + nová sekcia Poučenia s prípadom ChefOS; trvalé pravidlo zapísané do pamäte: meno nikdy bez preverenia, rebrand vždy s inventúrou povrchov, každý dokument SK/EN. Prekladový audit: 4 dokumenty majú jednojazyčný JS obsah (~30k slov) → t174, prekladá sa postupne',
+      '🏷️→✅ VEĽKÝ DOKONČOVACÍ PRECHOD ZNAČKY (Richardov príkaz „nevynechaj ani jeden dokument"): 691 náhrad Sautero→Sautero naprieč CELÝM projektom — gronda, 4× Critical Review, všetky docs/ (zmluvy, Nebenerwerb, ROADMAP, snapshoty), security/, db/README, root súbory; NAMING_RISK dostal RESOLVED hlavičku s poučením; nájdené a odložené 2 zabudnuté kópie (app/index 3.html, feature_status 2.html). NOVÉ LOGO: serifové teal „S" na navy (ikony 32-512 + maskable + apple-touch) namiesto starého Sautero „C". E-maily: šablóny Magic link + Confirm signup prebrandované, odosielateľ „Sautero" (adresa @sautero.ch čaká na Resend overenie). Poznámky + Aare kompletne dvojjazyčné vrátane modalov + nová sekcia Poučenia s prípadom Sautero; trvalé pravidlo zapísané do pamäte: meno nikdy bez preverenia, rebrand vždy s inventúrou povrchov, každý dokument SK/EN. Prekladový audit: 4 dokumenty majú jednojazyčný JS obsah (~30k slov) → t174, prekladá sa postupne',
       'Oprava (Richard: „stále sa nové ingrediencie v nových zoznamoch neukladajú do company"): Company Ingredients teraz agreguje aj VŠETKY položky v custom zoznamoch — zoznam je pod-skupina company police, nie vec vedľa nej, takže položky z nového zoznamu sa počítajú ako company a ostávajú viditeľné pre tím (db/146); súkromné My Ingredients (bez list_id) ostávajú privátne. Overené naživo na nasadenej funkcii',
       'Večer 5-bodka: 📝 nový dokument Poznámky v hlavnej navigácii dokumentov (živý zápisník — Claude tam zapisuje a aktualizuje všetky Richardove poznámky); 🤝 Aare Ventures research (bernskí angel investori, event 14.9., prihláška do 23.8. — verdikt: po triali a pre-sale, nie teraz) ako dokument v Internal Docs; oprava koláča v mape funkcií (stred ukazuje súčet len zapnutých segmentov); 🎪 Events dlaždica zapísaná ako t172 DOKONČIŤ; 🎙️ hlasové ovládanie ako poznámka t173 (pri zamknutom telefóne = až natívna appka + Siri, Fáza 6)',
       '➕ Add Team Member (db/145): admin existujúcej kuchyne (protonmail „T1“) už nevytvára kuchyňu — sheet mu vygeneruje čerstvý 6-miestny kód, QR, kopírovateľný link a odoslanie emailom pre JEHO kuchyňu; Create Team ostáva len hlavnému adminovi (iCloud). Sken/faktúra mierené na 🏢 Company policu presunú spárované položky knižnice na Company (created_by) a Invoice Scan páruje proti cieľovej polici, nie otvorenej — inak celý batch padal na unique indexe',
@@ -667,13 +667,13 @@ const DAYS_EN = [
     '🍽️ The Michelin-chef rewrite COMPLETE, rebuilt efficiently (db/141): all 183 library recipes (173 + 10 promoted community ones) carry the 5 professional fields, via a title key valid across all kitchens at once; the Asian exclusions filled in. A clipboard-encoding incident (mangled diacritics) fixed along the way — everything verified: 183/183, 0 empty, 0 mangled',
   ], p:'Test live: AI Usage after the first AI call, the friend QR with a new account, pinning in Kitchen Reports, the enriched recipes in the app. The RLS "Mine" privacy test from two accounts. The Nebenerwerb + sole proprietorship remain the revenue blockers (deadline 20 Jul).' },
   { h:'🏷️ The rebrand to Sautero + finishing the 8-point list (teams, scan-to-list, HTML invoices) + a deep investor-deck update', a:[
-    'The SAUTERO REBRAND: 162 visible occurrences in the app renamed (login, the Sau/tero print header, PWA manifest, legal, tutorials), all 15 visual documents + build_docs titles; technical identifiers (localStorage chefos_*, chefos_master_id, the app domain) deliberately untouched until the domain purchase; nazov.html carries the "✅ CHOSEN 18.7.2026" verdict; the access-request email notification renamed and deployed',
+    'The SAUTERO REBRAND: 162 visible occurrences in the app renamed (login, the Sau/tero print header, PWA manifest, legal, tutorials), all 15 visual documents + build_docs titles; technical identifiers (localStorage sautero_*, chefos_master_id, the app domain) deliberately untouched until the domain purchase; nazov.html carries the "✅ CHOSEN 18.7.2026" verdict; the access-request email notification renamed and deployed',
     'Point 2 (icloud↔proton teams): data repaired + a permanent guard — Join now live-fetches the current kitchen\'s name and warns "You will LEAVE …", Create Team explains the creator stays in their own kitchen + a "Join this team myself" button',
     'Point 3 (scan to a list): the target shelf is captured at scan START, not at save — a background scan can never save to a different shelf again; bonus: the 🏢 Company Ingredients shelf in company mode (admin adds, everyone reads), lists work in both modes like recipe projects',
     'Point 6 (HTML invoices): all 7 vision scans read HTML/MD/TXT/CSV (HTML cleaned via DOMParser), Invoice Scan accepts these types; both prompts teach: the supplier = the letterhead business with a legal suffix (AG, GmbH, S.r.l., s.r.o.) + a VAT line, the recipient ("Spett.le", "Rechnung an") is NOT the supplier — tested on the German and Italian test invoices',
     'Points 4+5 into the plan: t170 recipe printing in each restaurant\'s identity, t171 weather/day/holiday vs. revenue (backlog.html)',
     'The Create Team tile removed entirely (Richard: "we don\'t need it anywhere" — new kitchens = Add Company, people into a team = Add Team Member); the "multiple teams in one company for kitchen admins" idea logged in Notes; the feature map 77/26/8. Earlier: t174 block 1 — the feature map fully bilingual (112/112 cards + 13 modules, verified live in both languages incl. modals) and team recipe projects (db/147, the ingredients mirror: the whole team sees a project + its recipes, the 👥 mark, My Recipes stay private)',
-    '🏷️→✅ THE BIG FINISHING BRAND SWEEP (Richard\'s order "don\'t skip a single document"): 691 ChefOS→Sautero replacements across the WHOLE project — gronda, 4× Critical Review, all docs/ (contracts, Nebenerwerb, ROADMAP, snapshots), security/, db/README, root files; NAMING_RISK got a RESOLVED header with the lesson; 2 forgotten copies found and set aside (app/index 3.html, feature_status 2.html). THE NEW LOGO: a serif teal "S" on navy (icons 32-512 + maskable + apple-touch) replacing the old ChefOS "C". Emails: the Magic link + Confirm signup templates rebranded, sender "Sautero" (the @sautero.ch address awaits Resend verification). Poznámky + Aare fully bilingual incl. modals + the new Lessons section with the ChefOS case; the standing rule written to memory: never a name without checks, a rebrand always with a surface inventory, every document SK/EN. The translation audit: 4 documents carry single-language JS content (~30k words) → t174, translated progressively',
+    '🏷️→✅ THE BIG FINISHING BRAND SWEEP (Richard\'s order "don\'t skip a single document"): 691 Sautero→Sautero replacements across the WHOLE project — gronda, 4× Critical Review, all docs/ (contracts, Nebenerwerb, ROADMAP, snapshots), security/, db/README, root files; NAMING_RISK got a RESOLVED header with the lesson; 2 forgotten copies found and set aside (app/index 3.html, feature_status 2.html). THE NEW LOGO: a serif teal "S" on navy (icons 32-512 + maskable + apple-touch) replacing the old Sautero "C". Emails: the Magic link + Confirm signup templates rebranded, sender "Sautero" (the @sautero.ch address awaits Resend verification). Poznámky + Aare fully bilingual incl. modals + the new Lessons section with the Sautero case; the standing rule written to memory: never a name without checks, a rebrand always with a surface inventory, every document SK/EN. The translation audit: 4 documents carry single-language JS content (~30k words) → t174, translated progressively',
     'Fix (Richard: "new ingredients in new lists still don\'t save into company"): Company Ingredients now aggregates ALL items in custom lists too — a list is a sub-group OF the company shelf, not a thing beside it, so new-list items count as company and stay team-visible (db/146); private My Ingredients (no list_id) stay private. Verified live on the deployed function',
     'The evening 5-pointer: 📝 the new Poznámky document in the main doc navigation (a live notebook — Claude writes and updates all of Richard\'s notes there); the 🤝 Aare Ventures research (Bern angel investors, event 14 Sep, application by 23 Aug — verdict: after the trial and pre-sale, not now) as an Internal Docs document; the feature-map pie fix (the centre shows the sum of enabled segments only); the 🎪 Events tile logged as t172 TO FINISH; 🎙️ voice control as note t173 (locked-phone = only the native app + Siri, Phase 6)',
     '➕ Add Team Member (db/145): the admin of an existing kitchen (protonmail "T1") no longer creates a kitchen — the sheet mints a fresh 6-character code, QR, copyable link and email send for THEIR kitchen; Create Team stays with the Main Admin only (iCloud). Scans/invoices aimed at the 🏢 Company shelf move matched library items onto Company (created_by) and Invoice Scan matches against the target shelf, not the open one — otherwise the whole batch failed on the unique index',
@@ -828,7 +828,7 @@ function toggleBlock(id, forceOpen){
 /* ---------- Language toggle — translates structural chrome (kicker, headings, section
    descriptions, footer) only. TOP3/DAYS log content stays in English in both modes — same
    scope boundary as the other Sautero docs, a separate translation job. ---------- */
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     el.textContent = _lang === 'sk' ? el.getAttribute('data-sk') : (el.getAttribute('data-en') || el.getAttribute('data-sk'));
@@ -841,7 +841,7 @@ function applyLang(){
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLang();
   renderLogStats();
   renderTop3();
@@ -927,6 +927,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
 </body>
 </html>

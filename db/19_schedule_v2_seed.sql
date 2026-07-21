@@ -1,4 +1,4 @@
--- ChefOS — real shift codes and staff roster, from Richard's actual Hotel Schweizerhof
+-- Sautero — real shift codes and staff roster, from Richard's actual Hotel Schweizerhof
 -- Bern AG kitchen team roster (06.07.2026-26.07.2026). Run after 18_schedule_v2_schema.sql.
 
 -- Shift codes (with real hours from the roster's own legend)

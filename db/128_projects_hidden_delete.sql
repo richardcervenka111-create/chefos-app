@@ -1,4 +1,4 @@
--- ChefOS — long-press options on Check List PROJECT tiles (Richard, 17.7.), same
+-- Sautero — long-press options on Check List PROJECT tiles (Richard, 17.7.), same
 -- Rename/Hide/Delete menu as dishes/ingredients/lists already have. projects needed two
 -- things for that: a hidden flag, and a DELETE policy (db/94 only created select/insert/
 -- update). Deleting a project removes its dishes (and their items via the existing

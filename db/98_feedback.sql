@@ -1,4 +1,4 @@
--- ChefOS — user feedback (Richard, 16.7., bod 4): "Pripomienky od ľudí budem mať tiež v
+-- Sautero — user feedback (Richard, 16.7., bod 4): "Pripomienky od ľudí budem mať tiež v
 -- priečinku admin" — anyone can send free-text feedback from Settings; Head Admin reads it in
 -- a new Admin tile. Deliberately simple (no status/reply workflow) — just a stream, newest first.
 

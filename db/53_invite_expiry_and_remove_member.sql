@@ -1,4 +1,4 @@
--- ChefOS — expiring/revocable invite links + ability to remove a team member (2026-07-13).
+-- Sautero — expiring/revocable invite links + ability to remove a team member (2026-07-13).
 -- Backlog v2 (CTO + Solution Architect): the invite link was literally the kitchen's own id —
 -- never expires, can't be revoked without breaking the kitchen itself, and there was no way to
 -- remove someone from a team at all once they joined.

@@ -1,4 +1,4 @@
--- ChefOS — fix "Could not remove: new row violates row-level security policy for table
+-- Sautero — fix "Could not remove: new row violates row-level security policy for table
 -- 'profiles'" (Richard, 16.7. neskoro večer bod 1).
 --
 -- Root cause: db/90's "remove kitchen member" policy only declared a USING clause —

@@ -1,4 +1,4 @@
--- ChefOS — Working Time: "Upload schedule" lets a person scan their real roster (Dienstplan
+-- Sautero — Working Time: "Upload schedule" lets a person scan their real roster (Dienstplan
 -- PDF/photo, same format as the Schedule feature) and pull out just their own row, so Working
 -- Time can show a bar chart of past AND future scheduled work days — not just what's already
 -- been checked in. Reuses the existing shift_codes dictionary (18_schedule_v2_schema.sql) to

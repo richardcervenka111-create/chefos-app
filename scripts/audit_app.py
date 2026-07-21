@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ChefOS app auditor — the permanent guard for the single-file bug classes.
+"""Sautero app auditor — the permanent guard for the single-file bug classes.
 
 Checks app/index.html (and every other app/ + "visual data/" HTML file) for the
 exact failure classes that have actually bitten this project:

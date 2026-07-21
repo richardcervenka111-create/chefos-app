@@ -1,4 +1,4 @@
--- ChefOS -- URGENT HOTFIX (16.7.): db/86 reintroduced the exact profiles-RLS-recursion bug that
+-- Sautero -- URGENT HOTFIX (16.7.): db/86 reintroduced the exact profiles-RLS-recursion bug that
 -- caused the 2026-07-13 outage (db/53/db/55), and db/85's new columns were never added to
 -- db/62's column-level grant list -- together these locked Richard himself out of his own
 -- admin account within hours of running db/85+86. RUN THIS IMMEDIATELY, before anything else.

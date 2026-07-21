@@ -1,4 +1,4 @@
--- ChefOS — HACCP module, wave 1 (15.7.). Richard: full HACCP hub page (goods receiving, core
+-- Sautero — HACCP module, wave 1 (15.7.). Richard: full HACCP hub page (goods receiving, core
 -- cooking temp, cooling log, cleaning + personal hygiene checklists now; fryer oil quality,
 -- pest control, label expiry, staff training, admin report in later waves), same size/style
 -- tiles as the main Home grid, plus Fridge Temp moves in here too.

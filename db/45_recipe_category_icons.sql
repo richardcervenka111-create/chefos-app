@@ -1,4 +1,4 @@
--- ChefOS — Recipes navigation now mirrors Check List's section picker (Richard: "tak isto ako
+-- Sautero — Recipes navigation now mirrors Check List's section picker (Richard: "tak isto ako
 -- v check liste"). Custom icon per recipe category, same pattern as station_icons
 -- (38_station_icons.sql) — kitchen-wide, so a category created on one device shows the same
 -- icon for everyone. Also lets a category exist as a browsable (empty) tile before any recipe

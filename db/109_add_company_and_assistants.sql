@@ -1,4 +1,4 @@
--- ChefOS — Add Company + kitchen main-admin tier + assistants (Richard, 16.7., bod 5).
+-- Sautero — Add Company + kitchen main-admin tier + assistants (Richard, 16.7., bod 5).
 --
 -- New hierarchy:
 --   Richard (Head Admin) → "Add Company": creates the company's kitchen + a SINGLE-USE invite

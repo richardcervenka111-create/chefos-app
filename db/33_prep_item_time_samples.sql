@@ -1,4 +1,4 @@
--- ChefOS — lets anyone add a real time observation to a prep item, whenever they want, instead
+-- Sautero — lets anyone add a real time observation to a prep item, whenever they want, instead
 -- of only ever seeing the original placeholder estimate. A submitted time doesn't overwrite the
 -- stored minute value outright — it's averaged in, tracked via a sample count per stage, so the
 -- number gets more accurate the more people log it. Count 0 means "still the seeded placeholder,

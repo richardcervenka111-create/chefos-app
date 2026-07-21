@@ -1,8 +1,8 @@
--- ChefOS — in-app feedback/bug reports (2026-07-14).
+-- Sautero — in-app feedback/bug reports (2026-07-14).
 --
 -- Richard: the old Feedback/Report-a-bug buttons used mailto: links to his personal Gmail,
 -- which (a) named him directly, (b) only worked if the phone had a configured mail app, and
--- (c) depended on a hello@chefos-style address that doesn't exist yet. This replaces both with
+-- (c) depended on a hello@sautero-style address that doesn't exist yet. This replaces both with
 -- a plain in-app window: type a message, submit, done — no external app involved at all. Once
 -- a shared inbox/domain exists, an Edge Function trigger can forward new rows there; until
 -- then, read this table directly via the SQL editor.

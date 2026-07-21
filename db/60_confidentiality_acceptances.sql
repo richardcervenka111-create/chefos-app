@@ -1,4 +1,4 @@
--- ChefOS — confidentiality acknowledgement (2026-07-13).
+-- Sautero — confidentiality acknowledgement (2026-07-13).
 --
 -- Richard wants every user to explicitly agree not to share a kitchen's recipes/prices/data
 -- outside the app before they can use it. This is an append-only log (never updated or

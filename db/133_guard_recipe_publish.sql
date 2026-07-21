@@ -1,4 +1,4 @@
--- ChefOS — publishing guard (Richard, 17.7.): nobody working as a COMPANY profile may publish
+-- Sautero — publishing guard (Richard, 17.7.): nobody working as a COMPANY profile may publish
 -- company recipes — publishing is a Personal-profile right, for the person's own recipes.
 --
 -- The app already refuses in the UI (togglePublishRecipe shows a terms message on company
@@ -12,7 +12,7 @@ returns trigger as $$
 begin
   if new.is_public and not coalesce(old.is_public, false) then
     if not new.is_personal or new.created_by is distinct from auth.uid() then
-      raise exception 'Publishing is only allowed for your own personal recipes (ChefOS terms).';
+      raise exception 'Publishing is only allowed for your own personal recipes (Sautero terms).';
     end if;
   end if;
   return new;

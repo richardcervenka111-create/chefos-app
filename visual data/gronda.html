@@ -121,7 +121,7 @@
 </div>
 <div class="sautero-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20"></div>
 <script>
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     const val = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
@@ -134,7 +134,7 @@ function applyLang(){
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLang();
 }
 applyLang();

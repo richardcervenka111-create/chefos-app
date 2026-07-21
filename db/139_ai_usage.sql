@@ -1,6 +1,6 @@
 -- 139: per-user AI usage log (Richard, 17.7.2026: "vieš trackovať koľko ktorý užívateľ minie?").
 --
--- The Claude Platform dashboard only ever sees ChefOS's one central API key — it can never
+-- The Claude Platform dashboard only ever sees Sautero's one central API key — it can never
 -- split spend by app user. This table is that split: claude-proxy inserts one row per
 -- successful Anthropic call (who, model, tokens, computed cost), for EVERY account type,
 -- including while ai_unlimited_testing_mode is on (the credit gate skips billing then, but

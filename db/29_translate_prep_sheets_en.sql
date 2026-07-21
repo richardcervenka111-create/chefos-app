@@ -1,4 +1,4 @@
--- ChefOS — translates all German prep-sheet data (dish + item names) to English, per
+-- Sautero — translates all German prep-sheet data (dish + item names) to English, per
 -- Richard's request. Name-based updates, so it doesn't matter which seed file a row came
 -- from. One genuinely ambiguous word is handled first with a scoped update: 'Salat' means
 -- 'Lettuce' on the Lobby burger/sandwich but 'Salad' on the Extra staff meal. Safe to

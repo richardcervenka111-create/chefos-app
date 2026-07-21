@@ -1,4 +1,4 @@
--- ChefOS -- Share My Recipes (Richard, 16.7., bod 3/6): "urob to tak ako si napísal" -- build
+-- Sautero -- Share My Recipes (Richard, 16.7., bod 3/6): "urob to tak ako si napísal" -- build
 -- it exactly as proposed: only a person's own recipes (created_by = them), a read-only view
 -- (never a copy/import into the viewer's own kitchen), gated by an opt-in per-user toggle, with
 -- a narrow cross-kitchen RLS carve-out limited to actual chef_connections (db/84) friends.
@@ -18,7 +18,7 @@ alter table profiles add column if not exists recipes_shared boolean not null de
 -- the 2026-07-16 super-admin lockout, fixed in db/90). Never skip this line again.
 grant select (recipes_shared) on profiles to authenticated;
 
--- A recipe becomes visible outside its own kitchen only if: it's ChefOS/Moje-shelf-owned by a
+-- A recipe becomes visible outside its own kitchen only if: it's Sautero/Moje-shelf-owned by a
 -- real person (created_by is not null -- Firemné/teammate recipes never qualify, since sharing
 -- a colleague's work without their own opt-in would defeat the whole point of this being
 -- opt-in), that person has turned sharing on, AND the viewer is one of their actual

@@ -1,4 +1,4 @@
--- ChefOS — SECURITY FIX (2026-07-17 audit): the `working-time-notes` storage bucket held
+-- Sautero — SECURITY FIX (2026-07-17 audit): the `working-time-notes` storage bucket held
 -- uploaded employment contracts / working-time notes (wages, hours, personal terms) but was
 -- created PUBLIC via the dashboard, and its SELECT policy allowed ANY authenticated user to read
 -- ANY file in the bucket. Two problems at once:

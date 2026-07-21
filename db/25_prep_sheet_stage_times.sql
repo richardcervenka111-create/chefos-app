@@ -1,4 +1,4 @@
--- ChefOS — replaces the free-text 'Time to prep' with three per-status minute values
+-- Sautero — replaces the free-text 'Time to prep' with three per-status minute values
 -- per ingredient: how long TO DO / CHECK / FINISH each take (Richard's example: Kopfsalatherz
 -- = 8 / 1 / 3 min — TO DO is the full prep, CHECK is a quick recheck, FINISH is the last
 -- touch). Whichever status an item is on right now, that item's matching minute value is

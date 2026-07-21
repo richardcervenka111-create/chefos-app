@@ -1,5 +1,5 @@
--- ChefOS — shared ingredients stay admin-only to add (Richard, 16.7., follow-up to db/97's
--- "My Ingredients"). The kitchen-wide "ChefOS" shelf keeps the same admin-only convention the
+-- Sautero — shared ingredients stay admin-only to add (Richard, 16.7., follow-up to db/97's
+-- "My Ingredients"). The kitchen-wide "Sautero" shelf keeps the same admin-only convention the
 -- original Custom Ingredients feature used; the new personal "My Ingredients" shelf (is_personal)
 -- stays open to everyone, since that's the whole point of it.
 --

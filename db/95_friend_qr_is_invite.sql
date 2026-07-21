@@ -1,4 +1,4 @@
--- ChefOS -- personal "Add Friend" QR also works as a kitchen invite, for every member, not
+-- Sautero -- personal "Add Friend" QR also works as a kitchen invite, for every member, not
 -- just admins (Richard, 16.7., explicit call after a direct trade-off question: "každý pozýva
 -- cez QR" -- every member's own QR invites, deliberately relaxing the admin-only restriction
 -- db/81 put in place that same day).

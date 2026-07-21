@@ -1,4 +1,4 @@
--- ChefOS — accepting an Add Company invite also marks team onboarding as done (Richard,
+-- Sautero — accepting an Add Company invite also marks team onboarding as done (Richard,
 -- 16.7. večer, bod 3): the new company admin already HAS their team, so switching their
 -- account to Company must go straight in — never the "scan QR / enter code" join screen.
 -- (The app also guards on company_admin client-side; this keeps the flag truthful in the DB.)

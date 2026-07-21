@@ -1,4 +1,4 @@
--- ChefOS — fills kcal/protein/carbs/fat (per 100g/100ml) for all 535 ingredients.
+-- Sautero — fills kcal/protein/carbs/fat (per 100g/100ml) for all 535 ingredients.
 -- Run AFTER 13_nutrition_schema.sql. 374/535 are standard, well-established nutrition
 -- values; 161/535 are reasoned estimates for composite/branded/prepared items where
 -- there's no single true reference value (sauces, reductions, branded chocolates,

@@ -6,9 +6,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Sautero — Názov & značka (predtým ChefOS)</title>
+<title>Sautero — Názov & značka (predtým Sautero)</title>
 <style>
-  /* ChefOS visual identity (standing rule): dark navy + teal. */
+  /* Sautero visual identity (standing rule): dark navy + teal. */
   :root{
     --bg:#0A1A2F; --paper:#122845; --paper2:#0E2138; --ink:#FFFFFF; --ink-dim:#9C949E;
     --rule:#223d57; --accent:#34F7D7; --gold:#E8C468; --danger:#FF7A68; --ok:#4ADE80;
@@ -47,7 +47,7 @@
   .steps li{ font-size:12.5px; color:var(--ink-dim); margin:7px 0; }
   .steps b{ color:var(--ink); }
   .price-note{ font-size:11px; color:var(--ink-dim); border-left:2px solid var(--gold); padding:6px 12px; margin-top:12px; line-height:1.6; }
-  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  .sautero-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
   .cand{ cursor:pointer; transition:border-color .15s, transform .1s; }
   .cand:hover{ border-color:rgba(52,247,215,.5); }
   .cand:active{ transform:scale(.99); }
@@ -66,7 +66,7 @@
   .modal .drow{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid var(--rule); font-size:12.5px; }
   .modal .drow span:last-child{ font-family:var(--mono); color:var(--ink); flex:none; }
   .modal .close{ width:100%; margin-top:14px; min-height:46px; border-radius:12px; border:1px solid var(--rule); background:none; color:var(--ink); font-size:14px; font-weight:700; cursor:pointer; }
-  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
+  @media print{ .sautero-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
 <body>
@@ -74,14 +74,14 @@
 <div class="wrap">
 
   <div class="kicker" data-sk="Značka · deep research 18. 7. 2026" data-en="Brand · deep research Jul 18, 2026"></div>
-  <h1 data-sk="🏷️ Názov: problém „ChefOS“ a čistá päťka" data-en="🏷️ Naming: the “ChefOS” problem and a clean five"></h1>
+  <h1 data-sk="🏷️ Názov: problém „Sautero“ a čistá päťka" data-en="🏷️ Naming: the “Sautero” problem and a clean five"></h1>
   <p class="lede" style="color:var(--accent); font-weight:600;" data-sk="✅ HOTOVO 18.7.2026: nová značka je SAUTERO. Domény sautero.ch + sautero.com kúpené, appka beží naživo na app.sautero.ch (HTTPS), premenované sú aj e-mailové šablóny, odosielateľ a logo. Technické identifikátory (interné kľúče) sa dočistia postupne. Poučenie nižšie v bode 01 — meno sa už nikdy nevyberá bez preverenia kolízií." data-en="✅ DONE 18 Jul 2026: the new brand is SAUTERO. Domains sautero.ch + sautero.com bought, the app is live at app.sautero.ch (HTTPS), email templates, sender name and the logo are renamed too. Technical identifiers (internal keys) get cleaned up gradually. Lesson in section 01 — a name is never again chosen without a collision check."></p>
-  <p class="lede" data-sk="Richard našiel v App Store hotovú appku „ChefOS Mobile“. Preverili sme kolízie a pripravili 5 mien, ktoré tento problém nemajú — každé prešlo kontrolou App Store (iTunes API), globálneho webu a domén (.ch cez oficiálny nic.ch whois). Plný text: docs/NAMING_RISK_CHEFOS.md." data-en="Richard found a finished “ChefOS Mobile” app on the App Store. We verified the collisions and prepared 5 names free of this problem — each checked against the App Store (iTunes API), the global web, and domains (.ch via the official nic.ch whois). Full text: docs/NAMING_RISK_CHEFOS.md."></p>
+  <p class="lede" data-sk="Richard našiel v App Store hotovú appku „Sautero Mobile“. Preverili sme kolízie a pripravili 5 mien, ktoré tento problém nemajú — každé prešlo kontrolou App Store (iTunes API), globálneho webu a domén (.ch cez oficiálny nic.ch whois). Plný text: docs/NAMING_RISK_SAUTERO.md." data-en="Richard found a finished “Sautero Mobile” app on the App Store. We verified the collisions and prepared 5 names free of this problem — each checked against the App Store (iTunes API), the global web, and domains (.ch via the official nic.ch whois). Full text: docs/NAMING_RISK_SAUTERO.md."></p>
 
-  <div class="section-label"><span class="n">01</span><h2 data-sk="Problém — kto už používa „ChefOS“" data-en="The problem — who already uses “ChefOS”"></h2><div class="rule"></div></div>
+  <div class="section-label"><span class="n">01</span><h2 data-sk="Problém — kto už používa „Sautero“" data-en="The problem — who already uses “Sautero”"></h2><div class="rule"></div></div>
   <div class="card">
-    <div class="risk" onclick="openNameDetail('counterlabs')"><div class="ico">🇺🇸</div><div><b>ChefOS™ · Counter Labs (San Francisco)</b> — <span data-sk="chefos.us + iOS appka „ChefOS Mobile“ v App Store. Takmer identický produkt ako náš: smeny, inventár, skenovanie faktúr, waste, analytika, AI asistent „Sous“. Copyright 2026, používajú ™ (nárok na známku — nie je to registrovaná ®, ale jasný signál zámeru)." data-en="chefos.us + the “ChefOS Mobile” iOS app on the App Store. Nearly identical product to ours: shifts, inventory, invoice scanning, waste, analytics, an AI assistant called “Sous”. Copyright 2026; they use ™ (a trademark claim — not a registered ®, but a clear signal of intent)."></span></div></div>
-    <div class="risk" onclick="openNameDetail('chefospro')"><div class="ico">🌐</div><div><b>chefos.pro</b> — <span data-sk="ďalší, iný „ChefOS“: QR menu a objednávkový systém, tvrdí 89+ reštaurácií. Meno teda v našej kategórii používajú minimálne DVAJA." data-en="another, different “ChefOS”: a QR-menu and ordering system claiming 89+ restaurants. So at least TWO players already use the name in our category."></span></div></div>
+    <div class="risk" onclick="openNameDetail('counterlabs')"><div class="ico">🇺🇸</div><div><b>Sautero™ · Counter Labs (San Francisco)</b> — <span data-sk="sautero.us + iOS appka „Sautero Mobile“ v App Store. Takmer identický produkt ako náš: smeny, inventár, skenovanie faktúr, waste, analytika, AI asistent „Sous“. Copyright 2026, používajú ™ (nárok na známku — nie je to registrovaná ®, ale jasný signál zámeru)." data-en="sautero.us + the “Sautero Mobile” iOS app on the App Store. Nearly identical product to ours: shifts, inventory, invoice scanning, waste, analytics, an AI assistant called “Sous”. Copyright 2026; they use ™ (a trademark claim — not a registered ®, but a clear signal of intent)."></span></div></div>
+    <div class="risk" onclick="openNameDetail('sauteropro')"><div class="ico">🌐</div><div><b>sautero.pro</b> — <span data-sk="ďalší, iný „Sautero“: QR menu a objednávkový systém, tvrdí 89+ reštaurácií. Meno teda v našej kategórii používajú minimálne DVAJA." data-en="another, different “Sautero”: a QR-menu and ordering system claiming 89+ restaurants. So at least TWO players already use the name in our category."></span></div></div>
     <div class="risk" onclick="openNameDetail('hrozba')"><div class="ico">⚠️</div><div><b data-sk="Čo nám hrozí" data-en="What it means for us"></b> — <span data-sk="kolízia pri budúcom vydaní v App Store, zámena u investorov a partnerov (Gronda), riziko že známku zaregistrujú skôr než my. Dnes nás v CH nikto neblokuje — ale každý deň budovania značky na spornom mene je drahší než ten predchádzajúci." data-en="a collision at our future App Store release, confusion with investors and partners (Gronda), and the risk they register the mark before we do. Nobody blocks us in CH today — but every day of brand-building on a contested name costs more than the last."></span></div></div>
   </div>
 
@@ -129,13 +129,13 @@
     <ol class="steps">
       <li><b data-sk="Minútová kontrola registrov" data-en="One-minute registry check"></b> — <span data-sk="Swissreg + EUIPO/tmview pre vybrané meno (webové vyhľadávanie do registrov nedovidí — prevediem ťa tým v prehliadači)" data-en="Swissreg + EUIPO/tmview for the chosen name (plain web search can't see into registries — I'll walk you through it in the browser)"></span></li>
       <li><b data-sk="Kúpa domén" data-en="Buy the domains"></b> — <span data-sk=".ch (a ak voľná, aj .com) — spolu ~25 CHF prvý rok" data-en=".ch (and .com if free) — ~CHF 25 total for year one"></span></li>
-      <li><b data-sk="CH ochranná známka" data-en="Swiss trademark"></b> — <span data-sk="~550 CHF, triedy 9/42 — presne to, čo ChefOS™ zanedbal, a preto máme dnes tento problém my a nie oni" data-en="~CHF 550, classes 9/42 — exactly what ChefOS™ skipped, which is why WE have this problem today and not them"></span></li>
+      <li><b data-sk="CH ochranná známka" data-en="Swiss trademark"></b> — <span data-sk="~550 CHF, triedy 9/42 — presne to, čo Sautero™ zanedbal, a preto máme dnes tento problém my a nie oni" data-en="~CHF 550, classes 9/42 — exactly what Sautero™ skipped, which is why WE have this problem today and not them"></span></li>
       <li><b data-sk="Migrácia za 1 deň" data-en="One-day migration"></b> — <span data-sk="appka (názvy, logo texty), doména + presmerovanie z app.chefos.ch, dokumenty, emailové šablóny; funkcie a dáta sa nemenia" data-en="the app (names, logo texts), domain + redirect from app.chefos.ch, documents, email templates; features and data untouched"></span></li>
     </ol>
   </div>
 
 </div>
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20"></div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20"></div>
 <div class="modal-backdrop" id="nameModal" onclick="if(event.target===this) closeNameDetail()">
   <div class="modal">
     <div class="handle"></div>
@@ -153,9 +153,9 @@ const NAME_DETAILS = {
   cuisora: { t:'Cuisora', s:'kandidát 03', sk:'<b>Pôvod:</b> „cuisine". Najelegantnejšie meno z päťky — na globálnom webe doslova 0 výsledkov.<div class="drow"><span>cuisora.ch</span><span>voľná · ~5 CHF 1. rok</span></div><div class="drow"><span>cuisora.com</span><span>zaparkovaná — registrovaná bez webu; pre CH stačí .ch, .com sa dá dokúpiť neskôr</span></div><div class="drow"><span>App Store</span><span>žiadna appka</span></div><div class="drow"><span>Web kolízie</span><span>žiadne (0 výsledkov)</span></div>', en:'<b>Origin:</b> “cuisine”. The most elegant of the five — literally 0 results on the global web.<div class="drow"><span>cuisora.ch</span><span>free · ~CHF 5 yr 1</span></div><div class="drow"><span>cuisora.com</span><span>parked — registered, no site; .ch suffices for CH, .com can be bought later</span></div><div class="drow"><span>App Store</span><span>no app</span></div><div class="drow"><span>Web collisions</span><span>none (0 results)</span></div>' },
   mizeta: { t:'Mizeta', s:'kandidát 04', sk:'<b>Pôvod:</b> „mise en place". Krátke a ostré.<div class="drow"><span>mizeta.ch</span><span>voľná · ~5 CHF 1. rok</span></div><div class="drow"><span>mizeta.com</span><span>zaparkovaná</span></div><div class="drow"><span>App Store</span><span>žiadna appka</span></div><div class="drow"><span>Web kolízie</span><span>len malé talianske srl mimo odboru (D&B záznam)</span></div>', en:'<b>Origin:</b> “mise en place”. Short and sharp.<div class="drow"><span>mizeta.ch</span><span>free · ~CHF 5 yr 1</span></div><div class="drow"><span>mizeta.com</span><span>parked</span></div><div class="drow"><span>App Store</span><span>no app</span></div><div class="drow"><span>Web collisions</span><span>only a small Italian srl outside our field (D&B record)</span></div>' },
   mepli: { t:'Mepli', s:'kandidát 05', sk:'<b>Pôvod:</b> „MEP" — kuchárske slang pre mise en place. Insider meno, ktoré kuchár pochopí okamžite; laik nie, čo môže byť plus (odlíšenie) aj mínus (vysvetľovanie investorom).<div class="drow"><span>mepli.ch</span><span>voľná · ~5 CHF 1. rok</span></div><div class="drow"><span>mepli.com</span><span>zaparkovaná</span></div><div class="drow"><span>App Store</span><span>žiadna appka</span></div><div class="drow"><span>Web kolízie</span><span>žiadne</span></div>', en:'<b>Origin:</b> “MEP” — kitchen slang for mise en place. An insider name a chef gets instantly; a layperson won\'t, which cuts both ways.<div class="drow"><span>mepli.ch</span><span>free · ~CHF 5 yr 1</span></div><div class="drow"><span>mepli.com</span><span>parked</span></div><div class="drow"><span>App Store</span><span>no app</span></div><div class="drow"><span>Web collisions</span><span>none</span></div>' },
-  counterlabs: { t:'ChefOS™ · Counter Labs', s:'San Francisco · chefos.us', sk:'iOS appka „ChefOS Mobile" (App Store id 6763660343, Business, EN, 46.5 MB, 2 hodnotenia). Produkt: smeny s forecastom, inventár so skenovaním faktúr dodávateľov, sales analytika, waste tracking, tímové kanály po staniciach a AI asistent <b>„Sous"</b> — obdoba nášho Chef\'s Assistant. Copyright 2026 (čerstvý), na webe <b>™</b> — nárok na známku, nie registrovaná ®. Kontakt hello@chefos.us. <b>Priamy menovec s takmer identickým produktom.</b>', en:'The “ChefOS Mobile” iOS app (App Store id 6763660343, Business, EN, 46.5 MB, 2 ratings). Product: forecast scheduling, inventory with vendor-invoice scanning, sales analytics, waste tracking, station-scoped team channels and an AI assistant <b>“Sous”</b> — an analogue of our Chef\'s Assistant. Copyright 2026 (fresh), <b>™</b> on the site — a claim, not a registered ®. Contact hello@chefos.us. <b>A direct namesake with a nearly identical product.</b>' },
-  chefospro: { t:'chefos.pro', s:'druhý menovec', sk:'Iný „ChefOS — Professional Restaurant Management System": QR menu s AI odporúčaniami, objednávky, kitchen dashboard. Tvrdí <b>89+ reštaurácií</b> a o 40 % rýchlejší order-to-table. Nie je to Counter Labs — čiže meno v našej kategórii používajú minimálne DVAJA nezávislí hráči.', en:'A different “ChefOS — Professional Restaurant Management System”: QR menus with AI recommendations, ordering, a kitchen dashboard. Claims <b>89+ restaurants</b> and 40% faster order-to-table. Not Counter Labs — so at least TWO independent players use the name in our category.' },
-  hrozba: { t:'Čo nám hrozí', s:'triezvo, nie panika', sk:'<b>1 · App Store:</b> náš budúci iOS „ChefOS" narazí na existujúci názov.<br><b>2 · Zámena:</b> investori, partneri (Gronda) a Google už dnes nachádzajú ich — presne takto to našiel Richard.<br><b>3 · Známka:</b> ak Counter Labs zaregistruje EU/IR známku skôr, budovali by sme značku, o ktorú môžeme prísť.<br><b>Dnes nás v CH nikto neblokuje</b> — registrovanú EU/CH známku sme nenašli (oficiálna kontrola Swissreg/EUIPO je ďalší krok). Ale každý deň budovania značky na spornom mene je drahší než predchádzajúci.', en:'<b>1 · App Store:</b> our future iOS “ChefOS” hits the existing name.<br><b>2 · Confusion:</b> investors, partners (Gronda) and Google already surface them — exactly how Richard found it.<br><b>3 · Trademark:</b> if Counter Labs registers an EU/IR mark first, we\'d be building a brand we could lose.<br><b>Nobody blocks us in CH today</b> — no registered EU/CH mark found (official Swissreg/EUIPO check is the next step). But every day on a contested name costs more than the last.' },
+  counterlabs: { t:'Sautero™ · Counter Labs', s:'San Francisco · sautero.us', sk:'iOS appka „Sautero Mobile" (App Store id 6763660343, Business, EN, 46.5 MB, 2 hodnotenia). Produkt: smeny s forecastom, inventár so skenovaním faktúr dodávateľov, sales analytika, waste tracking, tímové kanály po staniciach a AI asistent <b>„Sous"</b> — obdoba nášho Chef\'s Assistant. Copyright 2026 (čerstvý), na webe <b>™</b> — nárok na známku, nie registrovaná ®. Kontakt hello@sautero.us. <b>Priamy menovec s takmer identickým produktom.</b>', en:'The “Sautero Mobile” iOS app (App Store id 6763660343, Business, EN, 46.5 MB, 2 ratings). Product: forecast scheduling, inventory with vendor-invoice scanning, sales analytics, waste tracking, station-scoped team channels and an AI assistant <b>“Sous”</b> — an analogue of our Chef\'s Assistant. Copyright 2026 (fresh), <b>™</b> on the site — a claim, not a registered ®. Contact hello@sautero.us. <b>A direct namesake with a nearly identical product.</b>' },
+  sauteropro: { t:'sautero.pro', s:'druhý menovec', sk:'Iný „Sautero — Professional Restaurant Management System": QR menu s AI odporúčaniami, objednávky, kitchen dashboard. Tvrdí <b>89+ reštaurácií</b> a o 40 % rýchlejší order-to-table. Nie je to Counter Labs — čiže meno v našej kategórii používajú minimálne DVAJA nezávislí hráči.', en:'A different “Sautero — Professional Restaurant Management System”: QR menus with AI recommendations, ordering, a kitchen dashboard. Claims <b>89+ restaurants</b> and 40% faster order-to-table. Not Counter Labs — so at least TWO independent players use the name in our category.' },
+  hrozba: { t:'Čo nám hrozí', s:'triezvo, nie panika', sk:'<b>1 · App Store:</b> náš budúci iOS „Sautero" narazí na existujúci názov.<br><b>2 · Zámena:</b> investori, partneri (Gronda) a Google už dnes nachádzajú ich — presne takto to našiel Richard.<br><b>3 · Známka:</b> ak Counter Labs zaregistruje EU/IR známku skôr, budovali by sme značku, o ktorú môžeme prísť.<br><b>Dnes nás v CH nikto neblokuje</b> — registrovanú EU/CH známku sme nenašli (oficiálna kontrola Swissreg/EUIPO je ďalší krok). Ale každý deň budovania značky na spornom mene je drahší než predchádzajúci.', en:'<b>1 · App Store:</b> our future iOS “Sautero” hits the existing name.<br><b>2 · Confusion:</b> investors, partners (Gronda) and Google already surface them — exactly how Richard found it.<br><b>3 · Trademark:</b> if Counter Labs registers an EU/IR mark first, we\'d be building a brand we could lose.<br><b>Nobody blocks us in CH today</b> — no registered EU/CH mark found (official Swissreg/EUIPO check is the next step). But every day on a contested name costs more than the last.' },
 };
 function openNameDetail(key){
   const d = NAME_DETAILS[key];
@@ -168,7 +168,7 @@ function openNameDetail(key){
 function closeNameDetail(){ document.getElementById('nameModal').classList.remove('open'); }
 </script>
 <script>
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLang(){
   document.querySelectorAll('[data-sk]').forEach(el=>{
     const val = el.getAttribute(_lang === 'sk' ? 'data-sk' : 'data-en');
@@ -181,7 +181,7 @@ function applyLang(){
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLang();
 }
 applyLang();

@@ -1,4 +1,4 @@
--- ChefOS — fills origin/season/substitutes for the existing 535 ingredients.
+-- Sautero — fills origin/season/substitutes for the existing 535 ingredients.
 -- Run AFTER 08_ingredient_substitutes.sql (which adds the columns) and after
 -- 06_ingredients_seed.sql (which creates the rows this matches against by name).
 -- Season is intentionally left blank for most meat/poultry/eggs/dry goods/spices/

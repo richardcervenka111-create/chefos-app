@@ -43,7 +43,7 @@
   .pill.part{ background:var(--gold); color:#0A1A2F; }
   .verdict{ background:linear-gradient(135deg, rgba(232,196,104,.10), transparent); border:1px solid rgba(232,196,104,.4); border-radius:14px; padding:16px; font-size:13.5px; color:var(--ink-dim); }
   .verdict b{ color:var(--ink); }
-  .chefos-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
+  .sautero-stamp{ position:fixed; bottom:12px; left:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:10.5px; padding:5px 10px; border-radius:999px; }
   .lang-toggle{ position:fixed; top:12px; right:12px; z-index:50; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; cursor:pointer; }
   .modal-backdrop{ position:fixed; inset:0; background:rgba(4,10,20,.78); display:none; align-items:flex-end; justify-content:center; z-index:100; }
   .modal-backdrop.open{ display:flex; }
@@ -54,7 +54,7 @@
   .modal .body{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; }
   .modal .body b{ color:var(--ink); }
   .modal .close{ width:100%; margin-top:14px; min-height:46px; border-radius:12px; border:1px solid var(--rule); background:none; color:var(--ink); font-size:14px; font-weight:700; cursor:pointer; }
-  @media print{ .chefos-stamp, .lang-toggle{ display:none; } }
+  @media print{ .sautero-stamp, .lang-toggle{ display:none; } }
 </style>
 </head>
 <body>
@@ -96,7 +96,7 @@
   </div>
 </div>
 
-<div class="chefos-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20"></div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 18. 7. 2026, 14:20" data-en="🔄 Sautero state as of Jul 18, 2026, 14:20"></div>
 
 <script>
 /* FULLY BILINGUAL (standing rule 18.7.): every card carries {sk,en}; the toggle re-renders. */
@@ -181,14 +181,14 @@ const CARDS = [
        en:'The form asks for: company name + website, founder details, <b>annual revenue (this + last year)</b>, budget projections, product description, business model, pre-money valuation, how much capital we raise, ticket size, closing plan, how we heard of them + <b>a 5-word company description</b> (e.g. "The operating system for professional kitchens"). Plus a deck of max 20 slides — our Investor Deck in Brand &amp; Vision is a good base, add the round and trial numbers.'} },
 ];
 
-let _lang = localStorage.getItem('chefos_doc_lang') || 'sk';
+let _lang = localStorage.getItem('sautero_doc_lang') || 'sk';
 function applyLangAttrs(){
   document.querySelectorAll('[data-sk]').forEach(el => { el.innerHTML = el.dataset[_lang] || el.dataset.sk; });
   document.getElementById('langBtn').textContent = _lang === 'sk' ? 'EN' : 'SK';
 }
 function toggleLang(){
   _lang = _lang === 'sk' ? 'en' : 'sk';
-  localStorage.setItem('chefos_doc_lang', _lang);
+  localStorage.setItem('sautero_doc_lang', _lang);
   applyLangAttrs(); renderCards(); closeAv();
 }
 function L(x){ return x[_lang] || x.sk; }

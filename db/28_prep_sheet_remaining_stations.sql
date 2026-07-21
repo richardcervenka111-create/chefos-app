@@ -1,4 +1,4 @@
--- ChefOS — prep sheets for Lobby, Entremetier, BQT, and Extra.
+-- Sautero — prep sheets for Lobby, Entremetier, BQT, and Extra.
 -- Lobby is built on the REAL concept of the Hotel Schweizerhof Bern Lobby Lounge Bar
 -- (Fugu-licensed sushi chef Hironori Takahashi, sashimi/sushi + mezze-style light dishes —
 -- schweizerhofbern.com/en/dining/lobby-lounge-bar) but the exact menu is an Issuu flipbook
