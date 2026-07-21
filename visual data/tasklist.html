@@ -654,7 +654,24 @@ const DAYS=[
     '☕ Working Time: reálne bežiace stopky na prestávku (5/10/15/30 min) s presným zápisom do detailu dňa; 🎭 demo mód zjednotený na 3 testovacie účty (nie jeden globálny prepínač — každá dlaždica má svoj vlastný)',
     '👤 Admin v demo Schedule klikne na člena tímu a vidí jeho posledných 30 dní (objednávky, vytlačené štítky, pridané recepty, odstopovaný čas v Check List)',
     '🩺 Zabudnutý HACCP admin-gate bug opravený — blokoval bežných členov napriek tomu, že HACCP je od 18.7. pre všetkých'
-  ]}
+  ]},
+  { date:'2026-07-20', headline:'DEŇ ODOLNOSTI A PRIHLÁSENIA: appka beží aj na starých telefónoch a bez CDN, opravené prihlasovacie brány, prvý E2E smoke test „ako v reálnych SaaS firmách"', accomplished:[
+    '🌐 Koniec závislosti na cudzích CDN: Supabase + jsQR vendorované lokálne — výpadok CDN už nespôsobí totálny lockout (nález z Huawei); prihlásenie s 20s timeoutom nikdy nezamrzne na „Signing in…"; Supabase pinnutý na v2.86.0 pre Chrome 83 (staré telefóny)',
+    '📲 Android/Huawei klávesnica už neprekrýva polia formulárov — visualViewport lift + resizes-content (5 pokusov, diagnóza z fotky sautero_android zariadenia)',
+    '🚪 Prihlasovacie brány: „Already have an account? Sign in" na coming-soon stene s defaultom na heslo (nie kód) + opravené password-recovery odkazy (appka ich dovtedy vôbec neriešila)',
+    '🧪 Prvý E2E smoke test naprieč 4 rolami (solo/člen/kitchen admin/head admin) — dlaždica sa otvorí, žiadna JS chyba/5xx; + admin viewer Error Logs',
+    '🎭 HACCP demo mód rozšírený na každú dlaždicu; opravené tutoriály visiace na zlej obrazovke; invite-tokeny strážené UUID kontrolou',
+    '🏢 Štart offer-accept company-admin onboardingu (db/164 super-admin update, db/165 premenovanie vlastnej kuchyne) — dokončený 21.7.'
+  ], planned:'Dokončiť company-admin onboarding end-to-end + značkový e-mail; general audit s regression testom.' },
+  { date:'2026-07-21', headline:'COMPANY-ADMIN DOTIAHNUTÝ + CELÁ SAAS TESTOVACIA VRSTVA: onboarding end-to-end so značkovým e-mailom, rebrand-následky nájdené a zamknuté, roboti strážia appku aj dokumenty 2×/deň', accomplished:[
+    '🏢 Offer-accept onboarding hotový end-to-end: ponuka e-mailom + notifikáciou, sám prijme a pomenuje si company; značkový e-mail sfunkčnený (chýbal RESEND_API_KEY secret — doplnený, „fungujeme!!!"); Company Report pre každého company admina (db/168); opravené tiché zlyhanie admin save (db/164 + .select() kontrola)',
+    '🛡️ Rebrand-následky: sweep potichu premenoval 4 ŽIVÉ DB identifikátory (recepty sa neukladali — shared_with_chefos; poličky — shelf \'chefos\'; AI zdieľanie — recipe_chefos v appke aj edge funkcii; reálny Proton účet v allowliste) — všetko vrátené a ZAMKNUTÉ guardom check_db_contract',
+    '🤖 SaaS testovacia vrstva: money-path unit testy (cena receptu s výťažnosťou, výplatné + rozvrhové hodiny) blokujú nasadenie pri každom commite; gates test prihlasovacích brán bez hesiel 2×/deň; tenant-test rozšírený 21→36 tabuliek a spustený naostro (prvý beh chytil falošný „únik" = zámerný Public shelf → test skalibrovaný); pyflakes lint gate',
+    '📄 Flotila 11 docs-robotov (1 na dokument, 2×/deň): nič nelieta, EN/SK prepínač v lište, žiadne chýbajúce dáta; EN/SK prepínač nasadený do vrchnej lišty všetkých 5 obálok (prepína aj vnútorný obsah)',
+    '🩺 Health Report — 4 automatické audity (architektúra 75 / bezpečnosť 94 / dokumentácia 100 / dlh 92 = 90/100 A), generovaný pri každom nasadení, v Internal Docs',
+    '⏱️ Odpracované hodiny sa zapisujú z gitu do všetkých dokumentov automaticky pri každom commite (doplnené chýbajúce 20.7 = 17,3 h a 21.7) + guard čerstvosti denníkových dokumentov; denník doplnený o chýbajúci 20.7 aj túto session',
+    '🎨 Investor deck + Manifesto + Visual Guide prekopané na investorskú úroveň (6 streamov, presné dáta, „nelieta"); automation.html doplnený o celú CI vrstvu'
+  ], planned:'Behaviorálne money-path E2E (QA účty aj DB secret sú pripravené); natívne dialógy do Sautero identity; personal split zoznamov.' }
 ];
 /* t174 (18.7.): the timeline is bilingual via DAYS_I18N — days 08-13 were written in EN,
    14-17 in SK; the dict supplies the missing language per day (h_sk/a_sk or h_en/a_en) and
@@ -826,6 +843,23 @@ const DAYS_I18N = {
     '👤 Admin in demo Schedule can tap a team member and see their last 30 days (orders, printed labels, recipes added, time stopped in Check List)',
     '🩺 A forgotten HACCP admin-gate bug fixed — it blocked regular members even though HACCP has been open to everyone since Jul 18'
   ]},
+  '2026-07-20': { h_en:'RESILIENCE & SIGN-IN DAY: the app runs on old phones and without a CDN, the login gates fixed, the first E2E smoke test "like real SaaS companies"', a_en:[
+    '🌐 No more third-party CDN dependency: Supabase + jsQR vendored locally — a CDN outage can no longer cause a total lockout (found on Huawei); sign-in never hangs on "Signing in…" (20s timeout); Supabase pinned to v2.86.0 for Chrome 83 (old phones)',
+    '📲 The Android/Huawei keyboard no longer covers form fields — a visualViewport lift + resizes-content (5 attempts, diagnosed from a photo of the sautero_android device)',
+    '🚪 Login gates: "Already have an account? Sign in" on the coming-soon wall defaulting to a password (not a code) + fixed password-recovery links (the app had zero handling before)',
+    '🧪 The first E2E smoke test across 4 roles (solo/member/kitchen admin/head admin) — the tile opens, no JS error/5xx; + an Error Logs admin viewer',
+    '🎭 HACCP demo mode extended to every tile; tutorials lingering on the wrong screen fixed; invite tokens guarded by a UUID-shape check',
+    '🏢 Started the offer-accept company-admin onboarding (db/164 super-admin update, db/165 renaming your own kitchen) — finished 21 Jul'
+  ], p_en:'Finish the company-admin onboarding end-to-end + the branded email; a general audit with regression testing.' },
+  '2026-07-21': { h_en:'COMPANY-ADMIN FINISHED + THE WHOLE SAAS TESTING LAYER: onboarding end-to-end with the branded email, the rebrand fallout found and locked, robots guarding the app and the docs 2×/day', a_en:[
+    '🏢 The offer-accept onboarding finished end-to-end: an offer by email + notification, they accept and name their company themselves; the branded email made to work (the RESEND_API_KEY secret was missing — added, "we\'re live!!!"); the Company Report for every company admin (db/168); the silent admin-save failure fixed (db/164 + a .select() check)',
+    '🛡️ Rebrand fallout: the sweep had silently renamed 4 LIVE DB identifiers (recipes wouldn\'t save — shared_with_chefos; shelves — shelf \'chefos\'; AI sharing — recipe_chefos in the app and the edge function; a real Proton account in an allowlist) — all reverted and LOCKED by the check_db_contract guard',
+    '🤖 The SaaS testing layer: money-path unit tests (yield-adjusted recipe cost, payroll + shift hours) block the deploy on every commit; a credential-free login-gates test 2×/day; the tenant test expanded 21→36 tables and run for real (the first run caught a false "leak" = the intentional Public shelf → test calibrated); a pyflakes lint gate',
+    '📄 A fleet of 11 docs robots (one per document, 2×/day): nothing flies, the EN/SK toggle in the top bar, no missing data; the EN/SK toggle deployed into the top bar of all 5 shells (it switches the inner content too)',
+    '🩺 The Health Report — 4 automated audits (architecture 75 / security 94 / documentation 100 / debt 92 = 90/100 A), generated on every deploy, in Internal Docs',
+    '⏱️ Worked hours now write themselves from git into every document on every commit (backfilled the missing 20 Jul = 17.3h and 21 Jul) + a freshness guard for the day-log docs; the diary completed with the missing 20 Jul and this session',
+    '🎨 The investor deck + Manifesto + Visual Guide rebuilt to investor grade (6 streams, precise data, nothing "flying"); automation.html backfilled with the whole CI layer'
+  ], p_en:'Behavioural money-path E2E (the QA accounts and the DB secret are ready); native dialogs into the Sautero identity; the personal split of lists.' },
 };
 function dayHeadline(day){
   const alt = DAYS_I18N[day.date] || {};
@@ -928,6 +962,7 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-17', ok:77, test:25, plan:7 },
   { date:'2026-07-18', ok:77, test:26, plan:8 },
   { date:'2026-07-19', ok:89, test:29, plan:8 },
+  { date:'2026-07-21', ok:89, test:24, plan:13 },  // measured from the live feature map (plan = plan 8 + build 5)
 ];
 /* Hours worked per day (Richard, 17.7.) — measured from git commit sessions by
    scripts/work_hours.py (run it and paste its output here on every doc-sync). Days before
@@ -1075,6 +1110,6 @@ renderFeaturesOverTime();
 toggleHero(localStorage.getItem('sautero_tasklist_hero_hidden') === '1');
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 19. 7. 2026, 02:00" data-en="🔄 Sautero state as of Jul 19, 2026, 02:00">🔄 Stav Sautero k 19. 7. 2026, 02:00</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 21. 7. 2026, 23:52" data-en="🔄 Sautero state as of Jul 21, 2026, 23:52">🔄 Stav Sautero k 21. 7. 2026, 23:52</div>
 </body>
 </html>

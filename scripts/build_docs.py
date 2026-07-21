@@ -25,19 +25,9 @@ it regenerates all four and fails the commit if they were stale.
 import json
 import os
 import sys
-import datetime
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VD = os.path.join(REPO, 'visual data')
-
-# Build date in Bern time (standing timezone rule) — stamped bottom-right on every shell.
-os.environ['TZ'] = 'Europe/Zurich'
-try:
-    import time as _t
-    _t.tzset()
-except Exception:
-    pass
-BUILD_DATE = datetime.datetime.now().strftime('%-d.%-m.%Y')
 
 MERGED = [
     {
@@ -131,8 +121,9 @@ def build_one(spec):
   *{{ box-sizing:border-box; }}
   html,body{{ margin:0; padding:0; height:100%; }}
   body{{ background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; display:flex; flex-direction:column; }}
-  header{{ flex:none; border-bottom:1px solid var(--rule); background:var(--bg); position:relative; }}
-  .docnav{{ display:flex; gap:2px; overflow-x:auto; padding:8px 64px 0 10px; scrollbar-width:none; }}
+  header{{ flex:none; border-bottom:1px solid var(--rule); background:var(--bg); }}
+  .navrow{{ display:flex; align-items:center; gap:8px; padding:8px 10px 0 10px; }}
+  .docnav{{ flex:1; min-width:0; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }}
   .docnav::-webkit-scrollbar{{ display:none; }}
   .doc-link{{ flex:none; font-size:11.5px; font-weight:700; color:var(--ink-dim); text-decoration:none; padding:7px 12px; border-radius:8px 8px 0 0; letter-spacing:0.02em; }}
   .doc-link:hover{{ color:var(--ink); }}
@@ -140,9 +131,8 @@ def build_one(spec):
   .titlebar{{ display:flex; align-items:baseline; gap:12px; padding:10px 16px 2px 16px; flex-wrap:wrap; }}
   .titlebar h1{{ margin:0; font-size:18px; }}
   .titlebar .sub{{ font-size:11.5px; color:var(--ink-dim); }}
-  .langtog{{ position:absolute; top:7px; right:10px; z-index:5; flex:none; border:1px solid var(--rule); background:var(--bg); color:var(--ink); border-radius:999px; padding:5px 13px; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:0.03em; }}
+  .langtog{{ flex:none; border:1px solid var(--rule); background:var(--bg); color:var(--ink); border-radius:999px; padding:5px 13px; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:0.03em; }}
   .langtog .on{{ color:var(--accent); }} .langtog .off{{ color:var(--ink-dim); }}
-  .datestamp{{ position:fixed; right:9px; bottom:8px; z-index:60; font-size:10.5px; font-weight:600; color:var(--ink-dim); background:rgba(10,26,47,0.82); border:1px solid var(--rule); border-radius:8px; padding:3px 9px; pointer-events:none; }}
   .tabs{{ display:flex; gap:6px; padding:8px 16px 10px 16px; overflow-x:auto; scrollbar-width:none; }}
   .tabs::-webkit-scrollbar{{ display:none; }}
   .tab{{ flex:none; background:var(--paper); border:1px solid var(--rule); color:var(--ink-dim); font-size:12.5px; font-weight:700; padding:7px 16px; border-radius:999px; cursor:pointer; }}
@@ -154,12 +144,11 @@ def build_one(spec):
 </head>
 <body>
 <header>
-  <nav class="docnav">{nav_html}</nav>
-  <div class="titlebar"><h1>{spec['icon']} <span data-sk="{spec['title']}" data-en="{spec.get('title_en', spec['title'])}">{spec['title']}</span></h1><span class="sub" data-sk="{spec['subtitle_sk']}" data-en="{spec.get('subtitle_en', spec['subtitle_sk'])}">{spec['subtitle_sk']}</span><button class="langtog" onclick="toggleShellLang()" aria-label="EN / SK"><span id="lcEn">EN</span> / <span id="lcSk">SK</span></button></div>
+  <div class="navrow"><nav class="docnav">{nav_html}</nav><button class="langtog" onclick="toggleShellLang()" aria-label="EN / SK"><span id="lcEn">EN</span> / <span id="lcSk">SK</span></button></div>
+  <div class="titlebar"><h1>{spec['icon']} <span data-sk="{spec['title']}" data-en="{spec.get('title_en', spec['title'])}">{spec['title']}</span></h1><span class="sub" data-sk="{spec['subtitle_sk']}" data-en="{spec.get('subtitle_en', spec['subtitle_sk'])}">{spec['subtitle_sk']}</span></div>
   <div class="tabs">{tabs_html}</div>
 </header>
 <main id="frames"></main>
-<div class="datestamp" data-sk="Aktualizované {BUILD_DATE}" data-en="Updated {BUILD_DATE}">Aktualizované {BUILD_DATE}</div>
 <script>
 /* Each source document is embedded whole and rendered into its own iframe on first open —
    their CSS/JS/lang-toggles stay fully isolated from each other and from this shell. */

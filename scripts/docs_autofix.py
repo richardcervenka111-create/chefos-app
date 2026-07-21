@@ -78,7 +78,74 @@ def targets():
 HAS_STAMP = ('sautero-stamp', 'class="datestamp"', "class='datestamp'")
 
 
+SK_MONTHS_EN = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+                7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+
+
+def _changed_files():
+    try:
+        out = subprocess.check_output(['git', '-C', REPO, 'status', '--porcelain'],
+                                      stderr=subprocess.DEVNULL).decode()
+        return {ln[3:].strip().strip('"') for ln in out.splitlines() if ln.strip()}
+    except Exception:
+        return set()
+
+
+def git_datetime(rel_path, changed):
+    """The honest 'state as of': NOW if the file has uncommitted changes (it is being updated in
+    this very commit), else the file's last commit time. Bern timezone throughout."""
+    os.environ['TZ'] = 'Europe/Zurich'
+    try:
+        import time as _t
+        _t.tzset()
+    except Exception:
+        pass
+    if rel_path in changed:
+        return datetime.datetime.now()
+    try:
+        out = subprocess.check_output(
+            ['git', '-C', REPO, 'log', '-1', '--format=%ct', '--', rel_path],
+            stderr=subprocess.DEVNULL).decode().strip()
+        if out:
+            return datetime.datetime.fromtimestamp(int(out))
+    except Exception:
+        pass
+    return datetime.datetime.now()
+
+
+def refresh_sautero_stamps(check_only, changed):
+    """Second auto-fix class (Richard, 21.7. — the feature map said 'Stav Sautero k 19.7.' while
+    the file had changed since): the date inside every doc's own `.sautero-stamp` badge must match
+    when the file REALLY last changed (git). Deterministic and honest — the stamp follows git, so
+    it can never silently go stale again. Only rewrites when the DAY differs, so unchanged docs
+    are never churned commit after commit."""
+    import re
+    fixed, stale = [], []
+    for f in targets():
+        s = open(f, encoding='utf-8', errors='replace').read()
+        if 'Stav Sautero k' not in s:
+            continue
+        rel = os.path.relpath(f, REPO)
+        dt = git_datetime(rel, changed)
+        sk_new = f'{dt.day}. {dt.month}. {dt.year}, {dt.strftime("%H:%M")}'
+        en_new = f'{SK_MONTHS_EN[dt.month]} {dt.day}, {dt.year}, {dt.strftime("%H:%M")}'
+        m = re.search(r'Stav Sautero k (\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})', s)
+        if not m:
+            continue
+        old_day = (int(m.group(3)), int(m.group(2)), int(m.group(1)))
+        if old_day == (dt.year, dt.month, dt.day):
+            continue  # stamp already carries the right day — don't churn the time
+        stale.append(rel)
+        if not check_only:
+            s = re.sub(r'(Stav Sautero k )[0-9][^"<]*', r'\g<1>' + sk_new, s)
+            s = re.sub(r'(Sautero state as of )[A-Z][^"<]*', r'\g<1>' + en_new, s)
+            open(f, 'w', encoding='utf-8').write(s)
+            fixed.append(f'{os.path.basename(f)}→{dt.day}.{dt.month}.')
+    return fixed, stale
+
+
 def process(check_only):
+    changed = _changed_files()
     fixed, missing = [], []
     for f in targets():
         rel = os.path.relpath(f, REPO)
@@ -91,14 +158,20 @@ def process(check_only):
             open(f, 'w', encoding='utf-8').write(s)
             fixed.append(rel)
 
+    stamp_fixed, stamp_stale = refresh_sautero_stamps(check_only, changed)
+    if stamp_fixed:
+        print(f'docs_autofix: refreshed the "Stav Sautero k" date on {len(stamp_fixed)} doc(s): '
+              + ', '.join(stamp_fixed))
+
     if check_only:
-        if missing:
-            print(f'docs_autofix --check: {len(missing)} doc(s) have NO date stamp:')
-            for p in missing:
+        problems = missing + [p + ' (stale "Stav Sautero k" date)' for p in stamp_stale]
+        if problems:
+            print(f'docs_autofix --check: {len(problems)} doc(s) with a missing/stale date stamp:')
+            for p in problems:
                 print('  ✗ ' + p)
             print('  Fix: python3 scripts/docs_autofix.py')
             return 1
-        print('docs_autofix: OK — every Internal Doc carries a date stamp.')
+        print('docs_autofix: OK — every Internal Doc carries a current date stamp.')
         return 0
 
     if fixed:
