@@ -256,6 +256,71 @@
   footer{ padding: 60px 0 70px 0; }
   footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12.5px; color:var(--ink-faint); }
 
+  /* ================= SPARK — kinetic energy pass (21.7.) ================= */
+  .hero{ overflow:hidden; }
+  .hero::before{
+    content:''; position:absolute; inset:-12% -18% auto -18%; height:72%; z-index:-1;
+    background:radial-gradient(58% 60% at 28% 18%, rgba(52,247,215,0.11), transparent 62%),
+               radial-gradient(48% 50% at 82% 8%, rgba(247,201,72,0.06), transparent 60%);
+    pointer-events:none; filter:blur(4px); animation:heat 15s ease-in-out infinite alternate;
+  }
+  @keyframes heat{ 0%{ transform:translate3d(0,0,0) scale(1); } 100%{ transform:translate3d(2%,-3%,0) scale(1.09); } }
+  h1.hero-head .ln:last-child span{ position:relative; }
+  h1.hero-head .ln:last-child span::after{
+    content:''; position:absolute; left:0; bottom:-6px; height:3px; width:100%;
+    background:var(--copper); border-radius:2px; transform:scaleX(0); transform-origin:left;
+    animation:drawU .7s cubic-bezier(.2,.8,.2,1) 1.15s forwards;
+  }
+  @keyframes drawU{ to{ transform:scaleX(1); } }
+  .chaos-ticker{
+    font-family:"SF Mono",Menlo,monospace; font-size:13px; color:var(--ink-faint);
+    margin:0 0 40px 0; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    opacity:0; animation:fadeUp .8s ease 1.2s forwards;
+  }
+  .chaos-ticker b{ color:var(--copper); font-weight:600; }
+  .scroll-cue{ position:absolute; left:28px; bottom:26px; font-family:"SF Mono",monospace; font-size:10.5px;
+    letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-faint); display:flex; align-items:center; gap:9px;
+    opacity:0; animation:fadeUp 1s ease 1.6s forwards; }
+  .scroll-cue .arr{ display:inline-block; width:1px; height:26px; background:linear-gradient(var(--copper),transparent); animation:cue 1.8s ease-in-out infinite; }
+  @keyframes cue{ 0%,100%{ transform:translateY(0); opacity:.4; } 50%{ transform:translateY(6px); opacity:1; } }
+
+  .problem-lines.chaos p:not(.final){
+    display:inline-block; background:var(--surface-raised); border:1px solid var(--rule);
+    border-radius:4px; padding:14px 18px; margin:0 16px 18px 0; max-width:34ch; color:var(--ink-dim);
+    box-shadow:0 8px 22px rgba(0,0,0,0.30); transition:transform .22s ease, border-color .22s ease;
+  }
+  .problem-lines.chaos p:nth-of-type(1){ transform:rotate(-1.6deg); }
+  .problem-lines.chaos p:nth-of-type(2){ transform:rotate(1.2deg); }
+  .problem-lines.chaos p:nth-of-type(3){ transform:rotate(-0.7deg); }
+  .problem-lines.chaos p:nth-of-type(4){ transform:rotate(1.9deg); }
+  .problem-lines.chaos p:nth-of-type(5){ transform:rotate(-1.2deg); }
+  .problem-lines.chaos p:not(.final):hover{ transform:rotate(0) translateY(-3px); border-color:var(--copper-dim); }
+  .problem-lines.chaos p.final{ display:block; font-size:clamp(23px,3.2vw,32px); }
+
+  .vision-quote{ position:relative; }
+  .vision-quote::before{ content:'\201C'; position:absolute; left:-6px; top:-0.55em; font-family:Georgia,"Times New Roman",serif;
+    font-size:86px; line-height:1; color:var(--copper-dim); pointer-events:none; }
+
+  .spine::before{ transform:scaleY(0); transform-origin:top; transition:transform 1.3s cubic-bezier(.2,.8,.2,1); }
+  .spine.visible::before{ transform:scaleY(1); }
+  .stage.live .stage-dot{ animation:dotpulse 2.6s ease-in-out infinite; }
+  @keyframes dotpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(247,201,72,0.5);} 50%{ box-shadow:0 0 0 6px rgba(247,201,72,0);} }
+
+  .closing{ text-align:center; padding:118px 0; border-bottom:none; }
+  .closing .big{
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; font-weight:600;
+    font-size:clamp(40px,8vw,92px); line-height:1.03; letter-spacing:-0.02em; margin:0; text-wrap:balance;
+  }
+  .closing .big em{ color:var(--copper); font-style:normal; }
+  .closing .sub{ color:var(--ink-dim); font-size:15px; margin-top:26px; font-family:"SF Mono",Menlo,monospace; letter-spacing:0.04em; }
+
+  @media (prefers-reduced-motion:reduce){
+    .hero::before, .scroll-cue .arr, .stage.live .stage-dot{ animation:none; }
+    h1.hero-head .ln:last-child span::after{ transform:scaleX(1); animation:none; }
+    .chaos-ticker, .scroll-cue{ opacity:1; animation:none; }
+    .spine::before{ transform:scaleY(1); transition:none; }
+  }
+
   /* Reading-progress bar — consistency with the elevated Investor Deck (21.7.). */
   #mprogress{ position:fixed; top:0; left:0; height:3px; width:0; z-index:100;
     background:linear-gradient(90deg, #0F6E56, #34F7D7); box-shadow:0 0 12px rgba(52,247,215,0.4); transition:width .08s linear; }
@@ -295,19 +360,21 @@
       <span class="ln"><span style="animation-delay:.55s; color:var(--copper);">We think that's optional.</span></span>
     </h1>
     <p class="hero-sub">Built inside a real kitchen, not around one. One shared place for what a kitchen knows, what's happening right now, and what tomorrow needs — instead of twelve notebooks and somebody's memory.</p>
+    <div class="chaos-ticker" data-sk='<span>12 zošitov · 1 pamäť šéfkuchára · 0 záloh</span> <b>→ 1 spoločný mozog</b>' data-en='<span>12 notebooks · 1 chef&#39;s memory · 0 backups</span> <b>→ 1 shared brain</b>'><span>12 notebooks · 1 chef's memory · 0 backups</span> <b>→ 1 shared brain</b></div>
     <div class="hero-foot">
       <span><b>Status</b> Working build, in daily use</span>
       <span><b>Built by</b> Richard Červenka</span>
       <span><b>Where</b> Bern</span>
     </div>
   </div>
+  <div class="scroll-cue"><span class="arr"></span><span data-sk="Čítaj ďalej" data-en="Read on">Read on</span></div>
 </div>
 
 <section>
   <div class="wrap">
     <div class="eyebrow reveal">The Problem</div>
     <h2 class="head reveal">Every kitchen has accepted the same chaos.</h2>
-    <div class="problem-lines reveal">
+    <div class="problem-lines chaos reveal">
       <p>The head chef's technique lives in her head, and nowhere else.</p>
       <p>A note gets passed at the pass, and half of it never reaches the line.</p>
       <p>Prep gets forgotten until the first ticket's already up.</p>
@@ -459,6 +526,13 @@
   </div>
 </section>
 
+<section class="closing">
+  <div class="wrap">
+    <p class="big reveal" data-sk="Chaos nie je nutnosť. <em>Je to voľba.</em>" data-en="Chaos isn't inevitable. <em>It's a choice.</em>">Chaos isn't inevitable. <em>It's a choice.</em></p>
+    <p class="sub reveal" data-sk="Postavené z kuchyne von. Bern, 2026." data-en="Built from the kitchen out. Bern, 2026.">Built from the kitchen out. Bern, 2026.</p>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <span><span data-sk="Sautero — stavané z kuchyne von." data-en="Sautero — built kitchen-side out.">Sautero — built kitchen-side out.</span></span>
@@ -477,6 +551,27 @@
   } else {
     document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));
   }
+  (function(){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const stats = document.querySelector('.progress-stats');
+    if(!stats || !('IntersectionObserver' in window)) return;
+    const io2 = new IntersectionObserver((es)=>{
+      es.forEach(e=>{
+        if(!e.isIntersecting) return; io2.unobserve(e.target);
+        e.target.querySelectorAll('.pstat .n').forEach(el=>{
+          const target = parseInt(el.textContent.replace(/[^0-9]/g,''),10);
+          if(!target) return;
+          const t0 = performance.now(), dur = 1100;
+          (function tick(now){
+            const p = Math.min(1,(now-t0)/dur);
+            el.textContent = Math.round(target*(1-Math.pow(1-p,3))).toLocaleString('en-CH');
+            if(p<1) requestAnimationFrame(tick);
+          })(t0);
+        });
+      });
+    }, { threshold:0.4 });
+    io2.observe(stats);
+  })();
   (function(){
     const bar = document.getElementById('mprogress');
     if(!bar) return;
