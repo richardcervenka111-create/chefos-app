@@ -23,19 +23,23 @@ SWEEP = os.path.join(REPO, 'visual data', 'test_sweep.html')
 # single place that says "this feature area is / isn't machine-protected".
 #   smoke   = e2e_smoke_test.py drives the tile across roles (screen opens, no JS error/5xx)
 #   tenant  = tenant_isolation_test.sql leak-tests its tables (cross-kitchen isolation)
+#   gates   = unauth_gates_test.py — credential-free pre-login gates (wall, sign-in reveal,
+#             password/code toggle, safe failing login); no QA secrets, runs 2x/day always
+#   calc    = calc_unit_test.js unit-tests this module's money math (recipe cost, payroll +
+#             shift hours) against verified golden values; runs on every push + deploy gate
 #   audit   = audit_app / audit_db static guards apply to its code/migrations (always)
 COVERAGE = {
-    'login & gates':      ['smoke'],            # login path is in the smoke golden path
+    'login & gates':      ['smoke', 'gates'],   # gates test covers the exact 20.7 pre-login bugs
     'home':               ['smoke'],
     'check list':         ['smoke', 'tenant'],  # projects/tasks/prep_* in the leak test
-    'recipes':            ['smoke', 'tenant'],
-    'ingredients':        ['smoke', 'tenant'],
+    'recipes':            ['smoke', 'tenant', 'calc'],   # computeRecipeCost unit-tested
+    'ingredients':        ['smoke', 'tenant', 'calc'],   # parse/convert/cost lookup unit-tested
     'order list':         ['smoke', 'tenant'],
-    'working time':       ['smoke', 'tenant'],  # time_entries + working_time_day_notes
+    'working time':       ['smoke', 'tenant', 'calc'],   # payroll hours + overtime unit-tested
     'events':             ['smoke', 'tenant'],
     'haccp':              ['smoke', 'tenant'],
     'print labels':       ['smoke', 'tenant'],
-    'schedule':           ['tenant'],           # schedule_* now in the leak test; not a smoke tile
+    'schedule':           ['tenant', 'calc'],   # shiftCodeHours unit-tested; not a smoke tile
     'chef':               ['smoke'],            # Chef's Assistant tile
     'connections':        ['smoke', 'tenant'],
     'admin':              ['smoke', 'tenant'],
