@@ -23420,7 +23420,6 @@ async function deactivateHaccpChecklistItem(id){
 let _events = [];
 let _editingEventId = null;
 
-function eventDateKey(d){ return d; } // events.event_date already comes back as 'YYYY-MM-DD'
 function todayKey(){ return new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(new Date()); }
 function tomorrowKey(){ const d = new Date(); d.setDate(d.getDate()+1); return new Intl.DateTimeFormat('en-CA', { timeZone:'Europe/Zurich' }).format(d); }
 
