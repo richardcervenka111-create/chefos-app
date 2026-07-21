@@ -78,15 +78,20 @@
   .matrix .q h4{margin:0 0 8px 0; font-size:12px; text-transform:uppercase; letter-spacing:.08em;}
   .q.q1 h4{color:var(--ok);} .q.q2 h4{color:var(--gold);} .q.q3 h4{color:var(--ink-dim);} .q.q4 h4{color:var(--red);}
   footer{margin-top:60px; padding-top:16px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--ink-faint); text-align:center;}
+  .lang-toggle{position:fixed; top:12px; right:12px; z-index:100; background:var(--paper); border:1px solid var(--rule); color:var(--ink); font-size:12px; font-weight:700; padding:6px 13px; border-radius:999px; cursor:pointer; letter-spacing:.03em;}
+  .lang-toggle .on{color:var(--teal);} .lang-toggle .off{color:var(--ink-dim);}
+  .sautero-stamp{position:fixed; bottom:14px; right:14px; z-index:90; background:rgba(15,35,64,0.92); border:1px solid rgba(52,247,215,0.4); color:#34F7D7; font-size:10.5px; font-weight:700; font-family:var(--mono); padding:6px 12px; border-radius:999px; pointer-events:none;}
+  @media print{ .lang-toggle, .sautero-stamp{display:none;} }
 </style>
 </head>
 <body>
-<div class="wrap">
+<button class="lang-toggle" onclick="crToggleLang()"><span id="crEn">EN</span> / <span id="crSk">SK</span></button>
+<div class="wrap" id="bodySK">
 
 <header class="hero">
   <p class="kicker">Critical Review — interný audit</p>
   <h1>Tretí týždenný audit: appka šprintuje, biznis stojí na mieste</h1>
-  <p class="lede">Stav Sautero k 16. júlu 2026 neskoro v noci, krížovo overený proti auditom z 13. a 15. júla, proti celému repozitáru (125 migrácií, všetky dokumenty) a proti živej produkčnej databáze. Verdikt na jednu vetu: <b>za 36 hodín pribudlo 41 migrácií a tri natrvalo opravené bezpečnostné incidenty — a zároveň neodišiel jediný z piatich administratívnych krokov, ktoré 15.7. audit označil za „urob pred čímkoľvek iným".</b></p>
+  <p class="lede">Stav Sautero k 22. 7. 2026, 00:10<b>za 36 hodín pribudlo 41 migrácií a tri natrvalo opravené bezpečnostné incidenty — a zároveň neodišiel jediný z piatich administratívnych krokov, ktoré 15.7. audit označil za „urob pred čímkoľvek iným".</b></p>
   <div class="meta-strip">
     <span>Pre: Richard Červenka</span>
     <span>Zdroje: repo + živá DB + git log + 2 staré audity</span>
@@ -254,6 +259,194 @@
 </footer>
 
 </div>
-<div class="datestamp" data-sk="Aktualizované 18.7.2026" data-en="Updated 18.7.2026" style="position:fixed;right:9px;bottom:8px;z-index:60;font-size:10.5px;font-weight:600;color:#9C949E;background:rgba(10,26,47,0.82);border:1px solid #223d57;border-radius:8px;padding:3px 9px;pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;">Aktualizované 18.7.2026</div>
+
+<!-- ===================== FULL ENGLISH VERSION (standing rule: every doc SK/EN, both complete) ===================== -->
+<div class="wrap" id="bodyEN" style="display:none">
+
+<header class="hero">
+  <p class="kicker">Critical Review — internal audit</p>
+  <h1>Third weekly audit: the app is sprinting, the business is standing still</h1>
+  <p class="lede">The state of Sautero as of late night, July 16, 2026 — cross-checked against the July 13 and 15 audits, the whole repository (125 migrations, every document) and the live production database. The one-sentence verdict: <b>41 migrations and three permanently fixed security incidents landed in 36 hours — and at the same time not one of the five administrative steps the July 15 audit marked "do before anything else" went out.</b></p>
+  <div class="meta-strip">
+    <span>For: Richard Červenka</span>
+    <span>Sources: repo + live DB + git log + 2 previous audits</span>
+    <span>Working document, not legal/financial advice</span>
+  </div>
+</header>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 00</span><h2>Delta vs July 15 — the "do this week" quadrant score</h2></div>
+  <p>The July 15 audit put five tasks into the <i>high impact / low effort — do before anything else</i> quadrant. The state today:</p>
+  <div class="table-scroll"><table>
+    <tr><th>Task from Jul 15</th><th>State late night Jul 16</th><th></th></tr>
+    <tr><td>Send the side-business (Nebenerwerb) letter (10 min)</td><td>Draft ready in the "RESOLVE BY 20.7.2026/" folder, sending unverifiable from the repo — <b>confirm</b>. The deadline is Jul 20 — <b>this weekend</b>.</td><td><span class="stamp unknown">CONFIRM</span></td></tr>
+    <tr><td>Run the regression checklist at least once on a device</td><td>No recorded run. (Today's live testing of remove/invite/comments was real, but it wasn't a systematic checklist pass.)</td><td><span class="stamp open">NOT DONE</span></td></tr>
+    <tr><td>Drop Chef Challenge from the trial build (1 line)</td><td>Still in the code (37 occurrences), still reachable.</td><td><span class="stamp open">NOT DONE</span></td></tr>
+    <tr><td>Fix 3 stale doc items (recipe count, descriptions, legal.html)</td><td>The recipe count is fine (173 unique confirmed against the live DB). But legal.html is NOT fixed — and two new holes appeared (Ticket 02).</td><td><span class="stamp open">PARTIAL</span></td></tr>
+    <tr><td>Register the sole proprietorship / AHV (1–2 h)</td><td>Unverifiable from the repo — <b>confirm</b>. Without it no first invoice can go out.</td><td><span class="stamp unknown">CONFIRM</span></td></tr>
+  </table></div>
+  <div class="card red"><b>Score: 0–1 / 5</b> (depending on whether the Nebenerwerb letter really went out). Third audit in a row with the same finding: capacity flows into building — where the discipline is excellent — and not into the five admin tasks that alone separate the project from its first franc. The difference from previous audits: the Jul 20 deadline is now 4 days away.</div>
+  <div class="card teal"><b>What DID genuinely move meanwhile (and it is a lot):</b> 41 migrations (db/85 → db/125) in ~36 h and 55 commits. A complete admin system (Head/Kitchen Admin, Add Company, roles, Team Members with a working Remove). Real database isolation of personal data (RLS, not a UI filter). Real team membership with a gate to Company mode. HACCP waves 1+2 live. Branded onboarding (custom Supabase emails). A central Anthropic key + an AI credit system with margins. The privacy gate (nDSG/GDPR). Three security incidents found, fixed and <i>turned into permanent guards</i> (super-admin lockout → auditor hard-fail; a burned admin invite → tolerant reclaim; a broken Remove → SECURITY DEFINER RPC). This pace and this self-correcting discipline are exceptional for a solo project — the problem isn't speed, it's the direction of the last 10%.</div>
+</section>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 01</span><h2>Hard facts — verified programmatically, not by reading</h2></div>
+  <div class="facts">
+    <div class="fact"><div class="num">924 KB</div><div class="lbl">index.html (one file, no build step)</div></div>
+    <div class="fact"><div class="num">814</div><div class="lbl">JS functions in the monolith</div></div>
+    <div class="fact"><div class="num">13</div><div class="lbl">tiles on Home</div></div>
+    <div class="fact"><div class="num">125</div><div class="lbl">migrations, no gaps or duplicates, all confirmed run</div></div>
+    <div class="fact"><div class="num">45</div><div class="lbl">tables, all with RLS + a policy (audit_db clean)</div></div>
+    <div class="fact"><div class="num">42</div><div class="lbl">tables actually used by the app — all covered by migrations</div></div>
+    <div class="fact"><div class="num">5</div><div class="lbl">UI languages (EN/DE/FR/IT/SK, partial coverage)</div></div>
+    <div class="fact"><div class="num">15</div><div class="lbl">AI call sites, all through claude-proxy</div></div>
+    <div class="fact"><div class="num">173</div><div class="lbl">unique Sautero recipes (live DB — the count matches the documents)</div></div>
+    <div class="fact warn"><div class="num">24,272</div><div class="lbl">ingredient rows = ~2,000 × 12 kitchens (copies per kitchen)</div></div>
+    <div class="fact warn"><div class="num">12 / 10</div><div class="lbl">kitchens vs profiles — orphans from moves keep piling up</div></div>
+    <div class="fact"><div class="num">1,632</div><div class="lbl">usage events; 11 JS errors in 7 days; 1 feedback</div></div>
+  </div>
+  <h3>What follows from this</h3>
+  <ul>
+    <li><b>The copy architecture:</b> every new kitchen gets its own copy of 173 recipes + ~2,000 ingredients. At 12 kitchens that's 24k rows for 10 people; at 100 kitchens ~200k. Postgres handles it, but orphans (kitchens with no members after removes/moves) carry dead copies — occasional cleanup is needed, not a redesign.</li>
+    <li><b>Price verifiedness:</b> the Verified/Estimated chips were removed from the UI on Jul 13 — the app no longer even tracks the share of verified prices. Last known number: 7.65% (Jul 15 audit). Transparency took a step back here.</li>
+    <li>The DESTRUCTIVE mark is carried by 2 migrations (db/18, db/102) — both historical, documented.</li>
+  </ul>
+</section>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 02</span><h2>Contradictions and legal holes — the most serious part of the audit</h2></div>
+
+  <div class="card red">
+    <b>🔴 legal.html demonstrably lies on two points.</b>
+    <ul>
+      <li><b>"We don't ask for or store a password."</b> — False since Jul 15: a password is mandatory for everyone (db/83) + Face ID unlock. Code: a mandatory gate after the NDA. One sentence in a document meant to build trust is refutable within 10 seconds of using the app.</li>
+      <li><b>GPS at check-in/out is not declared at all.</b> The code (getCurrentPosition, db/63 location snapshot) records a one-off location at arrival/departure — that is <i>employee location data</i>, which both nDSG and GDPR class as sensitive. The Working Time section of legal.html talks about times and breaks, and says nothing about location. This is not cosmetics — in the first dispute with a pilot-kitchen employee it's a real problem.</li>
+    </ul>
+    <b>The fix:</b> 30 minutes of work on the legal.html text (password + a GPS sentence with purpose and voluntariness + a camera sentence for QR scanning). Alternative for GPS: switch the snapshot off until the trial.
+  </div>
+
+  <div class="table-scroll"><table>
+    <tr><th>Documents</th><th>Contradiction</th><th>Why it matters / the fix</th></tr>
+    <tr><td>MVP_DEFINITION (Jul 8) vs reality</td><td>Defines 5 modules; 13 tiles are built, including explicitly deferred things (the inventory-adjacent Order List, HACCP, the AI layer)</td><td>Scope creep is a documented fact, not a secret — but MVP_DEFINITION is a "living document" last updated Jul 8. Either update it or rename it "Phase-0 snapshot".</td></tr>
+    <tr><td>presentation.html vs FOUNDING_OFFER</td><td>The deck models the Restaurant tier at CHF 149/mo (1,788/yr); the founding offer gives the same tier for CHF 490/yr</td><td>That's −73% — a legitimate founding hook, but the deck and the offer don't reference each other. An investor who sees both will ask. One sentence in the deck ("founding cohort pricing") solves it.</td></tr>
+    <tr><td>PILOT_AGREEMENT vs features</td><td>The agreement (v1, Jul 13) doesn't cover the AI credit system, the GPS snapshot, or Kitchen Reports consents — they came after it</td><td>Add 3 sentences before signing with the pilot. The agreement's own note still holds too: it hasn't been through a lawyer.</td></tr>
+    <tr><td>ROADMAP.md vs status.html</td><td>The phase table was synced Jul 15, but the daily log in ROADMAP ends ~Jul 13 — the two days of the biggest changes (the whole admin system) aren't there</td><td>A conscious decision (the daily source = status.html), but ROADMAP only declares that in a note at the top. OK, leave it — just know about it.</td></tr>
+    <tr><td>features.html vs feature_status.html</td><td>Two feature overviews with different granularity and freshness (features.html is from Jul 15)</td><td>Consolidate into one, or redirect features.html to feature_status.html.</td></tr>
+  </table></div>
+</section>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 03</span><h2>Modules — stamps and the biggest lever</h2></div>
+  <div class="table-scroll"><table>
+    <tr><th>Module</th><th>Verdict</th><th>Biggest lever now</th></tr>
+    <tr><td><b>1 · Recipes</b> (173 + shelves/sections/projects, cross-kitchen comments, branded print)</td><td><span class="stamp fire">FIRE</span></td><td>Build nothing new — let the chefs use today's shelves/projects for 2 weeks and only then fine-tune.</td></tr>
+    <tr><td><b>2 · Check List / Kitchen Flow</b> (the flagship)</td><td><span class="stamp fire">FIRE</span></td><td>The only thing it lacks is <b>a test during real service</b> at Burrito Bandito & Lido. That is also the only proof the trial and an investor need.</td></tr>
+    <tr><td><b>3 · Ingredients & Pricing</b> (24k rows, prices mostly estimates)</td><td><span class="stamp hold">HOLD</span></td><td>Bring back measurability of price verifiedness (a column + a quiet filter). Don't expand until the pilot confirms someone actually uses the food-cost numbers.</td></tr>
+    <tr><td><b>4 · Working Time</b> (check-in/out, contracts, charts)</td><td><span class="stamp hold">HOLD</span></td><td>The legal fix of the GPS declaration (Ticket 02) — mandatory before the trial.</td></tr>
+    <tr><td><b>5 · HACCP</b> (waves 1+2 live)</td><td><span class="stamp fire">FIRE</span></td><td>The Swiss inspection is sales argument #1 for restaurants. Wave 3 (trainings, a report) only after the trial.</td></tr>
+    <tr><td><b>6 · Chef's Assistant / AI</b> (credits, central key, testing mode)</td><td><span class="stamp hold">HOLD</span></td><td>The infra is done and good. Watch real per-kitchen costs in the trial; the margins (30%/10%) are theory so far.</td></tr>
+    <tr><td><b>6b · Chef Challenge</b></td><td><span class="stamp cut">86</span></td><td>Third audit in a row: out of the trial build. A playful experiment with no link to kitchen value.</td></tr>
+    <tr><td><b>7 · Order List + Print Labels</b> (per-person, expiry log)</td><td><span class="stamp fire">FIRE</span></td><td>Buy the printer (CHF ~130) — the only thing separating Print Labels from real paper.</td></tr>
+    <tr><td><b>8 · Admin / Teams</b> (invite → role → remove, complete as of today)</td><td><span class="stamp fire">FIRE</span></td><td>The whole lifecycle closed today. The only debt: clean up orphan kitchens (12 kitchens / 10 people).</td></tr>
+    <tr><td><b>9 · Connections</b> (friends, sharing)</td><td><span class="stamp hold">HOLD</span></td><td>Nice-to-have for the trial. Leave "Create team of friends" as a placeholder, don't develop it.</td></tr>
+    <tr><td><b>10 · Schedule</b> (the old pilot's roster being rebuilt)</td><td><span class="stamp hold">HOLD</span></td><td>Hide it from Home for new kitchens until the trial (an empty roster confuses), revive it with the real BB&L rota.</td></tr>
+  </table></div>
+</section>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 04</span><h2>The 2×2 priority matrix</h2></div>
+  <div class="matrix">
+    <div class="q q1">
+      <h4>High impact · low effort — THIS WEEKEND</h4>
+      <ul>
+        <li><b>Send the Nebenerwerb letter</b> (10 min, deadline Jul 20)</li>
+        <li><b>Sole proprietorship/AHV registration</b> (1–2 h online)</li>
+        <li><b>legal.html fix</b>: password + GPS + camera (30 min — I'll do it on your word)</li>
+        <li><b>Chef Challenge out of the trial</b> (a few lines — I'll do it on your word)</li>
+        <li><b>1× regression checklist</b> on the iPad (60–90 min)</li>
+      </ul>
+    </div>
+    <div class="q q2">
+      <h4>High impact · high effort — planned</h4>
+      <ul>
+        <li>A service test of the Check List during a real shift at BB&L</li>
+        <li>German UI to full coverage (a Bern trial)</li>
+        <li>Automated smoke tests of the core (after the trial)</li>
+        <li>Modularising the 924 KB monolith (after the trial, not now)</li>
+      </ul>
+    </div>
+    <div class="q q3">
+      <h4>Low impact · low effort — when time allows</h4>
+      <ul>
+        <li>Clean up orphan kitchens + their dead data copies</li>
+        <li>features.html → redirect to feature_status.html</li>
+        <li class="strike">Chip visibility filter (done Jul 16)</li>
+        <li class="strike">Print v2 + Used In (done Jul 16)</li>
+      </ul>
+    </div>
+    <div class="q q4">
+      <h4>Low impact · high effort — REFUSE</h4>
+      <ul>
+        <li>A native app / App Store before the trial</li>
+        <li>Marketplace, benchmarking, a Home Cook tier</li>
+        <li>More infra migrations before the first regression pass</li>
+        <li>New big modules before Aug 1 — <b>feature freeze from Jul 21</b> (third attempt; this time the Aug 1 deadline enforces it by itself)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 05</span><h2>Revenue and trial blockers — state as of today</h2></div>
+  <div class="table-scroll"><table>
+    <tr><th>Blocker</th><th>State</th><th></th></tr>
+    <tr><td>Nebenerwerb notice to the employer</td><td>Draft done and legally reworded correctly (a notice, not a request). Sending unverifiable from the repo — confirm. Deadline: <b>Jul 20</b>.</td><td><span class="stamp unknown">CONFIRM</span></td></tr>
+    <tr><td>Sole proprietorship / AHV</td><td>Unverifiable from the repo — confirm. No invoice without it.</td><td><span class="stamp unknown">CONFIRM</span></td></tr>
+    <tr><td>Email login with a foreign address (mailer)</td><td>Solved: chefos.ch + custom SMTP (Jul 15), Sautero-branded templates (Jul 16), the magic-link redirect bug fixed.</td><td><span class="stamp done">SOLVED</span></td></tr>
+    <tr><td>A regression pass on real devices</td><td>The checklist has existed since Jul 13; documented runs: 0.</td><td><span class="stamp open">OPEN</span></td></tr>
+    <tr><td>A backup restore test</td><td>No record of a restore test. With 125 migrations and one developer, an untested backup is only a theory of a backup.</td><td><span class="stamp open">OPEN</span></td></tr>
+    <tr><td>The queue of unrun migrations</td><td>Empty — all 125 confirmed on production (tonight incl. the three-round verification of the remove bug directly in the DB).</td><td><span class="stamp done">SOLVED</span></td></tr>
+    <tr><td>The label printer (Brother QL-820NWB)</td><td>Recommendation done, not bought (~CHF 130).</td><td><span class="stamp open">OPEN</span></td></tr>
+  </table></div>
+  <div class="bar-row"><span class="bar-label">Blockers solved</span><div class="bar-track"><div class="bar-fill" style="width:29%"></div></div><span class="bar-val">2 / 7</span></div>
+  <div class="bar-row"><span class="bar-label">Unverifiable (business)</span><div class="bar-track"><div class="bar-fill gold" style="width:29%"></div></div><span class="bar-val">2 / 7</span></div>
+  <div class="bar-row"><span class="bar-label">Open</span><div class="bar-track"><div class="bar-fill red" style="width:42%"></div></div><span class="bar-val">3 / 7</span></div>
+</section>
+
+<section class="ticket">
+  <div class="ticket-head"><span class="ticket-no">TICKET 06</span><h2>Master plan — 4 weeks, capacity-honest</h2></div>
+  <p class="dim small">Assumption: a new full-time kitchen job from Jul 20; realistically ~10–12 h/week for Sautero. The plan therefore builds on the code being "done enough" — the next 4 weeks are decided by paperwork, testing and people, not new features.</p>
+  <div class="card gold"><b>W29 · by Sunday Jul 20</b> — SEND the Nebenerwerb · the AHV/sole-proprietorship form · the legal.html fix (30 min) · Chef Challenge out · 1× regression pass on the iPad. <b>Zero new features.</b> ~4–5 h total.</div>
+  <div class="card"><b>W30 · Jul 21–27</b> — the new job starts, stabilisation only: a 2nd regression pass · a backup restore test (1 h) · order the printer · prepare the trial QR invites + a 5-line onboarding text · add 3 sentences to the PILOT_AGREEMENT. ~6–8 h.</div>
+  <div class="card"><b>W31 · Jul 28–Aug 3</b> — soft launch: 5–10 chefs rolling (not 25 at once) · 5 daily minutes on error_logs/usage_events · fix only what the trial actually breaks. ~10 h.</div>
+  <div class="card"><b>W32 · Aug 4–10</b> — expand to 25 · the first founding conversations with the 2–3 most active kitchens (the offer is written) · the first Nooch contact only with a week of real data in hand. ~10 h.</div>
+</section>
+
+<footer>
+  Sautero · Critical Review Jul 16, 2026 · prepared from the repository + the live production DB · numbers with no source in the repo are marked unverifiable · no external libraries
+</footer>
+
+</div>
+
+<div class="sautero-stamp">🔄 Stav Sautero k 22. 7. 2026, 00:10</div>
+<script>
+/* Standalone EN/SK toggle — same shared key as every Sautero doc (sautero_doc_lang). The two
+   language bodies are full duplicates (bodySK/bodyEN), so all markup/tables/stamps stay intact. */
+function crApply(){
+  var l = localStorage.getItem('sautero_doc_lang')==='en' ? 'en' : 'sk';
+  document.getElementById('bodySK').style.display = l==='sk' ? '' : 'none';
+  document.getElementById('bodyEN').style.display = l==='en' ? '' : 'none';
+  var en=document.getElementById('crEn'), sk=document.getElementById('crSk');
+  if(en&&sk){ en.className = l==='en'?'on':'off'; sk.className = l==='sk'?'on':'off'; }
+  document.documentElement.lang = l;
+}
+function crToggleLang(){
+  var cur = localStorage.getItem('sautero_doc_lang')==='en' ? 'en' : 'sk';
+  localStorage.setItem('sautero_doc_lang', cur==='en' ? 'sk' : 'en');
+  crApply();
+}
+window.addEventListener('storage', function(e){ if(!e || !e.key || e.key==='sautero_doc_lang') crApply(); });
+crApply();
+</script>
 </body>
 </html>

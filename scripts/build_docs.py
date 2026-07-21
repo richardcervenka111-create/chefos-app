@@ -122,16 +122,16 @@ def build_one(spec):
   html,body{{ margin:0; padding:0; height:100%; }}
   body{{ background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; display:flex; flex-direction:column; }}
   header{{ flex:none; border-bottom:1px solid var(--rule); background:var(--bg); }}
-  .navrow{{ display:flex; align-items:center; gap:8px; padding:8px 10px 0 10px; }}
-  .docnav{{ flex:1; min-width:0; display:flex; gap:2px; overflow-x:auto; scrollbar-width:none; }}
+  .docnav{{ display:flex; gap:2px; overflow-x:auto; padding:8px 10px 0 10px; scrollbar-width:none; }}
   .docnav::-webkit-scrollbar{{ display:none; }}
   .doc-link{{ flex:none; font-size:11.5px; font-weight:700; color:var(--ink-dim); text-decoration:none; padding:7px 12px; border-radius:8px 8px 0 0; letter-spacing:0.02em; }}
   .doc-link:hover{{ color:var(--ink); }}
   .doc-link.current{{ color:#0A1A2F; background:var(--accent); }}
-  .titlebar{{ display:flex; align-items:baseline; gap:12px; padding:10px 16px 2px 16px; flex-wrap:wrap; }}
-  .titlebar h1{{ margin:0; font-size:18px; }}
-  .titlebar .sub{{ font-size:11.5px; color:var(--ink-dim); }}
-  .langtog{{ flex:none; border:1px solid var(--rule); background:var(--bg); color:var(--ink); border-radius:999px; padding:5px 13px; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:0.03em; }}
+  .titlebar{{ display:flex; align-items:center; gap:12px; padding:10px 16px 2px 16px; }}
+  .titlebar h1{{ margin:0; font-size:18px; white-space:nowrap; }}
+  .subrow{{ padding:0 16px; }}
+  .subrow .sub{{ font-size:11.5px; color:var(--ink-dim); }}
+  .langtog{{ flex:none; margin-left:auto; border:1px solid var(--rule); background:var(--bg); color:var(--ink); border-radius:999px; padding:5px 13px; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:0.03em; }}
   .langtog .on{{ color:var(--accent); }} .langtog .off{{ color:var(--ink-dim); }}
   .tabs{{ display:flex; gap:6px; padding:8px 16px 10px 16px; overflow-x:auto; scrollbar-width:none; }}
   .tabs::-webkit-scrollbar{{ display:none; }}
@@ -144,8 +144,9 @@ def build_one(spec):
 </head>
 <body>
 <header>
-  <div class="navrow"><nav class="docnav">{nav_html}</nav><button class="langtog" onclick="toggleShellLang()" aria-label="EN / SK"><span id="lcEn">EN</span> / <span id="lcSk">SK</span></button></div>
-  <div class="titlebar"><h1>{spec['icon']} <span data-sk="{spec['title']}" data-en="{spec.get('title_en', spec['title'])}">{spec['title']}</span></h1><span class="sub" data-sk="{spec['subtitle_sk']}" data-en="{spec.get('subtitle_en', spec['subtitle_sk'])}">{spec['subtitle_sk']}</span></div>
+  <nav class="docnav">{nav_html}</nav>
+  <div class="titlebar"><h1>{spec['icon']} <span data-sk="{spec['title']}" data-en="{spec.get('title_en', spec['title'])}">{spec['title']}</span></h1><button class="langtog" onclick="toggleShellLang()" aria-label="EN / SK"><span id="lcEn">EN</span> / <span id="lcSk">SK</span></button></div>
+  <div class="subrow"><span class="sub" data-sk="{spec['subtitle_sk']}" data-en="{spec.get('subtitle_en', spec['subtitle_sk'])}">{spec['subtitle_sk']}</span></div>
   <div class="tabs">{tabs_html}</div>
 </header>
 <main id="frames"></main>
