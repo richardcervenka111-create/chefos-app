@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-21 21:54 (Bern)",
+  "generated": "2026-07-21 22:25 (Bern)",
   "overall_score": 90,
   "overall_grade": "A",
   "blocks": [
@@ -11,13 +11,13 @@
         {
           "name": "Single-file app size",
           "status": "warn",
-          "value": "23,755 lines / 1232 KB",
+          "value": "23,754 lines / 1232 KB",
           "detail": "One 23k-line HTML file is the known central architectural constraint — the consolidation work (zero-feature-loss) is the standing plan to reduce it."
         },
         {
           "name": "Functions defined",
           "status": "ok",
-          "value": "980",
+          "value": "979",
           "detail": "Total named functions in the app."
         },
         {
@@ -29,8 +29,8 @@
         {
           "name": "Dead functions (defined, never referenced)",
           "status": "warn",
-          "value": "3",
-          "detail": "e.g. eventDateKey, openAddAdmin, openCreateTeam"
+          "value": "2",
+          "detail": "e.g. openAddAdmin, openCreateTeam"
         },
         {
           "name": "Functions > 150 lines",
@@ -81,7 +81,6 @@
           ]
         ],
         "dead": [
-          "eventDateKey",
           "openAddAdmin",
           "openCreateTeam"
         ]
@@ -213,7 +212,7 @@
         {
           "name": "Dead functions",
           "status": "warn",
-          "value": "3",
+          "value": "2",
           "detail": "Defined but never referenced — safe to prune during consolidation."
         },
         {

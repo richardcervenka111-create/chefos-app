@@ -136,7 +136,9 @@ def render(report):
     color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;line-height:1.5;font-variant-numeric:tabular-nums;}}
   .wrap{{max-width:820px;margin:0 auto;padding:28px 20px 60px;}}
-  .topbar{{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:26px;}}
+  .topbar{{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    position:sticky;top:0;z-index:20;padding:14px 0;margin-bottom:12px;
+    background:linear-gradient(180deg,var(--navy) 70%,rgba(10,26,47,0));}}
   .brand{{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;}}
   .brand .dot{{width:11px;height:11px;border-radius:50%;background:var(--teal);box-shadow:0 0 14px var(--teal);}}
   .brand small{{color:var(--mut);font-weight:500;letter-spacing:.14em;text-transform:uppercase;font-size:11px;}}

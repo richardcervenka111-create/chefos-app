@@ -1,0 +1,48 @@
+name: Internal-Docs QA (one robot per document)
+
+# Sautero Internal-Docs guard (Richard, 21.7.2026 — "automatizuj 2x denne aj všetky dokumenty
+# v internal docs, možno každý dokument jeden robot"). A MATRIX: one parallel job ("robot")
+# per Internal Docs page. Each renders the deployed doc in a headless browser at mobile AND
+# desktop widths and checks the three recurring problems: nothing FLIES (horizontal overflow),
+# the EN/SK toggle is in the top bar and not overlapped, and no MISSING DATA
+# (undefined/NaN/{{..}}/one-sided bilingual). See scripts/docs_qa_test.py.
+#
+# Runs against the live x7n2k9 subpath (what Richard actually opens), twice a day + on demand.
+# One robot failing does not stop the others (fail-fast: false), so you see every bad doc at once.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'    # 06:00 UTC (08:00 Bern)
+    - cron: '0 16 * * *'   # 16:00 UTC (18:00 Bern)
+  workflow_dispatch: {}
+
+jobs:
+  doc:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        doc:
+          - test_sweep.html
+          - produkt.html
+          - plan.html
+          - biznis.html
+          - gronda.html
+          - nazov.html
+          - znacka.html
+          - poznamky.html
+          - aare.html
+          - health.html
+          - CRITICAL_REVIEW/latest.html
+    name: ${{ matrix.doc }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Playwright
+        run: |
+          pip3 install playwright
+          python3 -m playwright install --with-deps chromium
+      - name: QA ${{ matrix.doc }}
+        run: python3 scripts/docs_qa_test.py --doc "${{ matrix.doc }}"
