@@ -32,6 +32,8 @@ jobs:
         run: python3 scripts/audit_db.py
       - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet, XSS)
         run: python3 scripts/audit_app.py
+      - name: QA coverage manifest (test_sweep → automated-guard map, informational)
+        run: python3 scripts/coverage_manifest.py
 
   tenant-isolation:
     runs-on: ubuntu-latest
