@@ -89,32 +89,39 @@ def check_working_time(page, ctx):
     check-in creates a running entry, the status card shows the live clock, check-out (with its
     confirm dialog) stores a checkout time within a sane distance of the check-in, and the entry
     is a real DB row. The test creates ONE real entry on the QA account and deletes it at the
-    end with a row-count-verified delete (the 20.7 silent-no-op rule)."""
+    end with a row-count-verified delete (the 20.7 silent-no-op rule).
+
+    SELECTOR RULE (root cause of runs #7-#9): target buttons by their exact onclick attribute —
+    text selectors are ambiguous here ("Check In" also matches the hidden forgot-overlay's
+    "Check in at this time"). And wait on READINESS SIGNALS (the button/clock appearing, the
+    active entry clearing), never on fixed sleeps."""
     page.on('dialog', lambda d: d.accept())
+
+    CHECKIN_BTN = 'button[onclick="checkInWorkingTime()"]'
+    CHECKOUT_BTN = 'button[onclick="checkOutWorkingTime()"]'
 
     # self-heal: a leftover open entry from a crashed earlier run would block check-in
     leftover = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
-
-    page.locator('.home-tile', has_text='Working Time').first.click(timeout=8000)
-    page.wait_for_timeout(1500)
-
     if leftover:
         page.evaluate("""async (id) => { await sb.from('time_entries').delete().eq('id', id).select();
                          _activeTimeEntry = null; }""", leftover)
-        page.wait_for_timeout(500)
+        page.reload(wait_until='networkidle')
+        page.wait_for_selector('#homeView', state='visible', timeout=20000)
+
+    page.locator('.home-tile', has_text='Working Time').first.click(timeout=8000)
+    # readiness = the tile's data loaded and the status card rendered the check-in button
+    page.wait_for_selector(CHECKIN_BTN, state='visible', timeout=20000)
 
     # 1) check in
-    btn = page.locator("button:has-text('Check In')").first
-    assert btn.is_visible(), 'Check In button not visible on the Working Time screen'
-    btn.click()
-    page.wait_for_timeout(2500)
+    page.click(CHECKIN_BTN)
+    page.wait_for_selector('#wtElapsed', state='visible', timeout=15000)
     entry_id = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
     assert entry_id, 'check-in did not create an active entry (_activeTimeEntry is null)'
-    assert page.locator('#wtElapsed').is_visible(), 'running clock (#wtElapsed) not shown after check-in'
 
-    # 2) check out (auto-accepts the "Check out now?" confirm)
-    page.locator("button:has-text('Check Out')").first.click()
-    page.wait_for_timeout(3000)
+    # 2) check out (auto-accepts the "Check out now?" confirm); done = active entry cleared
+    page.wait_for_selector(CHECKOUT_BTN, state='visible', timeout=10000)
+    page.click(CHECKOUT_BTN)
+    page.wait_for_function("() => !window._activeTimeEntry", timeout=15000)
     row = page.evaluate("""async (id) => {
         const { data } = await sb.from('time_entries').select('check_in, check_out').eq('id', id).single();
         return data; }""", entry_id)
@@ -200,6 +207,21 @@ def main():
                 print(f'  [LOCK OK] {tile}')
             except Exception as e:
                 details[tile] = str(e)[:300]
+                # Failure diagnostics: a full-page screenshot + the list of visible top-level
+                # views — CI uploads the PNGs as artifacts, so a red lock is debuggable from
+                # facts, never from guesses (Engineering Standard §7).
+                try:
+                    page.screenshot(path=f'lock_fail_{tile}.png', full_page=True)
+                    print(f'    (screenshot saved: lock_fail_{tile}.png)')
+                except Exception:
+                    pass
+                try:
+                    views = page.evaluate(
+                        "() => [...document.querySelectorAll('body > div[id]')]"
+                        ".filter(e=>getComputedStyle(e).display!=='none').map(e=>e.id).slice(0,15)")
+                    print(f'    visible top-level views at failure: {views}')
+                except Exception:
+                    pass
                 if tile in in_dev:
                     waived.append(tile)
                     print(f'  [LOCK DEV-WAIVED] {tile}: {details[tile]}')

@@ -39,3 +39,10 @@ jobs:
           SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
           SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
         run: python3 scripts/tile_lock_test.py
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lock-failure-screenshots
+          path: lock_fail_*.png
+          if-no-files-found: ignore

@@ -105,20 +105,33 @@ def cmd_write():
     return 0
 
 
+def _open_session_day():
+    """The day whose hours are still IN MOTION: the attribution day (session-start date) of the
+    session containing the newest commit. An overnight session that started yesterday evening
+    keeps growing YESTERDAY's number with every commit after midnight — exempting only calendar
+    'today' made the guard fail all night on '21.7 wrong' (CI runs #306-#311, 22.7.)."""
+    ts = sorted(int(x) for x in subprocess.check_output(['git', 'log', '--format=%ct']).split())
+    start = ts[0]
+    for prev, t in zip(ts, ts[1:]):
+        if t - prev > GAP:
+            start = t
+    return datetime.datetime.fromtimestamp(start, BERN).strftime('%Y-%m-%d')
+
+
 def cmd_check():
     data, _ = full_per_day()
     problems = []
     files = source_files()
-    # TODAY is always in motion: the hook writes hours BEFORE the commit exists, then CI
-    # recomputes WITH that commit — today's number legitimately differs by the last session's
-    # tail every single push. Exact-matching it made the guard fail on its own commit (CI run
-    # #299). So: every day must be PRESENT, past (finished) days must match exactly, and
-    # today only has to be present — tomorrow it becomes a past day and is enforced exactly.
-    today = datetime.datetime.now(BERN).strftime('%Y-%m-%d')
+    # Days IN MOTION are exempt from exact matching (they must still be PRESENT): the hook
+    # writes hours BEFORE the commit exists, CI recomputes WITH it — so the open session's day
+    # legitimately differs on every push. That day is the session-start day (which an overnight
+    # session keeps at yesterday), plus calendar today for safety. Every finished day must
+    # match git exactly.
+    in_motion = { datetime.datetime.now(BERN).strftime('%Y-%m-%d'), _open_session_day() }
     for f in files:
         have = parse_hours(open(f, encoding='utf-8').read())
         missing = [d for d in data if d not in have]
-        wrong = [d for d in data if d in have and d != today and abs(have[d] - data[d]) > 0.05]
+        wrong = [d for d in data if d in have and d not in in_motion and abs(have[d] - data[d]) > 0.05]
         if missing or wrong:
             problems.append(f'{os.path.basename(f)}: missing {missing or "-"}, wrong {wrong or "-"}')
     if problems:
