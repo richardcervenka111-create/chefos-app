@@ -270,6 +270,15 @@ window.__BUILD__ = '__BUILD_VERSION__';
   .home-tile{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
     aspect-ratio: 1;
+    /* min-width:0 is REQUIRED with aspect-ratio in a grid (Richard, 22.7. — the bug he finally
+       pinned to "only in the classic theme"): a grid item defaults to min-width:auto = its
+       min-content width, and iOS Safari transfers the aspect-ratio through that minimum, so the
+       square tiles refused to shrink to the 1fr track and the whole Recipes shelf grid collapsed
+       from 3 columns to 2 big ones (with the 3rd column — Company Recipes — pushed off-screen) on
+       the phone, while desktop and the theme-new tiles were fine. theme-new only escaped it because
+       its tiles set overflow:hidden, which also forces the automatic minimum to 0. Chromium doesn't
+       reproduce it; iOS Safari does. This one line fixes it for every theme. */
+    min-width: 0;
     background: var(--paper-raised);
     border: 1px solid var(--rule);
     border-radius: 14px;
@@ -12675,26 +12684,7 @@ const VIEW_REOPENERS = {
   friendsRecipesView: ()=>showChefFriends(),
   teamInviteView: ()=>showTeamInvite(),
 };
-/* Force any active iOS Safari zoom back to 1.0 (Richard, 22.7. — the Recipes shelf picker kept
-   rendering pre-zoomed to 2 big columns on a single, non-double tap from Home in Company mode; the
-   root trigger wasn't pinned down, but the SYMPTOM is a live browser zoom > 1, and this is the
-   standard, safe way to force it back regardless of cause). Momentarily tightening the viewport's
-   maximum-scale snaps any current zoom to 1.0 immediately (no animation); restoring the original
-   content right after keeps pinch-zoom available for accessibility going forward — this is a
-   one-tick correction, not a permanent lock. Runs on EVERY screen change (hideAllViews fires on
-   every navigation in this app), so a zoom can never survive a screen change. */
-function _resetIOSZoom(){
-  const vp = document.querySelector('meta[name="viewport"]');
-  if(!vp) return;
-  const original = vp.getAttribute('content');
-  if(!original || original.indexOf('maximum-scale') !== -1) return;
-  vp.setAttribute('content', original + ', maximum-scale=1.0');
-  requestAnimationFrame(()=>{ vp.setAttribute('content', original); });
-}
-document.addEventListener('DOMContentLoaded', _resetIOSZoom);
-
 function hideAllViews(){
-  _resetIOSZoom();
   // Close any open tutorial when switching screens (Richard, 20.7. — bug: he was on HACCP but
   // saw the Ingredients tutorial). The per-screen guides auto-open on a screen's first visit,
   // but navigating away (the top-bar ‹ / Home buttons sit above the bottom-sheet tutorial and

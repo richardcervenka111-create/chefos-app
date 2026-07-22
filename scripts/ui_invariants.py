@@ -352,6 +352,30 @@ def check_input_font_size(html):
         passes.append('ios-zoom: app-wide >=16px input baseline present.')
 
 
+# ---------------- 11. .home-tile must not collapse the grid on iOS Safari (aspect-ratio + min-width)
+def check_home_tile_min_width(html):
+    # Richard, 22.7. — the recipe shelf grid dropped from 3 columns to 2 big ones on his iPhone (only
+    # in the classic theme), pushing the 3rd column (Company Recipes) off-screen. Cause: .home-tile
+    # has aspect-ratio:1 in a grid, and a grid item's default min-width:auto lets iOS Safari transfer
+    # the aspect ratio through the minimum, so the square tile refuses to shrink to the 1fr track.
+    # min-width:0 (or overflow:hidden, which theme-new happened to have) forces the automatic minimum
+    # to 0. Guard the base .home-tile carries the escape hatch so the grid can't collapse again.
+    m = re.search(r'(?<!theme-new )\.home-tile\{(.*?)\}', html, re.S)
+    if not m:
+        failures.append('home-tile: could not find the base .home-tile rule to verify.')
+        return
+    body = m.group(1)
+    if 'aspect-ratio' not in body:
+        passes.append('home-tile: no aspect-ratio on the base tile — grid can\'t collapse this way.')
+        return
+    if re.search(r'min-width:\s*0', body) or re.search(r'overflow:\s*hidden', body):
+        passes.append('home-tile: aspect-ratio tile has min-width:0/overflow:hidden — iOS grid stays 3-col.')
+    else:
+        failures.append('home-tile: .home-tile has aspect-ratio but no min-width:0 (or overflow:hidden) '
+                        '— iOS Safari will collapse the shelf/home grid from 3 columns to 2 and push the '
+                        'last column off-screen.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -362,6 +386,7 @@ def main():
     check_ai_photo_gate(html)
     check_remove_photo(html)
     check_input_font_size(html)
+    check_home_tile_min_width(html)
     if os.path.exists(DB169):
         check_company_admin_claim(read(DB169))
     else:
