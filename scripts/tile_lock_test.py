@@ -232,16 +232,29 @@ def check_recipes(page, ctx):
 
 
 def check_admin(page, ctx):
-    """Locked 22.7.2026 (Richard: "môžme dlaždicu admin zamknúť"). The Admin hub OPENS for an admin
-    and renders its function grid — read-only. Deliberately NO company creation / role grants /
-    deletes here (they mutate real data on every gate run); this guards that the admin hub itself
-    doesn't break. Runs as the admin QA account — a non-admin has no Admin tile, so this can only
-    run signed in as an admin (see TILE_ACCOUNT)."""
+    """Locked 22.7.2026 (Richard: lock it "ako mám ja na icloud účte (main admin)"). The FULL
+    super-admin hub — the view Richard has — OPENS and works, READ-ONLY. Signs in as the super-admin
+    QA account (SAUTERO_QA_MAIN, is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the
+    super-admin-only functions (Admin Directory, Feedback, Error Logs, Internal Docs) and that Admin
+    Directory actually opens and lists people. Deliberately NO company creation / role grants /
+    deletes — those mutate real data on every gate run; the docs/feedback/error-logs pipelines keep
+    working exactly as before because this only READS."""
     page.locator('.home-tile', has_text='Admin').first.click(timeout=8000)
     page.wait_for_selector('#adminView', state='visible', timeout=15000)
     dismiss_tutorials(page, 'after opening Admin')
-    n = page.evaluate("() => { const g = document.getElementById('adminGrid'); return g ? g.children.length : -1; }")
-    assert n > 0, f'the Admin hub opened but rendered {n} function tile(s) — an admin should see at least one'
+    grid = page.evaluate("() => (document.getElementById('adminGrid') || {}).innerText || ''")
+    for label in ['Admin Directory', 'Feedback', 'Error Logs', 'Internal Docs']:
+        assert label in grid, (
+            f"the Admin hub is missing the super-admin function '{label}' — the QA account isn't the "
+            f"platform super-admin (is_admin). Grant SAUTERO_QA_MAIN is_admin=true, or the lock only "
+            f"covers the company-admin view.")
+    # Admin Directory actually opens and lists people (read-only — no edits).
+    page.evaluate("() => showAdminDirectory()")
+    page.wait_for_selector('#adminDirectoryView', state='visible', timeout=10000)
+    controls = page.evaluate(
+        "() => { const v = document.getElementById('adminDirectoryView');"
+        " return v ? v.querySelectorAll('input, button, .task-text, li, .admin-person').length : 0; }")
+    assert controls > 0, 'Admin Directory opened but rendered no people/controls'
 
 
 CHECKS = {
@@ -256,7 +269,9 @@ CHECKS = {
 # admin view of the hub.
 DEFAULT_ACCOUNT = ('SAUTERO_QA_EMAIL', 'SAUTERO_QA_PASSWORD')
 TILE_ACCOUNT = {
-    'admin': ('SAUTERO_QA_ADMIN_EMAIL', 'SAUTERO_QA_ADMIN_PASSWORD'),
+    # admin needs the SUPER-ADMIN QA account (SAUTERO_QA_MAIN, is_admin=true) so the test sees
+    # Richard's full main-admin hub (Admin Directory / Feedback / Error Logs are is_admin-only).
+    'admin': ('SAUTERO_QA_MAIN_EMAIL', 'SAUTERO_QA_MAIN_PASSWORD'),
 }
 # ---------------------------------------------------------------------------
 
