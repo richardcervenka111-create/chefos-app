@@ -124,24 +124,24 @@ function toggleLang(){
    dates are honest estimates and say so in the item note. ---------- */
 const PROJECT_START = '2026-07-08';
 const SPEND_RATE = 45;
-const WORK_HOURS = { '2026-07-08':8.0 /*odhad*/, '2026-07-09':8.0 /*odhad*/, '2026-07-10':8.0 /*odhad*/, '2026-07-11':8.0 /*odhad*/, '2026-07-12':8.0 /*odhad*/, '2026-07-13':7.7, '2026-07-14':7.4, '2026-07-15':11.6, '2026-07-16':14.8, '2026-07-17':6.4, '2026-07-18':12.4, '2026-07-19':3.9, '2026-07-20':17.3, '2026-07-21':11.4, '2026-07-22':2.7 };
-/* Founder time is COMPUTED from WORK_HOURS (which work_hours.py rewrites from git on every
-   commit) — the label/amount/total can never drift from the История hours again (22.7. fix:
-   the hand-written "120,0 h" and "~CHF 4 976" had gone stale vs the live 126.5 h). */
+const WORK_HOURS = { '2026-07-08':6.1, '2026-07-09':4.7, '2026-07-10':5.6, '2026-07-11':0.2, '2026-07-12':16.3, '2026-07-13':2.6, '2026-07-14':11.0, '2026-07-15':12.7, '2026-07-16':17.0, '2026-07-17':7.4, '2026-07-18':13.9, '2026-07-19':5.0, '2026-07-20':17.6, '2026-07-21':11.4, '2026-07-22':3.0 };
+/* Founder time is COMPUTED from WORK_HOURS, which work_hours.py derives from the REAL Claude Code
+   session logs — every second the app was open on this project — on every commit and freezes into
+   scripts/work_hours_data.json. No estimates, no manual upkeep: the label/amount/total can never
+   drift from the История hours (Richard, 22.7.: "všetok čas pri projekte, vždy ber dáta z toho"). */
 const FOUNDER_H = Object.values(WORK_HOURS).reduce((a,h)=>a+h,0);
-const FOUNDER_MEASURED_H = FOUNDER_H - 40;  // minus the ~8h/day pre-git estimates (8.-12.7.)
 const FOUNDER_CHF = Math.round(FOUNDER_H * SPEND_RATE);
 const fmtHsk = h => h.toFixed(1).replace('.', ',');
 const fmtChf = v => v.toLocaleString('de-CH');
 const SPEND_ITEMS = [
   { key:'time', color:'#8B93FF',
     sk:`⏱️ Čas zakladateľa — ${fmtHsk(FOUNDER_H)} h × 45 CHF/h`, en:`⏱️ Founder time — ${FOUNDER_H.toFixed(1)} h × CHF 45/h`,
-    meta_sk:`${fmtHsk(FOUNDER_MEASURED_H)} h presne z git histórie (od 13.7.) + ~40 h odhad za 8.–12.7.; počíta sa živo z merača hodín, ručne sa neudržiava. Hodnota času, nie hotovosť.`,
-    meta_en:`${FOUNDER_MEASURED_H.toFixed(1)} h measured from git history (since Jul 13) + ~40 h estimate for Jul 8–12; computed live from the hours meter, never hand-maintained. Value of time, not cash.`,
+    meta_sk:`Celý reálny čas pri projekte — každá sekunda, keď bola Claude Code appka otvorená — z Claude Code session logov (od 8.7.); počíta sa živo, ručne sa neudržiava. Hodnota času, nie hotovosť.`,
+    meta_en:`All the real time on the project — every second the Claude Code app was open — from the Claude Code session logs (since Jul 8); computed live, never hand-maintained. Value of time, not cash.`,
     amount:`~CHF ${fmtChf(FOUNDER_CHF)}`,
     events: Object.entries(WORK_HOURS).map(([d,h])=>({ date:d, chf: h*SPEND_RATE })),
-    note_sk:'Denné hodiny × 45 CHF. Dni 8.–12.7. sú odhad ~8 h/deň (pred gitom), od 13.7. presne z git histórie.',
-    note_en:'Daily hours × CHF 45. Jul 8–12 are ~8 h/day estimates (pre-git); measured from git history since Jul 13.' },
+    note_sk:'Denné hodiny × 45 CHF. Odvodené z reálnych Claude Code session logov (aktívne okno appky; prestávky nad 30 min sa nepočítajú), nie odhad.',
+    note_en:'Daily hours × CHF 45. Derived from the real Claude Code session logs (the active app window; breaks over 30 min are not counted), not an estimate.' },
   { key:'api', color:'var(--accent)',
     sk:'API kredity + Claude predplatné', en:'API credits + Claude subscriptions',
     meta_sk:'8.7.–14.7.2026, self-reported (~$45 kredity+Pro, $5 dobitie, $80 ďalšie predplatné)',

@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0   # work_hours --check derives hours from git log — it needs the FULL
-                           # history, not the default shallow (1-commit) clone, or it computes
-                           # wrong hours and the guard becomes meaningless. (Found 21.7 answering
-                           # "how do we know the robots have current data".)
+        # work_hours --check now validates the docs against the committed snapshot
+        # (scripts/work_hours_data.json, derived from the local Claude Code session logs on
+        # --write) — it no longer reads git log, so the default shallow clone is fine.
       - name: Python lint (pyflakes — catches undefined names before the Playwright robots do)
         run: |
           pip3 install --quiet pyflakes
@@ -33,7 +31,7 @@ jobs:
         run: node scripts/calc_unit_test.js
       - name: Internal-Docs inline JS parses (the class that blanked Poznámky)
         run: python3 scripts/docs_js_check.py
-      - name: Worked-hours freshness (WORK_HOURS in docs must match git — no missing days)
+      - name: Worked-hours consistency (WORK_HOURS in docs must match the committed session-log snapshot)
         run: python3 scripts/work_hours.py --check
       - name: Every Internal Doc carries a date stamp (docs_autofix guard)
         run: python3 scripts/docs_autofix.py --check

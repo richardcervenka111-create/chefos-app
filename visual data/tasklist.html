@@ -218,8 +218,8 @@
 <details class="group" open id="chartsSection">
   <summary><span data-sk="📊 Grafy" data-en="📊 Charts"></span><span class="count" data-sk="tempo deň po dni + stav funkcií v čase" data-en="day-by-day pace + feature status over time"></span></summary>
   <div class="group-body">
-    <!-- Work-hours meter (Richard, 17.7.) — real hours from git commit sessions (scripts/
-         work_hours.py), pre-git days as flagged estimates. Updated with every doc-sync. -->
+    <!-- Work-hours meter (Richard, 17.7.; 22.7. rebuilt) — real hours from the Claude Code session
+         logs (scripts/work_hours.py, every second the app was open), no estimates. Auto-updated. -->
     <div class="chart-card" id="workHoursCard"></div>
     <div class="chart-card">
       <h3 class="sub" data-sk="Hotové tásky za deň (+ odpracované hodiny) — klikni na stĺpec a otvorí sa ten deň v časovej osi" data-en="Tasks shipped per day (+ hours worked) — click a bar to open that day in the timeline"></h3>
@@ -228,7 +228,7 @@
     <div class="chart-card">
       <h3 class="sub" data-sk="Funkcie v čase — funkčné / čaká na test / naplánované / spolu" data-en="Features over time — working / awaiting test / planned / total"></h3>
       <div id="featuresOverTimeChart" class="chart-scroll"></div>
-      <p class="chart-note" data-sk="Reálne zaznamenané dáta od 16. 7. 2026 (16. 7. spätne dohľadaný z git histórie, od 17. 7. denné záznamy) — stĺpce pred 16. 7. sú odhad z denníka práce." data-en="Real recorded data since Jul 16, 2026 (Jul 16 recovered from git history, daily records since Jul 17) — bars before Jul 16 are an estimate from the work log."></p>
+      <p class="chart-note" data-sk="Reálny čas z Claude Code session logov — každá sekunda, keď bola appka otvorená (aktívne okno; prestávky nad 30 min sa nepočítajú), od 8. 7. 2026. Žiadne odhady." data-en="Real time from the Claude Code session logs — every second the app was open (the active window; breaks over 30 min are not counted), since Jul 8, 2026. No estimates."></p>
     </div>
   </div>
 </details>
@@ -965,11 +965,11 @@ const FEATURE_COUNT_HISTORY = [
   { date:'2026-07-21', ok:89, test:24, plan:13 },  // measured from the live feature map (plan = plan 8 + build 5)
   { date:'2026-07-22', ok:93, test:24, plan:13 },  // auto-recorded from the live feature map
 ];
-/* Hours worked per day (Richard, 17.7.) — measured from git commit sessions by
-   scripts/work_hours.py (run it and paste its output here on every doc-sync). Days before
-   13.7. predate git, so they're documented-day-log ESTIMATES, always shown with ~. */
-const WORK_HOURS = { '2026-07-08':8.0 /*odhad*/, '2026-07-09':8.0 /*odhad*/, '2026-07-10':8.0 /*odhad*/, '2026-07-11':8.0 /*odhad*/, '2026-07-12':8.0 /*odhad*/, '2026-07-13':7.7, '2026-07-14':7.4, '2026-07-15':11.6, '2026-07-16':14.8, '2026-07-17':6.4, '2026-07-18':12.4, '2026-07-19':3.9, '2026-07-20':17.3, '2026-07-21':11.4, '2026-07-22':2.7 };
-const WORK_HOURS_MEASURED_FROM = '2026-07-13';
+/* Hours worked per day (Richard, 17.7.; 22.7. rebuilt) — the REAL time the Claude Code app was
+   open on this project, derived from the session transcripts by scripts/work_hours.py and frozen
+   into scripts/work_hours_data.json. Auto-written on every commit; no estimates, no manual paste. */
+const WORK_HOURS = { '2026-07-08':6.1, '2026-07-09':4.7, '2026-07-10':5.6, '2026-07-11':0.2, '2026-07-12':16.3, '2026-07-13':2.6, '2026-07-14':11.0, '2026-07-15':12.7, '2026-07-16':17.0, '2026-07-17':7.4, '2026-07-18':13.9, '2026-07-19':5.0, '2026-07-20':17.6, '2026-07-21':11.4, '2026-07-22':3.0 };
+const WORK_HOURS_MEASURED_FROM = '2026-07-08';
 function isEstimatedHours(d){ return d < WORK_HOURS_MEASURED_FROM; }
 function renderWorkHours(){
   const el = document.getElementById('workHoursCard');

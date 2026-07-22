@@ -19,10 +19,12 @@ if command -v node >/dev/null 2>&1; then
 else
   echo "pre-commit: node not found — skipping calc unit tests locally (CI still runs them)."
 fi
-# Worked hours come from git (the real work trail) — rewrite the WORK_HOURS block in every
-# source doc so it can never drift or go stale (the 20.7/21.7-missing incident, 21.7.).
+# Worked hours = the REAL time the Claude Code app was open on this project (Richard, 22.7.:
+# "všetok čas pri projekte, vždy ber dáta z toho"). work_hours.py derives them from the local
+# session transcripts, freezes them into scripts/work_hours_data.json (the CI-visible snapshot),
+# and rewrites the WORK_HOURS block in every source doc so it can never drift or go stale.
 python3 scripts/work_hours.py --write
-git add "visual data/costs.html" "visual data/tasklist.html" 2>/dev/null || true
+git add scripts/work_hours_data.json "visual data/costs.html" "visual data/tasklist.html" 2>/dev/null || true
 # Everything-that-happened, straight from git commit subjects into an Internal Doc (Richard,
 # 22.7. — the docs-QA robots only check RENDERING, so nothing guaranteed the CONTENT of what we
 # did got written down; he ran the robot and the docs weren't filled in). This closes that: the

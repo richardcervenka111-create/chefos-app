@@ -1,75 +1,130 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Sautero work-hours meter (Richard, 17.7.2026: "pridaj presný počet hodín koľko sme zatiaľ
-pracovali a odteraz tento čas zaznamenávaj").
+"""Sautero work-hours meter.
 
-Derives real working time from git history — commits are the project's actual work trail.
-Heuristic (standard "git hours" approach): consecutive commits ≤ 60 min apart form one
-session; each session counts its span + 20 min lead-in for the work before the first commit.
-Times in Europe/Zurich (Bern).
+Richard, 22.7.2026: the hours must be ALL the real time spent on the project — every second the
+Claude Code app is open — taken from the ACTUAL data, not an estimate around git commits.
 
-Git starts 2026-07-13 (engineering-discipline day). Days 8.–12.7. predate git, so they carry
-an explicit ESTIMATE from the documented day logs (~8 h/day of shipped work) — always shown
-with "~", never presented as measured.
+SOURCE OF TRUTH: the Claude Code session transcripts (~/.claude/projects/<proj>/*.jsonl). Every
+user / assistant / tool event carries a timestamp; that stream is the real record of when the app
+was open and in use (git commits only mark the moments code shipped — they missed reading,
+planning, testing, discussion). We turn the discrete events into open-time per day with the
+standard active-window model: consecutive events <= IDLE_CAP apart are one continuous open window;
+a longer gap means the app was closed / away and starts a new window. Each window counts
+(last - first) + LEAD (a short lead-in for opening + reading before the first captured event).
+Days are attributed in Europe/Zurich (Bern).
+
+The transcripts live only on the local machine, never in CI. So on --write we FREEZE the computed
+per-day hours into a committed snapshot (scripts/work_hours_data.json) and propagate them into every
+doc that carries `const WORK_HOURS = {...}`. CI (--check) validates the docs against that committed
+snapshot — it never needs the transcripts.
 
 MODES:
-  (no flag)  prints the per-day table + the JS snippet (for humans).
-  --write    git is the single source of truth: rewrites the `const WORK_HOURS = {...}` block in
-             EVERY source doc that carries it (auto-discovered), so the hours can never drift
-             between docs or go stale. Run in the pre-commit hook before build_docs, which then
-             propagates the fresh block into the merged shells.
-  --check    guard: fails (exit 1) if any doc's WORK_HOURS is missing a day git knows about, or
-             disagrees with git. This is what makes "20.7/21.7 hours missing" impossible to ship.
+  (no flag)  print the per-day table (from transcripts if reachable, else the snapshot).
+  --write    recompute from the transcripts (if present) -> refresh the snapshot + every source doc.
+             If the transcripts aren't reachable, keep the committed snapshot and just propagate it
+             (so a machine without the sessions can never wipe the numbers).
+  --check    guard (CI): every doc's WORK_HOURS must match the committed snapshot exactly.
 """
-import subprocess
 import datetime
 import glob
+import json
 import os
 import re
 import sys
 
-GAP, LEAD = 3600, 20 * 60
-BERN = datetime.timezone(datetime.timedelta(hours=2))
-PRE_GIT_ESTIMATE = {  # documented in planning/tasklist day logs, no commit trail — estimates
-    '2026-07-08': 8.0, '2026-07-09': 8.0, '2026-07-10': 8.0,
-    '2026-07-11': 8.0, '2026-07-12': 8.0,
-}
+BERN = datetime.timezone(datetime.timedelta(hours=2))  # Europe/Zurich, summer (the whole project)
+IDLE_CAP = 30 * 60   # a gap longer than this = app was closed/away -> a new open window
+LEAD = 5 * 60        # lead-in per window: opening the app + reading before the first captured event
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCRIPTS = os.path.join(REPO, 'scripts')
+SNAPSHOT = os.path.join(SCRIPTS, 'work_hours_data.json')
+# The Claude Code project store for this project (present only on the local machine, not in CI).
+TRANSCRIPT_DIR = os.path.expanduser('~/.claude/projects/-Applications-FlutterLab-app')
 # Generated shells are rebuilt by build_docs from their sources — never write them directly.
 GENERATED = {'produkt.html', 'plan.html', 'biznis.html', 'znacka.html', 'poznamky.html'}
-MEASURED_FROM = '2026-07-13'
+MEASURED_FROM = '2026-07-08'  # transcripts cover the whole project — every day is now measured
 
 
-def measured_per_day():
-    ts = sorted(int(x) for x in subprocess.check_output(['git', 'log', '--format=%ct']).split())
-    sessions, start, prev = [], ts[0], ts[0]
-    for t in ts[1:]:
-        if t - prev > GAP:
-            sessions.append((start, prev))
-            start = t
-        prev = t
-    sessions.append((start, prev))
+def _event_timestamps():
+    """Every event timestamp across all session transcripts, as sorted unix seconds."""
+    stamps = []
+    for f in glob.glob(os.path.join(TRANSCRIPT_DIR, '*.jsonl')):
+        try:
+            fh = open(f, encoding='utf-8', errors='replace')
+        except OSError:
+            continue
+        with fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    t = json.loads(line).get('timestamp')
+                except Exception:
+                    continue
+                if isinstance(t, str):
+                    try:
+                        stamps.append(datetime.datetime.fromisoformat(t.replace('Z', '+00:00')).timestamp())
+                    except ValueError:
+                        pass
+    return sorted(set(stamps))
+
+
+def from_transcripts():
+    """Per-day open-hours from the transcript event stream (the active-window model)."""
+    stamps = _event_timestamps()
+    if not stamps:
+        return {}
     per_day = {}
-    for s, e in sessions:
-        d = datetime.datetime.fromtimestamp(s, BERN).strftime('%Y-%m-%d')
-        per_day[d] = per_day.get(d, 0) + (e - s) + LEAD
-    return {d: round(v / 3600, 1) for d, v in per_day.items()}
+
+    def flush(win_start, win_end):
+        d = datetime.datetime.fromtimestamp(win_start, BERN).strftime('%Y-%m-%d')
+        per_day[d] = per_day.get(d, 0) + (win_end - win_start) + LEAD
+
+    wstart = prev = stamps[0]
+    for t in stamps[1:]:
+        if t - prev > IDLE_CAP:
+            flush(wstart, prev)
+            wstart = t
+        prev = t
+    flush(wstart, prev)
+    return {d: round(v / 3600, 1) for d, v in sorted(per_day.items())}
 
 
-def full_per_day():
-    """Estimates (pre-git) + measured (git), one sorted dict — the single source of truth."""
-    measured = measured_per_day()
-    out = {}
-    for d in sorted(set(list(PRE_GIT_ESTIMATE) + list(measured))):
-        out[d] = measured[d] if d in measured else PRE_GIT_ESTIMATE[d]
-    return out, measured
+def load_snapshot():
+    try:
+        return json.load(open(SNAPSHOT, encoding='utf-8')).get('days', {})
+    except (OSError, ValueError):
+        return {}
 
 
-def render_block(data, measured):
-    parts = []
-    for d, h in data.items():
-        parts.append(f"'{d}':{h}" + ('' if d in measured else ' /*odhad*/'))
-    return 'const WORK_HOURS = { ' + ', '.join(parts) + ' };'
+def save_snapshot(days):
+    payload = {
+        'source': 'claude-code-session-transcripts',
+        'model': f'active windows · idle_cap={IDLE_CAP // 60}min · lead={LEAD // 60}min · Europe/Zurich',
+        'generated': datetime.datetime.now(BERN).strftime('%Y-%m-%d %H:%M'),
+        'note': 'Every second the Claude Code app is open, derived from real session logs. Regenerated by work_hours.py --write; the docs are validated against this by --check.',
+        'days': days,
+    }
+    with open(SNAPSHOT, 'w', encoding='utf-8') as fh:
+        json.dump(payload, fh, indent=2, ensure_ascii=False)
+        fh.write('\n')
+
+
+def current_days():
+    """Transcript-derived if the sessions are reachable, else the committed snapshot. The second
+    value is True when it came fresh from the transcripts."""
+    if os.path.isdir(TRANSCRIPT_DIR):
+        days = from_transcripts()
+        if days:
+            return days, True
+    return load_snapshot(), False
+
+
+def render_block(days):
+    return 'const WORK_HOURS = { ' + ', '.join(f"'{d}':{h}" for d, h in sorted(days.items())) + ' };'
 
 
 def source_files():
@@ -90,8 +145,13 @@ def parse_hours(text):
 
 
 def cmd_write():
-    data, measured = full_per_day()
-    block = render_block(data, measured)
+    days, from_tx = current_days()
+    if not days:
+        print('work_hours: no data (no transcripts and no snapshot) — nothing written.')
+        return 0
+    if from_tx:
+        save_snapshot(days)
+    block = render_block(days)
     changed = []
     for f in source_files():
         text = open(f, encoding='utf-8').read()
@@ -101,46 +161,35 @@ def cmd_write():
         if new != text:
             open(f, 'w', encoding='utf-8').write(new)
             changed.append(os.path.basename(f))
-    print(f'work_hours: wrote git-derived WORK_HOURS into {len(changed)} doc(s): {", ".join(changed) or "(all already current)"}')
+    src = 'Claude Code sessions' if from_tx else 'committed snapshot'
+    print(f'work_hours: wrote WORK_HOURS ({src}) into {len(changed)} doc(s): '
+          f'{", ".join(changed) or "(all already current)"}')
     return 0
 
 
-def _open_session_day():
-    """The day whose hours are still IN MOTION: the attribution day (session-start date) of the
-    session containing the newest commit. An overnight session that started yesterday evening
-    keeps growing YESTERDAY's number with every commit after midnight — exempting only calendar
-    'today' made the guard fail all night on '21.7 wrong' (CI runs #306-#311, 22.7.)."""
-    ts = sorted(int(x) for x in subprocess.check_output(['git', 'log', '--format=%ct']).split())
-    start = ts[0]
-    for prev, t in zip(ts, ts[1:]):
-        if t - prev > GAP:
-            start = t
-    return datetime.datetime.fromtimestamp(start, BERN).strftime('%Y-%m-%d')
-
-
 def cmd_check():
-    data, _ = full_per_day()
+    snap = load_snapshot()
+    if not snap:
+        print('work_hours CHECK FAILED — scripts/work_hours_data.json is missing or empty. '
+              'Run: python3 scripts/work_hours.py --write')
+        return 1
     problems = []
     files = source_files()
-    # Days IN MOTION are exempt from exact matching (they must still be PRESENT): the hook
-    # writes hours BEFORE the commit exists, CI recomputes WITH it — so the open session's day
-    # legitimately differs on every push. That day is the session-start day (which an overnight
-    # session keeps at yesterday), plus calendar today for safety. Every finished day must
-    # match git exactly.
-    in_motion = { datetime.datetime.now(BERN).strftime('%Y-%m-%d'), _open_session_day() }
     for f in files:
         have = parse_hours(open(f, encoding='utf-8').read())
-        missing = [d for d in data if d not in have]
-        wrong = [d for d in data if d in have and d not in in_motion and abs(have[d] - data[d]) > 0.05]
-        if missing or wrong:
-            problems.append(f'{os.path.basename(f)}: missing {missing or "-"}, wrong {wrong or "-"}')
+        missing = [d for d in snap if d not in have]
+        wrong = [d for d in snap if d in have and abs(have[d] - snap[d]) > 0.05]
+        extra = [d for d in have if d not in snap]
+        if missing or wrong or extra:
+            problems.append(f'{os.path.basename(f)}: missing {missing or "-"}, '
+                            f'wrong {wrong or "-"}, extra {extra or "-"}')
     if problems:
-        print('work_hours CHECK FAILED — WORK_HOURS is stale/inconsistent with git:')
+        print('work_hours CHECK FAILED — a doc\'s WORK_HOURS disagrees with the committed snapshot:')
         for p in problems:
             print('  ✗ ' + p)
         print('  Fix: python3 scripts/work_hours.py --write  (then rebuild docs).')
         return 1
-    print(f'work_hours: OK — {len(files)} doc(s) match git through {max(data)}.')
+    print(f'work_hours: OK — {len(files)} doc(s) match the snapshot through {max(snap)}.')
     return 0
 
 
@@ -149,13 +198,13 @@ def main():
         return cmd_write()
     if '--check' in sys.argv:
         return cmd_check()
-    data, measured = full_per_day()
-    total_measured = round(sum(measured.values()), 1)
-    total_est = round(sum(PRE_GIT_ESTIMATE.values()), 1)
-    print(f'measured (git, since 13.7.): {total_measured} h · pre-git estimate: ~{total_est} h · total: ~{round(total_measured + total_est, 1)} h')
-    for d, h in data.items():
-        print(f'{d}  {h} h  ' + ('(git)' if d in measured else '(estimate, pre-git)'))
-    print('\n' + render_block(data, measured))
+    days, from_tx = current_days()
+    total = round(sum(days.values()), 1)
+    print(f"source: {'Claude Code session transcripts' if from_tx else 'committed snapshot'} "
+          f"· total: {total} h")
+    for d, h in sorted(days.items()):
+        print(f'{d}  {h} h')
+    print('\n' + render_block(days))
     print(f"const WORK_HOURS_MEASURED_FROM = '{MEASURED_FROM}';")
 
 
