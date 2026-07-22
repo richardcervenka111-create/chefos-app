@@ -16358,6 +16358,7 @@ function ingredientInfoHtml(rowName){
   const displayName = ing ? ing.name : rowName;
   // Stored details (only when the ingredient is in the kitchen's list) — unchanged.
   const detailRows = ing ? `
+    ${ing.flavour ? `<div class="ingredient-info-row"><div class="label">Flavour</div><div class="value">${_genEsc(ing.flavour)}</div></div>` : ''}
     ${ing.origin ? `<div class="ingredient-info-row"><div class="label">Origin</div><div class="value">${_genEsc(ing.origin)}</div></div>` : ''}
     ${ing.season ? `<div class="ingredient-info-row"><div class="label">Season</div><div class="value">${_genEsc(ing.season)}</div></div>` : ''}
     ${ing.price != null ? `<div class="ingredient-info-row"><div class="label">Price</div><div class="value">${formatMoney(ing.price)} / ${_genEsc(ing.unit)}</div></div>` : ''}
