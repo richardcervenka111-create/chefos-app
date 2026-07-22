@@ -179,19 +179,27 @@ def check_recipes(page, ctx):
     page.on('dialog', lambda d: d.accept())
 
     page.locator('.home-tile', has_text='Recipes').first.click(timeout=8000)
-    # readiness: recipes loaded AND the list view is the one on screen
+    # readiness: opening the tile loads the recipe data (the tile lands on the shelf PICKER, not
+    # the list itself — verified 22.7.). Wait for the data, then enter the list deterministically
+    # via showList() rather than depending on which shelf screen the picker shows.
     page.wait_for_function("() => typeof allRecipes === 'function' && allRecipes().length > 0", timeout=20000)
+    page.evaluate("() => showList()")
     page.wait_for_function(
         "() => document.getElementById('listView') && "
         "getComputedStyle(document.getElementById('listView')).display === 'block'", timeout=10000)
     dismiss_tutorials(page, 'after opening Recipes')
 
-    # 1) the list actually rendered rows (not stuck empty)
-    rendered = page.evaluate(
-        "() => { const c = document.getElementById('listContainer');"
-        " if(!c) return { n:0, empty:true };"
-        " return { n: c.children.length, empty: !!c.querySelector('.empty-state') }; }")
-    assert rendered['n'] > 0 and not rendered['empty'], f'Recipes list rendered nothing usable: {rendered}'
+    # 1) the list actually renders rows. Check the SHARED-LIBRARY shelf ('chefos') — it's the one
+    #    shelf guaranteed non-empty for every account (the default 'mine' shelf is legitimately
+    #    empty on an account with no personal recipes / in company mode, so it can't be the signal).
+    rendered = page.evaluate("""() => {
+        recipeSourceFilter = 'chefos';
+        if (typeof activeCategory !== 'undefined') activeCategory = 'All';
+        renderList();
+        const c = document.getElementById('listContainer');
+        if (!c) return { n: 0, empty: true };
+        return { n: c.children.length, empty: !!c.querySelector('.empty-state') }; }""")
+    assert rendered['n'] > 0 and not rendered['empty'], f'the shared-library shelf rendered nothing usable: {rendered}'
 
     # 2) a recipe opens at its top, with its title
     opened = page.evaluate("""() => {
