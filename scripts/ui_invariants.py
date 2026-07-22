@@ -28,6 +28,17 @@ These are SOURCE-level checks: fast, need no browser and no secrets, so they run
      admin lock can't cover these (no QA account may see them, by design — Richard, "strážiť
      zvonku"), so this guards both their deletion and any loosening of that private gate.
 
+  7. AI dish photo is restricted to the 4 internal accounts only (Richard's 5 points, #2) — the
+     exact-4 allowlist, recipe_photo_gen kept dark, every ✨ generate button flag-gated, and the
+     📷 Add-photo fallback always present for everyone else.
+
+  8. Recipe remove-photo stays wired — removeRecipePhoto() defined and referenced at >=2 sites
+     (recipe detail + edit form), so the Remove option can't silently vanish from either.
+
+  9. Add-Company invite still grants the company-admin ROLE (db/169) — the guard honours the
+     app.grant_company_admin GUC and claim_company_admin sets it, so an invitee joins as company
+     admin, not a plain member (the 22.7. bug).
+
 Run: python3 scripts/ui_invariants.py    (exit 1 on any failure)
 Adding a new UI guard here when we fix a UI bug is part of the Engineering Standard (never let a
 fixed UI bug regress silently).
@@ -39,6 +50,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APP = os.path.join(ROOT, 'app', 'index.html')
 GEN_IMAGE = os.path.join(ROOT, 'supabase', 'functions', 'generate-image', 'index.ts')
+DB169 = os.path.join(ROOT, 'db', '169_fix_company_admin_claim_role.sql')
 
 # A pill is a short bar; its rounded cap can't curve in by more than ~half its height. If the
 # right padding clears this, a right-aligned glyph is always drawn in the flat zone.
@@ -235,6 +247,90 @@ def check_admin_private_tiles(html):
             passes.append(f"admin-tiles: '{key}' present, {handler}() defined, still icloud-only.")
 
 
+# ------------------------------- 7. AI dish photo is restricted to the 4 internal accounts only
+def check_ai_photo_gate(html):
+    # Richard, 22.7. (his 5 points, #2): AI photo generation must stay available ONLY to the four
+    # internal accounts; EVERY other account gets the plain "Add photo" instead. Guard the whole
+    # gate so it can't silently open to everyone or drop the always-on Add-photo fallback:
+    #   (a) the 4 exact internal emails are the allowlist,
+    #   (b) recipe_photo_gen is DARK (enabled:false) — so only the allowlist (or f.allow) passes,
+    #   (c) every render-site ✨ generateRecipePhoto() button sits behind featureEnabled(...),
+    #   (d) the 📷 addRecipePhoto() button exists and is NOT flag-gated (always available).
+    expected = ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com',
+                'chefos@protonmail.com', 'sautero_android@proton.me']
+    m = re.search(r'FEATURE_FLAG_INTERNAL_ACCOUNTS\s*=\s*\[(.*?)\]', html, re.S)
+    if not m:
+        failures.append('ai-photo: FEATURE_FLAG_INTERNAL_ACCOUNTS list not found.')
+    else:
+        block = m.group(1).lower()
+        missing = [e for e in expected if e not in block]
+        if missing:
+            failures.append(f'ai-photo: internal-accounts allowlist is missing {missing} — AI photo '
+                            f'access must be exactly those 4 accounts.')
+        else:
+            passes.append('ai-photo: AI generation allowlisted to exactly the 4 internal accounts.')
+    if not re.search(r'recipe_photo_gen\s*:\s*\{\s*enabled\s*:\s*false', html):
+        failures.append("ai-photo: recipe_photo_gen is no longer { enabled: false } — the AI photo "
+                        "feature would open to EVERYONE, not just the 4 internal accounts.")
+    else:
+        passes.append('ai-photo: recipe_photo_gen flag stays dark (internal accounts only).')
+    # every render-site generate button is behind the flag — the featureEnabled('recipe_photo_gen')
+    # check may be on the same line (`if(...) html += <button ...>`) or open a block on one of the
+    # preceding lines (`if(...){` then the button). Accept either.
+    lines = html.splitlines()
+    ungated = []
+    for i, ln in enumerate(lines):
+        if 'onclick="generateRecipePhoto()"' not in ln:
+            continue
+        window = '\n'.join(lines[max(0, i - 2):i + 1])
+        if "featureEnabled('recipe_photo_gen')" not in window:
+            ungated.append(i + 1)
+    if ungated:
+        failures.append(f'ai-photo: generateRecipePhoto() button(s) at line(s) {ungated} are NOT '
+                        f'behind featureEnabled(\'recipe_photo_gen\') — AI would show for everyone.')
+    else:
+        passes.append('ai-photo: every ✨ AI-generate button is flag-gated.')
+    if 'onclick="addRecipePhoto()"' not in html:
+        failures.append('ai-photo: the always-on 📷 Add photo button (addRecipePhoto) is missing — '
+                        'non-internal accounts would have no way to add a photo.')
+    else:
+        passes.append('ai-photo: 📷 Add photo is always available (non-internal accounts covered).')
+
+
+# ------------------------------------------------- 8. recipe remove-photo option stays wired up
+def check_remove_photo(html):
+    # Richard, 22.7.: a recipe photo must be removable — from the detail AND from the edit form.
+    # Guard: removeRecipePhoto() is defined and wired at >=2 sites (detail actions + edit form).
+    if 'function removeRecipePhoto(' not in html:
+        failures.append('remove-photo: removeRecipePhoto() is not defined — the Remove-photo option '
+                        'would error on tap.')
+        return
+    sites = html.count('removeRecipePhoto()') - 1  # minus the definition itself
+    if sites < 2:
+        failures.append(f'remove-photo: removeRecipePhoto() is wired at only {sites} button site(s) '
+                        f'(expected >=2: recipe detail + edit form) — the Remove option was dropped '
+                        f'from one of them.')
+    else:
+        passes.append(f'remove-photo: Remove photo wired at {sites} sites (detail + edit form).')
+
+
+# ---------------------------- 9. Add-Company invite grants the company-admin ROLE (db/169 intact)
+def check_company_admin_claim(sql):
+    # Richard, 22.7.: someone added via Add Company joined as a plain MEMBER instead of company
+    # admin, because the db/85 guard blocked claim_company_admin's admin_perms write. db/169 fixed
+    # it with a transaction-local GUC. Guard both halves so the fix can't silently unravel:
+    #   - the guard honours the trusted GUC (current_setting('app.grant_company_admin')),
+    #   - claim_company_admin flips that GUC on before writing admin_perms.
+    if "current_setting('app.grant_company_admin'" not in sql:
+        failures.append("company-admin: db/169 guard no longer checks the app.grant_company_admin "
+                        "GUC — Add-Company invitees would drop back to plain members.")
+    elif "set_config('app.grant_company_admin', 'on', true)" not in sql:
+        failures.append("company-admin: claim_company_admin no longer sets app.grant_company_admin "
+                        "before the admin_perms write — the guard will block the role grant.")
+    else:
+        passes.append('company-admin: Add-Company invite still grants the company-admin role (db/169).')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -242,6 +338,12 @@ def main():
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)
+    check_ai_photo_gate(html)
+    check_remove_photo(html)
+    if os.path.exists(DB169):
+        check_company_admin_claim(read(DB169))
+    else:
+        failures.append('company-admin: db/169_fix_company_admin_claim_role.sql not found.')
     if os.path.exists(GEN_IMAGE):
         check_image_cost_logging(read(GEN_IMAGE))
     else:
