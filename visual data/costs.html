@@ -124,7 +124,7 @@ function toggleLang(){
    dates are honest estimates and say so in the item note. ---------- */
 const PROJECT_START = '2026-07-08';
 const SPEND_RATE = 45;
-const WORK_HOURS = { '2026-07-08':6.1, '2026-07-09':4.7, '2026-07-10':5.6, '2026-07-11':0.2, '2026-07-12':16.3, '2026-07-13':2.6, '2026-07-14':11.0, '2026-07-15':12.7, '2026-07-16':17.0, '2026-07-17':7.4, '2026-07-18':13.9, '2026-07-19':5.0, '2026-07-20':17.6, '2026-07-21':11.4, '2026-07-22':8.7 };
+const WORK_HOURS = { '2026-07-08':6.1, '2026-07-09':4.7, '2026-07-10':5.6, '2026-07-11':0.2, '2026-07-12':16.3, '2026-07-13':2.6, '2026-07-14':11.0, '2026-07-15':12.7, '2026-07-16':17.0, '2026-07-17':7.4, '2026-07-18':13.9, '2026-07-19':5.0, '2026-07-20':17.6, '2026-07-21':11.4, '2026-07-22':9.0 };
 /* Founder time is COMPUTED from WORK_HOURS, which work_hours.py derives from the REAL Claude Code
    session logs — every second the app was open on this project — on every commit and freezes into
    scripts/work_hours_data.json. No estimates, no manual upkeep: the label/amount/total can never
@@ -157,6 +157,14 @@ const SPEND_ITEMS = [
     amount:'CHF 97.73',
     events:[ { date:'2026-07-15', chf:97.73 } ],
     note_sk:'Platba za Claude predplatné, 15.7.2026.', note_en:'Claude subscription payment, Jul 15, 2026.' },
+  { key:'ai_credits_2307', color:'#39C2E0',
+    sk:'AI kredity — Google + Claude účty', en:'AI credits — Google + Claude accounts',
+    meta_sk:'23.7.2026 — Richard dobil kredity na AI funkcie (Google + Claude účty)',
+    meta_en:'Jul 23, 2026 — Richard topped up credits for AI features (Google + Claude accounts)',
+    amount:'CHF 25.00',
+    events:[ { date:'2026-07-23', chf:25 } ],
+    note_sk:'Jednorazové dobitie kreditov na AI funkcie (Google + Claude účty), 23.7.2026.',
+    note_en:'One-off top-up of AI-feature credits (Google + Claude accounts), Jul 23, 2026.' },
   { key:'gamma', color:'#1E7F73',
     sk:'Gamma (prezentačný nástroj)', en:'Gamma (presentation tool)',
     meta_sk:'nahlásené Richardom 17.7.', meta_en:'reported by Richard Jul 17',
