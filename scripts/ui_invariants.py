@@ -376,10 +376,56 @@ def check_home_tile_min_width(html):
                         'last column off-screen.')
 
 
+def check_save_dest_mode_split(html):
+    # Richard, 22.7. (CRITICAL privacy) — the "Save where?" sheet (openScanSaveDestSheet) listed
+    # PERSONAL recipe projects while the account was in COMPANY mode, because _recipeLists is only
+    # refreshed by showRecipesHome() and the sheet mapped it raw. Personal data must never surface in
+    # a company view. Guard two things in openScanSaveDestSheet:
+    #   1. the project options are built through an is_personal / mode filter, not a raw _recipeLists.map
+    #   2. the function reloads recipe_lists with recipeListsModeFilter so a stale wrong-mode list can't leak
+    m = re.search(r'function openScanSaveDestSheet\(mode\)\{(.*?)\n\}', html, re.S)
+    if not m:
+        # async form
+        m = re.search(r'async function openScanSaveDestSheet\(mode\)\{(.*?)\n\}', html, re.S)
+    if not m:
+        failures.append('save-dest: could not find openScanSaveDestSheet to verify the mode split.')
+        return
+    body = m.group(1)
+    has_filter = re.search(r'\.filter\(\s*l\s*=>.*is_personal', body, re.S)
+    has_reload = 'recipeListsModeFilter' in body
+    raw_map = re.search(r'\(_recipeLists\s*\|\|\s*\[\]\)\s*\.map', body)
+    if has_filter and has_reload and not raw_map:
+        passes.append('save-dest: openScanSaveDestSheet reloads + is_personal-filters projects — no cross-mode leak.')
+    else:
+        why = []
+        if not has_filter: why.append('no is_personal .filter on the project options')
+        if not has_reload: why.append('no recipeListsModeFilter reload')
+        if raw_map: why.append('still maps _recipeLists raw (unfiltered)')
+        failures.append('save-dest: openScanSaveDestSheet may leak the other mode\'s recipe projects — '
+                        + '; '.join(why) + '. In company mode this shows PERSONAL projects (privacy leak).')
+
+
+def check_recipe_copy_is_personal(html):
+    # Companion to the sheet guard: when a recipe copy is filed into a project, its is_personal must
+    # follow the current mode, never a hardcoded true. `is_personal: dest === 'company' ? false : true`
+    # filed every company-project copy as personal (Richard, 22.7.).
+    if "? false : true,\n" in html and 'list_id: dest ===' in html:
+        # crude but targeted: the exact buggy ternary paired with a list_id dest line
+        bad = re.search(r"is_personal:\s*dest === 'company' \? false : true", html)
+        if bad:
+            failures.append('recipe-copy: a project-copy insert hardcodes is_personal true '
+                            '(is_personal: dest===\'company\' ? false : true) — in company mode this files '
+                            'the recipe as personal. Derive it from currentAccountType instead.')
+            return
+    passes.append('recipe-copy: project-copy inserts derive is_personal from the current mode.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
     check_save_dest_zindex(html)
+    check_save_dest_mode_split(html)
+    check_recipe_copy_is_personal(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)

@@ -13609,9 +13609,13 @@ async function saveGeneratedRecipe(dests){
   const { data: savedRow, error } = await sb.from('recipes').insert(base).select('id').single();
   if(error){ hideSavingOverlay(); alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   for(const dest of (dests || [])){
+    // A project copy must carry the CURRENT mode's is_personal — in company mode the offered
+    // projects are company projects (is_personal false), so hardcoding true here would file the
+    // recipe as personal and leak/hide it wrongly (Richard, 22.7.). 'company' handled for safety
+    // though the base copy already covers Company Recipes and is never a tickable dest.
     const copy = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
       shared_with_chefos: _recipeAiShare === true,
-      is_personal: dest === 'company' ? false : true,
+      is_personal: dest === 'company' ? false : (currentAccountType === 'personal'),
       list_id: dest === 'company' ? null : dest };
     const { error: ce } = await sb.from('recipes').insert(copy).select().single();
     if(ce){ hideSavingOverlay(); alert('Saved, but a copy to a project failed: ' + ce.message); break; }
@@ -14977,7 +14981,7 @@ async function saveFormBody(){
     for(const dest of _scanSaveDests){
       const copy = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
         shared_with_chefos: _recipeAiShare === true,
-        is_personal: dest === 'company' ? false : true,
+        is_personal: dest === 'company' ? false : (currentAccountType === 'personal'),
         list_id: dest === 'company' ? null : dest };
       const { error: copyErr } = await sb.from('recipes').insert(copy).select().single();
       if(copyErr){ hideSavingOverlay(); alert('Saved, but a project copy failed: ' + copyErr.message); break; }
@@ -22596,7 +22600,7 @@ function menuScanSaveAllTap(){
   _scanSaveDests = null;
   openScanSaveDestSheet('all');
 }
-function openScanSaveDestSheet(mode){
+async function openScanSaveDestSheet(mode){
   _scanDestMode = mode;
   // The ALWAYS-INCLUDED base copy depends on the account mode (Richard, 22.7. — in a company account
   // it correctly saved to Company Recipes but the sheet still said "My Recipes"). Reflect the truth,
@@ -22605,7 +22609,19 @@ function openScanSaveDestSheet(mode){
   const base = currentAccountType === 'company' ? '🏢 Company Recipes' : '📖 My Recipes';
   const note = document.getElementById('scanSaveDestNote');
   if(note) note.textContent = `${base} is always included. Tick anywhere else the recipe should also go:`;
-  const opts = (_recipeLists || []).map(l=>({ value: l.id, label: `${l.icon || '🗂️'} ${l.name}` }));
+  // CRITICAL privacy split (Richard, 22.7. — the sheet listed PERSONAL projects while in COMPANY mode).
+  // _recipeLists is only refreshed by showRecipesHome(), so opening this sheet from the assistant /
+  // scan flow can hand back a stale, wrong-mode list. Reload it fresh with the current-mode filter so
+  // company mode only ever offers company projects and vice-versa. The .filter() below is a belt-and-
+  // suspenders guard: even if the reload fails and _recipeLists is stale, never show the other mode's.
+  try {
+    const { data } = await recipeListsModeFilter(sb.from('recipe_lists').select('*')).order('created_at');
+    if(data) _recipeLists = data;
+  } catch(e){ /* keep whatever we have; the mode filter below still protects privacy */ }
+  const wantPersonal = currentAccountType === 'personal';
+  const opts = (_recipeLists || [])
+    .filter(l => (!!l.is_personal === wantPersonal) && (!wantPersonal || l.created_by === currentUser.id))
+    .map(l=>({ value: l.id, label: `${l.icon || '🗂️'} ${l.name}` }));
   const list = opts.length ? opts.map(o=>`
     <label class="sheet-option" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
       <input type="checkbox" class="scan-dest-cb" value="${o.value}" style="width:20px; height:20px; accent-color:var(--copper);">
