@@ -331,7 +331,7 @@
 
 <h3 class="sub">Recipes</h3>
 <div class='task'><input id='t13' type='checkbox'><label for='t13'><span data-sk="AI info o surovine („i“ → chuť/pôvod/sezóna + odkaz na Wikipédiu)" data-en='AI ingredient info ("i" → flavor/origin/season + Wikipedia link)'></span></label><span class="tag me">JA</span></div>
-<div class='task'><input id='t15' type='checkbox'><label for='t15'><span data-sk="Preusporiadanie kategórií receptov (studená → Ázia/sushi → polievky → omáčky → mäso → dezerty → oleje) + triedenie od najnovších" data-en="Recipe category reorder (cold → Asia/sushi → soups → sauces → meat → desserts → oils) + sort by newest"></span></label><span class="tag me">JA</span></div>
+<div class='task'><input id='t15' type='checkbox' checked><label for='t15'><span data-sk="Preusporiadanie kategórií receptov + triedenie od najnovších" data-en="Recipe category reorder + sort by newest"></span><span class="note" data-sk="✅ Vyriešené (potvrdené Richardom 23.7.): recepty majú prepínač Newest (od najnovších) + filter podľa kategórie a viditeľnosti — poradie zoznamu je OK, samostatná pevná pozostupnosť kategórií sa nestavia." data-en="✅ Resolved (confirmed by Richard 23 Jul): recipes have a Newest sort toggle + category & visibility filters — the list order is fine; a separate fixed category sequence is not being built."></span></label><span class="tag me">JA</span></div>
 
 <h3 class="sub" data-sk="Všeobecné" data-en="General">General</h3>
 <div class='task'><input id='t10' type='checkbox'><label for='t10'><span data-sk="Print Labels hub — fronta + natívny tlačový dialóg (používa vlastné tlačové okno telefónu/iPadu)" data-en="Print Labels hub — queue + native print dialog (uses your phone/iPad's own print sheet)"></span></label><span class="tag me">JA</span></div>
@@ -968,7 +968,7 @@ const FEATURE_COUNT_HISTORY = [
 /* Hours worked per day (Richard, 17.7.; 22.7. rebuilt) — the REAL time the Claude Code app was
    open on this project, derived from the session transcripts by scripts/work_hours.py and frozen
    into scripts/work_hours_data.json. Auto-written on every commit; no estimates, no manual paste. */
-const WORK_HOURS = { '2026-07-08':6.1, '2026-07-09':4.7, '2026-07-10':5.6, '2026-07-11':0.2, '2026-07-12':16.3, '2026-07-13':2.6, '2026-07-14':11.0, '2026-07-15':12.7, '2026-07-16':17.0, '2026-07-17':7.4, '2026-07-18':13.9, '2026-07-19':5.0, '2026-07-20':17.6, '2026-07-21':11.4, '2026-07-22':9.4 };
+const WORK_HOURS = { '2026-07-08':6.1, '2026-07-09':4.7, '2026-07-10':5.6, '2026-07-11':0.2, '2026-07-12':16.3, '2026-07-13':2.6, '2026-07-14':11.0, '2026-07-15':12.7, '2026-07-16':17.0, '2026-07-17':7.4, '2026-07-18':13.9, '2026-07-19':5.0, '2026-07-20':17.6, '2026-07-21':11.4, '2026-07-22':9.5 };
 const WORK_HOURS_MEASURED_FROM = '2026-07-08';
 function isEstimatedHours(d){ return d < WORK_HOURS_MEASURED_FROM; }
 function renderWorkHours(){
