@@ -4218,7 +4218,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">Save where?</div>
-    <p class="sheet-text">📖 My Recipes is always included. Tick anywhere else the recipe should also go:</p>
+    <p class="sheet-text" id="scanSaveDestNote">📖 My Recipes is always included. Tick anywhere else the recipe should also go:</p>
     <div id="scanSaveDestList" style="max-height:40vh; overflow-y:auto; margin:10px 0;"></div>
     <button class="save-btn" style="width:100%;" onclick="confirmScanSaveDest()">Save</button>
     <button class="sheet-cancel" onclick="closeScanSaveDest()">Cancel</button>
@@ -13570,13 +13570,14 @@ async function saveGeneratedRecipe(dests){
     copies++;
   }
   setSyncStatus('saved');
+  const baseLabel = currentAccountType === 'company' ? '🏢 Company Recipes' : '📖 My Recipes';
   const bodyId = g.bodyId, againFn = g.againFn, closeFn = g.closeFn;
   _genRecipe = null;
   await loadAppData();
   const el = document.getElementById(bodyId);
   if(el){
     el.innerHTML = `
-      <p class="sheet-text">✅ Saved to 📖 My Recipes${copies?` + ${copies} more`:''}.</p>
+      <p class="sheet-text">✅ Saved to ${baseLabel}${copies?` + ${copies} more`:''}.</p>
       <button class="save-btn" style="width:100%; margin-bottom:8px;" onclick="${againFn}">Generate another</button>
       <button class="task-status-btn" style="width:100%;" onclick="${closeFn}">Done</button>`;
   }
@@ -22534,17 +22535,20 @@ function menuScanSaveAllTap(){
 }
 function openScanSaveDestSheet(mode){
   _scanDestMode = mode;
-  const opts = [];
-  if(currentAccountType === 'company'){
-    opts.push({ value:'company', label:'🏢 Company Recipes' });
-  }
-  (_recipeLists || []).forEach(l=>{ opts.push({ value: l.id, label: `${l.icon || '🗂️'} ${l.name}` }); });
+  // The ALWAYS-INCLUDED base copy depends on the account mode (Richard, 22.7. — in a company account
+  // it correctly saved to Company Recipes but the sheet still said "My Recipes"). Reflect the truth,
+  // and don't offer that base as a tickable "also" option (it was redundant); the extra picks are the
+  // recipe PROJECTS + a way to make one.
+  const base = currentAccountType === 'company' ? '🏢 Company Recipes' : '📖 My Recipes';
+  const note = document.getElementById('scanSaveDestNote');
+  if(note) note.textContent = `${base} is always included. Tick anywhere else the recipe should also go:`;
+  const opts = (_recipeLists || []).map(l=>({ value: l.id, label: `${l.icon || '🗂️'} ${l.name}` }));
   const list = opts.length ? opts.map(o=>`
     <label class="sheet-option" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
       <input type="checkbox" class="scan-dest-cb" value="${o.value}" style="width:20px; height:20px; accent-color:var(--copper);">
       <span class="sheet-option-title">${o.label}</span>
     </label>
-  `).join('') : `<p class="sheet-text" style="margin:0 0 4px;">No recipe projects yet — create one to also file it somewhere besides 📖 My Recipes.</p>`;
+  `).join('') : `<p class="sheet-text" style="margin:0 0 4px;">No recipe projects yet — create one to also file it somewhere besides ${base}.</p>`;
   // Always give a way to make a destination (Richard, 22.7. — a solo account with no projects had
   // nothing to choose). Creating one returns to the choice; tapping "Add to recipes" again shows it.
   const newBtn = `<button class="task-status-btn" style="width:100%; margin-top:10px;" onclick="closeScanSaveDest(); openNewRecipeProjectPrompt();">＋ New project</button>`;
