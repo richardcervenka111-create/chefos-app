@@ -3130,6 +3130,9 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
       Cancel
     </button>
+    <!-- Visible only when the form holds a menu-scan recipe (Richard, 22.7.): jump back to the
+         generated list without saving — Cancel/Save alone stranded the rest of the batch. -->
+    <button class="back-btn" id="fBackToScanBtn" style="display:none;" onclick="backToMenuScanReview()">📋 Scan results</button>
     <div class="bar-spacer"></div>
     <button class="save-btn" onclick="saveForm()">Save</button>
   </div>
@@ -4146,6 +4149,20 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <button class="sheet-cancel" onclick="skipMenuScanCrop()">Use the whole photo</button>
   </div>
 </div>
+
+<!-- Where to save scanned recipes (Richard, 22.7.): always asked at save — My Recipes is the
+     home copy, checkboxes add copies into recipe projects (and Company Recipes in company
+     mode). Applies to Save all and to a single save from the form. -->
+<div id="scanSaveDestOverlay" class="sheet-overlay" onclick="if(event.target===this) closeScanSaveDest()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Save where?</div>
+    <p class="sheet-text">📖 My Recipes is always included. Tick anywhere else the recipe should also go:</p>
+    <div id="scanSaveDestList" style="max-height:40vh; overflow-y:auto; margin:10px 0;"></div>
+    <button class="save-btn" style="width:100%;" onclick="confirmScanSaveDest()">Save</button>
+    <button class="sheet-cancel" onclick="closeScanSaveDest()">Cancel</button>
+  </div>
+</div>
 <input type="file" id="prepScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handlePrepScanFileSelected(event)">
 <input type="file" id="contractScanInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handleContractScanFileSelected(event)">
 <input type="file" id="scheduleUploadInput" accept="image/*,application/pdf,.md,.markdown,.html,.htm,.txt" style="display:none;" onchange="handleScheduleUploadFileSelected(event)">
@@ -4631,8 +4648,14 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
     <div class="sheet-handle"></div>
     <div class="sheet-title">Menu scan results</div>
     <p class="sheet-text" id="menuScanSummary"></p>
-    <div id="menuScanList" style="max-height:48vh; overflow-y:auto; margin:10px 0;"></div>
-    <button class="save-btn" id="menuScanSaveAllBtn" style="width:100%;" onclick="saveAllMenuScanRecipes()">💾 Save all</button>
+    <div id="menuScanList" style="max-height:42vh; overflow-y:auto; margin:10px 0;"></div>
+    <!-- Rewrite the unsaved recipes at a different detail level (Richard, 22.7.): only the
+         OTHER two options show — picking one regenerates every unsaved recipe (credits again). -->
+    <div id="menuScanRewriteRow" style="margin:6px 0 10px 0;">
+      <p class="sheet-text" style="margin-bottom:6px;">↻ Rewrite unsaved recipes as:</p>
+      <div style="display:flex; gap:8px;" id="menuScanRewriteChips"></div>
+    </div>
+    <button class="save-btn" id="menuScanSaveAllBtn" style="width:100%;" onclick="menuScanSaveAllTap()">💾 Save all</button>
     <div class="sheet-status" id="menuScanSaveAllStatus"></div>
     <button class="sheet-cancel" onclick="closeMenuScanReview()">Close</button>
   </div>
@@ -14391,6 +14414,9 @@ function editCurrentRecipe(){
 function renderForm(data){
   formIngredientRows = data.ingredients.length ? data.ingredients : [['','']];
   formStepRows = data.steps.length ? data.steps : [''];
+  // The scan-results back button only belongs to menu-scan sessions; hide by default, shown
+  // again by openMenuScanRecipeForm right after this render (22.7.).
+  { const b = document.getElementById('fBackToScanBtn'); if(b) b.style.display = 'none'; }
   _recipeAiShare = true; // sharing consented once at sign-up (Privacy & Terms), stays on (22.7.)
   const el = document.getElementById('formContent');
   const cats = getCategories().filter(c=>c!=='All');
@@ -14585,6 +14611,13 @@ async function saveFormBody(){
 
   if(ingredients.length===0){ alert('Add at least one ingredient.'); return; }
 
+  // Scan-context single save (Richard, 22.7.): first ask where else to file it besides
+  // My Recipes — the destination sheet re-invokes saveForm() with _scanSaveDests set.
+  if(_menuScanFormIndex !== null && _scanSaveDests === null){
+    openScanSaveDestSheet('single');
+    return;
+  }
+
   const sections = [{type:'table', rows: ingredients.map(row=>[row[0].trim(), row[1] ? row[1].trim() : '—'])}];
   if(steps.length){ sections.push({type:'steps', heading:'Method', items: steps}); }
 
@@ -14621,6 +14654,20 @@ async function saveFormBody(){
   }
   if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
+
+  // Extra destinations picked in the where-to-save sheet (scan flow, Richard 22.7.): copies
+  // into projects / Company Recipes with the same payload. My Recipes is the row saved above.
+  if(_menuScanFormIndex !== null && _scanSaveDests && _scanSaveDests.length){
+    for(const dest of _scanSaveDests){
+      const copy = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
+        shared_with_chefos: _recipeAiShare === true,
+        is_personal: dest === 'company' ? false : true,
+        list_id: dest === 'company' ? null : dest };
+      const { error: copyErr } = await sb.from('recipes').insert(copy).select().single();
+      if(copyErr){ alert('Saved, but a project copy failed: ' + copyErr.message); break; }
+    }
+  }
+  _scanSaveDests = null;
 
   formEditingId = null;
   await loadAppData();
@@ -21753,6 +21800,30 @@ const MENU_SCAN_COMPLEXITY_BRIEF = {
 };
 const MENU_SCAN_METHOD_RULE = ' ALWAYS include the numbered method steps — a recipe without a method is invalid.';
 
+/* One dish -> one generated recipe entry. Shared by the scan loops, the per-dish Try again
+   (Richard, 22.7. — a failed dish regenerates from the remembered menu data, no re-scan) and
+   the rewrite-at-another-detail-level flow. The source dish + kind ride along on every entry
+   (also on failures) so regeneration never needs the photo again. */
+function menuScanDishContext(dish, srcKind){
+  const componentsList = (dish.components || []).join(', ');
+  return `This dish appeared on a ${srcKind === 'web' ? "restaurant's website menu" : 'printed menu'} under the "${dish.section || 'Uncategorized'}" section` +
+    (componentsList ? `, described with these components: ${componentsList}.` : '.') +
+    ' A menu line is marketing copy, not a full recipe — incorporate anything it does name, and add whatever else a professional kitchen actually needs (seasoning, technique, sides, plating) to make this dish properly, even if the menu does not spell it out.' +
+    MENU_SCAN_COMPLEXITY_BRIEF[_menuScanOpts.complexity] + MENU_SCAN_METHOD_RULE;
+}
+async function generateOneMenuScanRecipe(dish, srcKind){
+  const componentsList = (dish.components || []).join(', ');
+  const input = await callClaudeGenerateRecipe(dish.name, componentsList, menuScanDishContext(dish, srcKind));
+  return {
+    title: input.title || dish.name, category: input.category || dish.section || '',
+    meta: input.subtitle || '', yield: input.yield || '',
+    activeTime: input.active_time || '', passiveTime: input.passive_time || '',
+    ingredients: (input.ingredients || []).map(x=>[x.name || '', x.qty || '']),
+    steps: (input.steps && input.steps.length) ? input.steps : [''],
+    failed: false, dish, srcKind
+  };
+}
+
 function openMenuScanUrlPrompt(){
   document.getElementById('menuScanUrlInput').value = '';
   document.getElementById('menuScanUrlStatus').textContent = '';
@@ -21886,7 +21957,7 @@ async function runMenuScanFromUrl(url){
         title: dish.name, category: dish.section || '', meta: '', yield: '',
         activeTime: '', passiveTime: '',
         ingredients: (dish.components || []).length ? (dish.components || []).map(c=>[c, '']) : [['','']],
-        steps: [''], failed: false
+        steps: [''], failed: false, dish, srcKind: 'web'
       }));
       finishBgScan(()=> openMenuScanReview());
       return;
@@ -21896,26 +21967,10 @@ async function runMenuScanFromUrl(url){
       const progress = `Writing recipe ${i+1} of ${dishes.length}: ${dish.name}…`;
       statusEl.textContent = progress;
       setBgScanProgress(progress);
-      const componentsList = (dish.components || []).join(', ');
-      const context = `This dish appeared on a restaurant's website menu under the "${dish.section || 'Uncategorized'}" section` +
-        (componentsList ? `, described with these components: ${componentsList}.` : '.') +
-        ' A menu line is marketing copy, not a full recipe — incorporate anything it does name, and add whatever else a professional kitchen actually needs (seasoning, technique, sides, plating) to make this dish properly, even if the menu does not spell it out.' +
-        MENU_SCAN_COMPLEXITY_BRIEF[_menuScanOpts.complexity] + MENU_SCAN_METHOD_RULE;
       try{
-        const input = await callClaudeGenerateRecipe(dish.name, componentsList, context);
-        _pendingMenuScanRecipes.push({
-          title: input.title || dish.name,
-          category: input.category || dish.section || '',
-          meta: input.subtitle || '',
-          yield: input.yield || '',
-          activeTime: input.active_time || '',
-          passiveTime: input.passive_time || '',
-          ingredients: (input.ingredients || []).map(x=>[x.name || '', x.qty || '']),
-          steps: (input.steps && input.steps.length) ? input.steps : [''],
-          failed: false
-        });
+        _pendingMenuScanRecipes.push(await generateOneMenuScanRecipe(dish, 'web'));
       } catch(dishErr){
-        _pendingMenuScanRecipes.push({ title: dish.name, category: dish.section || '', failed: true, error: dishErr.message });
+        _pendingMenuScanRecipes.push({ title: dish.name, category: dish.section || '', failed: true, error: dishErr.message, dish, srcKind: 'web' });
       }
     }
 
@@ -21961,7 +22016,7 @@ async function runMenuScan(base64, mediaType, fileName){
         title: dish.name, category: dish.section || '', meta: '', yield: '',
         activeTime: '', passiveTime: '',
         ingredients: (dish.components || []).length ? (dish.components || []).map(c=>[c, '']) : [['','']],
-        steps: [''], failed: false
+        steps: [''], failed: false, dish, srcKind: 'printed'
       }));
       finishBgScan(()=> openMenuScanReview());
       return;
@@ -21971,26 +22026,10 @@ async function runMenuScan(base64, mediaType, fileName){
       const progress = `Writing recipe ${i+1} of ${dishes.length}: ${dish.name}…`;
       statusEl.textContent = progress;
       setBgScanProgress(progress);
-      const componentsList = (dish.components || []).join(', ');
-      const context = `This dish appeared on a printed menu under the "${dish.section || 'Uncategorized'}" section` +
-        (componentsList ? `, described with these components: ${componentsList}.` : '.') +
-        ' A menu line is marketing copy, not a full recipe — incorporate anything it does name, and add whatever else a professional kitchen actually needs (seasoning, technique, sides, plating) to make this dish properly, even if the menu does not spell it out.' +
-        MENU_SCAN_COMPLEXITY_BRIEF[_menuScanOpts.complexity] + MENU_SCAN_METHOD_RULE;
       try{
-        const input = await callClaudeGenerateRecipe(dish.name, componentsList, context);
-        _pendingMenuScanRecipes.push({
-          title: input.title || dish.name,
-          category: input.category || dish.section || '',
-          meta: input.subtitle || '',
-          yield: input.yield || '',
-          activeTime: input.active_time || '',
-          passiveTime: input.passive_time || '',
-          ingredients: (input.ingredients || []).map(x=>[x.name || '', x.qty || '']),
-          steps: (input.steps && input.steps.length) ? input.steps : [''],
-          failed: false
-        });
+        _pendingMenuScanRecipes.push(await generateOneMenuScanRecipe(dish, 'printed'));
       } catch(dishErr){
-        _pendingMenuScanRecipes.push({ title: dish.name, category: dish.section || '', failed: true, error: dishErr.message });
+        _pendingMenuScanRecipes.push({ title: dish.name, category: dish.section || '', failed: true, error: dishErr.message, dish, srcKind: 'printed' });
       }
     }
 
@@ -22008,6 +22047,7 @@ async function runMenuScan(base64, mediaType, fileName){
   }
 }
 
+const MENU_SCAN_COMPLEXITY_LABELS = { simple:'Short', standard:'Standard', complete:'Sophisticated' };
 function openMenuScanReview(){
   const ok = _pendingMenuScanRecipes.filter(r=>!r.failed).length;
   const failed = _pendingMenuScanRecipes.length - ok;
@@ -22016,13 +22056,20 @@ function openMenuScanReview(){
   // Every generated recipe was already paid for in credits — the review must make saving ALL
   // of them one tap (Richard, 22.7.: it used to allow saving only one and the rest were lost).
   document.getElementById('menuScanSummary').textContent =
-    `Found ${_pendingMenuScanRecipes.length} dish${_pendingMenuScanRecipes.length===1?'':'es'}, wrote ${ok} recipe${ok===1?'':'s'}${failed ? ` (${failed} failed — tap to retry)` : ''}.` +
+    `Found ${_pendingMenuScanRecipes.length} dish${_pendingMenuScanRecipes.length===1?'':'es'}, wrote ${ok} recipe${ok===1?'':'s'}${failed ? ` (${failed} failed)` : ''}.` +
     (saved ? ` ${saved} saved.` : '') +
-    (unsaved ? ` Tap one to review it, or save all ${unsaved} at once below.` : ' All saved.');
+    (unsaved ? ` Tap one to review it, or save all ${unsaved} at once below.` : (ok ? ' All saved.' : ''));
   const listEl = document.getElementById('menuScanList');
-  listEl.innerHTML = _pendingMenuScanRecipes.map((r,i)=> r.failed ? `
-    <div class="sheet-option" style="opacity:0.7;" onclick="alert('${(r.error||'Something went wrong writing this recipe.').replace(/'/g,"\\'")}')">
-      <div><div class="sheet-option-title">⚠️ ${r.title}</div><div class="sheet-option-sub">Failed to write a recipe for this one</div></div>
+  listEl.innerHTML = _pendingMenuScanRecipes.map((r,i)=> r.retrying ? `
+    <div class="sheet-option" style="opacity:0.7; cursor:default;">
+      <div><div class="sheet-option-title">⏳ ${r.title}</div><div class="sheet-option-sub">Rewriting…</div></div>
+    </div>
+  ` : r.failed ? `
+    <div class="sheet-option" style="opacity:0.85;">
+      <div style="flex:1;" onclick="alert('${(r.error||'Something went wrong writing this recipe.').replace(/'/g,"\\'")}')">
+        <div class="sheet-option-title">⚠️ ${r.title}</div><div class="sheet-option-sub">Failed — tap for the error</div>
+      </div>
+      ${r.dish ? `<button class="chip" onclick="event.stopPropagation(); retryMenuScanRecipe(${i})" style="flex:none; align-self:center;">↻ Try again</button>` : ''}
     </div>
   ` : r.saved ? `
     <div class="sheet-option" style="opacity:0.6; cursor:default;">
@@ -22033,6 +22080,20 @@ function openMenuScanReview(){
       <div><div class="sheet-option-title">${r.title}</div><div class="sheet-option-sub">${r.category || 'Uncategorized'} · ${r.ingredients.length} ingredient${r.ingredients.length===1?'':'s'}</div></div>
     </button>
   `).join('');
+  // Rewrite-at-another-detail-level chips (Richard, 22.7.): only levels OTHER than the one
+  // already used show; in "only what the menu lists" mode all three show (rewriting upgrades
+  // the plain listing into full recipes). Rewriting regenerates every UNSAVED entry.
+  const rewriteTargets = _pendingMenuScanRecipes.filter(r=>!r.saved && r.dish).length;
+  const rewriteRow = document.getElementById('menuScanRewriteRow');
+  if(rewriteTargets > 0){
+    rewriteRow.style.display = 'block';
+    document.getElementById('menuScanRewriteChips').innerHTML =
+      ['simple','standard','complete']
+        .filter(cx => _menuScanOpts.mode === 'ingredients' || cx !== _menuScanOpts.complexity)
+        .map(cx=>`<button class="chip" style="flex:1;" onclick="rewriteMenuScanRecipes('${cx}')">${MENU_SCAN_COMPLEXITY_LABELS[cx]}</button>`).join('');
+  } else {
+    rewriteRow.style.display = 'none';
+  }
   const saveAllBtn = document.getElementById('menuScanSaveAllBtn');
   saveAllBtn.style.display = unsaved > 0 ? 'block' : 'none';
   saveAllBtn.textContent = `💾 Save all ${unsaved > 1 ? unsaved + ' recipes' : ''}`.trim();
@@ -22040,27 +22101,72 @@ function openMenuScanReview(){
   document.getElementById('menuScanSaveAllStatus').textContent = '';
   document.getElementById('menuScanReviewOverlay').classList.add('open');
 }
+/* Regenerate ONE failed dish from the remembered menu data — no re-scan, no photo needed. */
+async function retryMenuScanRecipe(i){
+  const r = _pendingMenuScanRecipes[i];
+  if(!r || !r.dish || r.retrying) return;
+  r.retrying = true;
+  openMenuScanReview();
+  try{
+    const fresh = await generateOneMenuScanRecipe(r.dish, r.srcKind || 'printed');
+    _pendingMenuScanRecipes[i] = fresh;
+  } catch(e){
+    r.retrying = false; r.failed = true; r.error = e.message;
+  }
+  openMenuScanReview();
+}
+/* Regenerate every UNSAVED recipe at a different detail level. Costs credits again — confirmed
+   first. Saved ones are left exactly as saved. */
+async function rewriteMenuScanRecipes(cx){
+  const targets = _pendingMenuScanRecipes.map((r,i)=>({r,i})).filter(x=>!x.r.saved && x.r.dish);
+  if(!targets.length) return;
+  if(!confirm(`Rewrite ${targets.length} unsaved recipe${targets.length===1?'':'s'} as ${MENU_SCAN_COMPLEXITY_LABELS[cx]}? This uses AI credits again.`)) return;
+  _menuScanOpts.complexity = cx;
+  _menuScanOpts.mode = 'full';
+  const statusEl = document.getElementById('menuScanSaveAllStatus');
+  for(let n = 0; n < targets.length; n++){
+    const { r, i } = targets[n];
+    statusEl.textContent = `Rewriting ${n+1} of ${targets.length}: ${(r.dish && r.dish.name) || r.title}…`;
+    try{
+      _pendingMenuScanRecipes[i] = await generateOneMenuScanRecipe(r.dish, r.srcKind || 'printed');
+    } catch(e){
+      _pendingMenuScanRecipes[i] = { title: (r.dish && r.dish.name) || r.title, category: (r.dish && r.dish.section) || r.category || '', failed: true, error: e.message, dish: r.dish, srcKind: r.srcKind };
+    }
+  }
+  statusEl.textContent = '';
+  openMenuScanReview();
+}
 function closeMenuScanReview(){
   document.getElementById('menuScanReviewOverlay').classList.remove('open');
 }
 /* Builds the same DB payload shape as saveFormBody's insert, but straight from a scanned
-   recipe object — used by Save all so none of the already-paid-for recipes gets lost. */
-async function saveOneMenuScanRecipe(r){
+   recipe object — used by Save all so none of the already-paid-for recipes gets lost.
+   `dests` (Richard, 22.7.) adds copies beyond My Recipes: 'company' or a recipe-project id. */
+async function saveOneMenuScanRecipe(r, dests){
   const sections = [{ type:'table', rows: r.ingredients.filter(x=>x[0] && x[0].trim()).map(x=>[x[0].trim(), (x[1]||'').trim() || '—']) }];
   const steps = (r.steps || []).filter(s=>s && s.trim());
   if(steps.length){ sections.push({ type:'steps', heading:'Method', items: steps }); }
-  const { data, error } = await sb.from('recipes').insert({
+  const payload = {
     title: r.title, category: r.category || null, subtitle: r.meta || null,
     prep_time_active: r.activeTime || null, prep_time_passive: r.passiveTime || null,
     yield_text: r.yield || null, tags: ['AI-generated', 'Menu scan'], sections,
     kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
-    is_personal: currentAccountType === 'personal',
     shared_with_chefos: _recipeAiShare === true
+  };
+  const { data, error } = await sb.from('recipes').insert({
+    ...payload, is_personal: currentAccountType === 'personal', list_id: null
   }).select().single();
   if(error) throw new Error(error.message);
+  for(const dest of (dests || [])){
+    const copy = dest === 'company'
+      ? { ...payload, is_personal: false, list_id: null }
+      : { ...payload, is_personal: true, list_id: dest };
+    const { error: copyErr } = await sb.from('recipes').insert(copy).select().single();
+    if(copyErr) throw new Error('copy to ' + dest + ': ' + copyErr.message);
+  }
   return data;
 }
-async function saveAllMenuScanRecipes(){
+async function saveAllMenuScanRecipes(dests){
   const btn = document.getElementById('menuScanSaveAllBtn');
   const statusEl = document.getElementById('menuScanSaveAllStatus');
   const targets = _pendingMenuScanRecipes.filter(r=>!r.failed && !r.saved);
@@ -22069,7 +22175,7 @@ async function saveAllMenuScanRecipes(){
   let done = 0, errs = 0;
   for(const r of targets){
     statusEl.textContent = `Saving ${done + errs + 1} of ${targets.length}: ${r.title}…`;
-    try{ await saveOneMenuScanRecipe(r); r.saved = true; done++; }
+    try{ await saveOneMenuScanRecipe(r, dests); r.saved = true; done++; }
     catch(e){ errs++; r.error = e.message; }
   }
   await loadAppData();
@@ -22077,12 +22183,55 @@ async function saveAllMenuScanRecipes(){
   openMenuScanReview();
   if(!errs){ renderList(); }
 }
+/* ---- Where-to-save sheet (Richard, 22.7.): My Recipes always; checkboxes add copies into
+   recipe projects (+ Company Recipes in company mode). Used by Save all AND the single form
+   save in scan context. ---- */
+let _scanSaveDests = null;   // chosen extra destinations for the CURRENT single form save
+let _scanDestMode = null;    // 'all' | 'single'
+function menuScanSaveAllTap(){ openScanSaveDestSheet('all'); }
+function openScanSaveDestSheet(mode){
+  _scanDestMode = mode;
+  const opts = [];
+  if(currentAccountType === 'company'){
+    opts.push({ value:'company', label:'🏢 Company Recipes' });
+  }
+  (_recipeLists || []).forEach(l=>{ opts.push({ value: l.id, label: `${l.icon || '🗂️'} ${l.name}` }); });
+  document.getElementById('scanSaveDestList').innerHTML = opts.length ? opts.map(o=>`
+    <label class="sheet-option" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
+      <input type="checkbox" class="scan-dest-cb" value="${o.value}" style="width:20px; height:20px; accent-color:var(--copper);">
+      <span class="sheet-option-title">${o.label}</span>
+    </label>
+  `).join('') : `<p class="sheet-text">No projects yet — the recipe${_scanDestMode==='all'?'s go':' goes'} to 📖 My Recipes.</p>`;
+  document.getElementById('scanSaveDestOverlay').classList.add('open');
+}
+function closeScanSaveDest(){
+  document.getElementById('scanSaveDestOverlay').classList.remove('open');
+  _scanDestMode = null;
+}
+function confirmScanSaveDest(){
+  const dests = [...document.querySelectorAll('.scan-dest-cb:checked')].map(cb=>cb.value);
+  const mode = _scanDestMode;
+  document.getElementById('scanSaveDestOverlay').classList.remove('open');
+  _scanDestMode = null;
+  if(mode === 'all'){ saveAllMenuScanRecipes(dests); }
+  else { _scanSaveDests = dests; saveForm(); }
+}
 let _menuScanFormIndex = null;  // which scanned recipe the form is editing — so its save marks it ✅ and returns here
+function backToMenuScanReview(){
+  // Back from the form to the generated list WITHOUT saving (Richard, 22.7.) — the batch
+  // stays intact, nothing is lost, nothing is written.
+  _menuScanFormIndex = null;
+  _scanSaveDests = null;
+  const b = document.getElementById('fBackToScanBtn'); if(b) b.style.display = 'none';
+  showList();
+  openMenuScanReview();
+}
 function openMenuScanRecipeForm(i){
   const r = _pendingMenuScanRecipes[i];
   if(!r || r.failed || r.saved) return;
   closeMenuScanReview();
   _menuScanFormIndex = i;
+  _scanSaveDests = null;
   formEditingId = null;
   renderForm({
     ...BLANK_RECIPE_FORM,
@@ -22096,6 +22245,7 @@ function openMenuScanRecipeForm(i){
     steps: r.steps,
     tags: ['AI-generated', 'Menu scan']
   });
+  const b = document.getElementById('fBackToScanBtn'); if(b) b.style.display = '';
 }
 
 /* Writes a professional Method from just the title + ingredient list — same direct-to-Claude
