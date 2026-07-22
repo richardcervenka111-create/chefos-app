@@ -331,6 +331,27 @@ def check_company_admin_claim(sql):
         passes.append('company-admin: Add-Company invite still grants the company-admin role (db/169).')
 
 
+# ------------------- 10. no focusable input under 16px (iOS Safari auto-zoom → app cut off right)
+def check_input_font_size(html):
+    # Richard, 22.7. ("strany nesedia"): iOS Safari auto-zooms into any focused input/textarea whose
+    # font-size is < 16px and often never zooms back out, leaving the WHOLE app zoomed so the layout
+    # is wider than the visible area and everything is cut off on the right. The chat input at 15px
+    # was the trigger. Guard the specific control that caused it + the app-wide baseline rule.
+    m = re.search(r'\.chef-chat-input\{[^}]*?font-size:\s*(\d+(?:\.\d+)?)px', html, re.S)
+    if not m:
+        failures.append('ios-zoom: could not find .chef-chat-input font-size to verify.')
+    elif float(m.group(1)) < 16:
+        failures.append(f'ios-zoom: .chef-chat-input font-size is {m.group(1)}px (<16px) — iOS Safari '
+                        f'will auto-zoom on focus and leave the whole app cut off on the right.')
+    else:
+        passes.append(f'ios-zoom: chat input is {m.group(1)}px (>=16px), no iOS auto-zoom.')
+    if not re.search(r'input,\s*textarea,\s*select\{\s*font-size:16px', html):
+        failures.append('ios-zoom: the app-wide >=16px input baseline (input,textarea,select) is gone '
+                        '— a sub-16px input can re-trigger the iOS zoom-and-cut-off bug.')
+    else:
+        passes.append('ios-zoom: app-wide >=16px input baseline present.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -340,6 +361,7 @@ def main():
     check_admin_private_tiles(html)
     check_ai_photo_gate(html)
     check_remove_photo(html)
+    check_input_font_size(html)
     if os.path.exists(DB169):
         check_company_admin_claim(read(DB169))
     else:

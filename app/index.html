@@ -707,7 +707,7 @@ window.__BUILD__ = '__BUILD_VERSION__';
   .chef-chat-input{
     flex:1; min-width:0; resize:none; max-height:120px;
     background: var(--paper-raised, var(--paper)); border:1px solid var(--rule); border-radius:12px;
-    color: var(--ink); font-family:inherit; font-size:15px;
+    color: var(--ink); font-family:inherit; font-size:16px;   /* >=16px so iOS Safari never auto-zooms on focus (below) */
     padding: 10px 14px;
   }
   .chef-chat-send{
@@ -1387,6 +1387,12 @@ window.__BUILD__ = '__BUILD_VERSION__';
   /* textareas carry more native OS chrome than plain inputs — belt-and-suspenders on top of
      the color-scheme:dark fix above, forcing the typed-text color explicitly. */
   textarea.form-field{ appearance:none; -webkit-appearance:none; -webkit-text-fill-color: var(--ink); }
+  /* iOS Safari auto-zooms into any focused input/textarea/select whose font-size is < 16px and
+     frequently never zooms back out — the whole app is then zoomed, so the layout is wider than the
+     visible area and everything is cut off on the RIGHT (Richard, 22.7. "strany nesedia" — the chat
+     input at 15px was the trigger). Baseline every text control at >=16px; classed inputs that set
+     their own size keep it (higher specificity), so no layout shifts — this only lifts bare ones. */
+  input, textarea, select{ font-size:16px; }
   .lang-switch{
     background: var(--paper-raised); border: 1px solid var(--rule); border-radius:8px;
     color: var(--ink-dim); font-family: inherit; font-size: 13px;
