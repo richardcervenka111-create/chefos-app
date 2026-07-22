@@ -2,7 +2,10 @@
   "_comment": "Tile-lock registry (Richard, 22.7.2026 — 'postupne ich zamknúť'). A tile gets locked AFTER Richard perfects it on his phone and says so. Locking = its behavioural tests in tile_lock_test.py must pass on the live app after every deploy + 2x/day, or the run goes red. Never lock a tile without live-verifying its tests first. | in_development: the ONE module currently being developed — its suite runs but failures are waived (Engineering Standard §3); MUST be emptied when the work is declared done.",
   "locked": [
     "working_time",
-    "recipes"
+    "recipes",
+    "admin"
   ],
-  "in_development": []
+  "in_development": [
+    "admin"
+  ]
 }

@@ -231,9 +231,32 @@ def check_recipes(page, ctx):
     assert not result['delErr'], f"cleanup delete error: {result['delErr']}"
 
 
+def check_admin(page, ctx):
+    """Locked 22.7.2026 (Richard: "môžme dlaždicu admin zamknúť"). The Admin hub OPENS for an admin
+    and renders its function grid — read-only. Deliberately NO company creation / role grants /
+    deletes here (they mutate real data on every gate run); this guards that the admin hub itself
+    doesn't break. Runs as the admin QA account — a non-admin has no Admin tile, so this can only
+    run signed in as an admin (see TILE_ACCOUNT)."""
+    page.locator('.home-tile', has_text='Admin').first.click(timeout=8000)
+    page.wait_for_selector('#adminView', state='visible', timeout=15000)
+    dismiss_tutorials(page, 'after opening Admin')
+    n = page.evaluate("() => { const g = document.getElementById('adminGrid'); return g ? g.children.length : -1; }")
+    assert n > 0, f'the Admin hub opened but rendered {n} function tile(s) — an admin should see at least one'
+
+
 CHECKS = {
     'working_time': check_working_time,
     'recipes': check_recipes,
+    'admin': check_admin,
+}
+
+# Which QA account each tile's suite signs in as. Default = the solo user (SAUTERO_QA_*); admin-only
+# tiles need an admin account or their screens don't even exist. No QA account is the platform
+# super-admin (that's Richard's iCloud alone), so an admin check can only assert the company/kitchen-
+# admin view of the hub.
+DEFAULT_ACCOUNT = ('SAUTERO_QA_EMAIL', 'SAUTERO_QA_PASSWORD')
+TILE_ACCOUNT = {
+    'admin': ('SAUTERO_QA_ADMIN_EMAIL', 'SAUTERO_QA_ADMIN_PASSWORD'),
 }
 # ---------------------------------------------------------------------------
 
@@ -281,6 +304,20 @@ def main():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=not args.headed)
         for tile in locked:
+            # Per-tile account: admin-only tiles sign in as the admin QA account, everyone else as
+            # the solo user. A missing admin account can't fail the whole suite — waive it if the
+            # tile is in_development, otherwise fail just that tile.
+            t_email_env, t_pw_env = TILE_ACCOUNT.get(tile, DEFAULT_ACCOUNT)
+            t_email = os.environ.get(t_email_env)
+            t_password = os.environ.get(t_pw_env)
+            if not t_email or not t_password:
+                msg = f'{t_email_env}/{t_pw_env} not set — this tile needs that QA account in CI'
+                details[tile] = msg
+                if tile in in_dev:
+                    waived.append(tile); print(f'  [DEV-WAIVED] {tile}: {msg}')
+                else:
+                    failures.append(tile); print(f'  [LOCK FAIL] {tile}: {msg}')
+                continue
             context = browser.new_context()
             page = context.new_page()
             page.add_init_script(TUTORIAL_MUTE_SCRIPT)
@@ -289,7 +326,7 @@ def main():
             page.on('pageerror', lambda exc: errors.append(f'[pageerror] {exc}'))
             page.on('response', lambda r: bad_responses.append(f'{r.status} {r.url[:120]}') if r.status >= 500 else None)
             try:
-                login(page, args.url.rstrip('/') + '/', email, password)
+                login(page, args.url.rstrip('/') + '/', t_email, t_password)
                 CHECKS[tile](page, {'url': args.url, 'browser': browser})
                 if errors:
                     raise AssertionError('uncaught JS during the check: ' + '; '.join(errors[:3]))
