@@ -11,9 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        # work_hours --check now validates the docs against the committed snapshot
-        # (scripts/work_hours_data.json, derived from the local Claude Code session logs on
-        # --write) — it no longer reads git log, so the default shallow clone is fine.
+        with:
+          fetch-depth: 0   # docs_autofix --check derives each doc's real last-change date from
+                           # git log -- <file>; a shallow (1-commit) clone has no history for files
+                           # not touched by the tip commit, so it would wrongly read them as
+                           # changed-today and flag every unchanged doc as a stale stamp. Needs the
+                           # FULL history. (work_hours --check no longer needs git — it reads the
+                           # committed snapshot — but docs_autofix still does.)
       - name: Python lint (pyflakes — catches undefined names before the Playwright robots do)
         run: |
           pip3 install --quiet pyflakes
