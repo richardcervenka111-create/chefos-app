@@ -20,6 +20,14 @@ These are SOURCE-level checks: fast, need no browser and no secrets, so they run
      window.scrollTo is a no-op (verified live 22.7.). Bug: recipes opened mid-page. Guard:
      _appScrollTo() is defined and showDetail() uses it (never a bare window.scrollTo as its reset).
 
+  5. Personal/company toggle present + centered in BOTH top bars (Home + floating-nav), each in a
+     .mode-toggle-zone centering wrapper — a refactor can't quietly drop it or knock it off-centre.
+
+  6. Admin's icloud-only private tiles (Internal Docs, Error Logs) — present in ADMIN_TILE_DEFS,
+     their onclick handlers defined, AND still gated to Richard's exact icloud email. The behavioural
+     admin lock can't cover these (no QA account may see them, by design — Richard, "strážiť
+     zvonku"), so this guards both their deletion and any loosening of that private gate.
+
 Run: python3 scripts/ui_invariants.py    (exit 1 on any failure)
 Adding a new UI guard here when we fix a UI bug is part of the Engineering Standard (never let a
 fixed UI bug regress silently).
@@ -195,12 +203,45 @@ def check_mode_toggle(html):
         passes.append('toggle: personal/company toggle present + centered in both top bars.')
 
 
+# ------------------------- 6. Admin's icloud-only private tiles present AND still icloud-gated
+def check_admin_private_tiles(html):
+    # Richard, 22.7. ("strážiť zvonku"): Internal Docs + Error Logs are gated to Richard's exact
+    # icloud email ALONE (not just is_admin), so no QA account can see them and the behavioural
+    # admin lock deliberately can't. This static guard covers both regressions the behavioural test
+    # can't: (a) the tile being deleted, and (b) its gate being quietly loosened to a broader
+    # audience. For each: the ADMIN_TILE_DEFS entry exists, its onclick handler is defined, and its
+    # adminOnly gate still checks the exact icloud email.
+    tiles = {
+        'internalDocs': ('openInternalDocs', 'function openInternalDocs('),
+        'errorLogs':   ('openAdminErrorLogs', 'function openAdminErrorLogs('),
+    }
+    gate_email = 'richard.cervenka@icloud.com'
+    for key, (handler, handler_def) in tiles.items():
+        m = re.search(r"key:\s*'" + re.escape(key) + r"'.*?adminOnly:\s*\(\)\s*=>\s*([^}]+)",
+                      html, re.S)
+        if not m:
+            failures.append(f"admin-tiles: ADMIN_TILE_DEFS entry key:'{key}' is missing — the "
+                            f"Internal Docs / Error Logs tile was removed from the Admin hub.")
+            continue
+        gate = m.group(1)
+        if gate_email not in gate.lower():
+            failures.append(f"admin-tiles: key:'{key}' is no longer gated to the exact icloud email "
+                            f"({gate_email}) — its private gate was loosened. Restore the exact-email "
+                            f"check or decide this deliberately.")
+        elif handler_def not in html:
+            failures.append(f"admin-tiles: key:'{key}' points at {handler}() but that function is "
+                            f"not defined — the tile would error on tap.")
+        else:
+            passes.append(f"admin-tiles: '{key}' present, {handler}() defined, still icloud-only.")
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
     check_save_dest_zindex(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
+    check_admin_private_tiles(html)
     if os.path.exists(GEN_IMAGE):
         check_image_cost_logging(read(GEN_IMAGE))
     else:

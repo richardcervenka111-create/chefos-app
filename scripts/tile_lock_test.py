@@ -232,22 +232,24 @@ def check_recipes(page, ctx):
 
 
 def check_admin(page, ctx):
-    """Locked 22.7.2026 (Richard: lock it "ako mám ja na icloud účte (main admin)"). The FULL
-    super-admin hub — the view Richard has — OPENS and works, READ-ONLY. Signs in as the super-admin
-    QA account (SAUTERO_QA_ADMIN granted is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the
-    super-admin-only functions (Admin Directory, Feedback, Error Logs, Internal Docs) and that Admin
-    Directory actually opens and lists people. Deliberately NO company creation / role grants /
-    deletes — those mutate real data on every gate run; the docs/feedback/error-logs pipelines keep
-    working exactly as before because this only READS."""
+    """Locked 22.7.2026 (Richard: lock it "ako mám ja na icloud účte (main admin)"). The super-admin
+    hub OPENS and works, READ-ONLY. Signs in as the super-admin QA account (SAUTERO_QA_ADMIN granted
+    is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the functions EVERY super-admin sees
+    (Admin Directory, Feedback) and that Admin Directory actually opens and lists people.
+    NOTE (Richard 22.7. — "strážiť zvonku"): Internal Docs + Error Logs are gated to Richard's exact
+    icloud email ALONE (app/index.html ADMIN_TILE_DEFS ~12082/12086), by design — no QA account can
+    see them and we deliberately did NOT widen that gate. Their presence is guarded statically instead
+    (scripts/ui_invariants.py, ADMIN_TILE_DEFS check) so a deleted tile still fails a check, and
+    Internal Docs additionally has its own robot workflow. Deliberately NO company creation / role
+    grants / deletes — those mutate real data on every gate run; this only READS."""
     page.locator('.home-tile', has_text='Admin').first.click(timeout=8000)
     page.wait_for_selector('#adminView', state='visible', timeout=15000)
     dismiss_tutorials(page, 'after opening Admin')
     grid = page.evaluate("() => (document.getElementById('adminGrid') || {}).innerText || ''")
-    for label in ['Admin Directory', 'Feedback', 'Error Logs', 'Internal Docs']:
+    for label in ['Admin Directory', 'Feedback']:
         assert label in grid, (
             f"the Admin hub is missing the super-admin function '{label}' — the QA account isn't the "
-            f"platform super-admin (is_admin). Grant SAUTERO_QA_MAIN is_admin=true, or the lock only "
-            f"covers the company-admin view.")
+            f"platform super-admin. Grant SAUTERO_QA_ADMIN is_admin=true (Supabase SQL editor).")
     # Admin Directory actually opens and lists people (read-only — no edits).
     page.evaluate("() => showAdminDirectory()")
     page.wait_for_selector('#adminDirectoryView', state='visible', timeout=10000)
