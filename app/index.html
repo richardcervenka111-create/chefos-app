@@ -2244,7 +2244,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Kitchen data</b> — recipes, ingredients, Check List activity, schedules — needed to run the app's core features.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Working hours</b> — only if you separately opt in under Settings → Share My Hours with Admin. Off by default.</p>
       <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Feedback</b> you choose to send.</p>
-      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Recipe sharing</b> — recipes you create may be added to the shared Sautero recipe library, where other kitchens can cook from them. Your own copy always stays yours to edit or delete; in return, AI help on your recipes is 50% off.</p>
+      <p style="margin:0 0 6px 0;">• <b style="color:var(--ink);">Recipe sharing</b> — recipes you create may be added to the shared Sautero recipe library, where other kitchens can cook from them. Your own copy always stays yours to edit or delete.</p>
       <p style="margin:0 0 10px 0;">Some features (Chef Assistant, recipe/photo scanning) send the relevant text or image to Anthropic (our AI provider) to work. Everything is hosted on Supabase (our database/hosting provider). Neither sells your data or uses it to train their own models on Sautero's behalf.</p>
       <p style="margin:0 0 10px 0;">Under GDPR (EU) and the Swiss Federal Act on Data Protection, you can ask to see, correct, export, or delete your data at any time — contact your kitchen admin or richard.cervenka@icloud.com.</p>
       <p style="margin:0;">This is a plain-language summary, not the full policy, and not a lawyer-drafted document — see Settings → Privacy & Terms for the complete draft, currently pending legal review.</p>
@@ -14150,10 +14150,20 @@ function showDetail(idx){
   let html = '';
   if(r.img){
     html += `<img class="hero" src="${r.img}" alt="${r.title}">`;
-  } else if(featureEnabled('recipe_photo_gen') && r.createdBy){
-    // AI dish photo (Imagen via generate-image edge fn) — own recipes only (Sautero-library
-    // copies aren't updatable by the user). Flagged dark; labelled illustrative by design.
-    html += `<button class="add-row-btn" id="genPhotoBtn" onclick="generateRecipePhoto()" style="margin:0 0 14px 0;">✨ Generate photo (AI, illustrative)</button>`;
+    if(r.createdBy){
+      // Own recipe: allow replacing the photo (upload your own). AI regenerate stays flag-gated.
+      html += `<div style="margin:-8px 0 14px 0; display:flex; gap:14px;">`;
+      if(featureEnabled('recipe_photo_gen')) html += `<button class="link-btn" onclick="generateRecipePhoto()" style="background:none;border:none;color:var(--copper);font-size:12px;cursor:pointer;padding:0;">✨ Regenerate (AI)</button>`;
+      html += `<button class="link-btn" onclick="addRecipePhoto()" style="background:none;border:none;color:var(--copper);font-size:12px;cursor:pointer;padding:0;">📷 Change photo</button></div>`;
+    }
+  } else if(r.createdBy){
+    // No photo yet, own recipe. The 4 internal accounts (recipe_photo_gen flag) also get AI
+    // generation; EVERYONE else gets "Add photo" — upload their own (Richard, 22.7. evening:
+    // "AI fotky len pre tie 4 účty, pre ostatných pridaj iba funkciu pridať fotku").
+    if(featureEnabled('recipe_photo_gen')){
+      html += `<button class="add-row-btn" id="genPhotoBtn" onclick="generateRecipePhoto()" style="margin:0 0 8px 0;">✨ Generate photo (AI, illustrative)</button>`;
+    }
+    html += `<button class="add-row-btn" id="addPhotoBtn" onclick="addRecipePhoto()" style="margin:0 0 14px 0;">📷 Add photo</button>`;
   }
   html += `<div class="detail-cat">${r.category}</div>`;
   html += `<h2 class="recipe-title display">${r.title}</h2>`;
@@ -22407,7 +22417,9 @@ function openMenuScanRecipeForm(i){
    No = recipe stays private and AI charges credit as normal. null = not asked yet. */
 /* Richard, 22.7.: the per-save/per-AI-use share question is GONE — recipe sharing with the
    Sautero library is consented to once, in the Privacy & Terms gate at sign-up (its summary
-   carries the clause). Sharing stays on by default; shared-recipe AI is 50% off (billing logic itself still TODO — see Poznámky 22.7.). */
+   carries the clause). Sharing stays on by default. The shared-recipe AI 50%-off idea is PARKED
+   as a note only (Richard, 22.7. evening — removed from the sign-up terms; billing logic not
+   built): see Poznámky. Do not re-add the 50%-off promise to the terms without his go-ahead. */
 let _recipeAiShare = true;
 function maybeAskRecipeAiShare(){
   return _recipeAiShare;
@@ -22542,6 +22554,51 @@ async function generateRecipePhoto(){
     alert(e.message || 'Something went wrong generating the photo.');
     if(btn){ btn.disabled = false; btn.textContent = '✨ Generate photo (AI, illustrative)'; }
   }
+}
+
+/* Upload your OWN dish photo (Richard, 22.7. evening) — available to EVERYONE on their own
+   recipes (AI generation stays limited to the 4 internal accounts). Reads the picked file,
+   downscales it on-device to a compact ~900px JPEG (same as the AI path) and stores it in
+   recipes.image_url with a row-count-verified update. Move to a storage bucket before wide
+   release, same as the AI photos. */
+async function addRecipePhoto(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r || !r.createdBy) return;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const addBtn = document.getElementById('addPhotoBtn');
+    if(addBtn){ addBtn.disabled = true; addBtn.textContent = '📷 Saving photo…'; }
+    try{
+      const dataUrl = await new Promise((res, rej)=>{
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.onerror = () => rej(new Error('Could not read the file.'));
+        fr.readAsDataURL(file);
+      });
+      const imgEl = new Image();
+      await new Promise((res, rej)=>{ imgEl.onload = res; imgEl.onerror = () => rej(new Error('That file is not a readable image.')); imgEl.src = dataUrl; });
+      const scale = Math.min(1, 900 / imgEl.naturalWidth);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(imgEl.naturalWidth * scale);
+      canvas.height = Math.round(imgEl.naturalHeight * scale);
+      canvas.getContext('2d').drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+      const out = canvas.toDataURL('image/jpeg', 0.82);
+      const { data: updated, error } = await sb.from('recipes')
+        .update({ image_url: out }).eq('id', r.id).select();
+      if(error) throw new Error(error.message);
+      if(!updated || updated.length !== 1) throw new Error('Photo did not save (0 rows updated).');
+      r.img = out;
+      showDetail(window.currentDetailIdx);
+    } catch(e){
+      alert(e.message || 'Something went wrong adding the photo.');
+      if(addBtn){ addBtn.disabled = false; addBtn.textContent = '📷 Add photo'; }
+    }
+  };
+  input.click();
 }
 
 async function generateMethodWithAI(){

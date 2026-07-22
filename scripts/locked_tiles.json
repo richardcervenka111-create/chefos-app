@@ -4,5 +4,7 @@
     "working_time",
     "recipes"
   ],
-  "in_development": []
+  "in_development": [
+    "recipes"
+  ]
 }
