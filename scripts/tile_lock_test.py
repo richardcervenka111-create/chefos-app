@@ -234,7 +234,7 @@ def check_recipes(page, ctx):
 def check_admin(page, ctx):
     """Locked 22.7.2026 (Richard: lock it "ako mám ja na icloud účte (main admin)"). The FULL
     super-admin hub — the view Richard has — OPENS and works, READ-ONLY. Signs in as the super-admin
-    QA account (SAUTERO_QA_MAIN, is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the
+    QA account (SAUTERO_QA_ADMIN granted is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the
     super-admin-only functions (Admin Directory, Feedback, Error Logs, Internal Docs) and that Admin
     Directory actually opens and lists people. Deliberately NO company creation / role grants /
     deletes — those mutate real data on every gate run; the docs/feedback/error-logs pipelines keep
@@ -269,9 +269,11 @@ CHECKS = {
 # admin view of the hub.
 DEFAULT_ACCOUNT = ('SAUTERO_QA_EMAIL', 'SAUTERO_QA_PASSWORD')
 TILE_ACCOUNT = {
-    # admin needs the SUPER-ADMIN QA account (SAUTERO_QA_MAIN, is_admin=true) so the test sees
-    # Richard's full main-admin hub (Admin Directory / Feedback / Error Logs are is_admin-only).
-    'admin': ('SAUTERO_QA_MAIN_EMAIL', 'SAUTERO_QA_MAIN_PASSWORD'),
+    # admin runs as the existing SAUTERO_QA_ADMIN account (there is no separate MAIN account —
+    # corrected 22.7.). For the FULL main-admin hub the test needs it, that account must be granted
+    # is_admin=true (super-admin) — a one-off SQL Richard runs; the guard allows it from the SQL
+    # editor. Until then this tile dev-waives with a clear "not the platform super-admin" message.
+    'admin': ('SAUTERO_QA_ADMIN_EMAIL', 'SAUTERO_QA_ADMIN_PASSWORD'),
 }
 # ---------------------------------------------------------------------------
 

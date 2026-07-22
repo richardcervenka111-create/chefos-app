@@ -67,8 +67,6 @@ jobs:
           SAUTERO_QA_MEMBER_PASSWORD: ${{ secrets.SAUTERO_QA_MEMBER_PASSWORD }}
           SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
           SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
-          SAUTERO_QA_MAIN_EMAIL: ${{ secrets.SAUTERO_QA_MAIN_EMAIL }}
-          SAUTERO_QA_MAIN_PASSWORD: ${{ secrets.SAUTERO_QA_MAIN_PASSWORD }}
         run: python3 scripts/tile_lock_test.py --url http://127.0.0.1:8080
       - name: UX GATE — real-browser regression suite against the candidate build
         # Behavioural UX that source checks can't see (e.g. a recipe must open at its top —
