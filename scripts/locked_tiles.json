@@ -8,9 +8,5 @@
     "settings",
     "team_meetings"
   ],
-  "in_development": [
-    "haccp",
-    "settings",
-    "team_meetings"
-  ]
+  "in_development": []
 }
