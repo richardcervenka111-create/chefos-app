@@ -194,15 +194,15 @@
    Add a new day by pushing one object to DAYS; week/month grouping
    is computed automatically. Keep TOP3 current each session.
    ============================================================ */
-const GENERATED = '2026-07-21';
+const GENERATED = '2026-07-22';
 
 const TOP3 = {
   day: {
-    range: 'Pondelok 21. 7. 2026',
+    range: 'Utorok 22. 7. 2026',
     items: [
-      { text: '🏢 Company-admin onboarding DOTIAHNUTÝ end-to-end: offer→accept→pomenuj si reštauráciu, kontrolná otázka pri odobratí, značkový e-mail cez notify-company-offer (opravený chýbajúci RESEND_API_KEY) — Richard potvrdil „fungujeme!!!"', text_en: '🏢 Company-admin onboarding finished end-to-end: offer→accept→name your restaurant, the control question on removal, the branded email via notify-company-offer (fixed the missing RESEND_API_KEY) — Richard confirmed "we\'re live!!!"', status: 'done' },
-      { text: '🔍 General audit + regression: audit_app aj audit_db clean, company-admin parity overená (UI aj RLS), potvrdené že reset odobratého admina nič nemaže, opravený bilingválny off-by-one v status.html', text_en: '🔍 General audit + regression: audit_app and audit_db both clean, company-admin parity verified (UI and RLS), confirmed a removed admin\'s reset deletes nothing, fixed a bilingual off-by-one in status.html', status: 'done' },
-      { text: '📄 Nebenerwerb + Einzelfirma — príjmové blokátory, oba len Richard (drafty hotové vo VYRIEŠIŤ DO 20.7.2026/)', text_en: '📄 Side-business consent + sole proprietorship — revenue blockers, both Richard-only (drafts ready in VYRIEŠIŤ DO 20.7.2026/)', status: 'planned' },
+      { text: '🔒 Zamknuté Recepty + Admin (3 z 13 dlaždíc) — regresia ktorejkoľvek teraz zablokuje deploy; Admin zamknutý ako Richardov hlavný-admin (icloud) pohľad', text_en: '🔒 Recipes + Admin locked (3 of 13 tiles) — a regression in any now blocks the deploy; Admin locked as Richard\'s head-admin (icloud) view', status: 'done' },
+      { text: '🕵️ Vytvorený dedikovaný super-admin QA účet (sautero.guardian, secret SAUTERO_QA_MAIN) — robot #50 zelený: working_time ✅, recepty ✅, admin ✅ (robot sa reálne prihlásil ako super-admin)', text_en: '🕵️ Created a dedicated super-admin QA account (sautero.guardian, secret SAUTERO_QA_MAIN) — run #50 green: working_time ✅, recipes ✅, admin ✅ (the robot actually signed in as super-admin)', status: 'done' },
+      { text: '🤖 3 nové statické guardy pre chyby session: AI-foto brána (presne 4 účty), odstránenie fotky, Add Company rola (db/169) — 13 guardov, všetky blokujúce deploy', text_en: '🤖 3 new static guards for this session\'s bugs: the AI-photo gate (exactly 4 accounts), remove-photo, the Add-Company role (db/169) — 13 guards, all blocking the deploy', status: 'done' },
     ]
   },
   week: {
@@ -523,7 +523,7 @@ const DAYS = [
   },
   {
     date: '2026-07-22',
-    headline: '🍽️ Recepty dotiahnuté: realistické AI fotky + cost v Admin AI Usage · opravený scroll/bublina/skryté okno · Personal/Company prepínač v strede lišty všade · vyčistené duplikáty · nová UI/UX testovacia vrstva',
+    headline: '🍽️ Recepty dotiahnuté: realistické AI fotky + cost v Admin AI Usage · opravený scroll/bublina/skryté okno · Personal/Company prepínač v strede lišty všade · vyčistené duplikáty · nová UI/UX testovacia vrstva · zamknuté Recepty + Admin (3/13 dlaždíc) · dedikovaný QA super-admin účet',
     accomplished: [
       '📸 AI fotky jedál prepísané na realistické: prompt pýta skutočný fotoaparát/objektív + okenné svetlo, verné (nepresýtené) farby, prirodzené nedokonalosti a tvrdé zákazy CGI/plastového vzhľadu; štýl sa dedí podľa zložitosti receptu (sc: tag).',
       '💰 Náklad AI fotky sa teraz loguje do Admin → AI Usage (edge funkcia generate-image zapíše riadok recipe_photo do ai_usage) — feature má konečne viditeľnú cenu.',
@@ -533,8 +533,14 @@ const DAYS = [
       '🧹 Vysvetlené + vyčistené duplikáty receptov: zdieľanie do Sautero knižnice tvorilo knižničnú kópiu (created_by=null) — zmazaných 7 kópií + odzdieľaných 7 originálov (198→191); 2 nové recepty boli čisté.',
       '🤖 Nová UI/UX testovacia vrstva do GitHub gate (blokujúca): ui_invariants.py (5 statických guardov — bublina, z-index okna, logovanie ceny, scroll na vrch, prítomnosť prepínača) + ui_regression_test.py (reálny prehliadač: recept sa otvorí na vrchu). Každý opravený UI bug má teraz guard.',
       '🔒 Overené súkromie pri prepínaní Personal/Company naprieč všetkými 7 kuchyňou-scoped funkciami (recepty, projekty, zoznamy, order list, ingrediencie, events) — personal dáta sa do company view nedostanú a naopak.',
+      '🔒 RECEPTY zamknuté naplno (Richard schválil celú dlaždicu) + do editácie pridané odstránenie fotky; AI fotky obmedzené presne na 4 interné účty, každý iný účet dostane iba „Pridať fotku".',
+      '🏢 Opravená Add Company rola (db/169): kto je pridaný cez Add Company a nikdy nebol v appke, sa teraz pripojí ako COMPANY ADMIN, nie member — príčinou bol db/85 strážca blokujúci zápis admin_perms; vyriešené transakčným GUC app.grant_company_admin, ktorý dôveryhodná cesta claim_company_admin zapne pred zápisom.',
+      '🔒 ADMIN dlaždica zamknutá ako Richardov hlavný-admin (icloud) pohľad — 3 z 13 dlaždíc zamknutých (working_time, recepty, admin). Regresia ktorejkoľvek teraz zablokuje deploy.',
+      '🕵️ Zistená pravda o QA secrets: vo všetkých (solo/admin/member) bol jeden a ten istý mail (sautero_android) — roly neboli reálne oddelené. Vytvorený dedikovaný super-admin QA účet (sautero.guardian) s vlastným jasne pomenovaným secretom SAUTERO_QA_MAIN; robot #50 zelený — working_time ✅, recepty ✅, admin ✅ (robot sa reálne prihlásil ako super-admin a preklikal hub).',
+      '🛡️ Internal Docs + Error Logs ostávajú puštené LEN na Richardov presný icloud e-mail (nezmenené, „strážiť zvonku") — namiesto kľúča pre robota ich stráži nový statický guard (prítomnosť dlaždice + handler + nepohnutá brána).',
+      '🤖 Do UI/UX gate doplnené 3 nové statické guardy pre chyby tejto session: AI-foto brána (presne 4 účty), odstránenie fotky (2 miesta), Add Company rola (db/169) — spolu 13 guardov, všetky blokujúce deploy.',
     ],
-    planned: 'Fyzicky pretestovať na iPade/Androide a iných účtoch (vyžaduje prihlásenie); zapnúť AI fotky pre všetkých po Richardovom OK a zamknúť Recepty ako 2. dlaždicu; presunúť fotky z data-URI do storage bucketu.'
+    planned: 'Ďalšia dlaždica: spolu ju prejsť do Richardovej predstavy → potom zamknúť + napísať jej robota. Neskôr: samostatné QA účty pre role member/admin (teraz zdieľajú jeden mail), zapnúť AI fotky pre všetkých po Richardovom OK, presunúť fotky z data-URI do storage bucketu, personal split zoznamov, Nebenerwerb + Einzelfirma.'
   },
 ];
 /* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
@@ -760,7 +766,7 @@ const DAYS_EN = [
     '⏱️ Worked hours are now written from git into every document automatically (no more manual drift — backfilled the missing 20 Jul = 17.3h and 21 Jul) + a freshness guard that flags stale day-log docs by itself.',
     '🧹 The investor deck + Manifesto + Visual Guide (Brand & Vision) rebuilt to investor grade; automation.html backfilled with the whole new CI layer; dead code (eventDateKey) and a rebrand typo in the naming history fixed.',
   ], p:'Point 4 from Richard\'s list: rework ALL remaining native alert/confirm dialogs (~174) into the Sautero identity — waiting to go through them together. Next: the personal split of lists (ingredient_lists + recipe_lists), side-business consent + sole proprietorship (revenue blockers).' },
-  { h:'🍽️ Recipes finished: realistic AI photos + cost in Admin AI Usage · fixed scroll/pill/hidden sheet · Personal/Company toggle centered in the bar everywhere · duplicates cleaned · a new UI/UX testing layer', a:[
+  { h:'🍽️ Recipes finished: realistic AI photos + cost in Admin AI Usage · fixed scroll/pill/hidden sheet · Personal/Company toggle centered in the bar everywhere · duplicates cleaned · a new UI/UX testing layer · Recipes + Admin locked (3/13 tiles) · a dedicated QA super-admin account', a:[
     '📸 AI dish photos rewritten to look real: the prompt asks for a real camera/lens + window light, true-to-life (not over-saturated) colour, natural imperfections and hard anti-CGI/plastic negatives; the style is inherited from the recipe\'s complexity (sc: tag).',
     '💰 An AI photo\'s cost is now logged to Admin → AI Usage (the generate-image edge function writes a recipe_photo row to ai_usage) — the feature finally has a visible price.',
     '📜 Recipes ALWAYS open at their top — root cause: the real scroller is <body>, not window (window.scrollTo was a no-op); added the _appScrollTo helper. Diagnosed live in the browser.',
@@ -769,7 +775,13 @@ const DAYS_EN = [
     '🧹 Explained + cleaned the recipe duplicates: sharing to the Sautero library created a library copy (created_by=null) — deleted 7 copies + un-shared 7 originals (198→191); the 2 brand-new recipes were clean.',
     '🤖 A new UI/UX testing layer in the GitHub gate (blocking): ui_invariants.py (5 static guards — pill, sheet z-index, cost logging, scroll-to-top, toggle presence) + ui_regression_test.py (real browser: a recipe opens at its top). Every fixed UI bug now has a guard.',
     '🔒 Privacy verified on the Personal/Company switch across all 7 kitchen-scoped features (recipes, projects, lists, order list, ingredients, events) — personal data can\'t reach a company view or vice versa.',
-  ], p:'Physically test on the iPad/Android and other accounts (needs sign-in); enable AI photos for everyone after Richard\'s OK and lock Recipes as tile #2; move photos from data-URI to a storage bucket.' },
+    '🔒 RECIPES fully locked (Richard signed off the whole tile) + a remove-photo option added to the edit form; AI photos restricted to exactly the 4 internal accounts, every other account gets only "Add photo".',
+    '🏢 Fixed the Add-Company role (db/169): someone added via Add Company who was never in the app now joins as COMPANY ADMIN, not a member — the db/85 guard was blocking the admin_perms write; fixed with a transaction-local GUC app.grant_company_admin that the trusted claim_company_admin path flips on before writing.',
+    '🔒 ADMIN tile locked as Richard\'s head-admin (icloud) view — 3 of 13 tiles now locked (working_time, recipes, admin). A regression in any of them now blocks the deploy.',
+    '🕵️ Found the truth about the QA secrets: all of them (solo/admin/member) held one and the same email (sautero_android) — the roles weren\'t really separated. Created a dedicated super-admin QA account (sautero.guardian) with its own clearly-named secret SAUTERO_QA_MAIN; run #50 went green — working_time ✅, recipes ✅, admin ✅ (the robot actually signed in as super-admin and clicked through the hub).',
+    '🛡️ Internal Docs + Error Logs stay gated to Richard\'s exact icloud email ALONE (unchanged, "guard from the outside") — instead of a key for the robot, a new static guard protects them (tile present + handler + gate unmoved).',
+    '🤖 Added 3 new static guards to the UI/UX gate for this session\'s bugs: the AI-photo gate (exactly 4 accounts), remove-photo (2 sites), the Add-Company role (db/169) — 13 guards total, all blocking the deploy.',
+  ], p:'Next tile: walk it together to Richard\'s vision → then lock it + write its robot. Later: separate QA accounts for the member/admin roles (they share one email now), enable AI photos for everyone after Richard\'s OK, move photos from data-URI to a storage bucket, personal split of the lists, side-business consent + sole proprietorship.' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
 
