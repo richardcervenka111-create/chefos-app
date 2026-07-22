@@ -114,7 +114,7 @@ def check_working_time(page, ctx):
     CHECKOUT_BTN = 'button[onclick="checkOutWorkingTime()"]'
 
     # self-heal: a leftover open entry from a crashed earlier run would block check-in
-    leftover = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
+    leftover = page.evaluate("() => (typeof _activeTimeEntry !== 'undefined' && _activeTimeEntry) ? _activeTimeEntry.id : null")
     if leftover:
         page.evaluate("""async (id) => { await sb.from('time_entries').delete().eq('id', id).select();
                          _activeTimeEntry = null; }""", leftover)
@@ -130,13 +130,13 @@ def check_working_time(page, ctx):
     # 1) check in
     page.click(CHECKIN_BTN)
     page.wait_for_selector('#wtElapsed', state='visible', timeout=15000)
-    entry_id = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
+    entry_id = page.evaluate("() => (typeof _activeTimeEntry !== 'undefined' && _activeTimeEntry) ? _activeTimeEntry.id : null")
     assert entry_id, 'check-in did not create an active entry (_activeTimeEntry is null)'
 
     # 2) check out (auto-accepts the "Check out now?" confirm); done = active entry cleared
     page.wait_for_selector(CHECKOUT_BTN, state='visible', timeout=10000)
     page.click(CHECKOUT_BTN)
-    page.wait_for_function("() => !window._activeTimeEntry", timeout=15000)
+    page.wait_for_function("() => typeof _activeTimeEntry === 'undefined' || !_activeTimeEntry", timeout=15000)
     row = page.evaluate("""async (id) => {
         const { data } = await sb.from('time_entries').select('check_in, check_out').eq('id', id).single();
         return data; }""", entry_id)
@@ -146,7 +146,7 @@ def check_working_time(page, ctx):
     co = datetime.fromisoformat(row['check_out'].replace('Z', '+00:00'))
     dur = (co - ci).total_seconds()
     assert 0 <= dur < 180, f'stored duration {dur:.0f}s is not the ~5s the test actually worked'
-    still = page.evaluate("() => window._activeTimeEntry ? _activeTimeEntry.id : null")
+    still = page.evaluate("() => (typeof _activeTimeEntry !== 'undefined' && _activeTimeEntry) ? _activeTimeEntry.id : null")
     assert not still, 'after check-out the app still thinks an entry is running'
 
     # 3) cleanup — row-count-verified delete (never a silent no-op)
