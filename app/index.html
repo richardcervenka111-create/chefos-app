@@ -107,7 +107,11 @@ window.__BUILD__ = '__BUILD_VERSION__';
     --shadow: 0 8px 28px rgba(10,26,47,0.12);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
-  html,body{margin:0; padding:0; height:100%; max-width:100vw; overflow-x:hidden;}
+  /* touch-action:manipulation disables iOS Safari's DOUBLE-TAP-to-zoom (which fits the tapped
+     element to the screen width — an accidental double-tap on a recipe-shelf tile made the whole
+     grid look zoomed to 2 big columns on the phone while the Mac was fine; Richard, 22.7.). Pinch
+     zoom stays enabled, so accessibility zoom is untouched. */
+  html,body{margin:0; padding:0; height:100%; max-width:100vw; overflow-x:hidden; touch-action:manipulation;}
   body{
     background: var(--bg);
     background-image: radial-gradient(ellipse 900px 500px at 50% -120px, rgba(52,247,215,0.06), transparent);
