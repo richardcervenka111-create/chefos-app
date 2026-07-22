@@ -320,6 +320,59 @@ def check_team_meetings(page, ctx):
     page.evaluate("() => (typeof closeTeamMeetingsPlaceholder === 'function') && closeTeamMeetingsPlaceholder()")
 
 
+def check_chef_assistant(page, ctx):
+    """Locked 22.7.2026 (Richard signed off after the whole polish pass). Behaviours under lock:
+    (1) the Chef's Assistant CHAT tile opens and its input is VISIBLE on the screen (the iOS layout
+    fix — window.scrollTo was a no-op, keyboard covered it, etc.); (2) the generated-recipe CHOICE
+    step renders its three options (Add to recipes / Generate a better recipe / Review & edit); and
+    (3) "Add to recipes" actually PERSISTS a recipe and lands on it. The choice step is driven with a
+    FABRICATED recipe — no Claude call, so the lock is deterministic and spends no AI credits — then
+    the saved recipe is deleted with a row-count-verified cleanup (the 20.7 silent-no-op rule)."""
+    page.on('dialog', lambda d: d.accept())
+
+    # 1) the chat tile opens with a visible input bar
+    page.locator('.home-tile', has_text="Chef's Assistant").first.click(timeout=8000)
+    page.wait_for_selector('#chefAssistantView', state='visible', timeout=15000)
+    dismiss_tutorials(page, 'after opening Chef Assistant')
+    input_ok = page.evaluate(
+        "() => { const i = document.getElementById('chefChatInput'); if(!i) return false;"
+        " const r = i.getBoundingClientRect();"
+        " return r.width > 0 && r.top >= 0 && r.bottom <= (window.innerHeight + 2); }")
+    assert input_ok, "the Chef's Assistant chat input is not visible within the viewport on open"
+
+    # 2) the CHOICE step renders all three options (driven with a fabricated recipe — no AI call)
+    import time
+    title = 'QA-ASSIST-TEST ' + str(int(time.time() * 1000))
+    choices = page.evaluate(
+        """(t) => {
+            showGeneratedRecipeChoice(
+              { title: t, category: 'QA', yield: '4', active_time: '10 min',
+                ingredients: [{ name: 'Water', qty: '100 g' }], steps: ['Mix well.'] },
+              { bodyId: 'chefsAssistantBody', title: t, tags: ['AI-generated'],
+                backFn: 'closeChefsAssistant()', againFn: 'closeChefsAssistant()', closeFn: 'closeChefsAssistant()' });
+            document.getElementById('chefsAssistantOverlay').classList.add('open');
+            const b = (document.getElementById('chefsAssistantBody') || {}).innerText || '';
+            return { add: b.includes('Add to recipes'), better: b.toLowerCase().includes('better'),
+                     edit: b.includes('Review') }; }""", title)
+    assert choices['add'] and choices['better'] and choices['edit'], \
+        f'the generated-recipe choice step is missing an option: {choices}'
+
+    # 3) "Add to recipes" (base, no extra projects) really saves the recipe, then clean it up
+    result = page.evaluate(
+        """async (t) => {
+            await saveGeneratedRecipe([]);            // _genRecipe was set by the choice above
+            const u = await sb.auth.getUser(); const uid = u.data.user.id;
+            const sel = await sb.from('recipes').select('id').eq('title', t).eq('created_by', uid);
+            const ids = (sel.data || []).map(r => r.id);
+            let deleted = 0, delErr = null;
+            if (ids.length) { const del = await sb.from('recipes').delete().in('id', ids).select('id');
+              deleted = (del.data || []).length; delErr = del.error ? del.error.message : null; }
+            return { found: ids.length, deleted, delErr }; }""", title)
+    assert result['found'] >= 1, '"Add to recipes" did not persist the generated recipe'
+    assert result['deleted'] == result['found'] and not result['delErr'], \
+        f"cleanup removed {result['deleted']}/{result['found']} (err: {result['delErr']})"
+
+
 CHECKS = {
     'working_time': check_working_time,
     'recipes': check_recipes,
@@ -327,6 +380,7 @@ CHECKS = {
     'haccp': check_haccp,
     'settings': check_settings,
     'team_meetings': check_team_meetings,
+    'chef_assistant': check_chef_assistant,
 }
 
 # Which QA account each tile's suite signs in as. Default = the solo user (SAUTERO_QA_*); admin-only

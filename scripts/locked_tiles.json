@@ -6,7 +6,10 @@
     "admin",
     "haccp",
     "settings",
-    "team_meetings"
+    "team_meetings",
+    "chef_assistant"
   ],
-  "in_development": []
+  "in_development": [
+    "chef_assistant"
+  ]
 }
