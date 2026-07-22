@@ -21854,7 +21854,7 @@ async function generateOneMenuScanRecipe(dish, srcKind){
     activeTime: input.active_time || '', passiveTime: input.passive_time || '',
     ingredients: (input.ingredients || []).map(x=>[x.name || '', x.qty || '']),
     steps: (input.steps && input.steps.length) ? input.steps : [''],
-    failed: false, dish, srcKind
+    failed: false, dish, srcKind, complexity: _menuScanOpts.complexity
   };
 }
 
@@ -21991,7 +21991,7 @@ async function runMenuScanFromUrl(url){
         title: dish.name, category: dish.section || '', meta: '', yield: '',
         activeTime: '', passiveTime: '',
         ingredients: (dish.components || []).length ? (dish.components || []).map(c=>[c, '']) : [['','']],
-        steps: [''], failed: false, dish, srcKind: 'web'
+        steps: [''], failed: false, dish, srcKind: 'web', complexity: 'simple'
       }));
       finishBgScan(()=> openMenuScanReview());
       return;
@@ -22050,7 +22050,7 @@ async function runMenuScan(base64, mediaType, fileName){
         title: dish.name, category: dish.section || '', meta: '', yield: '',
         activeTime: '', passiveTime: '',
         ingredients: (dish.components || []).length ? (dish.components || []).map(c=>[c, '']) : [['','']],
-        steps: [''], failed: false, dish, srcKind: 'printed'
+        steps: [''], failed: false, dish, srcKind: 'printed', complexity: 'simple'
       }));
       finishBgScan(()=> openMenuScanReview());
       return;
@@ -22083,6 +22083,28 @@ async function runMenuScan(base64, mediaType, fileName){
 
 const MENU_SCAN_COMPLEXITY_LABELS = { simple:'Short', standard:'Standard', complete:'Sophisticated' };
 function menuScanHasMethod(r){ return (r.steps || []).some(s => s && s.trim()); }
+/* Persist the recipe's generation complexity as a `sc:<level>` tag so the AI photo can later
+   inherit the SAME level automatically — no photo-time question (Richard, 22.7.). */
+function menuScanRecipeTags(r){
+  const base = ['AI-generated', 'Menu scan'];
+  const cx = r && r.complexity;
+  if(cx === 'simple' || cx === 'standard' || cx === 'complete') base.push('sc:' + cx);
+  return base;
+}
+/* The photo-plating style, derived from the recipe itself. Order of truth: the persisted
+   sc:<level> tag (how the recipe was generated) → an inference for older/manual recipes
+   (a detailed plating_suggestions field ⇒ sophisticated) → standard. */
+const PHOTO_STYLE = {
+  simple:   'Simple, honest home-style plating — a casual bowl or plate, rustic and unfussy, everyday portion.',
+  standard: 'Clean, professional restaurant plating on a plain plate — tidy and appetizing.',
+  complete: 'Refined fine-dining plating, Michelin-style — elegant composition, careful garnish, sauce work and negative space on the plate.'
+};
+function recipePhotoStyle(r){
+  const tag = (r.tags || []).find(t => typeof t === 'string' && t.indexOf('sc:') === 0);
+  let level = tag ? tag.slice(3) : null;
+  if(!level){ level = (r.platingSuggestions && r.platingSuggestions.length > 120) ? 'complete' : 'standard'; }
+  return PHOTO_STYLE[level] || PHOTO_STYLE.standard;
+}
 /* A generated recipe occasionally arrives WITHOUT steps despite the prompt rule (Richard,
    22.7. — seen on Sophisticated). This writes JUST the missing method for that one entry,
    straight in the review list — same write_method tool the form's ✨ button uses. */
@@ -22234,7 +22256,7 @@ async function saveOneMenuScanRecipe(r, dests){
   const payload = {
     title: r.title, category: r.category || null, subtitle: r.meta || null,
     prep_time_active: r.activeTime || null, prep_time_passive: r.passiveTime || null,
-    yield_text: r.yield || null, tags: ['AI-generated', 'Menu scan'], sections,
+    yield_text: r.yield || null, tags: menuScanRecipeTags(r), sections,
     kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
     shared_with_chefos: _recipeAiShare === true
   };
@@ -22333,7 +22355,7 @@ function openMenuScanRecipeForm(i){
     passiveTime: r.passiveTime,
     ingredients: r.ingredients.length ? r.ingredients : [['','']],
     steps: r.steps,
-    tags: ['AI-generated', 'Menu scan']
+    tags: menuScanRecipeTags(r)
   });
   const b = document.getElementById('fBackToScanBtn'); if(b) b.style.display = '';
 }
@@ -22431,12 +22453,16 @@ async function generateRecipePhoto(){
   try{
     const ingredients = (r.sections || []).filter(s=>s.type==='table')
       .flatMap(s=>s.rows.map(row=>row[0])).filter(Boolean).slice(0, 10).join(', ');
+    // The plating style is inherited from how the recipe was generated (sc:<level> tag) — no
+    // question asked here (Richard, 22.7.): a Short recipe gets a homely photo, a Sophisticated
+    // one a fine-dining photo.
     const prompt =
       `Professional food photography, photorealistic: "${r.title}"` +
       (r.meta ? ` — ${r.meta}.` : '.') +
       (r.description ? ` ${r.description.slice(0, 220)}` : '') +
       (ingredients ? ` Key ingredients visible where natural: ${ingredients}.` : '') +
-      (r.platingSuggestions ? ` Plating: ${r.platingSuggestions.slice(0, 200)}` : ' Restaurant plating on a clean plate.') +
+      ' ' + recipePhotoStyle(r) +
+      (r.platingSuggestions ? ` ${r.platingSuggestions.slice(0, 160)}` : '') +
       ' Natural soft light, shallow depth of field, appetizing, realistic textures.' +
       ' No text, no watermark, no hands, no people.';
     const { data, error } = await sb.functions.invoke('generate-image', { body: { prompt } });
