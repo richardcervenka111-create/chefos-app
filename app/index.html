@@ -14154,7 +14154,8 @@ function showDetail(idx){
       // Own recipe: allow replacing the photo (upload your own). AI regenerate stays flag-gated.
       html += `<div style="margin:-8px 0 14px 0; display:flex; gap:14px;">`;
       if(featureEnabled('recipe_photo_gen')) html += `<button class="link-btn" onclick="generateRecipePhoto()" style="background:none;border:none;color:var(--copper);font-size:12px;cursor:pointer;padding:0;">✨ Regenerate (AI)</button>`;
-      html += `<button class="link-btn" onclick="addRecipePhoto()" style="background:none;border:none;color:var(--copper);font-size:12px;cursor:pointer;padding:0;">📷 Change photo</button></div>`;
+      html += `<button class="link-btn" onclick="addRecipePhoto()" style="background:none;border:none;color:var(--copper);font-size:12px;cursor:pointer;padding:0;">📷 Change photo</button>`;
+      html += `<button class="link-btn" onclick="removeRecipePhoto()" style="background:none;border:none;color:var(--ink-dim);font-size:12px;cursor:pointer;padding:0;">🗑️ Remove photo</button></div>`;
     }
   } else if(r.createdBy){
     // No photo yet, own recipe. The 4 internal accounts (recipe_photo_gen flag) also get AI
@@ -14466,6 +14467,7 @@ function editCurrentRecipe(){
   const steps = r.sections.find(s=>s.type==='steps');
   renderForm({
     title: r.title,
+    img: r.img || null,
     category: r.category,
     meta: r.meta || '',
     productionTime: r.productionTime || '',
@@ -14507,6 +14509,10 @@ function renderForm(data){
   let html = `
     <label class="form-label">${formEditingId ? 'Edit Recipe' : 'New Recipe'}</label>
     <input class="form-field" id="f_title" type="text" placeholder="Recipe title" value="${(data.title||'').replace(/"/g,'&quot;')}">
+    ${data.img ? `<div id="f_photo_row" style="display:flex; align-items:center; gap:12px; margin:8px 0 12px;">
+      <img src="${data.img}" alt="" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--rule); flex:none;">
+      <button type="button" class="task-status-btn" style="padding:5px 12px; font-size:12px; flex:none;" onclick="removeRecipePhoto()">🗑️ Remove photo</button>
+    </div>` : ''}
 
     <label class="form-label">Category</label>
     <select class="form-field" id="f_category">
@@ -22599,6 +22605,22 @@ async function addRecipePhoto(){
     }
   };
   input.click();
+}
+
+/* Remove a recipe's photo (Richard, 22.7. evening — "v edit recipe musí byť možnosť aj na
+   odstránenie fotky"). Works from the edit form (via formEditingId) and the detail view (via the
+   open recipe); own recipes only, row-count-verified so a blocked write is never reported as done. */
+async function removeRecipePhoto(){
+  const formOpen = document.getElementById('formView').style.display === 'block';
+  const r = formOpen ? allRecipes().find(x=>x.id === formEditingId) : allRecipes()[window.currentDetailIdx];
+  if(!r || !r.createdBy || !r.img) return;
+  if(!(await appConfirm('Remove the photo from this recipe?'))) return;
+  const { data, error } = await sb.from('recipes').update({ image_url: null }).eq('id', r.id).select();
+  if(error){ await appAlert('Could not remove the photo: ' + error.message); return; }
+  if(!data || data.length !== 1){ await appAlert('The photo was not removed (0 rows updated).'); return; }
+  r.img = null;
+  if(formOpen){ const row = document.getElementById('f_photo_row'); if(row) row.remove(); }
+  else { showDetail(window.currentDetailIdx); }
 }
 
 async function generateMethodWithAI(){
