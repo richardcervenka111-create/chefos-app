@@ -14094,13 +14094,25 @@ async function refreshCommentCountBadge(r){
     badge.style.display = 'block';
   }
 }
+/* The live scroll container in this app is <body> (html,body{height:100%} makes body the
+   overflow:auto scroller), NOT window — so window.scrollTo/scrollY are no-ops here (verified
+   live 22.7.: window.scrollTo(0,600) left body.scrollTop at 0, only body.scrollTop moved).
+   That's why a recipe used to open mid-page instead of at its top. These two helpers reset /
+   read whichever of the three roots is actually live, the same belt-and-suspenders pattern the
+   Home reset already uses (goHome ~12566), so it keeps working even if the scroll root differs
+   per browser. */
+function _appScrollY(){ return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0; }
+function _appScrollTo(y){
+  window.scrollTo(0, y); document.documentElement.scrollTop = y; document.body.scrollTop = y;
+  requestAnimationFrame(()=>{ window.scrollTo(0, y); document.documentElement.scrollTop = y; document.body.scrollTop = y; });
+}
 function showDetail(idx){
   // Remember where the recipe list was scrolled (Richard, 17.7. večer): opening a recipe
   // always lands at ITS top, and going back to All Recipes returns to exactly this spot.
   // Only captured when actually coming FROM the list — recipe→recipe jumps (cross-references)
   // keep the original list position intact.
   if(document.getElementById('listView').style.display === 'block'){
-    _recipeListScrollY = window.scrollY;
+    _recipeListScrollY = _appScrollY();
   }
   window.currentDetailIdx = idx;
   const r = allRecipes()[idx];
@@ -14333,10 +14345,10 @@ function showDetail(idx){
 
   hideAllViews();
   document.getElementById('detailView').style.display = 'block';
-  // Twice on purpose: once now, once after layout settles (hero image slot etc.), so a
+  // Reset the REAL scroller (body), now + next frame after the hero-image slot settles, so a
   // recipe ALWAYS opens at its very top regardless of how far the previous view was scrolled.
-  window.scrollTo(0,0);
-  requestAnimationFrame(()=>window.scrollTo(0,0));
+  // (window.scrollTo alone was a no-op here — see _appScrollTo above.)
+  _appScrollTo(0);
 }
 
 let _recipeListScrollY = 0;
@@ -14376,10 +14388,8 @@ function showList(){
   renderList();
   // Coming back from a recipe detail returns to the exact spot you left the list at
   // (Richard, 17.7. večer); a fresh entry from the shelf picker starts at the top because
-  // showRecipesHome() resets the saved position.
-  const y = _recipeListScrollY;
-  window.scrollTo(0, y);
-  requestAnimationFrame(()=>window.scrollTo(0, y));
+  // showRecipesHome() resets the saved position. Uses the real body scroller (_appScrollTo).
+  _appScrollTo(_recipeListScrollY);
 }
 
 async function deleteCurrentRecipe(){
