@@ -448,6 +448,28 @@ def check_saving_overlay(html):
         passes.append('saving-overlay: present, shown from both save paths, hidden via setTimeout (never sticks).')
 
 
+def check_ingredient_info_panel(html):
+    # Richard, 23.7. (t13) — the shared ingredient "i" panel (ingredientInfoHtml, used by the LOCKED
+    # Recipes tile + Check List + Ingredients) gained a free Wikipedia link, an on-demand AI
+    # flavour/origin/season button, and a stored Flavour row. Guard all three so an edit to that
+    # heavily-shared function can't silently drop them.
+    m = re.search(r'function ingredientInfoHtml\(rowName\)\{(.*?)\n\}', html, re.S)
+    problems = []
+    if not m:
+        problems.append('ingredientInfoHtml() not found')
+    else:
+        body = m.group(1)
+        if 'wikipedia.org' not in body: problems.append('no Wikipedia link')
+        if 'generateIngredientAiInfo(' not in body: problems.append('no AI flavour/origin/season button')
+        if 'ing.flavour' not in body: problems.append('no stored Flavour row')
+    if 'async function generateIngredientAiInfo(' not in html:
+        problems.append('generateIngredientAiInfo() handler missing')
+    if problems:
+        failures.append('ingredient-info: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('ingredient-info: "i" panel keeps Wikipedia link + AI button + stored Flavour row.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -455,6 +477,7 @@ def main():
     check_save_dest_mode_split(html)
     check_recipe_copy_is_personal(html)
     check_saving_overlay(html)
+    check_ingredient_info_panel(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)
