@@ -113,18 +113,29 @@ def check_working_time(page, ctx):
     CHECKIN_BTN = 'button[onclick="checkInWorkingTime()"]'
     CHECKOUT_BTN = 'button[onclick="checkOutWorkingTime()"]'
 
-    # self-heal: a leftover open entry from a crashed earlier run would block check-in
+    def open_tile():
+        page.locator('.home-tile', has_text='Working Time').first.click(timeout=8000)
+        # readiness = the tile's data loaded and the status card rendered ONE of the two states
+        page.wait_for_selector(f'{CHECKIN_BTN}, {CHECKOUT_BTN}', state='attached', timeout=20000)
+        dismiss_tutorials(page, 'after opening Working Time')
+
+    open_tile()
+
+    # Self-heal AFTER the tile loads (run #394 lesson: _activeTimeEntry is only populated by the
+    # tile's own data load — checking it at Home always saw null, so a leftover open entry from
+    # a crashed run kept the account checked-in and there was no Check In button to find).
     leftover = page.evaluate("() => (typeof _activeTimeEntry !== 'undefined' && _activeTimeEntry) ? _activeTimeEntry.id : null")
     if leftover:
-        page.evaluate("""async (id) => { await sb.from('time_entries').delete().eq('id', id).select();
-                         _activeTimeEntry = null; }""", leftover)
+        print(f'    (self-heal: deleting leftover open entry {leftover} from a previous crashed run)')
+        deleted = page.evaluate("""async (id) => {
+            const { data, error } = await sb.from('time_entries').delete().eq('id', id).select();
+            return { n: (data || []).length, err: error ? error.message : null }; }""", leftover)
+        assert deleted['err'] is None and deleted['n'] == 1, f'leftover cleanup failed: {deleted}'
         page.reload(wait_until='networkidle')
         page.wait_for_selector('#homeView', state='visible', timeout=20000)
+        dismiss_tutorials(page, 'after self-heal reload')
+        open_tile()
 
-    page.locator('.home-tile', has_text='Working Time').first.click(timeout=8000)
-    # readiness = the tile's data loaded and the status card rendered the check-in button
-    page.wait_for_selector(CHECKIN_BTN, state='attached', timeout=20000)
-    dismiss_tutorials(page, 'after opening Working Time')
     page.wait_for_selector(CHECKIN_BTN, state='visible', timeout=20000)
 
     # 1) check in
