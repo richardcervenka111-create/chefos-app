@@ -263,7 +263,7 @@
   </div>
   <div class="phase-rule"></div>
   <div class="tasklist">
-    <div class="task"><input type="checkbox" class="task-check" id="t5"><div class="task-body"><div class="task-title">Overiť odosielaciu doménu v Resend / prepnúť na Supabase mailer</div><div class="task-desc">Tvrdý blocker verejného trialu — cudzie adresy sa nevedia prihlásiť.</div></div><div class="tags"><span class="tag tag-crit">Blocker</span><span class="tag tag-plan">Plán</span></div></div>
+    <div class="task"><input type="checkbox" class="task-check" id="t5" checked><div class="task-body"><div class="task-title">Overiť odosielaciu doménu v Resend / prepnúť na Supabase mailer</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 15.–21.7.:</b> doména overená v Resende a custom SMTP naživo, otestované end-to-end; po rebrande migrované na noreply@sautero.ch. Cudzie adresy sa vedia prihlásiť.</div></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
     <div class="task"><input type="checkbox" class="task-check" id="t6" checked><div class="task-body"><div class="task-title">Dať celý kód do Gitu (GitHub, súkromné repo) — okamžite</div><div class="task-desc"><b style="color:var(--accent);">Plne vyriešené 13.7.:</b> lokálny git repo pripojený na Richardov existujúci repozitár chefos-app (bol na GitHube spravovaný ručným drag-and-drop nahrávaním). Pridaný GitHub Actions workflow, ktorý automaticky nasadí app/ na create.github.io pri každom commite — žiadne ručné nahrávanie už netreba.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
     <div class="task v2"><input type="checkbox" class="task-check" id="t7"><div class="task-body"><div class="task-title">Zapnúť/overiť automatické zálohy Supabase databázy + otestovať obnovu</div><div class="task-desc">Free tier má obmedzené zálohy. V DB sú už reálne dáta pilotu (173 receptov, prep dáta, dochádzka). Záloha, ktorú si nikdy neskúšal obnoviť, nie je záloha.</div><span class="role">CTO</span></div><div class="tags"><span class="tag tag-v2">v2</span><span class="tag tag-crit">Kritické</span></div></div>
     <div class="task v2"><input type="checkbox" class="task-check" id="t8" checked><div class="task-body"><div class="task-title">Vytvoriť staging prostredie (druhý Supabase projekt) — prestať púšťať SQL priamo na produkciu</div><div class="task-desc"><b style="color:var(--accent);">Vyriešené 13.7.:</b> projekt "chefos-staging" založený, celá schéma + dáta (173 receptov, 1315 ingrediencií, celý Check List) nahraté cez db/_staging_bootstrap.sql, naživo overené (žiadna RLS chyba). Odteraz: nová SQL zmena ide vždy najprv sem, až potom na produkciu.</div><span class="role">Vyriešené</span></div><div class="tags"><span class="tag tag-plan">Hotovo</span></div></div>
@@ -886,6 +886,6 @@ renderPhaseOverview();
 initPhaseCollapse();
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 21. 7. 2026, 20:13" data-en="🔄 Sautero state as of Jul 21, 2026, 20:13">🔄 Stav Sautero k 21. 7. 2026, 20:13</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 23. 7. 2026, 01:21" data-en="🔄 Sautero state as of Jul 23, 2026, 01:21">🔄 Stav Sautero k 23. 7. 2026, 01:21</div>
 </body>
 </html>
