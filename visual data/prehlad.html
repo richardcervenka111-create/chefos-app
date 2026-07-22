@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sautero — Prehľad</title>
+<style>
+  :root{
+    --bg:#0A1A2F; --panel:#0F2340; --ink:#EAF2F5; --dim:#9DB2BD; --faint:#5E7686;
+    --teal:#34F7D7; --gold:#F7C948; --coral:#FF7A68; --green:#4ADE80;
+    --rule:rgba(52,247,215,.16); --hair:rgba(255,255,255,.06);
+    --serif:Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    line-height:1.55;font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+  .topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;
+    gap:10px;padding:10px 18px;background:rgba(10,26,47,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule);}
+  .topbar .b{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-style:italic;font-size:17px;}
+  .lang{font-family:inherit;font-size:12px;font-weight:700;color:var(--ink);background:transparent;
+    border:1px solid var(--teal);border-radius:999px;padding:5px 12px;cursor:pointer;}
+  .lang:active{transform:scale(.95);}
+  .pg{max-width:1080px;margin:0 auto;padding:28px 22px 70px;}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 10px;}
+  h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(28px,5vw,44px);line-height:1.08;margin:0 0 12px;}
+  h1 em{color:var(--teal);font-style:italic;}
+  .lede{color:var(--dim);font-size:15px;max-width:62ch;margin:0 0 30px;}
+  .band{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:0 0 38px;}
+  .stat{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:18px 18px 16px;}
+  .stat .n{font-family:var(--serif);font-size:36px;line-height:1;color:var(--teal);}
+  .stat .n.gold{color:var(--gold);} .stat .n.ink{color:var(--ink);}
+  .stat .l{font-size:12px;color:var(--dim);margin-top:8px;}
+  .stat .s{font-size:11px;color:var(--faint);margin-top:2px;}
+  .sec{display:flex;align-items:center;gap:12px;margin:0 0 16px;}
+  .sec h2{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);font-weight:700;margin:0;}
+  .sec .r{flex:1;height:1px;background:var(--rule);}
+  .fsw{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:20px;margin-bottom:38px;}
+  .fsb{display:flex;height:26px;border-radius:7px;overflow:hidden;gap:2px;background:var(--bg);}
+  .fsl{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:16px;font-size:12.5px;color:var(--dim);}
+  .fsl .k{display:flex;align-items:center;gap:8px;} .fsl .d{width:11px;height:11px;border-radius:3px;} .fsl b{color:var(--ink);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:14px;margin-bottom:38px;}
+  .card{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:16px 17px;display:flex;flex-direction:column;gap:6px;}
+  .card .t{display:flex;align-items:center;gap:10px;} .card .i{font-size:20px;} .card .nm{font-size:14.5px;font-weight:700;}
+  .card .d{font-size:12.5px;color:var(--dim);flex:1;} .card .m{font-size:12px;color:var(--teal);font-weight:700;margin-top:4px;}
+  .card .m.gold{color:var(--gold);} .card .m.dim{color:var(--faint);font-weight:600;}
+  .road{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:22px;margin-bottom:30px;}
+  .rs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
+  .rstep{position:relative;padding-left:22px;}
+  .rstep::before{content:"";position:absolute;left:0;top:4px;width:11px;height:11px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px rgba(52,247,215,.14);}
+  .rstep.next::before{background:var(--gold);box-shadow:0 0 0 4px rgba(247,201,72,.14);}
+  .rstep.later::before{background:transparent;border:2px solid var(--faint);}
+  .rstep .w{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700;}
+  .rstep .h{font-size:14px;font-weight:700;margin:3px 0;} .rstep .s{font-size:12.5px;color:var(--dim);}
+  .foot{border-top:1px solid var(--rule);padding-top:18px;font-size:11.5px;color:var(--faint);}
+  @media(max-width:520px){.pg{padding:24px 15px 50px;}.stat .n{font-size:30px;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="b"><svg width="22" height="22" viewBox="0 0 68 68" aria-hidden="true"><path d="M 46.8 42.3 A 18 18 0 1 1 46.8 21.7" fill="none" stroke="#34F7D7" stroke-width="7" stroke-linecap="round"/><circle cx="34" cy="34" r="3" fill="#34F7D7"/></svg>Sautero</span>
+  <button class="lang" onclick="toggleLang()" title="EN / SK">EN/SK</button>
+</div>
+<div class="pg">
+  <p class="eyebrow" data-sk="Prehľad · Fáza 1" data-en="Overview · Phase 1">Prehľad · Fáza 1</p>
+  <h1 data-sk="Celá firma na <em>jeden pohľad</em>" data-en="The whole company at <em>a glance</em>">Celá firma na <em>jeden pohľad</em></h1>
+  <p class="lede" data-sk="Digitálny kuchynský zápisník pre profesionálne kuchyne — produkt, čísla, automatizácie a smerovanie, poskladané z interných dokumentov. Čísla sa aktualizujú samy pri každej zmene." data-en="A digital kitchen notebook for professional kitchens — product, numbers, automations and direction, assembled from the internal documents. The numbers update themselves on every change.">Digitálny kuchynský zápisník pre profesionálne kuchyne — produkt, čísla, automatizácie a smerovanie, poskladané z interných dokumentov. Čísla sa aktualizujú samy pri každej zmene.</p>
+
+  <div class="band"><!--AUTO:START:overview_stats-->
+<div class="stat"><div class="n ">126</div><div class="l" data-sk="funkcií v aplikácii" data-en="features in the app">funkcií v aplikácii</div><div class="s">89 live · 37 WIP</div></div><div class="stat"><div class="n ink">468</div><div class="l" data-sk="zmien spolu" data-en="changes total">zmien spolu</div><div class="s">auto z gitu · from git</div></div><div class="stat"><div class="n ">22</div><div class="l" data-sk="automatických robotov" data-en="automated robots">automatických robotov</div><div class="s">2 dlaždice zamknuté</div></div><div class="stat"><div class="n gold">90<span style="font-size:20px;color:var(--faint)">/100</span></div><div class="l" data-sk="známka A" data-en="grade A">známka A</div><div class="s">Health Report</div></div><div class="stat"><div class="n ink">10</div><div class="l" data-sk="aktívnych dní" data-en="active days">aktívnych dní</div><div class="s">dní vývoja · dev days</div></div>
+<!--AUTO:END:overview_stats--></div>
+
+  <div class="sec"><h2 data-sk="Stav funkcií" data-en="Feature status">Stav funkcií</h2><div class="r"></div></div>
+  <div class="fsw">
+    <div class="fsb" role="img" aria-label="89 live, 24 in test, 8 planned, 5 building">
+      <span style="width:70.6%;background:var(--green);"></span><span style="width:19%;background:var(--teal);"></span><span style="width:6.4%;background:var(--gold);"></span><span style="width:4%;background:var(--coral);"></span>
+    </div>
+    <div class="fsl">
+      <span class="k"><span class="d" style="background:var(--green)"></span><b>89</b>&nbsp;<span data-sk="naživo" data-en="live">naživo</span></span>
+      <span class="k"><span class="d" style="background:var(--teal)"></span><b>24</b>&nbsp;<span data-sk="v teste" data-en="in test">v teste</span></span>
+      <span class="k"><span class="d" style="background:var(--gold)"></span><b>8</b>&nbsp;<span data-sk="plánované" data-en="planned">plánované</span></span>
+      <span class="k"><span class="d" style="background:var(--coral)"></span><b>5</b>&nbsp;<span data-sk="v stavbe" data-en="building">v stavbe</span></span>
+    </div>
+  </div>
+
+  <div class="sec"><h2 data-sk="Interné dokumenty" data-en="Internal documents">Interné dokumenty</h2><div class="r"></div></div>
+  <div class="grid">
+    <div class="card"><div class="t"><span class="i">📱</span><span class="nm" data-sk="Produkt" data-en="Product">Produkt</span></div><div class="d" data-sk="Živá mapa funkcií + história shipnutého." data-en="Live feature map + shipped history.">Živá mapa funkcií + história shipnutého.</div><div class="m" data-sk="126 funkcií" data-en="126 features">126 funkcií</div></div>
+    <div class="card"><div class="t"><span class="i">🗺️</span><span class="nm" data-sk="Plán" data-en="Plan">Plán</span></div><div class="d" data-sk="Teraz · denník · changelog · roadmapa." data-en="Now · diary · changelog · roadmap.">Teraz · denník · changelog · roadmapa.</div><div class="m" data-sk="Fáza 1 / 7" data-en="Phase 1 / 7">Fáza 1 / 7</div></div>
+    <div class="card"><div class="t"><span class="i">💰</span><span class="nm" data-sk="Biznis" data-en="Business">Biznis</span></div><div class="d" data-sk="Monetizácia · automatizácie · náklady." data-en="Monetisation · automations · costs.">Monetizácia · automatizácie · náklady.</div><div class="m gold" data-sk="CHF 490/rok" data-en="CHF 490/yr">CHF 490/rok</div></div>
+    <div class="card"><div class="t"><span class="i">🩺</span><span class="nm">Health Report</span></div><div class="d" data-sk="Architektúra · bezpečnosť · dokumentácia · dlh." data-en="Architecture · security · docs · debt.">Architektúra · bezpečnosť · dokumentácia · dlh.</div><div class="m">90/100 · A</div></div>
+    <div class="card"><div class="t"><span class="i">📜</span><span class="nm">Changelog</span></div><div class="d" data-sk="Každá zmena z gitu — generované samo." data-en="Every change from git — self-generated.">Každá zmena z gitu — generované samo.</div><div class="m" data-sk="auto" data-en="auto">auto</div></div>
+    <div class="card"><div class="t"><span class="i">🎨</span><span class="nm" data-sk="Značka & vízia" data-en="Brand & vision">Značka & vízia</span></div><div class="d" data-sk="Investor deck · manifest · vizuálny štandard." data-en="Investor deck · manifesto · visual standard.">Investor deck · manifest · vizuálny štandard.</div><div class="m dim" data-sk="pre investora" data-en="for investors">pre investora</div></div>
+    <div class="card"><div class="t"><span class="i">🏷️</span><span class="nm" data-sk="Názov & značka" data-en="Name & brand">Názov & značka</span></div><div class="d" data-sk="Prečo Sautero — a prečo nie ChefOS." data-en="Why Sautero — and why not ChefOS.">Prečo Sautero — a prečo nie ChefOS.</div><div class="m dim" data-sk="identita" data-en="identity">identita</div></div>
+    <div class="card"><div class="t"><span class="i">🥘</span><span class="nm" data-sk="Gronda research" data-en="Gronda research">Gronda research</span></div><div class="d" data-sk="Konkurencia + inšpirácie z odvetvia." data-en="Competition + industry inspiration.">Konkurencia + inšpirácie z odvetvia.</div><div class="m dim" data-sk="rešerš" data-en="research">rešerš</div></div>
+    <div class="card"><div class="t"><span class="i">🤝</span><span class="nm">Aare Ventures</span></div><div class="d" data-sk="Investori z Bernu — ako nám pomôžu." data-en="Bern investors — how they help.">Investori z Bernu — ako nám pomôžu.</div><div class="m dim">Bern</div></div>
+    <div class="card"><div class="t"><span class="i">📝</span><span class="nm" data-sk="Poznámky" data-en="Notes">Poznámky</span></div><div class="d" data-sk="Živý zápisník — nápady + na dokončenie." data-en="Living notebook — ideas + to finish.">Živý zápisník — nápady + na dokončenie.</div><div class="m dim" data-sk="priebežne" data-en="ongoing">priebežne</div></div>
+    <div class="card"><div class="t"><span class="i">🔍</span><span class="nm" data-sk="Kontrola funkcií" data-en="Feature sweep">Kontrola funkcií</span></div><div class="d" data-sk="Kompletný sweep — kde presne stojíme." data-en="Full sweep — exactly where we stand.">Kompletný sweep — kde presne stojíme.</div><div class="m dim" data-sk="audit" data-en="audit">audit</div></div>
+  </div>
+
+  <div class="sec"><h2 data-sk="Kam smerujeme" data-en="Where we are headed">Kam smerujeme</h2><div class="r"></div></div>
+  <div class="road"><div class="rs">
+    <div class="rstep"><div class="w" data-sk="Teraz · Fáza 1" data-en="Now · Phase 1">Teraz · Fáza 1</div><div class="h" data-sk="Pilotná kuchyňa beží naživo" data-en="Pilot kitchen is live">Pilotná kuchyňa beží naživo</div><div class="s" data-sk="173 receptov · 535 ingrediencií · 168 migrácií, 49 tabuliek, všetko s RLS." data-en="173 recipes · 535 ingredients · 168 migrations, 49 tables, all with RLS.">173 receptov · 535 ingrediencií · 168 migrácií, 49 tabuliek, všetko s RLS.</div></div>
+    <div class="rstep next"><div class="w" data-sk="1. august 2026" data-en="1 August 2026">1. august 2026</div><div class="h" data-sk="Verejný trial · 25 používateľov" data-en="Public trial · 25 users">Verejný trial · 25 používateľov</div><div class="s" data-sk="Check List · Asistent · Ingrediencie · Recepty, pripojenie cez QR." data-en="Check List · Assistant · Ingredients · Recipes, join via QR.">Check List · Asistent · Ingrediencie · Recepty, pripojenie cez QR.</div></div>
+    <div class="rstep later"><div class="w" data-sk="Po pilote" data-en="After the pilot">Po pilote</div><div class="h" data-sk="Predaj a monetizácia" data-en="Sales and monetisation">Predaj a monetizácia</div><div class="s" data-sk="Zakladajúca cena CHF 490/rok + onboarding CHF 990. Prvý cieľ: Nooch Asian Kitchen." data-en="Founding price CHF 490/yr + onboarding CHF 990. First target: Nooch Asian Kitchen.">Zakladajúca cena CHF 490/rok + onboarding CHF 990. Prvý cieľ: Nooch Asian Kitchen.</div></div>
+  </div></div>
+
+  <div class="foot"><span data-sk="Sautero · Kitchen Notebook · app.sautero.ch · čísla sa aktualizujú automaticky" data-en="Sautero · Kitchen Notebook · app.sautero.ch · numbers update automatically">Sautero · Kitchen Notebook · app.sautero.ch · čísla sa aktualizujú automaticky</span></div>
+</div>
+<script>
+  var _lang='sk';
+  function toggleLang(){
+    _lang = _lang==='sk'?'en':'sk';
+    document.querySelectorAll('[data-sk][data-en]').forEach(function(el){
+      var v = el.getAttribute('data-'+_lang); if(v!=null) el.innerHTML = v;
+    });
+    document.documentElement.lang=_lang;
+  }
+</script>
+<div class="datestamp" data-sk="Aktualizované 22.7.2026" data-en="Updated 22.7.2026" style="position:fixed;right:9px;bottom:8px;z-index:60;font-size:10.5px;font-weight:600;color:#9C949E;background:rgba(10,26,47,0.82);border:1px solid #223d57;border-radius:8px;padding:3px 9px;pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;">Aktualizované 22.7.2026</div>
+</body>
+</html>

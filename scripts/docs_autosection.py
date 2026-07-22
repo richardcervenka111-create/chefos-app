@@ -175,9 +175,49 @@ def gen_current_state():
         f'\n<ul style="list-style:none;margin:0;padding:0;">{items}</ul>\n')
 
 
+def gen_overview_stats():
+    """The hero stat tiles for the overview doc (prehlad.html) — all derived, refreshed every commit."""
+    import json
+    fc = _feature_counts()
+    total = sum(fc.values())
+    live = fc.get('ok', 0)
+    robots = _robot_count()
+    try:
+        from docs_changelog import git_log
+        rows = git_log()
+        commits = len(rows)
+        days = len({r[1] for r in rows})
+    except Exception:
+        commits, days = 0, 0
+    try:
+        h = json.load(open(os.path.join(SCRIPTS, 'health_report.json'), encoding='utf-8'))
+        score, grade = h.get('overall_score', '—'), h.get('overall_grade', '')
+    except Exception:
+        score, grade = '—', ''
+    try:
+        reg = json.load(open(os.path.join(SCRIPTS, 'locked_tiles.json'), encoding='utf-8'))
+        locked = len(reg.get('locked', []))
+    except Exception:
+        locked = 0
+
+    def tile(num, sub, sk, en, cls=''):
+        return (f'<div class="stat"><div class="n {cls}">{num}</div>'
+                f'<div class="l" data-sk="{sk}" data-en="{en}">{sk}</div>'
+                f'<div class="s">{sub}</div></div>')
+
+    return (
+        '\n' + tile(str(total), f'{live} live · {total - live} WIP', 'funkcií v aplikácii', 'features in the app')
+        + tile(str(commits), 'auto z gitu · from git', 'zmien spolu', 'changes total', 'ink')
+        + tile(str(robots), f'{locked} dlaždice zamknuté', 'automatických robotov', 'automated robots')
+        + tile(f'{score}<span style="font-size:20px;color:var(--faint)">/100</span>',
+               'Health Report', f'známka {grade}', f'grade {grade}', 'gold')
+        + tile(f'{days}', 'dní vývoja · dev days', 'aktívnych dní', 'active days', 'ink') + '\n')
+
+
 GENERATORS = {
     'robot_roster': gen_robot_roster,
     'current_state': gen_current_state,
+    'overview_stats': gen_overview_stats,
 }
 
 

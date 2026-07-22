@@ -23,6 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         doc:
+          - prehlad.html
           - test_sweep.html
           - produkt.html
           - plan.html
