@@ -233,8 +233,8 @@ def check_recipes(page, ctx):
 
 def check_admin(page, ctx):
     """Locked 22.7.2026 (Richard: lock it "ako mám ja na icloud účte (main admin)"). The super-admin
-    hub OPENS and works, READ-ONLY. Signs in as the super-admin QA account (SAUTERO_QA_ADMIN granted
-    is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the functions EVERY super-admin sees
+    hub OPENS and works, READ-ONLY. Signs in as the head/super-admin QA account (SAUTERO_QA_MAIN =
+    sautero.guardian, is_admin=true; see TILE_ACCOUNT). Asserts the hub renders the functions EVERY super-admin sees
     (Admin Directory, Feedback) and that Admin Directory actually opens and lists people.
     NOTE (Richard 22.7. — "strážiť zvonku"): Internal Docs + Error Logs are gated to Richard's exact
     icloud email ALONE (app/index.html ADMIN_TILE_DEFS ~12082/12086), by design — no QA account can
@@ -271,11 +271,12 @@ CHECKS = {
 # admin view of the hub.
 DEFAULT_ACCOUNT = ('SAUTERO_QA_EMAIL', 'SAUTERO_QA_PASSWORD')
 TILE_ACCOUNT = {
-    # admin runs as the existing SAUTERO_QA_ADMIN account (there is no separate MAIN account —
-    # corrected 22.7.). For the FULL main-admin hub the test needs it, that account must be granted
-    # is_admin=true (super-admin) — a one-off SQL Richard runs; the guard allows it from the SQL
-    # editor. Until then this tile dev-waives with a clear "not the platform super-admin" message.
-    'admin': ('SAUTERO_QA_ADMIN_EMAIL', 'SAUTERO_QA_ADMIN_PASSWORD'),
+    # admin runs as the dedicated HEAD/super-admin QA account SAUTERO_QA_MAIN (Richard, 22.7. —
+    # a distinct account & clearly-named secret, not overwriting SAUTERO_QA_ADMIN which reads as a
+    # kitchen admin). That account (sautero.guardian@atomicmail.io) is granted is_admin=true via a
+    # one-off SQL from the Chrome SQL editor (the db/85 guard allows it when auth.uid() is null).
+    # Until the SAUTERO_QA_MAIN secret exists this tile dev-waives with a clear message.
+    'admin': ('SAUTERO_QA_MAIN_EMAIL', 'SAUTERO_QA_MAIN_PASSWORD'),
 }
 # ---------------------------------------------------------------------------
 
