@@ -221,12 +221,22 @@ GENERATORS = {
 }
 
 
-def process(content):
-    """Return (new_content, changed_bool). Fills every recognised AUTO block."""
+# Git-derived sections (they include the latest commits / commit counts) legitimately lag HEAD by
+# the in-flight commit — exactly like the changelog. They're regenerated every commit (kept fresh)
+# but --check must NOT fail on that one-commit lag, or health-checks goes red on every push. Only
+# STABLE, filesystem-derived sections (e.g. robot_roster) are gated by --check.
+VOLATILE = {'current_state', 'overview_stats'}
+
+
+def process(content, for_check=False):
+    """Return (new_content, changed_bool). Fills every recognised AUTO block. When for_check,
+    git-derived (VOLATILE) blocks are left as-is so their expected HEAD-lag isn't flagged."""
     def repl(m):
         start, gen, end = m.group(1), m.group(2), m.group(4)
         if gen not in GENERATORS:
             return m.group(0)  # unknown generator — leave untouched
+        if for_check and gen in VOLATILE:
+            return m.group(0)  # regenerated every commit, not gated (self-heals)
         return start + GENERATORS[gen]() + end
     new = MARKER.sub(repl, content)
     return new, (new != content)
@@ -245,7 +255,7 @@ def main():
             content = fh.read()
         if 'AUTO:START:' not in content:
             continue
-        new, changed = process(content)
+        new, changed = process(content, for_check=check)
         if changed:
             if check:
                 drift.append(os.path.basename(path))
