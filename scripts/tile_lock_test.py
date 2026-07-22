@@ -149,6 +149,15 @@ def main():
 
     reg = json.load(open(REGISTRY, encoding='utf-8'))
     locked = reg.get('locked', [])
+    # Development workflow (Engineering Standard §3): the ONE module being actively developed
+    # sits in "in_development" — its suite still runs and reports, but a failure is a WAIVED
+    # warning, not a deploy block (its behaviour is legitimately in flux). Every other locked
+    # module stays fully enforced. The waiver list must be emptied when the work is done.
+    in_dev = set(reg.get('in_development', []))
+    stray = in_dev - set(locked)
+    if stray:
+        print(f'tile_lock: FATAL — in_development lists {sorted(stray)} which are not locked tiles.')
+        return 1
     if args.only:
         locked = [t for t in locked if t == args.only] or [args.only]
     if not locked:
@@ -169,7 +178,8 @@ def main():
               'locks without the QA account. (Secrets exist in CI; export them locally to run here.)')
         return 1
 
-    failures = []
+    failures, waived = [], []
+    details = {}
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=not args.headed)
         for tile in locked:
@@ -177,22 +187,45 @@ def main():
             page = context.new_page()
             page.add_init_script(TUTORIAL_MUTE_SCRIPT)
             errors = []
+            bad_responses = []
             page.on('pageerror', lambda exc: errors.append(f'[pageerror] {exc}'))
+            page.on('response', lambda r: bad_responses.append(f'{r.status} {r.url[:120]}') if r.status >= 500 else None)
             try:
                 login(page, args.url.rstrip('/') + '/', email, password)
                 CHECKS[tile](page, {'url': args.url, 'browser': browser})
                 if errors:
                     raise AssertionError('uncaught JS during the check: ' + '; '.join(errors[:3]))
+                if bad_responses:
+                    raise AssertionError('5xx during the check: ' + '; '.join(sorted(set(bad_responses))[:3]))
                 print(f'  [LOCK OK] {tile}')
             except Exception as e:
-                failures.append(tile)
-                print(f'  [LOCK BROKEN] {tile}: {str(e)[:300]}')
+                details[tile] = str(e)[:300]
+                if tile in in_dev:
+                    waived.append(tile)
+                    print(f'  [LOCK DEV-WAIVED] {tile}: {details[tile]}')
+                else:
+                    failures.append(tile)
+                    print(f'  [LOCK BROKEN] {tile}: {details[tile]}')
             finally:
                 context.close()
         browser.close()
 
+    # Root-cause report (Engineering Standard §1): the failing MODULE and its exact assertion
+    # are the first thing anyone sees — in the console and in the GitHub job summary.
+    summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+    if summary_path:
+        with open(summary_path, 'a', encoding='utf-8') as f:
+            f.write('## Tile locks\n')
+            for t in locked:
+                mark = '✅' if t not in details else ('⚠️ dev-waived' if t in waived else '❌ BROKEN')
+                f.write(f'- **{t}** — {mark}' + (f': `{details[t]}`' if t in details else '') + '\n')
+    if waived:
+        print(f'\ntile_lock: {len(waived)} tile(s) waived as in-development: {", ".join(waived)} '
+              f'(empty "in_development" in locked_tiles.json when the work is done).')
     if failures:
-        print(f'\ntile_lock: {len(failures)}/{len(locked)} LOCKED tile(s) broken: {", ".join(failures)}')
+        print(f'\ntile_lock: {len(failures)}/{len(locked)} LOCKED tile(s) BROKEN: {", ".join(failures)}')
+        for t in failures:
+            print(f'  ROOT CAUSE [{t}]: {details[t]}')
         return 1
     print(f'\ntile_lock: all {len(locked)} locked tile(s) hold.')
     return 0

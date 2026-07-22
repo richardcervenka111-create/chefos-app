@@ -37,6 +37,34 @@ jobs:
       - name: Calculation unit tests (recipe cost, payroll hours, shift hours — money paths)
         run: node scripts/calc_unit_test.js
 
+      # ---- DEPLOY GATE (Engineering Standard §1, Richard 22.7.) ----
+      # The CANDIDATE build — the app exactly as in THIS commit — is served locally and the
+      # full lock suite runs against it BEFORE production sees anything. Any locked module
+      # failing stops the deploy right here; production stays untouched; the failing module +
+      # root cause land in the job summary. Never bypass this gate. (The post-deploy tile-locks
+      # run stays as production drift detection — this gate is what keeps regressions OUT.)
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Playwright
+        run: |
+          pip3 install --quiet playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Serve the candidate build on localhost
+        run: |
+          (cd app && python3 -m http.server 8080 &)
+          for i in $(seq 1 40); do curl -sf http://127.0.0.1:8080/index.html >/dev/null && break; sleep 0.5; done
+          curl -sf http://127.0.0.1:8080/index.html >/dev/null || { echo "candidate build did not start"; exit 1; }
+      - name: LOCK GATE — full lock suite against the candidate build
+        env:
+          SAUTERO_QA_EMAIL: ${{ secrets.SAUTERO_QA_EMAIL }}
+          SAUTERO_QA_PASSWORD: ${{ secrets.SAUTERO_QA_PASSWORD }}
+          SAUTERO_QA_MEMBER_EMAIL: ${{ secrets.SAUTERO_QA_MEMBER_EMAIL }}
+          SAUTERO_QA_MEMBER_PASSWORD: ${{ secrets.SAUTERO_QA_MEMBER_PASSWORD }}
+          SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
+          SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
+        run: python3 scripts/tile_lock_test.py --url http://127.0.0.1:8080
+
   deploy:
     needs: checks
     runs-on: ubuntu-latest

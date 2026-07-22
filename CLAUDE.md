@@ -46,3 +46,12 @@
 - Every feature writing kitchen-scoped rows must separate personal vs company context
   (`is_personal`) — a team member's `kitchen_id` points at the company kitchen even in
   personal mode.
+
+## Engineering Standard (permanent, 22.7.2026)
+- **`docs/ENGINEERING_STANDARD.md` is binding for every change.** In short: the deploy gate
+  runs the FULL lock suite against the candidate build on localhost BEFORE production — never
+  bypass it; one module in development (`locked_tiles.json → in_development`), everything else
+  enforced; significant new features ship dark behind `featureEnabled()` flags; "Done" modules
+  immediately get a live-verified lock suite (`tile_lock_test.py`) and a `locked` entry;
+  rollback = the "⏪ Rollback production" action. Never green a red test by weakening it —
+  fix the root cause and state whether the app or the test was wrong.

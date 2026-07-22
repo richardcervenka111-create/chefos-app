@@ -1,0 +1,84 @@
+name: "⏪ Rollback production"
+
+# One-click rollback (Engineering Standard §5, Richard 22.7.). Redeploys GitHub Pages from the
+# commit of the PREVIOUS successful deploy (or an explicit commit SHA), leaving git history and
+# the database untouched — this rolls back the FRONTEND ONLY. Database migrations are additive
+# and versioned separately (db/*.sql); a frontend rollback never reverts data. Runtime: ~3 min.
+#
+# HOW TO USE: Actions → "⏪ Rollback production" → Run workflow. Leave `sha` empty to return to
+# the previous successful deploy; or paste a specific known-good commit SHA. The job summary
+# shows exactly which commit production now runs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA to roll back to (empty = the previous successful deploy)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Determine target commit
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          if [ -n "$INPUT_SHA" ]; then
+            echo "sha=$INPUT_SHA" >> "$GITHUB_OUTPUT"
+            echo "picked=explicit input" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The two most recent SUCCESSFUL deploys: [0] is what production runs now (the one
+          # being rolled back), [1] is the previous good build we return to.
+          runs=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy-pages.yml/runs?status=success&per_page=2" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print('\n'.join(r['head_sha'] for r in d['workflow_runs']))")
+          prev=$(echo "$runs" | sed -n '2p')
+          if [ -z "$prev" ]; then echo "No previous successful deploy found — pass an explicit sha."; exit 1; fi
+          echo "sha=$prev" >> "$GITHUB_OUTPUT"
+          echo "picked=previous successful deploy" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Regenerate the Health Report for the rolled-back code
+        run: python3 scripts/health_report.py || true
+      - name: Build Pages artifact from the rollback commit
+        run: |
+          mkdir -p _site
+          cp -r app/. _site/
+          mkdir -p "_site/x7n2k9"
+          cp -r "visual data/." "_site/x7n2k9/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Rollback status
+        run: |
+          {
+            echo "## ⏪ Rollback complete"
+            echo "- Production now runs commit: \`${{ steps.target.outputs.sha }}\` (${{ steps.target.outputs.picked }})"
+            echo "- Database: untouched (frontend-only rollback by design)"
+            echo "- Edge cache: allow ~10 min, or open with a ?v= suffix"
+          } >> "$GITHUB_STEP_SUMMARY"

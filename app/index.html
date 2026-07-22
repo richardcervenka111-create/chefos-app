@@ -8596,6 +8596,28 @@ function demoModeAllowed(){
   return !!email && ['richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com', 'chefos@protonmail.com'].includes(email);
 }
 
+/* ---- Feature flags (Engineering Standard §4, Richard 22.7.) ----
+   Every significant NEW feature ships DARK: wrap its entry point in featureEnabled('name') and
+   register the flag below with enabled:false — only the internal QA/test accounts see it until
+   Richard approves release, then flip enabled:true (and delete the flag entry once the feature
+   is old news; unknown flag names are treated as released so removal is always safe).
+   Production users can never meet unfinished work. */
+const FEATURE_FLAG_INTERNAL_ACCOUNTS = [
+  'richard.cervenka@icloud.com', 'richard.cervenka111@gmail.com',
+  'chefos@protonmail.com', 'sautero_android@proton.me'
+];
+const FEATURE_FLAGS = {
+  // example: my_new_feature: { enabled: false },            // dark — internal accounts only
+  // example: my_new_feature: { enabled: true },             // released to everyone
+};
+function featureEnabled(name){
+  const f = FEATURE_FLAGS[name];
+  if(!f) return true;          // unknown/removed flag = released (deleting a flag is safe)
+  if(f.enabled) return true;
+  const email = currentUser && currentUser.email ? currentUser.email.toLowerCase() : '';
+  return (f.allow || FEATURE_FLAG_INTERNAL_ACCOUNTS).includes(email);
+}
+
 /* Kitchen Reports illustration mode — display only, nothing ever touches the database, turning
    it off returns to live data instantly. */
 let _krDemoMode = false;
