@@ -259,10 +259,63 @@ def check_admin(page, ctx):
     assert controls > 0, 'Admin Directory opened but rendered no people/controls'
 
 
+def check_haccp(page, ctx):
+    """Locked 22.7.2026 (Richard: "zamkni HACCP"). READ-ONLY: the HACCP hub opens and renders its
+    full set of station tiles (Cleaning, Cooling Log, Core Cooking Temp, ...), and tapping one
+    station (Cleaning) navigates to its checklist screen. Deliberately NO writing measurements or
+    checklist logs — those mutate real data on every run; this only opens screens and READS."""
+    page.locator('.home-tile', has_text='HACCP').first.click(timeout=8000)
+    page.wait_for_selector('#haccpView', state='visible', timeout=15000)
+    dismiss_tutorials(page, 'after opening HACCP')
+    grid = page.evaluate("() => (document.getElementById('haccpGrid') || {}).innerText || ''")
+    for label in ['Cleaning', 'Cooling Log', 'Core Cooking Temp']:
+        assert label in grid, f"the HACCP hub is missing the '{label}' station tile"
+    tiles = page.evaluate(
+        "() => { const g = document.getElementById('haccpGrid');"
+        " return g ? g.querySelectorAll('.home-tile').length : 0; }")
+    assert tiles >= 5, f'HACCP hub rendered only {tiles} station tiles (expected the full set)'
+    # a station opens its own screen (read-only navigation — no log written)
+    page.evaluate("() => showHaccpChecklist('cleaning')")
+    page.wait_for_selector('#haccpChecklistView', state='visible', timeout=10000)
+
+
+def check_settings(page, ctx):
+    """Locked 22.7.2026 (Richard: "zamkni settings"). READ-ONLY: the Settings hub opens and renders
+    its option tiles (My Profile & Security, AI & Scan Settings, ...), and opening one sub-sheet
+    (My Profile) shows it. Deliberately NO changing any setting — this only opens screens and READS."""
+    page.locator('.home-tile', has_text='Settings').first.click(timeout=8000)
+    page.wait_for_selector('#settingsView', state='visible', timeout=15000)
+    dismiss_tutorials(page, 'after opening Settings')
+    grid = page.evaluate("() => (document.getElementById('settingsGrid') || {}).innerText || ''")
+    for label in ['Profile', 'Scan Settings']:
+        assert label in grid, f"the Settings hub is missing the '{label}' option tile"
+    tiles = page.evaluate(
+        "() => { const g = document.getElementById('settingsGrid');"
+        " return g ? g.querySelectorAll('.home-tile').length : 0; }")
+    assert tiles >= 3, f'Settings hub rendered only {tiles} option tiles'
+
+
+def check_team_meetings(page, ctx):
+    """Locked 22.7.2026 (Richard: "zamkni team meetings"). Team Meetings is a DELIBERATE placeholder
+    (scope not decided — backlog t54): tapping the tile opens the "we're working on it" sheet. The
+    lock guards that the tile is present and its placeholder sheet opens with content. Runs as the
+    admin QA account (SAUTERO_QA_MAIN) because the tile is hidden from plain personal accounts
+    (adminOnly: currentIsAdmin || account is company)."""
+    page.locator('.home-tile', has_text='Team Meetings').first.click(timeout=8000)
+    page.wait_for_selector('#teamMeetingsPlaceholderOverlay.open', state='visible', timeout=10000)
+    txt = page.evaluate(
+        "() => (document.getElementById('teamMeetingsPlaceholderOverlay') || {}).innerText || ''")
+    assert len(txt.strip()) > 0, 'the Team Meetings placeholder opened but rendered no text'
+    page.evaluate("() => (typeof closeTeamMeetingsPlaceholder === 'function') && closeTeamMeetingsPlaceholder()")
+
+
 CHECKS = {
     'working_time': check_working_time,
     'recipes': check_recipes,
     'admin': check_admin,
+    'haccp': check_haccp,
+    'settings': check_settings,
+    'team_meetings': check_team_meetings,
 }
 
 # Which QA account each tile's suite signs in as. Default = the solo user (SAUTERO_QA_*); admin-only
@@ -277,6 +330,10 @@ TILE_ACCOUNT = {
     # one-off SQL from the Chrome SQL editor (the db/85 guard allows it when auth.uid() is null).
     # Until the SAUTERO_QA_MAIN secret exists this tile dev-waives with a clear message.
     'admin': ('SAUTERO_QA_MAIN_EMAIL', 'SAUTERO_QA_MAIN_PASSWORD'),
+    # Team Meetings is hidden from plain personal accounts (adminOnly), so its tile only exists on
+    # an admin/company account — run it as the same head-admin QA account as admin. HACCP + Settings
+    # have no adminOnly gate (visible to everyone), so they use the default solo account.
+    'team_meetings': ('SAUTERO_QA_MAIN_EMAIL', 'SAUTERO_QA_MAIN_PASSWORD'),
 }
 # ---------------------------------------------------------------------------
 

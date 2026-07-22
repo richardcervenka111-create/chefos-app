@@ -3,7 +3,14 @@
   "locked": [
     "working_time",
     "recipes",
-    "admin"
+    "admin",
+    "haccp",
+    "settings",
+    "team_meetings"
   ],
-  "in_development": []
+  "in_development": [
+    "haccp",
+    "settings",
+    "team_meetings"
+  ]
 }
