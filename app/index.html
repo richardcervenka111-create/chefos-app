@@ -16355,19 +16355,60 @@ async function deleteIngredient(){
    ============================================================ */
 function ingredientInfoHtml(rowName){
   const ing = _ingredientLookup[normalizeIngredientText(rowName)];
-  if(!ing){
-    return `
-      <div class="ingredient-info-title">${rowName}</div>
-      <div class="ingredient-info-row"><div class="value">Not in your ingredient list yet — add it under "Ingredients &amp; Pricing" to see origin, season, and substitutes here.</div></div>
-    `;
-  }
+  const displayName = ing ? ing.name : rowName;
+  // Stored details (only when the ingredient is in the kitchen's list) — unchanged.
+  const detailRows = ing ? `
+    ${ing.origin ? `<div class="ingredient-info-row"><div class="label">Origin</div><div class="value">${_genEsc(ing.origin)}</div></div>` : ''}
+    ${ing.season ? `<div class="ingredient-info-row"><div class="label">Season</div><div class="value">${_genEsc(ing.season)}</div></div>` : ''}
+    ${ing.price != null ? `<div class="ingredient-info-row"><div class="label">Price</div><div class="value">${formatMoney(ing.price)} / ${_genEsc(ing.unit)}</div></div>` : ''}
+    <div class="ingredient-info-row"><div class="label">Can be substituted with</div><div class="value">${ing.substitutes ? _genEsc(ing.substitutes) : 'No substitute suggestion saved yet — add one by editing this ingredient.'}</div></div>
+  ` : `<div class="ingredient-info-row"><div class="value">Not in your ingredient list yet — add it under "Ingredients &amp; Pricing" to save its origin, season and substitutes here. You can still look it up below.</div></div>`;
+  // t13 (Richard, roadmap): a free Wikipedia lookup (always) + an on-demand AI flavour/origin/season
+  // note. Both are additive — nothing above changes. Special:Search lands on the article if it exists,
+  // or a results page otherwise, so the link never 404s.
+  const wiki = `https://en.wikipedia.org/wiki/Special:Search/${encodeURIComponent(displayName)}`;
   return `
-    <div class="ingredient-info-title">${ing.name}</div>
-    ${ing.origin ? `<div class="ingredient-info-row"><div class="label">Origin</div><div class="value">${ing.origin}</div></div>` : ''}
-    ${ing.season ? `<div class="ingredient-info-row"><div class="label">Season</div><div class="value">${ing.season}</div></div>` : ''}
-    ${ing.price != null ? `<div class="ingredient-info-row"><div class="label">Price</div><div class="value">${formatMoney(ing.price)} / ${ing.unit}</div></div>` : ''}
-    <div class="ingredient-info-row"><div class="label">Can be substituted with</div><div class="value">${ing.substitutes ? ing.substitutes : 'No substitute suggestion saved yet — add one by editing this ingredient.'}</div></div>
+    <div class="ingredient-info-title">${_genEsc(displayName)}</div>
+    ${detailRows}
+    <div class="ingredient-info-row"><div class="label">Learn more</div><div class="value"><a href="${wiki}" target="_blank" rel="noopener" style="color:var(--accent);">🔎 Wikipedia</a></div></div>
+    <div id="ingredientAiInfo"></div>
+    <button id="ingredientAiBtn" class="save-btn" style="width:100%; margin-top:8px;" onclick="generateIngredientAiInfo('${String(displayName).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">✨ AI: flavour, origin &amp; season</button>
   `;
+}
+/* t13: on-demand AI description of an ingredient — one short flavour/origin/season note, filled into
+   the info panel when the button is tapped (never automatically, so no surprise AI cost). Read-only:
+   it displays, it does not write to the DB. Available wherever the "i" panel is (recipes, Check List,
+   ingredients). */
+async function generateIngredientAiInfo(name){
+  const box = document.getElementById('ingredientAiInfo');
+  const btn = document.getElementById('ingredientAiBtn');
+  if(!box) return;
+  if(btn){ btn.disabled = true; btn.style.opacity = '0.6'; }
+  box.innerHTML = '<div class="ingredient-info-row"><div class="value" style="color:var(--ink-dim);">✨ Generating…</div></div>';
+  try{
+    const tool = { name:'describe_ingredient', description:'Give a concise professional-kitchen description of one ingredient.',
+      input_schema:{ type:'object', properties:{
+        flavour:{ type:'string', description:'One short sentence on taste / flavour profile' },
+        origin:{ type:'string', description:'One short phrase on where it typically comes from' },
+        season:{ type:'string', description:'When it is in season, or "Year-round"' },
+        note:{ type:'string', description:'One short, useful kitchen note (optional)' }
+      }, required:['flavour','origin','season'] } };
+    const data = await callClaudeAPI({ model:'claude-sonnet-5', max_tokens:400, tools:[tool],
+      tool_choice:{ type:'tool', name:'describe_ingredient' },
+      messages:[{ role:'user', content:`Describe the professional-kitchen ingredient "${name}" for a chef. Be concise, accurate and practical.` }] });
+    const info = ((data.content||[]).find(b=>b.type==='tool_use')||{}).input;
+    if(!info) throw new Error('No info came back — try again.');
+    box.innerHTML = `
+      <div class="ingredient-info-row"><div class="label">Flavour</div><div class="value">${_genEsc(info.flavour||'')}</div></div>
+      <div class="ingredient-info-row"><div class="label">Origin</div><div class="value">${_genEsc(info.origin||'')}</div></div>
+      <div class="ingredient-info-row"><div class="label">Season</div><div class="value">${_genEsc(info.season||'')}</div></div>
+      ${info.note ? `<div class="ingredient-info-row"><div class="label">Note</div><div class="value">${_genEsc(info.note)}</div></div>` : ''}
+      <div class="ingredient-info-row"><div class="value" style="color:var(--ink-faint); font-size:11px;">✨ AI estimate — a general reference, not a lab spec.</div></div>`;
+    if(btn) btn.style.display = 'none';
+  }catch(err){
+    box.innerHTML = `<div class="ingredient-info-row"><div class="value" style="color:#FF7A68;">${_genEsc(err.message||'Could not generate — try again.')}</div></div>`;
+    if(btn){ btn.disabled = false; btn.style.opacity = '1'; }
+  }
 }
 function showIngredientInfo(rowName){
   document.getElementById('ingredientInfoContent').innerHTML = ingredientInfoHtml(rowName);
