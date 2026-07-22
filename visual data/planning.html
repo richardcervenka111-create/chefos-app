@@ -521,6 +521,21 @@ const DAYS = [
     ],
     planned: 'Bod 4 z Richardovho zoznamu: prerobiť VŠETKY zvyšné natívne alert/confirm okná (~174) do Sautero identity — počká na spoločné prejdenie. Ďalej: personal split zoznamov (ingredient_lists + recipe_lists), Nebenerwerb + Einzelfirma (príjmové blokátory).'
   },
+  {
+    date: '2026-07-22',
+    headline: '🍽️ Recepty dotiahnuté: realistické AI fotky + cost v Admin AI Usage · opravený scroll/bublina/skryté okno · Personal/Company prepínač v strede lišty všade · vyčistené duplikáty · nová UI/UX testovacia vrstva',
+    accomplished: [
+      '📸 AI fotky jedál prepísané na realistické: prompt pýta skutočný fotoaparát/objektív + okenné svetlo, verné (nepresýtené) farby, prirodzené nedokonalosti a tvrdé zákazy CGI/plastového vzhľadu; štýl sa dedí podľa zložitosti receptu (sc: tag).',
+      '💰 Náklad AI fotky sa teraz loguje do Admin → AI Usage (edge funkcia generate-image zapíše riadok recipe_photo do ai_usage) — feature má konečne viditeľnú cenu.',
+      '📜 Recepty sa VŽDY otvárajú na vrchu — príčina: skutočný scroller je <body>, nie window (window.scrollTo bol bez účinku); pridaný helper _appScrollTo. Diagnostikované naživo v prehliadači.',
+      '🫧 Opravená stavová bublina (text vyliezal z okraja) + skryté okno „Save where?" pri Uložiť všetky (bolo za zoznamom kvôli rovnakému z-indexu).',
+      '🎯 Prepínač Personal/Company presunutý do STREDU vrchnej lišty na KAŽDEJ obrazovke (Apple-clean 3-zónový layout, bez prekrytia); z Home odstránené Scan settings + Currency (ostávajú v Nastaveniach).',
+      '🧹 Vysvetlené + vyčistené duplikáty receptov: zdieľanie do Sautero knižnice tvorilo knižničnú kópiu (created_by=null) — zmazaných 7 kópií + odzdieľaných 7 originálov (198→191); 2 nové recepty boli čisté.',
+      '🤖 Nová UI/UX testovacia vrstva do GitHub gate (blokujúca): ui_invariants.py (5 statických guardov — bublina, z-index okna, logovanie ceny, scroll na vrch, prítomnosť prepínača) + ui_regression_test.py (reálny prehliadač: recept sa otvorí na vrchu). Každý opravený UI bug má teraz guard.',
+      '🔒 Overené súkromie pri prepínaní Personal/Company naprieč všetkými 7 kuchyňou-scoped funkciami (recepty, projekty, zoznamy, order list, ingrediencie, events) — personal dáta sa do company view nedostanú a naopak.',
+    ],
+    planned: 'Fyzicky pretestovať na iPade/Androide a iných účtoch (vyžaduje prihlásenie); zapnúť AI fotky pre všetkých po Richardovom OK a zamknúť Recepty ako 2. dlaždicu; presunúť fotky z data-URI do storage bucketu.'
+  },
 ];
 /* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
    is the key); the forEach glues headline_en/accomplished_en/planned_en onto each entry.
@@ -745,6 +760,16 @@ const DAYS_EN = [
     '⏱️ Worked hours are now written from git into every document automatically (no more manual drift — backfilled the missing 20 Jul = 17.3h and 21 Jul) + a freshness guard that flags stale day-log docs by itself.',
     '🧹 The investor deck + Manifesto + Visual Guide (Brand & Vision) rebuilt to investor grade; automation.html backfilled with the whole new CI layer; dead code (eventDateKey) and a rebrand typo in the naming history fixed.',
   ], p:'Point 4 from Richard\'s list: rework ALL remaining native alert/confirm dialogs (~174) into the Sautero identity — waiting to go through them together. Next: the personal split of lists (ingredient_lists + recipe_lists), side-business consent + sole proprietorship (revenue blockers).' },
+  { h:'🍽️ Recipes finished: realistic AI photos + cost in Admin AI Usage · fixed scroll/pill/hidden sheet · Personal/Company toggle centered in the bar everywhere · duplicates cleaned · a new UI/UX testing layer', a:[
+    '📸 AI dish photos rewritten to look real: the prompt asks for a real camera/lens + window light, true-to-life (not over-saturated) colour, natural imperfections and hard anti-CGI/plastic negatives; the style is inherited from the recipe\'s complexity (sc: tag).',
+    '💰 An AI photo\'s cost is now logged to Admin → AI Usage (the generate-image edge function writes a recipe_photo row to ai_usage) — the feature finally has a visible price.',
+    '📜 Recipes ALWAYS open at their top — root cause: the real scroller is <body>, not window (window.scrollTo was a no-op); added the _appScrollTo helper. Diagnosed live in the browser.',
+    '🫧 Fixed the status pill (text spilled past its edge) + the hidden "Save where?" sheet on Save-all (it sat behind the list due to an equal z-index).',
+    '🎯 The Personal/Company toggle moved to the CENTRE of the top bar on EVERY screen (an Apple-clean 3-zone layout, no overlap); Scan settings + Currency removed from Home (they stay in Settings).',
+    '🧹 Explained + cleaned the recipe duplicates: sharing to the Sautero library created a library copy (created_by=null) — deleted 7 copies + un-shared 7 originals (198→191); the 2 brand-new recipes were clean.',
+    '🤖 A new UI/UX testing layer in the GitHub gate (blocking): ui_invariants.py (5 static guards — pill, sheet z-index, cost logging, scroll-to-top, toggle presence) + ui_regression_test.py (real browser: a recipe opens at its top). Every fixed UI bug now has a guard.',
+    '🔒 Privacy verified on the Personal/Company switch across all 7 kitchen-scoped features (recipes, projects, lists, order list, ingredients, events) — personal data can\'t reach a company view or vice versa.',
+  ], p:'Physically test on the iPad/Android and other accounts (needs sign-in); enable AI photos for everyone after Richard\'s OK and lock Recipes as tile #2; move photos from data-URI to a storage bucket.' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
 
@@ -966,6 +991,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 21. 7. 2026, 22:59" data-en="🔄 Sautero state as of Jul 21, 2026, 22:59">🔄 Stav Sautero k 21. 7. 2026, 22:59</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 22. 7. 2026, 05:20" data-en="🔄 Sautero state as of Jul 22, 2026, 05:20">🔄 Stav Sautero k 22. 7. 2026, 05:20</div>
 </body>
 </html>

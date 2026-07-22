@@ -175,11 +175,32 @@ def check_scroll_helper(html):
         passes.append('scroll: showDetail() resets the real scroller via _appScrollTo(0).')
 
 
+# ------------------------------------------- 5. personal/company toggle present + centered
+def check_mode_toggle(html):
+    # Richard, 22.7.: the personal/company toggle must live centered in the top bar on EVERY
+    # screen. Guard both instances (Home badge + floating-nav) and that each sits in a centering
+    # .mode-toggle-zone, so a refactor can't quietly drop it or knock it off-centre.
+    ok = True
+    for tid in ('homeAccountTypeBadge', 'navAccountTypeToggle'):
+        if f'id="{tid}"' not in html:
+            ok = False
+            failures.append(f'toggle: #{tid} is missing — the personal/company toggle must show '
+                            f'centered in the top bar on every screen.')
+    zones = html.count('class="mode-toggle-zone"')
+    if zones < 2:
+        ok = False
+        failures.append(f'toggle: expected 2 .mode-toggle-zone wrappers (Home + floating-nav), '
+                        f'found {zones} — the toggle centering wrapper was dropped.')
+    if ok:
+        passes.append('toggle: personal/company toggle present + centered in both top bars.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
     check_save_dest_zindex(html)
     check_scroll_helper(html)
+    check_mode_toggle(html)
     if os.path.exists(GEN_IMAGE):
         check_image_cost_logging(read(GEN_IMAGE))
     else:
