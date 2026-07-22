@@ -29,6 +29,17 @@ const IMAGEN_CANDIDATES = [
 ];
 const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
 
+// Per-image price (USD) so Admin → AI Usage can show what this feature costs, the same way
+// claude-proxy logs token cost. Google bills image models per generated image (22.7. rates:
+// gemini-2.5-flash-image ≈ $0.039, Imagen 4 ≈ $0.04). Unknown model → the flash-image rate.
+const IMAGE_COST_USD: Record<string, number> = {
+  'gemini-2.5-flash-image': 0.039,
+  'imagen-4.0-generate-002': 0.04,
+  'imagen-4.0-fast-generate-001': 0.02,
+  'imagen-3.0-generate-002': 0.04,
+};
+const DEFAULT_IMAGE_COST_USD = 0.039;
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -52,6 +63,26 @@ Deno.serve(async (req) => {
     });
     const { data: { user }, error: userError } = await supabaseAsUser.auth.getUser();
     if (userError || !user) return json(401, { error: { message: 'Not signed in.' } });
+
+    // Admin (service-role, no user JWT) client for logging usage past RLS — same pattern as
+    // claude-proxy. Every successful image is written to ai_usage so Admin → AI Usage can show
+    // this feature's cost. Best-effort: a logging hiccup must never cost the user their image.
+    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    async function logImageUsage(model: string) {
+      try {
+        const { data: profile } = await adminClient
+          .from('profiles').select('kitchen_id').eq('id', user!.id).maybeSingle();
+        await adminClient.from('ai_usage').insert({
+          user_id: user!.id,
+          kitchen_id: profile?.kitchen_id ?? null,
+          feature: 'recipe_photo',
+          model,
+          input_tokens: 0,
+          output_tokens: 0,
+          cost_usd: IMAGE_COST_USD[model] ?? DEFAULT_IMAGE_COST_USD,
+        });
+      } catch (_e) { /* logging is best-effort, never fail the image over it */ }
+    }
 
     if (!GEMINI_API_KEY) {
       return json(500, { error: { message: 'GEMINI_API_KEY is not set — add it under Project Settings → Edge Functions → Secrets.' } });
@@ -81,6 +112,7 @@ Deno.serve(async (req) => {
         const data = await resp.json();
         const pred = data.predictions && data.predictions[0];
         if (pred && pred.bytesBase64Encoded) {
+          await logImageUsage(model);
           return json(200, { imageBase64: pred.bytesBase64Encoded, mimeType: pred.mimeType || 'image/png', model });
         }
         failures.push(`${model}: ok but no image`);
@@ -111,6 +143,7 @@ Deno.serve(async (req) => {
       const parts = gData.candidates?.[0]?.content?.parts || [];
       const imgPart = parts.find((p: { inlineData?: { data?: string } }) => p.inlineData && p.inlineData.data);
       if (imgPart) {
+        await logImageUsage(GEMINI_IMAGE_MODEL);
         return json(200, { imageBase64: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType || 'image/png', model: GEMINI_IMAGE_MODEL });
       }
       failures.push(`${GEMINI_IMAGE_MODEL}: ok but no image part`);
