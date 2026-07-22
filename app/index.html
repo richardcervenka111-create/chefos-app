@@ -13557,30 +13557,25 @@ async function saveGeneratedRecipe(dests){
   setSyncStatus('saving');
   const base = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
     is_personal: currentAccountType === 'personal', list_id: null, shared_with_chefos: _recipeAiShare === true };
-  const { error } = await sb.from('recipes').insert(base).select().single();
+  const { data: savedRow, error } = await sb.from('recipes').insert(base).select('id').single();
   if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
-  let copies = 0;
   for(const dest of (dests || [])){
     const copy = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
       shared_with_chefos: _recipeAiShare === true,
       is_personal: dest === 'company' ? false : true,
       list_id: dest === 'company' ? null : dest };
     const { error: ce } = await sb.from('recipes').insert(copy).select().single();
-    if(ce){ alert('Saved to My Recipes, but a copy failed: ' + ce.message); break; }
-    copies++;
+    if(ce){ alert('Saved, but a copy to a project failed: ' + ce.message); break; }
   }
   setSyncStatus('saved');
-  const baseLabel = currentAccountType === 'company' ? '🏢 Company Recipes' : '📖 My Recipes';
-  const bodyId = g.bodyId, againFn = g.againFn, closeFn = g.closeFn;
   _genRecipe = null;
+  closeChefsAssistant(); closeChefChallenge();
   await loadAppData();
-  const el = document.getElementById(bodyId);
-  if(el){
-    el.innerHTML = `
-      <p class="sheet-text">✅ Saved to ${baseLabel}${copies?` + ${copies} more`:''}.</p>
-      <button class="save-btn" style="width:100%; margin-bottom:8px;" onclick="${againFn}">Generate another</button>
-      <button class="task-status-btn" style="width:100%;" onclick="${closeFn}">Done</button>`;
-  }
+  // Land straight on the freshly saved recipe (Richard, 22.7. — "páči sa mi že ma to hodí rovno do
+  // toho novovytvoreného receptu, čo by mohlo vždy"). The recipe on screen IS the confirmation, and
+  // it matches what the Review & edit save already does.
+  const idx = (savedRow && savedRow.id != null) ? allRecipes().findIndex(r => r.id === savedRow.id) : -1;
+  if(idx > -1) showDetail(idx); else showList();
 }
 
 async function callClaudeRecipeIdeas(context){
