@@ -167,8 +167,65 @@ def check_working_time(page, ctx):
     assert deleted['err'] is None and deleted['n'] == 1, f'cleanup delete failed: {deleted}'
 
 
+def check_recipes(page, ctx):
+    """Locked 22.7.2026 (Richard: "recepty sú tak ako si ich predstavujem"). Behaviours under lock:
+    the Recipes list LOADS and RENDERS (the classic regression is an empty/broken list); opening a
+    recipe shows its title and lands at ITS TOP (the 22.7. <body>-scroller fix — window.scrollTo is
+    a no-op here, so this guards it for real); and a created recipe PERSISTS → shows on its shelf →
+    DELETES. Create/delete uses the app's own data layer (the same insert shape as saveFormBody +
+    loadAppData) with a row-count-verified cleanup, in whatever mode the account is in. Native
+    dialogs are auto-accepted so a stray alert can't hang the run (verified 22.7.: a bare alert
+    freezes the page)."""
+    page.on('dialog', lambda d: d.accept())
+
+    page.locator('.home-tile', has_text='Recipes').first.click(timeout=8000)
+    # readiness: recipes loaded AND the list view is the one on screen
+    page.wait_for_function("() => typeof allRecipes === 'function' && allRecipes().length > 0", timeout=20000)
+    page.wait_for_function(
+        "() => document.getElementById('listView') && "
+        "getComputedStyle(document.getElementById('listView')).display === 'block'", timeout=10000)
+    dismiss_tutorials(page, 'after opening Recipes')
+
+    # 1) the list actually rendered rows (not stuck empty)
+    rendered = page.evaluate(
+        "() => { const c = document.getElementById('listContainer');"
+        " if(!c) return { n:0, empty:true };"
+        " return { n: c.children.length, empty: !!c.querySelector('.empty-state') }; }")
+    assert rendered['n'] > 0 and not rendered['empty'], f'Recipes list rendered nothing usable: {rendered}'
+
+    # 2) a recipe opens at its top, with its title
+    opened = page.evaluate("""() => {
+        document.body.scrollTop = 300; document.documentElement.scrollTop = 300; window.scrollTo(0, 300);
+        showDetail(0);
+        const title = ((document.querySelector('#detailContent .recipe-title') || {}).textContent || '').trim();
+        const scroll = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        return { hasTitle: !!title, scroll }; }""")
+    assert opened['hasTitle'], 'opening a recipe did not render its title'
+    assert opened['scroll'] == 0, f'recipe opened at scroll {opened["scroll"]} instead of its top'
+
+    # 3) create -> persists -> on-shelf -> delete (row-count verified), in the account's own mode
+    result = page.evaluate("""async () => {
+        const u = await sb.auth.getUser(); const uid = u.data.user.id;
+        const t = 'QA-LOCK-TEST ' + Date.now();
+        const personal = (typeof currentAccountType !== 'undefined') ? currentAccountType === 'personal' : true;
+        const ins = await sb.from('recipes').insert({ title: t, category: 'QA', kitchen_id: currentKitchenId,
+            created_by: uid, is_custom: true, is_personal: personal, list_id: null }).select('id').single();
+        if (ins.error) return { step: 'insert', err: ins.error.message };
+        await loadAppData();
+        recipeSourceFilter = personal ? 'mine' : 'company';
+        const onShelf = allRecipes().filter(recipeOnCurrentShelf).some(r => r.title === t);
+        const del = await sb.from('recipes').delete().eq('id', ins.data.id).select('id');
+        await loadAppData();
+        return { onShelf, deleted: (del.data || []).length, delErr: del.error ? del.error.message : null }; }""")
+    assert not result.get('err'), f"recipe create failed ({result.get('step')}): {result.get('err')}"
+    assert result['onShelf'], 'a freshly created recipe did not appear on its shelf'
+    assert result['deleted'] == 1, f"cleanup delete removed {result['deleted']} row(s), expected 1"
+    assert not result['delErr'], f"cleanup delete error: {result['delErr']}"
+
+
 CHECKS = {
     'working_time': check_working_time,
+    'recipes': check_recipes,
 }
 # ---------------------------------------------------------------------------
 
