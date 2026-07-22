@@ -5,7 +5,5 @@
     "recipes",
     "admin"
   ],
-  "in_development": [
-    "admin"
-  ]
+  "in_development": []
 }
