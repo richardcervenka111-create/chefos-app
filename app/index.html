@@ -4685,6 +4685,17 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
 </div>
 
+<!-- Saving overlay (Richard, 22.7. — while a Chef's Assistant recipe is being written to the DB the
+     app looked frozen; show a blocking spinner from the moment Save is pressed until the freshly
+     saved recipe opens). Own overlay (z above the assistant view + every sheet) with no buttons —
+     it is always dismissed in code the instant the recipe view is ready. -->
+<div id="savingOverlay" class="scan-overlay" style="z-index:120;">
+  <div class="scan-box">
+    <div class="scan-spinner"></div>
+    <div class="scan-status" id="savingStatus">Saving your recipe…</div>
+  </div>
+</div>
+
 <!-- Bod 8 (15.7.): a scan running in the background surfaces here — fixed at the top so it's
      visible no matter what screen you navigate to while it finishes. Tap to reopen the full
      overlay (still running) or, once done, to jump straight to the result. -->
@@ -13549,6 +13560,17 @@ function assistantAddToRecipes(){
   _scanSaveDests = null;
   openScanSaveDestSheet('assistant');   // confirmScanSaveDest routes 'assistant' → saveGeneratedRecipe
 }
+function showSavingOverlay(msg){
+  const el = document.getElementById('savingOverlay');
+  const st = document.getElementById('savingStatus');
+  if(st) st.textContent = msg || 'Saving your recipe…';
+  if(el) el.classList.add('open');
+}
+function hideSavingOverlay(){
+  const el = document.getElementById('savingOverlay');
+  if(el) el.classList.remove('open');
+}
+
 async function saveGeneratedRecipe(dests){
   const g = _genRecipe; if(!g) return;
   const input = g.input || {};
@@ -13564,21 +13586,21 @@ async function saveGeneratedRecipe(dests){
     tags: g.tags || ['AI-generated'], sections
   };
   // Immediate feedback (Richard, 22.7. — after "Save where?" the old preview lingered for a few
-  // seconds with no sign anything was happening): show a Saving… state in the choice sheet at once.
-  const savingEl = document.getElementById(g.bodyId);
-  if(savingEl) savingEl.innerHTML = '<p class="sheet-text">💾 Saving…</p>';
+  // seconds with no sign anything was happening): a blocking spinner overlay from the instant Save
+  // is pressed until the freshly saved recipe opens on screen.
+  showSavingOverlay();
   setSyncStatus('saving');
   const base = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
     is_personal: currentAccountType === 'personal', list_id: null, shared_with_chefos: _recipeAiShare === true };
   const { data: savedRow, error } = await sb.from('recipes').insert(base).select('id').single();
-  if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
+  if(error){ hideSavingOverlay(); alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   for(const dest of (dests || [])){
     const copy = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
       shared_with_chefos: _recipeAiShare === true,
       is_personal: dest === 'company' ? false : true,
       list_id: dest === 'company' ? null : dest };
     const { error: ce } = await sb.from('recipes').insert(copy).select().single();
-    if(ce){ alert('Saved, but a copy to a project failed: ' + ce.message); break; }
+    if(ce){ hideSavingOverlay(); alert('Saved, but a copy to a project failed: ' + ce.message); break; }
   }
   setSyncStatus('saved');
   _genRecipe = null;
@@ -13589,6 +13611,7 @@ async function saveGeneratedRecipe(dests){
   // it matches what the Review & edit save already does.
   const idx = (savedRow && savedRow.id != null) ? allRecipes().findIndex(r => r.id === savedRow.id) : -1;
   if(idx > -1) showDetail(idx); else showList();
+  hideSavingOverlay();
 }
 
 async function callClaudeRecipeIdeas(context){
@@ -14911,6 +14934,11 @@ async function saveFormBody(){
   // An AI recipe under Review & edit files its base into My/Company Recipes (its projects come from
   // the "Save where?" ticks), never into whatever shelf happened to be open.
   const inRecipeProject = !_assistantFormSave && (_recipeLists || []).some(l => l.id === recipeSourceFilter);
+  // Blocking Saving… spinner for AI / scan recipes (Richard, 22.7. — saving from the Review & edit
+  // window gave no sign anything was happening until the recipe finally opened). Captured before the
+  // flags below are reset; hidden only once the saved recipe is on screen (or on any error).
+  const _spinWhileSaving = _assistantFormSave || _menuScanFormIndex !== null;
+  if(_spinWhileSaving) showSavingOverlay();
   setSyncStatus('saving');
   let error, savedId = formEditingId;
   if(formEditingId){
@@ -14926,7 +14954,7 @@ async function saveFormBody(){
       .select().single());
     if(inserted) savedId = inserted.id;
   }
-  if(error){ alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
+  if(error){ hideSavingOverlay(); alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
   setSyncStatus('saved');
 
   // Extra destinations picked in the where-to-save sheet (scan flow, Richard 22.7.): copies
@@ -14938,7 +14966,7 @@ async function saveFormBody(){
         is_personal: dest === 'company' ? false : true,
         list_id: dest === 'company' ? null : dest };
       const { error: copyErr } = await sb.from('recipes').insert(copy).select().single();
-      if(copyErr){ alert('Saved, but a project copy failed: ' + copyErr.message); break; }
+      if(copyErr){ hideSavingOverlay(); alert('Saved, but a project copy failed: ' + copyErr.message); break; }
     }
   }
   _scanSaveDests = null;
@@ -14954,13 +14982,14 @@ async function saveFormBody(){
     _menuScanFormIndex = null;
     const remaining = _pendingMenuScanRecipes.some(r=>!r.failed && !r.saved);
     showList();
-    if(remaining){ openMenuScanReview(); return; }
+    if(remaining){ hideSavingOverlay(); openMenuScanReview(); return; }
   } else {
     _menuScanFormIndex = null;
     showList();
   }
   const idx = allRecipes().findIndex(r=>r.id===savedId);
   if(idx>-1) showDetail(idx);
+  hideSavingOverlay();
 }
 
 /* Search input now lives inside the Search & Filter sheet (openRecipeSearchFilters) instead of
