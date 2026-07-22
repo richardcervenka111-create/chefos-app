@@ -21,6 +21,32 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Sautero</title>
+<!-- Auto-fresh (Richard, 22.7.): GitHub Pages serves this file with Cache-Control: max-age=600, so
+     the meta tags above aren't enough — a just-shipped fix stayed invisible behind the browser/edge
+     cache for ~10 min, which broke the test loop ("nič sa nezmenilo"). __BUILD__ is stamped with the
+     git short SHA at DEPLOY time (deploy-pages.yml); on load we compare it to a cache-busted
+     version.txt and, if this document is a stale cached copy, reload ONCE via a fresh ?v=<sha> URL
+     (a new URL bypasses the cached index.html). Locally / in CI there is no version.txt → the fetch
+     404s and this is a silent no-op, so it never interferes with the localhost lock tests. -->
+<script>
+window.__BUILD__ = '__BUILD_VERSION__';
+(function(){
+  try{
+    fetch('version.txt?t=' + Date.now(), { cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.text() : null; })
+      .then(function(live){
+        if(!live) return;
+        live = live.trim();
+        var cur = new URL(location.href);
+        if(live && window.__BUILD__ && window.__BUILD__.indexOf('BUILD_VERSION') === -1
+           && live !== window.__BUILD__ && cur.searchParams.get('v') !== live){
+          cur.searchParams.set('v', live);
+          location.replace(cur.toString());
+        }
+      }).catch(function(){});
+  }catch(e){}
+})();
+</script>
 
 <!-- Add-to-Home-Screen setup (Richard, 15.7. — bod 6): a real app icon + manifest instead of
      the blank/placeholder tile iOS shows when a site has none. Icons are the app's own ring

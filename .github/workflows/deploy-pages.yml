@@ -114,6 +114,13 @@ jobs:
           cp -r app/. _site/
           mkdir -p "_site/x7n2k9"
           cp -r "visual data/." "_site/x7n2k9/"
+      - name: Stamp the build version (auto-fresh — beats the max-age=600 index.html cache)
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          printf '%s' "$SHA" > _site/version.txt
+          # replace the placeholder in the DEPLOYED copy only (the committed app/ stays buildless)
+          sed -i "s/__BUILD_VERSION__/$SHA/g" _site/index.html
+          echo "stamped build $SHA"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
