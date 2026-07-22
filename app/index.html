@@ -13560,15 +13560,29 @@ function assistantAddToRecipes(){
   _scanSaveDests = null;
   openScanSaveDestSheet('assistant');   // confirmScanSaveDest routes 'assistant' → saveGeneratedRecipe
 }
+let _savingShownAt = 0;
 function showSavingOverlay(msg){
   const el = document.getElementById('savingOverlay');
   const st = document.getElementById('savingStatus');
   if(st) st.textContent = msg || 'Saving your recipe…';
   if(el) el.classList.add('open');
+  _savingShownAt = Date.now();
 }
 function hideSavingOverlay(){
   const el = document.getElementById('savingOverlay');
-  if(el) el.classList.remove('open');
+  if(!el) return;
+  // Two reasons it must not just snap off (Richard, 22.7. — "ukazuje sa iba na krátky moment,
+  // nie až do momentu keď sa prepne na nový recept"):
+  //  1. hide only AFTER the freshly opened recipe has actually painted — otherwise the scrim is
+  //     removed in the same frame showDetail() renders, leaving a blank/list gap before the recipe.
+  //  2. enforce a minimum visible time so a fast save still reads as "Saving…" instead of a
+  //     subliminal flash the eye misses.
+  // setTimeout (not requestAnimationFrame) — rAF is throttled to a stop in a backgrounded/idle tab,
+  // which could leave the scrim stuck open forever. The +70ms tail lets the freshly opened recipe
+  // paint underneath before the scrim lifts, so there's no blank gap.
+  const MIN = 550;
+  const wait = Math.max(MIN - (Date.now() - _savingShownAt), 0) + 70;
+  setTimeout(()=> el.classList.remove('open'), wait);
 }
 
 async function saveGeneratedRecipe(dests){
