@@ -9,7 +9,5 @@
     "team_meetings",
     "chef_assistant"
   ],
-  "in_development": [
-    "chef_assistant"
-  ]
+  "in_development": []
 }
