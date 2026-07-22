@@ -19,7 +19,15 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 
-const IMAGEN_MODEL = 'imagen-4.0-generate-001';
+// Google rotates image models for new users (22.7.: imagen-4.0-generate-001 came back 404
+// "no longer available to new users"). Try candidates newest-first; the Gemini image model is
+// the final fallback and uses a different API shape (generateContent + inlineData).
+const IMAGEN_CANDIDATES = [
+  'imagen-4.0-generate-002',
+  'imagen-4.0-fast-generate-001',
+  'imagen-3.0-generate-002',
+];
+const GEMINI_IMAGE_MODEL = 'gemini-2.5-flash-image';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,27 +62,63 @@ Deno.serve(async (req) => {
       return json(400, { error: { message: 'Send a { prompt } string (max 4000 chars).' } });
     }
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:predict`,
+    const failures: string[] = [];
+
+    // 1) Imagen candidates, newest first (predict API)
+    for (const model of IMAGEN_CANDIDATES) {
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+          body: JSON.stringify({
+            instances: [{ prompt }],
+            parameters: { sampleCount: 1, aspectRatio: '4:3' }
+          })
+        }
+      );
+      if (resp.ok) {
+        const data = await resp.json();
+        const pred = data.predictions && data.predictions[0];
+        if (pred && pred.bytesBase64Encoded) {
+          return json(200, { imageBase64: pred.bytesBase64Encoded, mimeType: pred.mimeType || 'image/png', model });
+        }
+        failures.push(`${model}: ok but no image`);
+      } else {
+        failures.push(`${model}: ${resp.status}`);
+        // non-404 (e.g. 429 quota, 400 safety) — no point trying older models for those
+        if (resp.status !== 404) {
+          const detail = await resp.text();
+          return json(resp.status, { error: { message: `Image call failed (${resp.status}, ${model}): ${detail.slice(0, 300)}` } });
+        }
+      }
+    }
+
+    // 2) Fallback: Gemini image model (generateContent + inlineData shape)
+    const gResp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
         body: JSON.stringify({
-          instances: [{ prompt }],
-          parameters: { sampleCount: 1, aspectRatio: '4:3' }
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseModalities: ['IMAGE'] }
         })
       }
     );
-    if (!resp.ok) {
-      const detail = await resp.text();
-      return json(resp.status, { error: { message: `Imagen call failed (${resp.status}): ${detail.slice(0, 400)}` } });
+    if (gResp.ok) {
+      const gData = await gResp.json();
+      const parts = gData.candidates?.[0]?.content?.parts || [];
+      const imgPart = parts.find((p: { inlineData?: { data?: string } }) => p.inlineData && p.inlineData.data);
+      if (imgPart) {
+        return json(200, { imageBase64: imgPart.inlineData.data, mimeType: imgPart.inlineData.mimeType || 'image/png', model: GEMINI_IMAGE_MODEL });
+      }
+      failures.push(`${GEMINI_IMAGE_MODEL}: ok but no image part`);
+    } else {
+      failures.push(`${GEMINI_IMAGE_MODEL}: ${gResp.status} ${(await gResp.text()).slice(0, 200)}`);
     }
-    const data = await resp.json();
-    const pred = data.predictions && data.predictions[0];
-    if (!pred || !pred.bytesBase64Encoded) {
-      return json(502, { error: { message: 'Imagen returned no image — try again or adjust the recipe text.' } });
-    }
-    return json(200, { imageBase64: pred.bytesBase64Encoded, mimeType: pred.mimeType || 'image/png' });
+
+    return json(502, { error: { message: `No image model worked — tried: ${failures.join(' | ')}` } });
   } catch (err) {
     return json(500, { error: { message: (err as Error).message || 'generate-image failed' } });
   }
