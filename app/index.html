@@ -8609,6 +8609,10 @@ const FEATURE_FLAG_INTERNAL_ACCOUNTS = [
 const FEATURE_FLAGS = {
   // example: my_new_feature: { enabled: false },            // dark — internal accounts only
   // example: my_new_feature: { enabled: true },             // released to everyone
+  // AI dish photo via the generate-image edge fn (Imagen; Richard picked provider A, 22.7.).
+  // Dark until Richard approves on his phone. V1 stores a compressed data-URI in
+  // recipes.image_url — move to a storage bucket before releasing to everyone.
+  recipe_photo_gen: { enabled: false },
 };
 function featureEnabled(name){
   const f = FEATURE_FLAGS[name];
@@ -14106,6 +14110,10 @@ function showDetail(idx){
   let html = '';
   if(r.img){
     html += `<img class="hero" src="${r.img}" alt="${r.title}">`;
+  } else if(featureEnabled('recipe_photo_gen') && r.createdBy){
+    // AI dish photo (Imagen via generate-image edge fn) — own recipes only (Sautero-library
+    // copies aren't updatable by the user). Flagged dark; labelled illustrative by design.
+    html += `<button class="add-row-btn" id="genPhotoBtn" onclick="generateRecipePhoto()" style="margin:0 0 14px 0;">✨ Generate photo (AI, illustrative)</button>`;
   }
   html += `<div class="detail-cat">${r.category}</div>`;
   html += `<h2 class="recipe-title display">${r.title}</h2>`;
@@ -22407,6 +22415,55 @@ async function aiFillRecipeField(fieldId, btn){
   } finally {
     btn.disabled = false;
     btn.textContent = originalLabel;
+  }
+}
+
+/* AI dish photo (Richard picked Google Imagen, 22.7.) — behind the recipe_photo_gen flag.
+   Builds a food-photography prompt from the recipe's OWN text, calls the generate-image edge
+   function (GEMINI_API_KEY lives only server-side), downscales the result on-device to a
+   compact JPEG and stores it in recipes.image_url with a row-count-verified update.
+   V1 stores a data-URI; move to a storage bucket before wide release (noted on the flag). */
+async function generateRecipePhoto(){
+  const r = allRecipes()[window.currentDetailIdx];
+  if(!r || !r.createdBy || !featureEnabled('recipe_photo_gen')) return;
+  const btn = document.getElementById('genPhotoBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '✨ Generating photo…'; }
+  try{
+    const ingredients = (r.sections || []).filter(s=>s.type==='table')
+      .flatMap(s=>s.rows.map(row=>row[0])).filter(Boolean).slice(0, 10).join(', ');
+    const prompt =
+      `Professional food photography, photorealistic: "${r.title}"` +
+      (r.meta ? ` — ${r.meta}.` : '.') +
+      (r.description ? ` ${r.description.slice(0, 220)}` : '') +
+      (ingredients ? ` Key ingredients visible where natural: ${ingredients}.` : '') +
+      (r.platingSuggestions ? ` Plating: ${r.platingSuggestions.slice(0, 200)}` : ' Restaurant plating on a clean plate.') +
+      ' Natural soft light, shallow depth of field, appetizing, realistic textures.' +
+      ' No text, no watermark, no hands, no people.';
+    const { data, error } = await sb.functions.invoke('generate-image', { body: { prompt } });
+    if(error) throw new Error(error.message || 'generate-image failed');
+    if(data && data.error) throw new Error(data.error.message);
+    if(!data || !data.imageBase64) throw new Error('No image returned — try again.');
+
+    // downscale on-device: ~900px wide JPEG keeps image_url compact
+    const imgEl = new Image();
+    await new Promise((res, rej)=>{ imgEl.onload = res; imgEl.onerror = ()=>rej(new Error('Could not read the generated image.'));
+      imgEl.src = `data:${data.mimeType};base64,${data.imageBase64}`; });
+    const scale = Math.min(1, 900 / imgEl.naturalWidth);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(imgEl.naturalWidth * scale);
+    canvas.height = Math.round(imgEl.naturalHeight * scale);
+    canvas.getContext('2d').drawImage(imgEl, 0, 0, canvas.width, canvas.height);
+    const dataUri = canvas.toDataURL('image/jpeg', 0.82);
+
+    const { data: updated, error: upErr } = await sb.from('recipes')
+      .update({ image_url: dataUri }).eq('id', r.id).select();
+    if(upErr) throw new Error(upErr.message);
+    if(!updated || updated.length !== 1) throw new Error('Photo was generated but did not save (0 rows updated).');
+    r.img = dataUri;
+    showDetail(window.currentDetailIdx);
+  } catch(e){
+    alert(e.message || 'Something went wrong generating the photo.');
+    if(btn){ btn.disabled = false; btn.textContent = '✨ Generate photo (AI, illustrative)'; }
   }
 }
 
