@@ -61,7 +61,7 @@ ROSTER_ORDER = [
     'audit_app.py', 'audit_db.py', 'ui_invariants.py', 'calc_unit_test.js',
     'tile_lock_test.py', 'ui_regression_test.py', 'unauth_gates_test.py', 'e2e_smoke_test.py',
     'docs_qa_test.py', 'coverage_manifest.py', 'health_report.py',
-    'work_hours.py', 'docs_autofix.py', 'docs_changelog.py', 'docs_autosection.py',
+    'work_hours.py', 'docs_autofix.py', 'docs_changelog.py', 'docs_autosection.py', 'docs_js_check.py',
 ]
 # js/sql files have no python docstring — give them a one-liner here.
 ROLE_OVERRIDE = {

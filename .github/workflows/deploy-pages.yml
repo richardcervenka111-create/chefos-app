@@ -38,6 +38,8 @@ jobs:
           node-version: '22'
       - name: Calculation unit tests (recipe cost, payroll hours, shift hours — money paths)
         run: node scripts/calc_unit_test.js
+      - name: Internal-Docs inline JS parses (the class that blanked Poznámky)
+        run: python3 scripts/docs_js_check.py
 
       # ---- DEPLOY GATE (Engineering Standard §1, Richard 22.7.) ----
       # The CANDIDATE build — the app exactly as in THIS commit — is served locally and the

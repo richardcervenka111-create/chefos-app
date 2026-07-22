@@ -31,6 +31,8 @@ jobs:
           node-version: '22'
       - name: Calculation unit tests (recipe cost, payroll hours, shift hours — money paths)
         run: node scripts/calc_unit_test.js
+      - name: Internal-Docs inline JS parses (the class that blanked Poznámky)
+        run: python3 scripts/docs_js_check.py
       - name: Worked-hours freshness (WORK_HOURS in docs must match git — no missing days)
         run: python3 scripts/work_hours.py --check
       - name: Every Internal Doc carries a date stamp (docs_autofix guard)
