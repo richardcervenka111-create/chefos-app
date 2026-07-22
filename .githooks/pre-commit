@@ -30,6 +30,11 @@ git add "visual data/costs.html" "visual data/tasklist.html" 2>/dev/null || true
 # commits up to the parent; the in-flight commit's line lands on the next commit.)
 python3 scripts/docs_changelog.py
 git add "visual data/changelog.html" 2>/dev/null || true
+# Machine-maintained SECTIONS inside the existing docs (Richard, 22.7. — "aby sa updateovali aj
+# TIETO dokumenty"): fill every <!--AUTO:START:x-->…<!--AUTO:END:x--> block from live sources
+# (e.g. the robot roster in automation.html) WITHOUT touching the curated prose around them.
+python3 scripts/docs_autosection.py
+git add "visual data/" 2>/dev/null || true
 # Robots auto-fix the safe class (Richard, 21.7. — "roboti nech chyby aj opravia"): ensure every
 # Internal Doc carries a bottom-right date stamp, adding one only where genuinely absent (never a
 # duplicate next to a doc's own badge). Layout/content findings stay report-only in the QA robots.

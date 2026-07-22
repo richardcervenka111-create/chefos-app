@@ -37,3 +37,5 @@ jobs:
         run: python3 scripts/docs_autofix.py --check
       - name: Changelog covers every commit (nothing that happened goes unrecorded)
         run: python3 scripts/docs_changelog.py --check
+      - name: Auto-sections in the docs are current (robot roster, etc.)
+        run: python3 scripts/docs_autosection.py --check

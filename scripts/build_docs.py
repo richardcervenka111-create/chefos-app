@@ -46,6 +46,7 @@ MERGED = [
         'tabs': [
             ('Teraz', 'Now', 'status.html'),
             ('Denník', 'Diary', 'planning.html'),
+            ('Changelog', 'Changelog', 'changelog.html'),
             ('Roadmapa', 'Roadmap', 'backlog.html'),
         ],
     },

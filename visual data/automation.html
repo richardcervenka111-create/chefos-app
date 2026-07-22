@@ -218,6 +218,17 @@
   </section>
 
   <section>
+    <div class="section-label"><span class="n">🤖</span><h2 data-sk="Živý zoznam robotov (auto — generuje sa sám)" data-en="Live robot roster (auto — generates itself)"></h2><div class="rule"></div></div>
+    <!--AUTO:START:robot_roster-->
+<p style="color:var(--ink-dim); font-size:12px; margin:0 0 10px;" data-sk="Živý zoznam — generovaný automaticky zo skutočných skriptov a workflowov (22 spolu). Nový robot sa sem doplní sám." data-en="Live list — generated automatically from the actual scripts and workflows (22 total). A new robot is added here by itself.">Živý zoznam — generovaný automaticky zo skutočných skriptov a workflowov (22 spolu). Nový robot sa sem doplní sám.</p>
+<p style="font-size:12px; font-weight:700; margin:8px 0 4px; color:var(--accent);">scripts/</p>
+<ul style="margin:0 0 12px; padding-left:18px; font-size:13px; line-height:1.6;"><li><code>audit_app.py</code> — Sautero app auditor.</li><li><code>audit_db.py</code> — Sautero DB migration auditor.</li><li><code>ui_invariants.py</code> — UI/UX invariants.</li><li><code>calc_unit_test.js</code> — Money-path unit tests.</li><li><code>tile_lock_test.py</code> — Sautero tile-lock runner.</li><li><code>ui_regression_test.py</code> — UI/UX regression suite.</li><li><code>unauth_gates_test.py</code> — Sautero unauthenticated-gates E2E test.</li><li><code>e2e_smoke_test.py</code> — Sautero end-to-end smoke test.</li><li><code>docs_qa_test.py</code> — Sautero Internal-Docs QA robot.</li><li><code>coverage_manifest.py</code> — Sautero QA coverage manifest.</li><li><code>health_report.py</code> — Sautero Health Report.</li><li><code>work_hours.py</code> — Sautero work-hours meter.</li><li><code>docs_autofix.py</code> — Sautero docs auto-fixer.</li><li><code>docs_changelog.py</code> — Auto-generated changelog.</li><li><code>docs_autosection.py</code> — Auto-maintained SECTIONS inside the existing Internal Docs.</li></ul>
+<p style="font-size:12px; font-weight:700; margin:8px 0 4px; color:var(--accent);">.github/workflows/</p>
+<ul style="margin:0; padding-left:18px; font-size:13px; line-height:1.6;"><li><code>deploy-pages.yml</code> — Deploy app/ to GitHub Pages</li><li><code>docs-qa.yml</code> — Internal-Docs QA (one robot per document)</li><li><code>e2e-smoke.yml</code> — E2E smoke test</li><li><code>health-checks.yml</code> — Health checks</li><li><code>qa-checks.yml</code> — QA checks (auditors + tenant isolation)</li><li><code>rollback.yml</code> — ⏪ Rollback production</li><li><code>tile-locks.yml</code> — Tile locks (behavioural guards on locked tiles)</li></ul>
+<!--AUTO:END:robot_roster-->
+  </section>
+
+  <section>
     <div class="section-label"><span class="n">02+</span><h2 data-sk="Testy &amp; CI roboti (od 18.7. — zadarmo, žiadne AI)" data-en="Tests &amp; CI robots (from Jul 18 — free, no AI)"></h2><div class="rule"></div></div>
     <p class="lede" style="margin:0 0 16px 0; font-size:12.5px;" data-sk="Táto vrstva vznikla 18.–21.7. Nič z nej nestojí ani cent — sú to skripty a GitHub Actions roboti, žiadne AI tokeny. Chránia appku aj tieto dokumenty pred tým, aby sa niečo tíško pokazilo alebo aby dáta zastarali." data-en="This layer was built Jul 18–21. None of it costs a cent — plain scripts and GitHub Actions robots, no AI tokens. They protect the app and these very documents from silently breaking or going stale."></p>
     <div class="autotasks">
