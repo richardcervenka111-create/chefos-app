@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sautero — Critical Review, 23 July 2026</title>
+<style>
+:root{
+  --navy:#0A1A2F;
+  --paper:#122845;
+  --raised:#0f2340;
+  --rule:#223d57;
+  --teal:#34F7D7;
+  --gold:#F7C948;
+  --coral:#FF6A5E;
+  --ink:#FFFFFF;
+  --dim:#9C949E;
+  --faint:rgba(156,148,158,.55);
+  --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --mono:"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --gut:clamp(20px,4vw,56px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--navy);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.sheet{max-width:1180px;margin:0 auto;padding:0 var(--gut) 80px}
+
+/* ---------- shared type ---------- */
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--teal);margin:0 0 14px
+}
+.eyebrow .num{color:var(--faint);margin-right:10px}
+h2.sec{
+  font-family:var(--serif);font-weight:400;font-size:clamp(26px,3.4vw,40px);
+  line-height:1.12;letter-spacing:-.01em;margin:0 0 12px
+}
+.lede{color:var(--dim);max-width:64ch;margin:0;font-size:clamp(15px,1.5vw,17px)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+section{padding-top:clamp(52px,7vw,88px)}
+hr.rule{border:0;border-top:1px solid var(--rule);margin:clamp(48px,6vw,76px) 0 0}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;justify-content:space-between;
+  padding:28px 0 22px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 0 4px rgba(52,247,215,.14)}
+.brand b{font-family:var(--serif);font-weight:400;font-size:22px;letter-spacing:.02em}
+.mast .meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.mast .meta span{color:var(--gold)}
+
+/* ---------- thesis ---------- */
+.thesis{padding-top:clamp(44px,6vw,72px)}
+.thesis h1{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(32px,5.6vw,64px);line-height:1.06;letter-spacing:-.02em;
+  margin:0 0 22px;max-width:19ch
+}
+.thesis h1 em{font-style:normal;color:var(--teal)}
+.thesis h1 s{text-decoration:none;color:var(--gold)}
+.thesis p{color:var(--dim);max-width:60ch;margin:0;font-size:clamp(16px,1.7vw,18px)}
+
+/* ---------- stat row ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-top:clamp(34px,4.5vw,52px)}
+.stat{background:var(--paper);padding:22px 20px 20px;min-height:150px;display:flex;flex-direction:column}
+.stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:auto}
+.stat .v{font-family:var(--mono);font-size:clamp(30px,4.2vw,44px);line-height:1;letter-spacing:-.03em;margin:18px 0 6px}
+.stat .v small{font-size:.44em;letter-spacing:0;color:var(--dim);margin-left:4px}
+.stat .d{font-size:13px;color:var(--dim);line-height:1.4}
+.stat.good .v{color:var(--teal)} .stat.warn .v{color:var(--gold)} .stat.bad .v{color:var(--coral)}
+
+/* ---------- dockets (signature) ---------- */
+.board{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:36px}
+.docket{background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--rule);
+  padding:22px 22px 20px;display:flex;flex-direction:column}
+.docket.done{border-top-color:var(--teal)}
+.docket.prog{border-top-color:var(--gold)}
+.docket.wait{border-top-color:var(--dim)}
+.docket.block{border-top-color:var(--coral)}
+.docket .head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.state{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  padding:4px 9px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.done .state{color:var(--teal)} .prog .state{color:var(--gold)}
+.wait .state{color:var(--dim)} .block .state{color:var(--coral)}
+.station{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.docket h3{font-family:var(--serif);font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px}
+.docket p{margin:0 0 14px;font-size:14px;color:var(--dim);line-height:1.55}
+.evid{margin:auto 0 0;padding-top:14px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.7}
+.evid b{color:var(--ink);font-weight:400}
+
+/* ---------- loop comparison ---------- */
+.loop{margin-top:34px;border:1px solid var(--rule);background:var(--paper)}
+.loopRow{display:grid;grid-template-columns:180px 1fr;gap:0;align-items:center;
+  border-bottom:1px solid var(--rule)}
+.loopRow:last-child{border-bottom:0}
+.loopLabel{padding:18px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--dim);border-right:1px solid var(--rule);align-self:stretch;
+  display:flex;align-items:center}
+.loopBar{padding:18px 20px;display:flex;align-items:center;gap:14px;min-width:0}
+.bar{height:14px;border-radius:1px;flex:0 0 auto;max-width:100%}
+.bar.now{background:linear-gradient(90deg,var(--coral),rgba(255,106,94,.35))}
+.bar.next{background:var(--teal)}
+.loopBar .t{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.loopBar .t.now{color:var(--coral)} .loopBar .t.next{color:var(--teal)}
+.loopNote{padding:16px 20px 20px;font-size:13.5px;color:var(--dim);border-top:1px solid var(--rule)}
+.loopNote b{color:var(--ink);font-weight:600}
+
+/* ---------- coverage bars ---------- */
+.cov{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:34px}
+.covCard{background:var(--paper);border:1px solid var(--rule);padding:22px}
+.covCard h4{margin:0 0 4px;font-family:var(--serif);font-weight:400;font-size:18px}
+.covCard .sub{font-size:13px;color:var(--dim);margin:0 0 18px}
+.track{height:30px;background:var(--raised);border:1px solid var(--rule);display:flex;overflow:hidden}
+.fill{height:100%;display:flex;align-items:center;padding-left:10px;
+  font-family:var(--mono);font-size:11px;color:var(--navy);font-weight:700;white-space:nowrap}
+.fill.teal{background:var(--teal)} .fill.gold{background:var(--gold)}
+.covLegend{display:flex;justify-content:space-between;margin-top:9px;
+  font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+/* ---------- hours chart ---------- */
+.chartWrap{margin-top:34px;background:var(--paper);border:1px solid var(--rule);padding:24px 22px 18px}
+.chartWrap svg{width:100%;height:auto;display:block}
+.chartFoot{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;padding-top:16px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+.chartFoot b{color:var(--ink);font-weight:400}
+
+/* ---------- benchmark table ---------- */
+.bench{width:100%;border-collapse:collapse;margin-top:34px;font-size:14px}
+.bench th{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--faint);text-align:left;padding:0 16px 12px;border-bottom:1px solid var(--rule);font-weight:400}
+.bench th:nth-child(2){color:var(--teal)}
+.bench td{padding:15px 16px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--dim);line-height:1.5}
+.bench td:first-child{color:var(--ink);font-family:var(--serif);font-size:16px;width:22%}
+.bench tr:last-child td{border-bottom:0}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 7px;border-radius:2px;margin-left:8px;white-space:nowrap}
+.tag.has{background:rgba(52,247,215,.14);color:var(--teal)}
+.tag.gap{background:rgba(255,106,94,.14);color:var(--coral)}
+
+/* ---------- actions ---------- */
+.acts{margin-top:34px;border-top:1px solid var(--rule)}
+.act{display:grid;grid-template-columns:56px 1fr 200px;gap:20px;padding:24px 0;
+  border-bottom:1px solid var(--rule);align-items:start}
+.act .no{font-family:var(--mono);font-size:13px;color:var(--teal);padding-top:4px}
+.act h4{margin:0 0 6px;font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.25}
+.act p{margin:0;font-size:14px;color:var(--dim);line-height:1.55;max-width:60ch}
+.act .cost{font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.8;text-align:right}
+.act .cost b{display:block;color:var(--gold);font-weight:400;font-size:13px}
+
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--faint);
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+
+/* ---------- motion ---------- */
+.rev{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+.rev.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rev{opacity:1;transform:none;transition:none}}
+
+/* ---------- responsive ---------- */
+@media (max-width:860px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .board,.cov{grid-template-columns:1fr}
+  .act{grid-template-columns:34px 1fr;gap:14px}
+  .act .cost{grid-column:2;text-align:left;padding-top:8px}
+  .loopRow{grid-template-columns:1fr}
+  .loopLabel{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:10px}
+  .bench td:first-child{width:auto}
+}
+@media (max-width:520px){
+  .stats{grid-template-columns:1fr}
+  .bench,.bench tbody,.bench tr,.bench td{display:block;width:100%}
+  .bench thead{display:none}
+  .bench tr{border-bottom:1px solid var(--rule);padding:14px 0}
+  .bench td{border:0;padding:4px 0}
+  .bench td:first-child{font-size:18px;margin-bottom:6px}
+}
+@media print{
+  body{background:#fff;color:#0A1A2F}
+  .sheet{max-width:none}
+  .rev{opacity:1;transform:none}
+  section{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- MASTHEAD -->
+  <div class="mast">
+    <div class="brand"><span class="dot"></span><b>Sautero</b></div>
+    <div class="meta">Critical review &nbsp;·&nbsp; 23 July 2026 &nbsp;·&nbsp; <span>Internal — founder &amp; investor</span></div>
+  </div>
+
+  <!-- THESIS -->
+  <div class="thesis rev">
+    <h1>The engineering is <em>done</em>. The company <s>hasn't started</s>.</h1>
+    <p>Sautero has discipline most seed-stage startups never reach: a deploy gate, per-module lock
+    suites, an incident log with root-cause analysis, one-click rollback. And it still cannot take
+    a single franc — no legal entity, no invoicing, and an English interface in a German-speaking
+    market. Every hour goes into the layer that is already strong.</p>
+  </div>
+
+  <!-- KEY STATS -->
+  <div class="stats rev">
+    <div class="stat good">
+      <div class="k">Health report</div>
+      <div class="v">90<small>/100</small></div>
+      <div class="d">Grade A. Security 94, documentation 100, architecture 75.</div>
+    </div>
+    <div class="stat bad">
+      <div class="k">German interface</div>
+      <div class="v">6<small>%</small></div>
+      <div class="d">35 translated keys out of ~563 visible strings. Market: Bern.</div>
+    </div>
+    <div class="stat bad">
+      <div class="k">Revenue infrastructure</div>
+      <div class="v">CHF&nbsp;0</div>
+      <div class="d">No sole proprietorship, no payment path, no billing tables.</div>
+    </div>
+    <div class="stat warn">
+      <div class="k">Founder capacity</div>
+      <div class="v">140<small>h / 15 days</small></div>
+      <div class="d">9.3 h/day on top of an 80% kitchen job. Peak 17.6 h.</div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- BOARD -->
+  <section class="rev">
+    <p class="eyebrow"><span class="num">01</span> The pass</p>
+    <h2 class="sec">Four findings, graded by Sautero's own system</h2>
+    <p class="lede">Kitchen Flow has four states: done, in progress, waiting, blocked.
+    The same four states describe the project itself.</p>
+
+    <div class="board">
+      <div class="docket done">
+        <div class="head"><span class="state">Done</span><span class="station">Station: Engineering</span></div>
+        <h3>The defence layer is at real SaaS standard</h3>
+        <p>The deploy gate runs the full lock suite against the candidate build on localhost before
+        production sees anything. Auditors block commits, pushes and deploys alike. Every entry in
+        the incident log carries a root cause and a permanent guard. This is rare even in teams of ten.</p>
+        <div class="evid">
+          <b>169</b> migrations · <b>49</b> tables · <b>100%</b> under RLS<br>
+          <b>19</b> UI invariants · <b>3</b> blocking auditors · rollback ~3 min
+        </div>
+      </div>
+
+      <div class="docket prog">
+        <div class="head"><span class="state">In progress</span><span class="station">Station: Architecture</span></div>
+        <h3>One file carries the entire product</h3>
+        <p><span class="num">app/index.html</span> is 24,802 lines and 1.27 MB — 17,714 of those
+        lines are JavaScript inside a single <span class="num">&lt;script&gt;</span> block holding
+        979 functions. Nothing can be imported from it, so the unit tests have to <i>cut functions
+        out of the source</i> with a hand-written brace-matching scanner. That is a lot of extra
+        work caused by one decision.</p>
+        <div class="evid">
+          Architecture <b>75/100</b> — the weakest block in the report<br>
+          <b>310</b> innerHTML sinks · <b>41</b> views · <b>25</b> tiles
+        </div>
+      </div>
+
+      <div class="docket wait">
+        <div class="head"><span class="state">Waiting</span><span class="station">Station: Product</span></div>
+        <h3>Scope outgrew the MVP definition</h3>
+        <p>The MVP definition written on 8 July explicitly defers inventory, food cost and ordering
+        to phase 3, and AI to phase 5. By 22 July all of it is in production — plus HACCP, time
+        tracking, label printing and events. Four phases in fourteen days. Meanwhile 7 of 25 tiles
+        carry a lock suite.</p>
+        <div class="evid">
+          Locked: working time, recipes, admin, haccp,<br>
+          settings, team meetings, chef assistant → <b>28%</b> of the surface
+        </div>
+      </div>
+
+      <div class="docket block">
+        <div class="head"><span class="state">Blocked</span><span class="station">Station: Business</span></div>
+        <h3>The product cannot be sold, even to a willing buyer</h3>
+        <p>The founding offer is written: CHF 490/year, first ten kitchens. Everything around it is
+        missing — Einzelfirma and AHV registration, an invoice, a payment path (no Stripe, no TWINT,
+        no subscription table anywhere in the code) and a German interface. Days of work, standing
+        between a finished product and the first franc.</p>
+        <div class="evid">
+          <b>0</b> payment integrations · <b>0</b> billing tables<br>
+          <b>35</b> i18n keys · market: German-speaking Bern
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- LOOP -->
+  <section class="rev">
+    <p class="eyebrow"><span class="num">02</span> Diagnosis of today's two hours</p>
+    <h2 class="sec">The problem isn't that function. It's time-to-truth.</h2>
+    <p class="lede">There is no JS runtime on the machine — neither Playwright nor node runs locally.
+    So every behavioural check has to travel through GitHub Actions: install Playwright, download
+    Chromium, sign in the QA accounts, run the whole lock suite. And it runs whole, even for a
+    one-line change.</p>
+
+    <div class="loop">
+      <div class="loopRow">
+        <div class="loopLabel">Today</div>
+        <div class="loopBar">
+          <span class="bar now" style="width:min(62%,520px)"></span>
+          <span class="t now num">~8–12 min per attempt</span>
+        </div>
+      </div>
+      <div class="loopRow">
+        <div class="loopLabel">Local, single tile</div>
+        <div class="loopBar">
+          <span class="bar next" style="width:5%"></span>
+          <span class="t next num">~30 s per attempt</span>
+        </div>
+      </div>
+      <div class="loopNote">
+        Across eight iterations that is the difference between <b>~80 minutes of waiting</b> and
+        <b>~4 minutes</b>. Two hours on one function is not a lapse in focus — it is exactly what
+        comes out when the feedback loop is measured in minutes instead of seconds.
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- COVERAGE -->
+  <section class="rev">
+    <p class="eyebrow"><span class="num">03</span> The two coverages that decide</p>
+    <h2 class="sec">What is protected, and what the customer actually reads</h2>
+
+    <div class="cov">
+      <div class="covCard">
+        <h4>Locked modules</h4>
+        <p class="sub">Tiles with a lock suite that can block a deploy</p>
+        <div class="track"><div class="fill teal" style="width:28%">7 / 25</div></div>
+        <div class="covLegend"><span>28% protected</span><span>18 tiles unlocked</span></div>
+      </div>
+      <div class="covCard">
+        <h4>German interface</h4>
+        <p class="sub">Translated keys against visible strings in the app</p>
+        <div class="track"><div class="fill gold" style="width:6.2%"></div></div>
+        <div class="covLegend"><span>35 keys (~6%)</span><span>~528 strings still English</span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- HOURS -->
+  <section class="rev">
+    <p class="eyebrow"><span class="num">04</span> Key person risk</p>
+    <h2 class="sec">140 hours in fifteen days, alongside the kitchen</h2>
+    <p class="lede">Measured from real session logs. Five days above twelve hours, peaking at 17.6.
+    For an investor this is the first due-diligence question: what happens to the project when this
+    person cannot work for two weeks.</p>
+
+    <div class="chartWrap">
+      <svg viewBox="0 0 720 210" role="img" aria-label="Daily working hours from 8 to 22 July 2026, totalling 140.2 hours">
+        <line x1="0" y1="160" x2="720" y2="160" stroke="#223d57" stroke-width="1"/>
+        <line x1="0" y1="94" x2="720" y2="94" stroke="#F7C948" stroke-width="1" stroke-dasharray="3 5" opacity=".55"/>
+        <text x="0" y="86" fill="#F7C948" font-family="SF Mono,Menlo,monospace" font-size="10" opacity=".9">8 h</text>
+
+        <g font-family="SF Mono,Menlo,monospace" font-size="9" fill="#9C949E" text-anchor="middle">
+          <rect x="9"   y="109.7" width="26" height="50.3"  fill="#34F7D7" opacity=".75"/><text x="22"  y="176">08</text>
+          <rect x="57"  y="121.2" width="26" height="38.8"  fill="#34F7D7" opacity=".75"/><text x="70"  y="176">09</text>
+          <rect x="105" y="113.8" width="26" height="46.2"  fill="#34F7D7" opacity=".75"/><text x="118" y="176">10</text>
+          <rect x="153" y="158.3" width="26" height="1.7"   fill="#34F7D7" opacity=".75"/><text x="166" y="176">11</text>
+          <rect x="201" y="25.5"  width="26" height="134.5" fill="#FF6A5E"/><text x="214" y="176">12</text>
+          <rect x="249" y="138.5" width="26" height="21.5"  fill="#34F7D7" opacity=".75"/><text x="262" y="176">13</text>
+          <rect x="297" y="69.3"  width="26" height="90.7"  fill="#F7C948" opacity=".9"/><text x="310" y="176">14</text>
+          <rect x="345" y="55.2"  width="26" height="104.8" fill="#FF6A5E"/><text x="358" y="176">15</text>
+          <rect x="393" y="19.8"  width="26" height="140.2" fill="#FF6A5E"/><text x="406" y="176">16</text>
+          <rect x="441" y="98.9"  width="26" height="61.1"  fill="#34F7D7" opacity=".75"/><text x="454" y="176">17</text>
+          <rect x="489" y="45.3"  width="26" height="114.7" fill="#FF6A5E"/><text x="502" y="176">18</text>
+          <rect x="537" y="118.8" width="26" height="41.2"  fill="#34F7D7" opacity=".75"/><text x="550" y="176">19</text>
+          <rect x="585" y="14.8"  width="26" height="145.2" fill="#FF6A5E"/><text x="598" y="176">20</text>
+          <rect x="633" y="65.9"  width="26" height="94.1"  fill="#F7C948" opacity=".9"/><text x="646" y="176">21</text>
+          <rect x="681" y="88.2"  width="26" height="71.8"  fill="#34F7D7" opacity=".75"/><text x="694" y="176">22</text>
+        </g>
+        <text x="598" y="8" fill="#FF6A5E" font-family="SF Mono,Menlo,monospace" font-size="10" text-anchor="middle">17.6</text>
+        <text x="0" y="200" fill="#9C949E" font-family="SF Mono,Menlo,monospace" font-size="9.5" opacity=".7">JULY 2026</text>
+      </svg>
+      <div class="chartFoot">
+        <span>Total <b>140.2 h</b></span>
+        <span>Average <b>9.3 h/day</b></span>
+        <span>Days above 12 h: <b>5</b></span>
+        <span>In parallel: <b>80% kitchen job</b></span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- BENCHMARK -->
+  <section class="rev">
+    <p class="eyebrow"><span class="num">05</span> How billion-dollar SaaS companies build this</p>
+    <h2 class="sec">Six practices — three already here, three missing</h2>
+    <p class="lede">The interesting part isn't what those companies have on top. It's that three of
+    the things built here solo are usually only introduced after a company's first serious outage.</p>
+
+    <table class="bench">
+      <thead><tr><th>Practice</th><th>How they do it</th><th>Sautero</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Test pyramid</td>
+          <td>Roughly 70% fast unit tests (milliseconds), 20% integration, 10% browser E2E. E2E is the most expensive and most brittle layer, so it gets the smallest share.</td>
+          <td>Inverted pyramid: almost everything is an E2E lock suite, unit tests are a handful.<span class="tag gap">missing</span></td>
+        </tr>
+        <tr>
+          <td>Local dev loop</td>
+          <td>Vite or esbuild, hot reload, tests firing on file save. Nobody at Stripe waits on CI to find out whether a button works.</td>
+          <td>With no local JS runtime, every check is a round trip through CI.<span class="tag gap">missing</span></td>
+        </tr>
+        <tr>
+          <td>Test selection</td>
+          <td>Bazel, Nx, Turborepo — the diff determines which tests are affected and only those run. The rest runs overnight.</td>
+          <td>The full suite runs on every change, including a one-line CSS edit.<span class="tag gap">missing</span></td>
+        </tr>
+        <tr>
+          <td>Feature flags</td>
+          <td>Trunk-based development: everything merges to main, unfinished work hides behind a switch (LaunchDarkly, Statsig). No long-lived branches.</td>
+          <td><span class="num">featureEnabled()</span> plus internal QA accounts — exactly that model.<span class="tag has">have it</span></td>
+        </tr>
+        <tr>
+          <td>Blameless postmortems</td>
+          <td>After an incident you write the root cause and the permanent fix, not the culprit. The Google SRE book made this the industry standard.</td>
+          <td>HEALTH_LOG.md: date, cause, guard. Own mistakes included.<span class="tag has">have it</span></td>
+        </tr>
+        <tr>
+          <td>Deploy gate + rollback</td>
+          <td>Nothing ships without green tests; returning to the previous version is one click and a few minutes.</td>
+          <td>Lock gate against the candidate build plus a ~3 min rollback workflow.<span class="tag has">have it</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ACTIONS -->
+  <section class="rev">
+    <p class="eyebrow"><span class="num">06</span> Order of moves</p>
+    <h2 class="sec">Four steps that change the trajectory</h2>
+    <p class="lede">Ranked by hours released or risk closed per hour invested. Not by what is
+    interesting to build.</p>
+
+    <div class="acts">
+      <div class="act">
+        <div class="no">01</div>
+        <div>
+          <h4>Get a local runtime</h4>
+          <p>Node 22, <span class="num">pip install playwright</span> and chromium on the machine
+          where the code is written. Then <span class="num">http.server 8080</span> and
+          <span class="num">tile_lock_test.py --only recipes</span> locally. This is the one step
+          that directly fixes today's two hours.</p>
+        </div>
+        <div class="cost"><b>~30 min</b>one-off<br>returns hours weekly</div>
+      </div>
+
+      <div class="act">
+        <div class="no">02</div>
+        <div>
+          <h4>Tier the CI by speed</h4>
+          <p>Cache the Playwright browsers (<span class="num">actions/cache</span> on
+          <span class="num">~/.cache/ms-playwright</span>). On push, run the static auditors plus
+          the suite for the tile being touched; keep the full lock suite for merges to main and a
+          nightly run. The gate stays — it just stops charging for every line.</p>
+        </div>
+        <div class="cost"><b>~2 h</b>one-off<br>−60% CI time</div>
+      </div>
+
+      <div class="act">
+        <div class="no">03</div>
+        <div>
+          <h4>Cut the first module into a <span class="num">.js</span> file</h4>
+          <p>Not a rewrite. One module — ideally a calculation one (cost, hours) — moved out as an
+          ES module with <span class="num">export</span>, loaded via
+          <span class="num">&lt;script type="module"&gt;</span>. Still buildless. The payoff: unit
+          tests without a scanner that carves functions out of source, and a first diff that can
+          actually be read.</p>
+        </div>
+        <div class="cost"><b>~1 day</b>per module<br>a repeatable pattern</div>
+      </div>
+
+      <div class="act">
+        <div class="no">04</div>
+        <div>
+          <h4>Freeze the product for two weeks</h4>
+          <p>No new tiles. Einzelfirma and AHV, an invoice, a payment path, and German across at
+          least the twenty most-used screens. These four things stand between a finished product
+          and a first invoice — and they are the only items on the list that writing better code
+          cannot make faster.</p>
+        </div>
+        <div class="cost"><b>~10 days</b>with no new code<br>unlocks CHF 490/year</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sautero · app.sautero.ch</span>
+    <span>Source: audit_db · audit_app · health_report · work_hours · 23 July 2026</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var els = document.querySelectorAll('.rev');
+  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    els.forEach(function(e){ e.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  els.forEach(function(e){ io.observe(e); });
+})();
+</script>
+</body>
+</html>

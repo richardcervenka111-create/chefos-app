@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sautero — Legal Review, 23 July 2026</title>
+<style>
+:root{
+  --navy:#0A1A2F; --paper:#122845; --raised:#0f2340; --rule:#223d57;
+  --teal:#34F7D7; --gold:#F7C948; --coral:#FF6A5E;
+  --ink:#FFFFFF; --dim:#9C949E; --faint:rgba(156,148,158,.55);
+  --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --mono:"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --gut:clamp(20px,4vw,56px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--navy);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.sheet{max-width:1180px;margin:0 auto;padding:0 var(--gut) 80px}
+
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--teal);margin:0 0 14px}
+.eyebrow .n{color:var(--faint);margin-right:10px}
+h2.sec{font-family:var(--serif);font-weight:400;font-size:clamp(26px,3.4vw,40px);
+  line-height:1.12;letter-spacing:-.01em;margin:0 0 12px}
+.lede{color:var(--dim);max-width:64ch;margin:0;font-size:clamp(15px,1.5vw,17px)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+section{padding-top:clamp(52px,7vw,88px)}
+hr.rule{border:0;border-top:1px solid var(--rule);margin:clamp(48px,6vw,76px) 0 0}
+
+/* masthead */
+.mast{display:flex;flex-wrap:wrap;gap:16px;align-items:baseline;justify-content:space-between;
+  padding:28px 0 22px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 0 4px rgba(52,247,215,.14)}
+.brand b{font-family:var(--serif);font-weight:400;font-size:22px;letter-spacing:.02em}
+.mast .meta{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.mast .meta span{color:var(--gold)}
+
+/* thesis */
+.thesis{padding-top:clamp(44px,6vw,72px)}
+.thesis h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,5.2vw,60px);
+  line-height:1.07;letter-spacing:-.02em;margin:0 0 22px;max-width:21ch}
+.thesis h1 em{font-style:normal;color:var(--teal)}
+.thesis h1 s{text-decoration:none;color:var(--coral)}
+.thesis p{color:var(--dim);max-width:60ch;margin:0;font-size:clamp(16px,1.7vw,18px)}
+
+/* disclaimer */
+.disc{margin-top:30px;border:1px solid rgba(247,201,72,.35);background:rgba(247,201,72,.07);
+  padding:16px 18px;font-size:13.5px;color:var(--dim);line-height:1.55}
+.disc b{color:var(--gold);font-weight:600}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-top:clamp(30px,4vw,42px)}
+.stat{background:var(--paper);padding:22px 20px 20px;min-height:152px;display:flex;flex-direction:column}
+.stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:auto}
+.stat .v{font-family:var(--mono);font-size:clamp(26px,3.6vw,40px);line-height:1;
+  letter-spacing:-.03em;margin:18px 0 6px}
+.stat .v small{font-size:.42em;letter-spacing:0;color:var(--dim);margin-left:4px}
+.stat .d{font-size:13px;color:var(--dim);line-height:1.4}
+.stat.bad .v{color:var(--coral)} .stat.warn .v{color:var(--gold)} .stat.good .v{color:var(--teal)}
+
+/* dockets */
+.board{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:36px}
+.docket{background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--rule);
+  padding:22px 22px 20px;display:flex;flex-direction:column}
+.docket.done{border-top-color:var(--teal)}
+.docket.prog{border-top-color:var(--gold)}
+.docket.wait{border-top-color:var(--dim)}
+.docket.block{border-top-color:var(--coral)}
+.docket .head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px}
+.state{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  padding:4px 9px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.done .state{color:var(--teal)} .prog .state{color:var(--gold)}
+.wait .state{color:var(--dim)} .block .state{color:var(--coral)}
+.station{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.docket h3{font-family:var(--serif);font-weight:400;font-size:21px;line-height:1.25;margin:0 0 10px}
+.docket p{margin:0 0 14px;font-size:14px;color:var(--dim);line-height:1.55}
+.evid{margin:auto 0 0;padding-top:14px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.7}
+.evid b{color:var(--ink);font-weight:400}
+
+/* claim vs code */
+.cvc{margin-top:34px;border:1px solid var(--rule)}
+.cvcHead{display:grid;grid-template-columns:1fr 1fr;background:var(--raised);border-bottom:1px solid var(--rule)}
+.cvcHead div{padding:12px 18px;font-family:var(--mono);font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--faint)}
+.cvcHead div:first-child{border-right:1px solid var(--rule)}
+.cvcHead div:last-child{color:var(--coral)}
+.cvcRow{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule);background:var(--paper)}
+.cvcRow:last-child{border-bottom:0}
+.cvcRow > div{padding:18px}
+.cvcRow > div:first-child{border-right:1px solid var(--rule)}
+.cvcRow .say{font-size:14px;color:var(--ink);line-height:1.5}
+.cvcRow .say q{font-style:italic;color:var(--dim)}
+.cvcRow .real{font-size:13.5px;color:var(--dim);line-height:1.5}
+.cvcRow .real .src{display:block;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--coral)}
+
+/* retention */
+.ret{margin-top:34px;border:1px solid var(--rule);background:var(--paper)}
+.retRow{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--rule)}
+.retRow:last-of-type{border-bottom:0}
+.retLabel{padding:18px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--dim);border-right:1px solid var(--rule);
+  display:flex;align-items:center}
+.retBar{padding:18px 20px;display:flex;align-items:center;gap:14px;min-width:0}
+.rb{height:14px;border-radius:1px;flex:0 0 auto;max-width:100%}
+.rb.short{background:var(--coral)} .rb.long{background:var(--teal)}
+.retBar .t{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.retBar .t.short{color:var(--coral)} .retBar .t.long{color:var(--teal)}
+.retNote{padding:16px 20px 20px;font-size:13.5px;color:var(--dim);border-top:1px solid var(--rule)}
+.retNote b{color:var(--ink);font-weight:600}
+
+/* actions */
+.acts{margin-top:34px;border-top:1px solid var(--rule)}
+.act{display:grid;grid-template-columns:56px 1fr 200px;gap:20px;padding:24px 0;
+  border-bottom:1px solid var(--rule);align-items:start}
+.act .no{font-family:var(--mono);font-size:13px;color:var(--teal);padding-top:4px}
+.act h4{margin:0 0 6px;font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.25}
+.act p{margin:0;font-size:14px;color:var(--dim);line-height:1.55;max-width:60ch}
+.act .cost{font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.8;text-align:right}
+.act .cost b{display:block;color:var(--gold);font-weight:400;font-size:13px}
+
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--faint);
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between}
+
+.rev{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+.rev.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rev{opacity:1;transform:none;transition:none}}
+
+@media (max-width:860px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .board{grid-template-columns:1fr}
+  .act{grid-template-columns:34px 1fr;gap:14px}
+  .act .cost{grid-column:2;text-align:left;padding-top:8px}
+  .retRow{grid-template-columns:1fr}
+  .retLabel{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:10px}
+  .cvcHead{display:none}
+  .cvcRow{grid-template-columns:1fr}
+  .cvcRow > div:first-child{border-right:0;border-bottom:1px solid var(--rule);padding-bottom:14px}
+}
+@media (max-width:520px){ .stats{grid-template-columns:1fr} }
+@media print{
+  body{background:#fff;color:#0A1A2F}
+  .rev{opacity:1;transform:none}
+  section{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="mast">
+    <div class="brand"><span class="dot"></span><b>Sautero</b></div>
+    <div class="meta">Legal review &nbsp;·&nbsp; 23 July 2026 &nbsp;·&nbsp; <span>Brief for counsel</span></div>
+  </div>
+
+  <div class="thesis rev">
+    <h1>The documents are <em>honest</em>. They describe <s>a different app</s> than the one running.</h1>
+    <p>The pilot agreement v2 is above the usual bar — bilingual with the German version
+    prevailing, Swiss law, a HACCP disclaimer, a clean role split and six questions ready for
+    counsel. The problem is elsewhere: the public privacy policy states things the code
+    contradicts, there is no Impressum, and the agreement is signed by a natural person with no
+    limit on personal liability.</p>
+
+    <div class="disc"><b>I am not a lawyer.</b> This is not legal advice. It is a list of
+    contradictions between the documents and the code that I could verify in the repository —
+    laid out so a lawyer in Bern can work through them in a single sitting.</div>
+  </div>
+
+  <div class="stats rev">
+    <div class="stat bad">
+      <div class="k">Impressum</div>
+      <div class="v">0</div>
+      <div class="d">legal.html carries no name, address, UID or e-mail. UWG Art. 3(1)(s).</div>
+    </div>
+    <div class="stat bad">
+      <div class="k">Policy vs. code</div>
+      <div class="v">3</div>
+      <div class="d">Verified direct contradictions between the privacy policy and app behaviour.</div>
+    </div>
+    <div class="stat bad">
+      <div class="k">Processing agreement</div>
+      <div class="v">0</div>
+      <div class="d">No DPA. Required in writing by revFADP Art. 9 and GDPR Art. 28.</div>
+    </div>
+    <div class="stat warn">
+      <div class="k">Retention conflict</div>
+      <div class="v">30<small>days vs 5 yrs</small></div>
+      <div class="d">The agreement promises deletion; Swiss labour law requires 5-year retention.</div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <section class="rev">
+    <p class="eyebrow"><span class="n">01</span> The pass</p>
+    <h2 class="sec">Four legal findings</h2>
+    <p class="lede">The same four states as the technical review — done, in progress,
+    waiting, blocked.</p>
+
+    <div class="board">
+      <div class="docket done">
+        <div class="head"><span class="state">Done</span><span class="station">Station: Agreement</span></div>
+        <h3>The pilot agreement v2 is better than most</h3>
+        <p>Bilingual with identical numbering and the German version prevailing, Swiss law,
+        jurisdiction Bern, a HACCP disclaimer, a Personal/Company data split, GPS disclosed,
+        names on hours only by opt-in. And six concrete questions for counsel at the end. This is
+        not a downloaded template.</p>
+        <div class="evid">
+          The §7 liability exclusion correctly carves out intent<br>
+          and gross negligence — <b>CO Art. 100(1)</b> respected
+        </div>
+      </div>
+
+      <div class="docket block">
+        <div class="head"><span class="state">Blocked</span><span class="station">Station: Privacy</span></div>
+        <h3>The privacy policy claims things the code contradicts</h3>
+        <p>Three verifiable contradictions (detailed below) plus three gaps: only Supabase and
+        Anthropic are named as sub-processors, though e-mail runs through Resend in two edge
+        functions; the "servers in the EU" claim can't be verified from the repo; and db/100
+        points to <span class="num">PRIVACY_POLICY_DRAFT.html</span>, which doesn't exist in the
+        project.</p>
+        <div class="evid">
+          In-app consent <b>PRIVACY_VERSION v1</b> is enforced at login —<br>
+          but the source document it summarises is <b>missing</b>
+        </div>
+      </div>
+
+      <div class="docket block">
+        <div class="head"><span class="state">Blocked</span><span class="station">Station: Identity</span></div>
+        <h3>Unlimited personal liability and no Impressum</h3>
+        <p>The contracting party is "Richard Červenka, Sautero" — Sautero is not a legal entity.
+        An important correction to the plan: <b>a sole proprietorship does not limit liability.</b>
+        You'd stand behind it with all personal assets exactly as today; only a GmbH limits that.
+        For a product holding payroll inputs, GPS and HACCP records, that is not a formality.</p>
+        <div class="evid">
+          legal.html: <b>0×</b> Impressum · <b>0×</b> address · <b>0×</b> UID<br>
+          Contact is "use the feedback button" — <b>not enough</b>
+        </div>
+      </div>
+
+      <div class="docket prog">
+        <div class="head"><span class="state">In progress</span><span class="station">Station: Brand</span></div>
+        <h3>NAMING_RISK.md contradicts itself</h3>
+        <p>The top half of the 18 July document describes <b>Sautero™ by Counter Labs</b> (San
+        Francisco) with a near-identical product, plus sautero.pro, and recommends renaming
+        immediately. The bottom half of the same file, same day, lists Sautero in the top five
+        rated "App Store clean, no web collisions". The file is marked resolved — by adopting
+        that very name.</p>
+        <div class="evid">
+          Its own open item: the <b>Swissreg + EUIPO</b> check<br>
+          still not done · domains bought, rebrand shipped
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="rev">
+    <p class="eyebrow"><span class="n">02</span> What the document promises vs. what the repo shows</p>
+    <h2 class="sec">Three contradictions anyone can verify</h2>
+    <p class="lede">An inaccurate privacy policy is worse than none — it's a written statement to
+    both users and the regulator. All three can be fixed in one afternoon.</p>
+
+    <div class="cvc">
+      <div class="cvcHead"><div>legal.html says</div><div>The code shows</div></div>
+
+      <div class="cvcRow">
+        <div class="say"><q>We don't ask for or store a password.</q></div>
+        <div class="real">Password sign-in exists in the app and is used by the QA tests too.
+          <span class="src">app/index.html:7599 — signInWithPassword()</span></div>
+      </div>
+
+      <div class="cvcRow">
+        <div class="say"><q>Records check-in/check-out times, breaks, and day notes.</q>
+          <br><br>GPS is never mentioned anywhere in the Working Time section.</div>
+        <div class="real">Every check-in/out captures a one-time device location into four
+          columns. Location is sensitive data — it must appear in the privacy notice.
+          <span class="src">db/63 — check_in_lat / lng, check_out_lat / lng</span></div>
+      </div>
+
+      <div class="cvcRow">
+        <div class="say"><q>Visible to the person it belongs to, and to kitchen admins (for
+          scheduling and payroll).</q><br><br>A few paragraphs down: <q>shown to your kitchen
+          admin only as an anonymous team total.</q></div>
+        <div class="real">Two contradictory statements in one document. The pilot agreement
+          correctly states anonymous totals with voluntary opt-in — the public page lags behind it.
+          <span class="src">app/legal.html — Working Time vs. Kitchen Reports sections</span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="rev">
+    <p class="eyebrow"><span class="n">03</span> The conflict that harms the customer</p>
+    <h2 class="sec">A promised deletion against a legal duty to retain</h2>
+    <p class="lede">Pilot agreement §8 promises data deletion within 30 days of ending. Swiss
+    labour law requires an employer to retain working-time records for five years. If the kitchen
+    uses Working Time as its record, your clause pushes it into a breach.</p>
+
+    <div class="ret">
+      <div class="retRow">
+        <div class="retLabel">Agreement §8 — deletion</div>
+        <div class="retBar">
+          <span class="rb short" style="width:1.6%"></span>
+          <span class="t short num">30 days</span>
+        </div>
+      </div>
+      <div class="retRow">
+        <div class="retLabel">Labour Act — duty to retain</div>
+        <div class="retBar">
+          <span class="rb long" style="width:min(88%,700px)"></span>
+          <span class="t long num">5 years</span>
+        </div>
+      </div>
+      <div class="retNote">
+        The fix is simple and belongs in the agreement before the first signature: <b>deletion
+        only after a confirmed export</b>, the kitchen expressly takes responsibility for
+        archiving its own records, and add an option for longer retention on its explicit request.
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="rev">
+    <p class="eyebrow"><span class="n">04</span> Order of moves</p>
+    <h2 class="sec">Four steps before the first signature</h2>
+    <p class="lede">Ranked by risk closed per hour invested. The first two are in your hands today.</p>
+
+    <div class="acts">
+      <div class="act">
+        <div class="no">01</div>
+        <div>
+          <h4>Align legal.html with the code</h4>
+          <p>Add password sign-in, the GPS snapshot with its purpose and retention, unify the
+          "what the admin sees" statement, list Resend and the host among sub-processors, and
+          either verify the Supabase region or drop the claim. Then bump
+          <span class="num">PRIVACY_VERSION</span> — the mechanism already exists.</p>
+        </div>
+        <div class="cost"><b>~3 h</b>no lawyer<br>closes 6 findings</div>
+      </div>
+
+      <div class="act">
+        <div class="no">02</div>
+        <div>
+          <h4>Add an Impressum</h4>
+          <p>Name, postal address, e-mail, and the UID once registered. A dedicated page plus a
+          footer in the app. It's the cheapest item on the whole list and the only one where the
+          breach is visible from the street.</p>
+        </div>
+        <div class="cost"><b>~30 min</b>no lawyer<br>required by UWG</div>
+      </div>
+
+      <div class="act">
+        <div class="no">03</div>
+        <div>
+          <h4>Check the trademark registers while the rebrand is young</h4>
+          <p>Swissreg and EUIPO/TMview for "Sautero" in classes 9 and 42 — it's your own open item
+          from 18 July. If clear, register (~CHF 550). If not, now is still the cheapest moment to
+          change that there will ever be.</p>
+        </div>
+        <div class="cost"><b>~2 h</b>+ CHF 550<br>settles the name</div>
+      </div>
+
+      <div class="act">
+        <div class="no">04</div>
+        <div>
+          <h4>One session with a lawyer in Bern</h4>
+          <p>Bring: the pilot agreement v2 with its six questions, this list, and three extra
+          topics — a DPA as a standalone document, attendance GPS against ArGV 3 Art. 26 (employee
+          consent is a weak basis in a subordinate relationship), and what happens to the liability
+          exclusion the day the free pilot becomes a CHF 490 product.</p>
+        </div>
+        <div class="cost"><b>~2–3 h</b>fee<br>unlocks paid sales</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sautero · legal review · not legal advice</span>
+    <span>Source: PILOT_AGREEMENT v2 · legal.html · NAMING_RISK · db/63 · db/100 · 23 July 2026</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var els=document.querySelectorAll('.rev');
+  if(!('IntersectionObserver' in window)||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    els.forEach(function(e){e.classList.add('in');}); return;
+  }
+  var io=new IntersectionObserver(function(en){
+    en.forEach(function(x){ if(x.isIntersecting){ x.target.classList.add('in'); io.unobserve(x.target); } });
+  },{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+  els.forEach(function(e){io.observe(e);});
+})();
+</script>
+</body>
+</html>
