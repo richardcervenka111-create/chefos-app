@@ -420,12 +420,41 @@ def check_recipe_copy_is_personal(html):
     passes.append('recipe-copy: project-copy inserts derive is_personal from the current mode.')
 
 
+def check_saving_overlay(html):
+    # Richard, 22.7. — saving an AI recipe gave no sign anything was happening; added a blocking
+    # "Saving your recipe…" spinner. Guard the three properties that made it correct:
+    #   1. the #savingOverlay element exists,
+    #   2. both save paths (saveGeneratedRecipe + saveFormBody) actually show it,
+    #   3. hideSavingOverlay uses setTimeout — NOT requestAnimationFrame, which throttles to a stop
+    #      in a backgrounded tab and could leave the scrim stuck over the whole app forever.
+    problems = []
+    if 'id="savingOverlay"' not in html:
+        problems.append('#savingOverlay element missing')
+    if html.count('showSavingOverlay(') < 3:  # def + 2 call sites (both save paths)
+        problems.append('showSavingOverlay not called from both save paths')
+    m = re.search(r'function hideSavingOverlay\(\)\{(.*?)\n\}', html, re.S)
+    if not m:
+        problems.append('hideSavingOverlay() not found')
+    else:
+        body = m.group(1)
+        if 'requestAnimationFrame(' in body:  # a CALL, not the word in the explanatory comment
+            problems.append('hideSavingOverlay uses requestAnimationFrame — can stick open in a '
+                            'backgrounded tab; use setTimeout')
+        if 'setTimeout' not in body:
+            problems.append('hideSavingOverlay never schedules the hide (no setTimeout)')
+    if problems:
+        failures.append('saving-overlay: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('saving-overlay: present, shown from both save paths, hidden via setTimeout (never sticks).')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
     check_save_dest_zindex(html)
     check_save_dest_mode_split(html)
     check_recipe_copy_is_personal(html)
+    check_saving_overlay(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)

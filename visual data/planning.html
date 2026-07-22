@@ -542,6 +542,20 @@ const DAYS = [
     ],
     planned: 'Ďalšia dlaždica: spolu ju prejsť do Richardovej predstavy → potom zamknúť + napísať jej robota. Neskôr: samostatné QA účty pre role member/admin (teraz zdieľajú jeden mail), zapnúť AI fotky pre všetkých po Richardovom OK, presunúť fotky z data-URI do storage bucketu, personal split zoznamov, Nebenerwerb + Einzelfirma.'
   },
+  {
+    date: '2026-07-23',
+    headline: '🎩 Chef\'s Assistant: nová funkcia „ulož / vylepši recept" + celá dlaždica zamknutá · zamknuté HACCP, Nastavenia, Team Meetings → 7 z 13 dlaždíc · okno „Ukladám recept…" · KRITICKÁ oprava súkromia pri ukladaní · nové automatické guardy (18) · meter hodín z reálneho času appky',
+    accomplished: [
+      '🎩 Nová funkcia Chef\'s Assistant: po vygenerovaní akéhokoľvek receptu dá na výber 1) Pridať do receptov — s kontrolnou otázkou KAM okrem My/Company Recipes (projekty), 2) Vygenerovať lepší recept — s otázkou a) jednoduchší b) zložitejší c) rovnaká obtiažnosť. Potom cez ~12 kôl telefónnych testov doladené: viditeľný placeholder v poli, žiadne poskakovanie pri písaní, iOS zoom (vstupy ≥16px + vypnutý double-tap), metrické množstvá bez „approx", auto-refresh cache, oprava pádu „invalid uuid", nepreskrývateľná základná polica.',
+      '📱 iOS mriežka receptov padala z 3 na 2 veľké stĺpce (len klasický dizajn) a odtláčala „Company Recipes" mimo obrazovku — príčina: aspect-ratio dlaždica + min-width:auto na iOS Safari; opravené min-width:0. Diagnostikované cez reálny prehliadač/CSS.',
+      '💾 Pridané okno „Ukladám recept…" (spinner cez celú obrazovku) od stlačenia Uložiť až po otvorenie nového receptu — v oboch cestách (hneď „Pridať" aj z editačného okna). Drží minimum 550 ms + zhasne až po vykreslení receptu; setTimeout (nie rAF) aby sa v neaktívnej záložke nezaseklo.',
+      '🔒 KRITICKÁ oprava súkromia: okno „Kam uložiť?" v COMPANY režime ponúkalo OSOBNÉ projekty. Dve príčiny: (1) zoznam projektov sa čítal zastaraný (obnovoval sa len na obrazovke Recepty) → teraz sa pri otvorení znovu načíta s filtrom podľa režimu + filtruje is_personal; (2) kópia do projektu mala natvrdo is_personal=true → teraz sa odvodzuje od aktuálneho režimu. Overené priamo v databáze cez RLS ako Richardov účet (company režim vidí len Trial + Test company, personal len jeho osobné).',
+      '🔒 Zamknuté ďalšie 4 dlaždice s vlastnými behaviorálnymi robotmi: HACCP, Nastavenia, Team Meetings a Chef\'s Assistant → spolu 7 z 13 dlaždíc zamknutých (working_time, recepty, admin, haccp, settings, team_meetings, chef_assistant). Regresia ktorejkoľvek zablokuje deploy. Team Meetings + Admin bežia pod QA super-admin účtom.',
+      '🤖 Do blokujúcej UI/UX brány pribudli guardy pre chyby tejto session: mode-split okna „Kam uložiť?", is_personal kópie receptu, iOS min-width mriežky, veľkosť vstupov ≥16px — spolu 18 statických guardov + 7 tile robotov + audítori DB/app/tenant. Každý nový bug má teraz vlastnú kontrolu.',
+      '⏱️ Meter odpracovaných hodín prepísaný: teraz počíta VŠETOK reálny čas otvorenej Claude Code aplikácie zo session transkriptov (nie z gitu), zamrazený do snapshotu; auto-zápis do dokumentov pri každom commite.',
+    ],
+    planned: 'Ďalšia dlaždica na zamknutie: spolu prejsť do Richardovej predstavy → zamknúť + robot (zostáva 6: Ingrediencie, Check List, Order List, Events, Connections, Print Labels). Neskôr: samostatné QA účty pre member/admin, AI fotky pre všetkých po OK, fotky do storage bucketu, Nebenerwerb + Einzelfirma.'
+  },
 ];
 /* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
    is the key); the forEach glues headline_en/accomplished_en/planned_en onto each entry.
@@ -782,6 +796,15 @@ const DAYS_EN = [
     '🛡️ Internal Docs + Error Logs stay gated to Richard\'s exact icloud email ALONE (unchanged, "guard from the outside") — instead of a key for the robot, a new static guard protects them (tile present + handler + gate unmoved).',
     '🤖 Added 3 new static guards to the UI/UX gate for this session\'s bugs: the AI-photo gate (exactly 4 accounts), remove-photo (2 sites), the Add-Company role (db/169) — 13 guards total, all blocking the deploy.',
   ], p:'Next tile: walk it together to Richard\'s vision → then lock it + write its robot. Later: separate QA accounts for the member/admin roles (they share one email now), enable AI photos for everyone after Richard\'s OK, move photos from data-URI to a storage bucket, personal split of the lists, side-business consent + sole proprietorship.' },
+  { h:'🎩 Chef\'s Assistant: a new "save / improve recipe" flow + the whole tile locked · HACCP, Settings, Team Meetings locked → 7 of 13 tiles · a "Saving recipe…" overlay · a CRITICAL save-privacy fix · new automated guards (18) · the hours meter from real app time', a:[
+    '🎩 New Chef\'s Assistant feature: after generating any recipe it offers 1) Add to recipes — with a control question of WHERE besides My/Company Recipes (projects), 2) Generate a better recipe — with a) simpler b) more complex c) same difficulty. Then hardened over ~12 rounds of phone tests: a visible placeholder in the input, no jumping while typing, iOS zoom fixed (inputs ≥16px + double-tap disabled), metric-only quantities (no "approx"), auto-fresh cache, an "invalid uuid" crash fixed, a non-hideable base shelf.',
+    '📱 The recipe grid collapsed from 3 to 2 big columns on iOS (classic theme only), pushing "Company Recipes" off-screen — cause: an aspect-ratio tile + min-width:auto on iOS Safari; fixed with min-width:0. Diagnosed via a real browser/CSS.',
+    '💾 Added a "Saving your recipe…" full-screen spinner overlay from the tap on Save until the new recipe opens — in both paths (immediate "Add" and the Review & edit save). Holds a 550ms minimum + lifts only after the recipe paints; setTimeout (not rAF) so it can never stick open in a backgrounded tab.',
+    '🔒 CRITICAL privacy fix: the "Save where?" sheet listed PERSONAL projects while in COMPANY mode. Two causes: (1) the project list was read stale (only refreshed on the Recipes screen) → now reloaded with the current-mode filter + is_personal filtered on open; (2) a project copy hardcoded is_personal=true → now derived from the current mode. Verified directly in the database under RLS as Richard\'s account (company mode sees only Trial + Test company, personal only his own).',
+    '🔒 Locked 4 more tiles, each with its own behavioural robot: HACCP, Settings, Team Meetings and Chef\'s Assistant → 7 of 13 tiles locked (working_time, recipes, admin, haccp, settings, team_meetings, chef_assistant). A regression in any blocks the deploy. Team Meetings + Admin run under the QA super-admin account.',
+    '🤖 Added guards to the blocking UI/UX gate for this session\'s bugs: the "Save where?" mode split, the recipe-copy is_personal, the iOS grid min-width, input size ≥16px — 18 static guards + 7 tile robots + the DB/app/tenant auditors. Every new bug now has its own check.',
+    '⏱️ The worked-hours meter rewritten: it now counts ALL real Claude Code app-open time from the session transcripts (not git), frozen into a snapshot; auto-written into the docs on every commit.',
+  ], p:'Next tile to lock: walk it to Richard\'s vision → lock + robot (6 remain: Ingredients, Check List, Order List, Events, Connections, Print Labels). Later: separate QA accounts for member/admin, AI photos for everyone after OK, photos to a storage bucket, side-business consent + sole proprietorship.' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
 
@@ -1003,6 +1026,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 22. 7. 2026, 05:20" data-en="🔄 Sautero state as of Jul 22, 2026, 05:20">🔄 Stav Sautero k 22. 7. 2026, 05:20</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 23. 7. 2026, 00:07" data-en="🔄 Sautero state as of Jul 23, 2026, 00:07">🔄 Stav Sautero k 23. 7. 2026, 00:07</div>
 </body>
 </html>

@@ -263,7 +263,7 @@
         <div class="icon">🎯</div>
         <h3 data-sk="UI/UX guardy (od 22.7.)" data-en="UI/UX guards (from Jul 22)"></h3>
         <span class="when" data-sk="Pri nasadení (blokuje) + 2×/deň" data-en="On deploy (blocks) + 2×/day"></span>
-        <p data-sk="Dve vrstvy proti tomu, aby sa opravený UI bug vrátil. Statické guardy zo zdrojáku (na každom pushi): bublina stavu neprepíše okraj, okno „Save where?" sa otvorí navrchu, náklad AI fotky sa vždy zaloguje, a otvorenie receptu resetuje skutočný scroller. Plus reálny prehliadačový test: recept sa VŽDY otvorí na vrchu (aj pri skoku recept→recept) — chytá runtime UX chyby, ktoré statická kontrola nevidí. Regresia zablokuje nasadenie." data-en="Two layers that stop a fixed UI bug from returning. Static source guards (every push): the status pill never overflows its edge, the 'Save where?' sheet opens on top, an AI photo's cost is always logged, and opening a recipe resets the real scroller. Plus a real-browser test: a recipe ALWAYS opens at its top (even on a recipe→recipe jump) — catching runtime UX bugs a static check can't see. A regression blocks the deploy."></p>
+        <p data-sk="Dve vrstvy proti tomu, aby sa opravený UI bug vrátil. Statické guardy zo zdrojáku (18, na každom pushi) — každý pokrýva jednu chybu, ktorá reálne nastala: bublina stavu neprepíše okraj, okno „Save where?" sa otvorí navrchu, okno „Kam uložiť?" v company režime nikdy neukáže osobné projekty, kópia receptu do projektu dedí is_personal podľa režimu, náklad AI fotky sa vždy zaloguje, otvorenie receptu resetuje skutočný scroller, mriežka dlaždíc sa na iOS nezloží (min-width:0), vstupy sú ≥16px (žiadny iOS zoom), AI-foto brána = presne 4 účty, odstránenie fotky na 2 miestach, Add-Company rola (db/169). Plus reálny prehliadačový test: recept sa VŽDY otvorí na vrchu (aj pri skoku recept→recept). Regresia zablokuje nasadenie." data-en="Two layers that stop a fixed UI bug from returning. Static source guards (18, every push) — each covers one bug that actually happened: the status pill never overflows, the 'Save where?' sheet opens on top, in company mode that sheet never lists personal projects, a recipe's project copy inherits is_personal from the mode, an AI photo's cost is always logged, opening a recipe resets the real scroller, the tile grid can't collapse on iOS (min-width:0), inputs are ≥16px (no iOS zoom), the AI-photo gate = exactly 4 accounts, remove-photo at 2 sites, the Add-Company role (db/169). Plus a real-browser test: a recipe ALWAYS opens at its top (even on a recipe→recipe jump). A regression blocks the deploy."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>ui_invariants.py</code> · <code>ui_regression_test.py</code> · <code>tile_lock_test.py</code></div>
         <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
       </div>
@@ -385,6 +385,6 @@ renderTimeline();
 })();
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 22. 7. 2026, 00:36" data-en="🔄 Sautero state as of Jul 22, 2026, 00:36">🔄 Stav Sautero k 22. 7. 2026, 00:36</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 23. 7. 2026, 00:07" data-en="🔄 Sautero state as of Jul 23, 2026, 00:07">🔄 Stav Sautero k 23. 7. 2026, 00:07</div>
 </body>
 </html>
