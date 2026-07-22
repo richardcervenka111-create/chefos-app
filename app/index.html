@@ -672,11 +672,11 @@ window.__BUILD__ = '__BUILD_VERSION__';
      JS keeps its height synced to window.visualViewport so the on-screen keyboard can never cover
      the input (Richard, 22.7.). Its own topbar has Home, so the floating nav + feedback bubble are
      hidden while it's open (below) — that overlapping bubble was the reported "second comment icon". */
-  #chefAssistantView{ position:fixed; top:0; left:0; right:0; height:100dvh; display:flex; flex-direction:column; background:var(--bg); z-index:36; }
+  #chefAssistantView{ position:fixed; top:0; left:0; right:0; height:100dvh; display:flex; flex-direction:column; background:var(--bg); z-index:36; overflow-x:hidden; }
   body.chef-chat-open .floating-nav,
   body.chef-chat-open .global-feedback-btn{ display:none !important; }
   .chef-chat-messages{
-    flex:1; overflow-y:auto;
+    flex:1; overflow-y:auto; overflow-x:hidden;
     padding: 8px 18px 18px 18px;
     display:flex; flex-direction:column; gap:12px;
   }
@@ -705,7 +705,7 @@ window.__BUILD__ = '__BUILD_VERSION__';
     background: var(--bg);
   }
   .chef-chat-input{
-    flex:1; resize:none; max-height:120px;
+    flex:1; min-width:0; resize:none; max-height:120px;
     background: var(--paper-raised, var(--paper)); border:1px solid var(--rule); border-radius:12px;
     color: var(--ink); font-family:inherit; font-size:15px;
     padding: 10px 14px;
@@ -13433,6 +13433,7 @@ async function runChefChallengeGenerate(i){
      3. ✏️ Review & edit — the original behaviour (lands on the editable form). Kept so no
         existing capability is lost (Zero Feature Loss). */
 let _genRecipe = null;   // { input, bodyId, title, shortDescription, context, tags, backFn, againFn, closeFn }
+let _assistantFormSave = false;   // the open form is an AI recipe under "Review & edit" → its Save asks the destination too, and Back/Cancel return to the choice
 function _genEsc(s){ return (s==null?'':String(s)).replace(/</g,'&lt;'); }
 function showGeneratedRecipeChoice(input, opts){
   _genRecipe = Object.assign({}, opts, { input });
@@ -13503,6 +13504,7 @@ function assistantEditGenerated(){
   const input = g.input || {};
   closeChefsAssistant(); closeChefChallenge(); closeRecipeSearchFilters();
   formEditingId = null;
+  _menuScanFormIndex = null;   // ensure the menu-scan post-save path can't misfire for this form
   const ingredients = (input.ingredients||[]).map(x=>[x.name||'', x.qty||'']);
   const steps = (input.steps && input.steps.length) ? input.steps : [''];
   renderForm({
@@ -13511,7 +13513,17 @@ function assistantEditGenerated(){
     yield: input.yield || '', activeTime: input.active_time || '', passiveTime: input.passive_time || '',
     ingredients: ingredients.length ? ingredients : [['','']], steps, tags: g.tags || ['AI-generated']
   });
-  _genRecipe = null;
+  // Save from here asks the destination too (Richard, 22.7.), and Back/Cancel return to the choice
+  // instead of losing the recipe. _genRecipe is kept for exactly that; it's cleared on a real save.
+  _assistantFormSave = true;
+  const b = document.getElementById('fBackToScanBtn');
+  if(b){ b.textContent = '🤖 Back'; b.onclick = backToAssistantChoice; b.style.display = ''; }
+}
+function backToAssistantChoice(){
+  _assistantFormSave = false;
+  const b = document.getElementById('fBackToScanBtn'); if(b){ b.style.display = 'none'; b.onclick = backToMenuScanReview; b.textContent = '📋 Scan results'; }
+  showList();
+  if(_genRecipe){ document.getElementById('chefsAssistantOverlay').classList.add('open'); renderGeneratedRecipePreview(); }
 }
 function assistantAddToRecipes(){
   if(!_genRecipe) return;
@@ -13532,6 +13544,10 @@ async function saveGeneratedRecipe(dests){
     prep_time_passive: input.passive_time || null, yield_text: input.yield || null,
     tags: g.tags || ['AI-generated'], sections
   };
+  // Immediate feedback (Richard, 22.7. — after "Save where?" the old preview lingered for a few
+  // seconds with no sign anything was happening): show a Saving… state in the choice sheet at once.
+  const savingEl = document.getElementById(g.bodyId);
+  if(savingEl) savingEl.innerHTML = '<p class="sheet-text">💾 Saving…</p>';
   setSyncStatus('saving');
   const base = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
     is_personal: currentAccountType === 'personal', list_id: null, shared_with_chefos: _recipeAiShare === true };
@@ -14646,7 +14662,8 @@ function renderForm(data){
   formStepRows = data.steps.length ? data.steps : [''];
   // The scan-results back button only belongs to menu-scan sessions; hide by default, shown
   // again by openMenuScanRecipeForm right after this render (22.7.).
-  { const b = document.getElementById('fBackToScanBtn'); if(b) b.style.display = 'none'; }
+  { const b = document.getElementById('fBackToScanBtn'); if(b){ b.style.display = 'none'; b.onclick = backToMenuScanReview; b.textContent = '📋 Scan results'; } }
+  _assistantFormSave = false;   // reset per form load; assistantEditGenerated re-sets it after this render
   _recipeAiShare = true; // sharing consented once at sign-up (Privacy & Terms), stays on (22.7.)
   const el = document.getElementById('formContent');
   const cats = getCategories().filter(c=>c!=='All');
@@ -14795,6 +14812,9 @@ function removeStepRow(i){
 }
 
 function cancelForm(){
+  // An AI recipe under "Review & edit": Cancel returns to the choice (Add to recipes / regenerate /
+  // edit) instead of throwing the generated recipe away (Richard, 22.7.).
+  if(_assistantFormSave && _genRecipe){ backToAssistantChoice(); return; }
   if(formEditingId){
     const idx = allRecipes().findIndex(r=>r.id===formEditingId);
     if(idx>-1){ showDetail(idx); return; }
@@ -14847,7 +14867,7 @@ async function saveFormBody(){
 
   // Scan-context single save (Richard, 22.7.): first ask where else to file it besides
   // My Recipes — the destination sheet re-invokes saveForm() with _scanSaveDests set.
-  if(_menuScanFormIndex !== null && _scanSaveDests === null){
+  if((_menuScanFormIndex !== null || _assistantFormSave) && _scanSaveDests === null){
     openScanSaveDestSheet('single');
     return;
   }
@@ -14891,7 +14911,7 @@ async function saveFormBody(){
 
   // Extra destinations picked in the where-to-save sheet (scan flow, Richard 22.7.): copies
   // into projects / Company Recipes with the same payload. My Recipes is the row saved above.
-  if(_menuScanFormIndex !== null && _scanSaveDests && _scanSaveDests.length){
+  if((_menuScanFormIndex !== null || _assistantFormSave) && _scanSaveDests && _scanSaveDests.length){
     for(const dest of _scanSaveDests){
       const copy = { ...payload, kitchen_id: currentKitchenId, created_by: currentUser.id, is_custom: true,
         shared_with_chefos: _recipeAiShare === true,
@@ -14902,6 +14922,7 @@ async function saveFormBody(){
     }
   }
   _scanSaveDests = null;
+  _assistantFormSave = false; _genRecipe = null;   // the Review & edit recipe is now saved
 
   formEditingId = null;
   await loadAppData();
