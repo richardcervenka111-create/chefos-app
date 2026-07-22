@@ -108,8 +108,76 @@ def gen_robot_roster():
         f'\n<ul style="margin:0; padding-left:18px; font-size:13px; line-height:1.6;">{"".join(wf)}</ul>\n')
 
 
+def _feature_counts():
+    try:
+        c = open(os.path.join(VDIR, 'feature_status.html'), encoding='utf-8').read()
+    except Exception:
+        return {}
+    out = {}
+    for st in re.findall(r"status:'(ok|test|plan|build)'", c):
+        out[st] = out.get(st, 0) + 1
+    return out
+
+
+def _robot_count():
+    present = {os.path.basename(p) for p in glob.glob(os.path.join(SCRIPTS, '*'))}
+    scripts = {f for f in ROSTER_ORDER if f in present}
+    scripts |= {f for f in present if f.endswith('_test.py') or f.startswith('audit_')}
+    return len(scripts) + len(glob.glob(os.path.join(WORKFLOWS, '*.yml')))
+
+
+def gen_current_state():
+    """A live 'where we stand today' panel: feature counts, locked tiles, robot count, and the
+    last few changes — all derived, refreshed every commit. Marker lives in status.html (Plán → Teraz)."""
+    import json
+    try:
+        from docs_changelog import git_log
+        recent = git_log()[:6]
+    except Exception:
+        recent = []
+    try:
+        reg = json.load(open(os.path.join(SCRIPTS, 'locked_tiles.json'), encoding='utf-8'))
+        locked = reg.get('locked', [])
+    except Exception:
+        locked = []
+    fc = _feature_counts()
+    total = sum(fc.values())
+    live = fc.get('ok', 0)
+    robots = _robot_count()
+
+    def stat(num, sk, en):
+        return (f'<div style="flex:1 1 120px;background:var(--paper,#0F2340);border:1px solid var(--rule,rgba(52,247,215,.16));'
+                f'border-radius:12px;padding:12px 14px;"><div style="font-family:Georgia,serif;font-size:26px;'
+                f'color:var(--accent,#34F7D7);line-height:1;font-variant-numeric:tabular-nums;">{num}</div>'
+                f'<div style="font-size:11.5px;color:var(--ink-dim,#9DB2BD);margin-top:5px;" '
+                f'data-sk="{sk}" data-en="{en}">{sk}</div></div>')
+
+    stats = (
+        stat(f'{live} / {total}', 'funkcií naživo', 'features live')
+        + stat(str(robots), 'automatických robotov', 'automated robots')
+        + stat(str(len(locked)), 'zamknutých dlaždíc', 'locked tiles')
+        + stat(', '.join(locked) or '—', 'čo je zamknuté', 'what is locked')
+    )
+    items = ''.join(
+        f'<li style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12.5px;color:var(--ink,#EAF2F5);">'
+        f'<span style="font-family:ui-monospace,Menlo,monospace;color:var(--accent,#34F7D7);font-size:11px;margin-right:8px;">{_esc(d)}</span>'
+        f'{_esc(s)}</li>'
+        for (_h, d, s) in recent)
+
+    return (
+        f'\n<p style="color:var(--ink-dim,#9DB2BD);font-size:12px;margin:0 0 12px;" '
+        f'data-sk="Živý stav — čísla aj posledné zmeny sa generujú automaticky pri každom commite." '
+        f'data-en="Live state — the numbers and the latest changes are generated automatically on every commit.">'
+        f'Živý stav — čísla aj posledné zmeny sa generujú automaticky pri každom commite.</p>'
+        f'\n<div style="display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px;">{stats}</div>'
+        f'\n<p style="font-size:12px;font-weight:700;color:var(--accent,#34F7D7);margin:0 0 4px;" '
+        f'data-sk="Posledné zmeny" data-en="Latest changes">Posledné zmeny</p>'
+        f'\n<ul style="list-style:none;margin:0;padding:0;">{items}</ul>\n')
+
+
 GENERATORS = {
     'robot_roster': gen_robot_roster,
+    'current_state': gen_current_state,
 }
 
 
