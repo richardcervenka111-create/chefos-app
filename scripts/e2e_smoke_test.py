@@ -70,13 +70,13 @@ ROLES = [
     ("main admin",           "SAUTERO_QA_MAIN_EMAIL",   "SAUTERO_QA_MAIN_PASSWORD",   ["Admin"]),
 ]
 
-TUTORIAL_MUTE_SCRIPT = """() => {
+TUTORIAL_MUTE_SCRIPT = """(() => {
     const orig = Storage.prototype.getItem;
     Storage.prototype.getItem = function(k){
         if (k === 'chefos_tutorial_seen' || (typeof k === 'string' && k.indexOf('chefos_vtut_') === 0)) return '1';
         return orig.call(this, k);
     };
-}"""
+})()"""
 
 OPENED_SOMETHING_JS = """() => {
     const home = document.getElementById('homeView');

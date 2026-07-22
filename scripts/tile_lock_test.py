@@ -49,13 +49,13 @@ REGISTRY = os.path.join(REPO, 'scripts', 'locked_tiles.json')
 # Same tutorial mute as e2e_smoke_test.py — a fresh QA context triggers the first-run tutorial
 # overlay, which sits ON TOP of the tile's buttons and made the first lock run time out on
 # "waiting for element to be visible" (run #7, 22.7.). Pretend every tutorial was seen.
-TUTORIAL_MUTE_SCRIPT = """() => {
+TUTORIAL_MUTE_SCRIPT = """(() => {
     const orig = Storage.prototype.getItem;
     Storage.prototype.getItem = function(k){
         if (k === 'chefos_tutorial_seen' || (typeof k === 'string' && k.indexOf('chefos_vtut_') === 0)) return '1';
         return orig.call(this, k);
     };
-}"""
+})()"""
 
 
 def login(page, url, email, password):
@@ -73,6 +73,19 @@ def login(page, url, email, password):
     page.fill('#loginPassword', password)
     page.click("#loginPasswordBlock button:has-text('Sign in')")
     page.wait_for_selector('#homeView', state='visible', timeout=20000)
+    dismiss_tutorials(page, 'after login')
+
+
+def dismiss_tutorials(page, where):
+    """Safety net, NOT a fix: the mute init-script should stop every tutorial. If one still
+    opens, close it via the app's own closeTutorial() and PRINT that it happened — a printed
+    dismissal means the mute failed again and needs investigating (Standard §7)."""
+    closed = page.evaluate(
+        "() => { const o = document.getElementById('tutorialOverlay');"
+        " if(o && o.classList.contains('open') && typeof closeTutorial === 'function'){"
+        " closeTutorial(); return true; } return false; }")
+    if closed:
+        print(f'    (!) tutorial overlay had to be force-closed {where} — the mute script did not stop it')
 
 
 # ---------------------------------------------------------------------------
@@ -110,6 +123,8 @@ def check_working_time(page, ctx):
 
     page.locator('.home-tile', has_text='Working Time').first.click(timeout=8000)
     # readiness = the tile's data loaded and the status card rendered the check-in button
+    page.wait_for_selector(CHECKIN_BTN, state='attached', timeout=20000)
+    dismiss_tutorials(page, 'after opening Working Time')
     page.wait_for_selector(CHECKIN_BTN, state='visible', timeout=20000)
 
     # 1) check in
