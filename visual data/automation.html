@@ -225,7 +225,7 @@
         <div class="icon">🛡️</div>
         <h3 data-sk="Gaty pri každom commite" data-en="Gates on every commit"></h3>
         <span class="when" data-sk="Každý commit + pred nasadením" data-en="Every commit + before deploy"></span>
-        <p data-sk="Blokujú nasadenie: audit_app + audit_db (štruktúra, RLS, tajomstvá, XSS, DB-kontrakt), money-path unit testy (cena receptu, výplatné + rozvrhové hodiny) a kontrola odpracovaných hodín (musia sedieť s gitom). Chyba, čo raz spadla, sa už nedostane ku kuchyni." data-en="Block the deploy: audit_app + audit_db (structure, RLS, secrets, XSS, DB-contract), money-path unit tests (recipe cost, payroll + shift hours) and the worked-hours check (must match git). A bug that fell once can't reach the kitchen again."></p>
+        <p data-sk="Blokujú nasadenie: audit_app + audit_db (štruktúra, RLS, tajomstvá, XSS, DB-kontrakt), UI invarianty (bublina, z-index okien, logovanie nákladov, scroll na vrch), money-path unit testy (cena receptu, výplatné + rozvrhové hodiny) a kontrola odpracovaných hodín (musia sedieť s gitom). Chyba, čo raz spadla, sa už nedostane ku kuchyni." data-en="Block the deploy: audit_app + audit_db (structure, RLS, secrets, XSS, DB-contract), UI invariants (status pill, sheet z-index, cost logging, scroll-to-top), money-path unit tests (recipe cost, payroll + shift hours) and the worked-hours check (must match git). A bug that fell once can't reach the kitchen again."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><span data-sk="zablokovaný commit/deploy s presnou chybou" data-en="a blocked commit/deploy with the exact violation"></span></div>
         <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
       </div>
@@ -245,6 +245,15 @@
         <span class="when" data-sk="2×/deň" data-en="2×/day"></span>
         <p data-sk="Živý prehliadač: kontrola neprihlásených brán (coming-soon stena, „mám účet", prepínač heslo/kód, bezpečné zlyhanie loginu — bez hesiel) a smoke test prihlásených dlaždíc naprieč rolami (obrazovka sa otvorí, žiadna JS chyba / 5xx)." data-en="Live browser: pre-login gates (coming-soon wall, 'already have an account', password/code toggle, safe failing login — no secrets) plus a smoke test of the logged-in tiles across roles (screen opens, no JS error / 5xx)."></p>
         <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>unauth_gates_test.py</code> · <code>e2e_smoke_test.py</code></div>
+        <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
+      </div>
+
+      <div class="autotask">
+        <div class="icon">🎯</div>
+        <h3 data-sk="UI/UX guardy (od 22.7.)" data-en="UI/UX guards (from Jul 22)"></h3>
+        <span class="when" data-sk="Pri nasadení (blokuje) + 2×/deň" data-en="On deploy (blocks) + 2×/day"></span>
+        <p data-sk="Dve vrstvy proti tomu, aby sa opravený UI bug vrátil. Statické guardy zo zdrojáku (na každom pushi): bublina stavu neprepíše okraj, okno „Save where?" sa otvorí navrchu, náklad AI fotky sa vždy zaloguje, a otvorenie receptu resetuje skutočný scroller. Plus reálny prehliadačový test: recept sa VŽDY otvorí na vrchu (aj pri skoku recept→recept) — chytá runtime UX chyby, ktoré statická kontrola nevidí. Regresia zablokuje nasadenie." data-en="Two layers that stop a fixed UI bug from returning. Static source guards (every push): the status pill never overflows its edge, the 'Save where?' sheet opens on top, an AI photo's cost is always logged, and opening a recipe resets the real scroller. Plus a real-browser test: a recipe ALWAYS opens at its top (even on a recipe→recipe jump) — catching runtime UX bugs a static check can't see. A regression blocks the deploy."></p>
+        <div class="out"><span data-sk="Výstup: " data-en="Output: "></span><code>ui_invariants.py</code> · <code>ui_regression_test.py</code> · <code>tile_lock_test.py</code></div>
         <div class="cost" data-sk="CHF 0 / beh" data-en="CHF 0 / run"></div>
       </div>
 

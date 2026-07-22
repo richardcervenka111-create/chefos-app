@@ -39,10 +39,17 @@ jobs:
           SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
           SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
         run: python3 scripts/tile_lock_test.py
+      - name: UI regression suite (recipe opens at top, etc. — live drift detection)
+        env:
+          SAUTERO_QA_EMAIL: ${{ secrets.SAUTERO_QA_EMAIL }}
+          SAUTERO_QA_PASSWORD: ${{ secrets.SAUTERO_QA_PASSWORD }}
+        run: python3 scripts/ui_regression_test.py
       - name: Upload failure screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: lock-failure-screenshots
-          path: lock_fail_*.png
+          path: |
+            lock_fail_*.png
+            ui_fail_*.png
           if-no-files-found: ignore

@@ -31,6 +31,8 @@ jobs:
         run: python3 scripts/audit_db.py
       - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)
         run: python3 scripts/audit_app.py
+      - name: UI invariants (static guards on past UI bugs — pill, sheet z-index, cost log, scroll)
+        run: python3 scripts/ui_invariants.py
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
@@ -64,12 +66,21 @@ jobs:
           SAUTERO_QA_ADMIN_EMAIL: ${{ secrets.SAUTERO_QA_ADMIN_EMAIL }}
           SAUTERO_QA_ADMIN_PASSWORD: ${{ secrets.SAUTERO_QA_ADMIN_PASSWORD }}
         run: python3 scripts/tile_lock_test.py --url http://127.0.0.1:8080
+      - name: UX GATE — real-browser regression suite against the candidate build
+        # Behavioural UX that source checks can't see (e.g. a recipe must open at its top —
+        # depends on the live <body> scroller, not window). Same QA account as the lock suite.
+        env:
+          SAUTERO_QA_EMAIL: ${{ secrets.SAUTERO_QA_EMAIL }}
+          SAUTERO_QA_PASSWORD: ${{ secrets.SAUTERO_QA_PASSWORD }}
+        run: python3 scripts/ui_regression_test.py --url http://127.0.0.1:8080
       - name: Upload failure screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: lock-failure-screenshots
-          path: lock_fail_*.png
+          path: |
+            lock_fail_*.png
+            ui_fail_*.png
           if-no-files-found: ignore
 
   deploy:

@@ -10,10 +10,18 @@ protects itself automatically; regressions are caught BEFORE deployment, never a
 
 Every push to `main` runs `.github/workflows/deploy-pages.yml`. Its `checks` job is the gate:
 
-1. `pyflakes` lint → `audit_db.py` → `audit_app.py` → `calc_unit_test.js` (money math)
+1. `pyflakes` lint → `audit_db.py` → `audit_app.py` → `ui_invariants.py` (static UI guards) →
+   `calc_unit_test.js` (money math)
 2. **LOCK GATE**: the candidate build (the app exactly as in the commit) is served on
    `localhost:8080` inside CI, and the **entire lock suite** (`tile_lock_test.py`) runs against
    it with the QA accounts — against the *new* code, before production sees anything.
+3. **UX GATE**: `ui_regression_test.py` runs against the same candidate build — real-browser
+   UX invariants that source checks can't see (e.g. a recipe must open at its top, which depends
+   on the live `<body>` scroller). A UX regression blocks the deploy too.
+
+`ui_invariants.py` (static) + `ui_regression_test.py` (browser) are the **UI/UX guard layer**:
+every time a UI bug is fixed, a guard is added here so it can't silently regress. Static guards
+also run on every push via `health-checks.yml`; the browser suite also runs 2×/day (`tile-locks.yml`).
 
 If **any** locked module fails: the deploy stops, production stays untouched, and the failing
 module + exact assertion appear in the GitHub job summary ("Tile locks" section). There is no
