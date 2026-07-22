@@ -3662,7 +3662,7 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
   </div>
   <div class="chef-chat-messages" id="chefChatMessages"></div>
   <div class="chef-chat-input-bar">
-    <textarea id="chefChatInput" class="chef-chat-input" placeholder="Ask about substitutions, technique, prep…" rows="1" onkeydown="handleChefChatKeydown(event)"></textarea>
+    <textarea id="chefChatInput" class="chef-chat-input" placeholder="Ask a cooking question…" rows="1" onkeydown="handleChefChatKeydown(event)"></textarea>
     <button class="chef-chat-send" id="chefChatSendBtn" onclick="sendChefMessage()">Send</button>
   </div>
 </div>
@@ -13585,7 +13585,7 @@ async function callClaudeGenerateRecipe(title, shortDescription, context){
         passive_time: { type:'string' },
         ingredients: {
           type: 'array',
-          items: { type:'object', properties:{ name:{type:'string'}, qty:{type:'string', description:'quantity in metric units (g, kg, ml, l)'} }, required:['name','qty'] }
+          items: { type:'object', properties:{ name:{type:'string'}, qty:{type:'string', description:'A single METRIC quantity only: a number + g / kg / ml / l (e.g. "80 g", "120 ml", "1 kg"). NEVER "approx.", NEVER a size word like "1 small" or "1 medium", NEVER a range, NEVER a piece/unit count unless the item is genuinely counted (eggs, whole lemons). Convert everything to grams or millilitres.'} }, required:['name','qty'] }
         },
         steps: { type:'array', items:{ type:'string' } }
       },
@@ -13599,7 +13599,7 @@ async function callClaudeGenerateRecipe(title, shortDescription, context){
     tool_choice: { type:'tool', name:'record_recipe' },
     messages: [{
       role: 'user',
-      content: [{ type:'text', text: `Write out the full professional-kitchen recipe for "${title}" (${shortDescription}). It was chosen to fit this brief: ${context}. Use metric units throughout. Record it using the record_recipe tool.` }]
+      content: [{ type:'text', text: `Write out the full professional-kitchen recipe for "${title}" (${shortDescription}). It was chosen to fit this brief: ${context}. EVERY ingredient quantity must be a single metric amount — grams or millilitres (or a plain count only for genuinely counted items like eggs). Never write "approx.", never a size word like "1 small onion", never a range: convert to a real number, e.g. "80 g" not "1 small (approx. 80 g)". Record it using the record_recipe tool.` }]
     }]
   });
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
@@ -22486,12 +22486,16 @@ function openScanSaveDestSheet(mode){
     opts.push({ value:'company', label:'🏢 Company Recipes' });
   }
   (_recipeLists || []).forEach(l=>{ opts.push({ value: l.id, label: `${l.icon || '🗂️'} ${l.name}` }); });
-  document.getElementById('scanSaveDestList').innerHTML = opts.length ? opts.map(o=>`
+  const list = opts.length ? opts.map(o=>`
     <label class="sheet-option" style="display:flex; align-items:center; gap:12px; cursor:pointer;">
       <input type="checkbox" class="scan-dest-cb" value="${o.value}" style="width:20px; height:20px; accent-color:var(--copper);">
       <span class="sheet-option-title">${o.label}</span>
     </label>
-  `).join('') : `<p class="sheet-text">No projects yet — the recipe${_scanDestMode==='all'?'s go':' goes'} to 📖 My Recipes.</p>`;
+  `).join('') : `<p class="sheet-text" style="margin:0 0 4px;">No recipe projects yet — create one to also file it somewhere besides 📖 My Recipes.</p>`;
+  // Always give a way to make a destination (Richard, 22.7. — a solo account with no projects had
+  // nothing to choose). Creating one returns to the choice; tapping "Add to recipes" again shows it.
+  const newBtn = `<button class="task-status-btn" style="width:100%; margin-top:10px;" onclick="closeScanSaveDest(); openNewRecipeProjectPrompt();">＋ New project</button>`;
+  document.getElementById('scanSaveDestList').innerHTML = list + newBtn;
   document.getElementById('scanSaveDestOverlay').classList.add('open');
 }
 function closeScanSaveDest(){
@@ -23193,10 +23197,12 @@ function _fitChefChat(){
   const v = document.getElementById('chefAssistantView');
   if(!v || v.style.display === 'none') return;
   const vv = window.visualViewport;
-  if(vv){ v.style.height = vv.height + 'px'; v.style.transform = 'translateY(' + vv.offsetTop + 'px)'; }
-  else { v.style.height = '100dvh'; v.style.transform = ''; }
-  const wrap = document.getElementById('chefChatMessages');
-  if(wrap) wrap.scrollTop = wrap.scrollHeight;
+  const h = vv ? Math.round(vv.height) + 'px' : '100dvh';
+  const t = vv ? 'translateY(' + Math.round(vv.offsetTop) + 'px)' : '';
+  // Only touch the DOM when a value actually changed — visualViewport fires many resize events
+  // during the keyboard animation; rewriting identical styles each time made the view judder.
+  if(v.style.height !== h) v.style.height = h;
+  if(v.style.transform !== t) v.style.transform = t;
 }
 if(window.visualViewport){
   window.visualViewport.addEventListener('resize', _fitChefChat);
@@ -23232,11 +23238,12 @@ function handleChefChatKeydown(e){
   }
 }
 
-/* Extra safety net alongside the 100dvh fix above — on some devices the keyboard's
-   open-animation still leaves the input bar covered for a moment, so nudge it back into
-   view once focus actually lands. */
+/* The view is sized to visualViewport (_fitChefChat), so the input bar already rides above the
+   keyboard — the old focus scrollIntoView() band-aid is removed: with the fixed layout it fought
+   the resize and made the screen JUMP on focus (Richard, 22.7.). Just keep the newest message in
+   view once the keyboard has settled. */
 document.getElementById('chefChatInput').addEventListener('focus', ()=>{
-  setTimeout(()=> document.getElementById('chefChatInput').scrollIntoView({ block:'end', behavior:'smooth' }), 300);
+  setTimeout(()=>{ const w = document.getElementById('chefChatMessages'); if(w) w.scrollTop = w.scrollHeight; }, 250);
 });
 
 async function sendChefMessage(){
