@@ -14891,8 +14891,13 @@ async function saveFormBody(){
   // Terms gate accepted at sign-up; _recipeAiShare defaults true, no interruption at save.
   // Saving while a custom recipe project shelf is open (bod 8, 16.7.) files the new recipe
   // straight into that project — is_personal true (same privacy as My Recipes) + list_id set,
-  // same convention as ingredients' custom lists.
-  const inRecipeProject = recipeSourceFilter !== 'chefos' && recipeSourceFilter !== 'company' && recipeSourceFilter !== 'mine';
+  // same convention as ingredients' custom lists. list_id is a recipe_lists UUID, so it may ONLY be
+  // a REAL project id — check membership in _recipeLists, never "any shelf that isn't one of the 3
+  // fixed ones" (Richard, 22.7. — on a non-project shelf that let a non-UUID shelf value reach
+  // list_id, the save crashed with a Postgres "invalid input syntax for type uuid" error).
+  // An AI recipe under Review & edit files its base into My/Company Recipes (its projects come from
+  // the "Save where?" ticks), never into whatever shelf happened to be open.
+  const inRecipeProject = !_assistantFormSave && (_recipeLists || []).some(l => l.id === recipeSourceFilter);
   setSyncStatus('saving');
   let error, savedId = formEditingId;
   if(formEditingId){
