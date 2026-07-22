@@ -183,6 +183,17 @@ def check_recipes(page, ctx):
     # the list itself — verified 22.7.). Wait for the data, then enter the list deterministically
     # via showList() rather than depending on which shelf screen the picker shows.
     page.wait_for_function("() => typeof allRecipes === 'function' && allRecipes().length > 0", timeout=20000)
+    # The shelf PICKER must show the account's base shelf — it can NEVER be missing (Richard, 22.7.:
+    # the base 'My Recipes'/'Company Recipes' shelf got hidden and a whole shelf of recipes vanished;
+    # the recipes lock previously only tested the list, not this picker). Solo QA = personal → 'My
+    # Recipes'. renderRecipeShelvesGrid runs on tile open; re-run it to be deterministic.
+    base_ok = page.evaluate(
+        "() => { if (typeof renderRecipeShelvesGrid === 'function') renderRecipeShelvesGrid();"
+        " const g = document.getElementById('recipeShelvesGrid');"
+        " const want = (typeof currentAccountType !== 'undefined' && currentAccountType === 'company')"
+        "   ? 'Company Recipes' : 'My Recipes';"
+        " return { has: !!(g && g.innerText.includes(want)), want }; }")
+    assert base_ok['has'], f"the recipe shelf picker is missing its base '{base_ok['want']}' tile (a hidden base shelf must never remove it)"
     page.evaluate("() => showList()")
     page.wait_for_function(
         "() => document.getElementById('listView') && "

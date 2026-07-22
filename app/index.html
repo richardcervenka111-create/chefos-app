@@ -15011,20 +15011,24 @@ function renderRecipeShelvesGrid(){
   // Hide/Unhide (per device, localStorage). My Recipes' long-press menu also keeps its
   // Share-My-Recipes entry.
   const hiddenShelves = getHiddenRecipeShelves();
-  const fixedTile = (key, icon, label, extra)=>{
-    const isHidden = hiddenShelves.includes(key);
+  const fixedTile = (key, icon, label, extra, nonHideable)=>{
+    // The account's BASE shelf (My Recipes / Company Recipes) can NEVER be hidden — it's where the
+    // account's own recipes live. Richard, 22.7.: he long-pressed Company Recipes on his phone,
+    // accidentally hid it (localStorage is per-device — it was still there on his Mac), and a whole
+    // shelf of recipes "vanished". Base shelves now always render and offer no Hide.
+    const isHidden = !nonHideable && hiddenShelves.includes(key);
     if(isHidden && !_showHiddenRecipeLists) return;
     addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openShelf(key),
-      ()=>openItemContextMenu('recipeShelf', key, label, isHidden, extra === 'share'));
+      ()=>openItemContextMenu('recipeShelf', key, label, isHidden, extra === 'share', nonHideable));
   };
   if(currentAccountType !== 'company' || showPersonalInCompany){
-    fixedTile('mine', '📖', 'My Recipes', 'share');
+    fixedTile('mine', '📖', 'My Recipes', 'share', true);
   }
   fixedTile('chefos', '✨', 'Sautero');
   // Public shelf (db/131) — every account type sees it, like the Sautero library.
   fixedTile('public', '🌍', 'Public');
   if(currentAccountType === 'company'){
-    fixedTile('company', '🏢', 'Company Recipes');
+    fixedTile('company', '🏢', 'Company Recipes', null, true);
   }
   // Custom recipe projects (bod 8, 16.7.) — same pattern as custom ingredient lists. Since
   // db/147 (Richard, 18.7.: "rovnaká funkcia ako v ingredienciách") a kitchen's projects and
@@ -15873,10 +15877,13 @@ document.addEventListener('focusout', ()=>{
 });
 
 let _contextMenuTarget = null; // { type:'ingredient'|'prepDish'|'ingredientList', id, name, hidden, shared }
-function openItemContextMenu(type, id, name, hidden, shared){
+function openItemContextMenu(type, id, name, hidden, shared, nonHideable){
   _contextMenuTarget = { type, id, name, hidden: !!hidden, shared: !!shared };
   document.getElementById('itemContextMenuTitle').textContent = name;
-  document.getElementById('itemContextHideBtn').textContent = hidden ? '👁️ Unhide' : '🙈 Hide';
+  const hideBtn = document.getElementById('itemContextHideBtn');
+  hideBtn.textContent = hidden ? '👁️ Unhide' : '🙈 Hide';
+  // Base shelves (My Recipes / Company Recipes) can't be hidden — no Hide button at all (22.7.).
+  hideBtn.style.display = nonHideable ? 'none' : '';
   // Fixed shelves (recipe + ingredient, Richard, 17.7.): hideable, NEVER renamable or deletable
   // — the two buttons disappear entirely instead of failing later.
   const isFixedShelf = type === 'recipeShelf' || type === 'ingredientShelf';
