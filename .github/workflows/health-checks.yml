@@ -35,3 +35,5 @@ jobs:
         run: python3 scripts/work_hours.py --check
       - name: Every Internal Doc carries a date stamp (docs_autofix guard)
         run: python3 scripts/docs_autofix.py --check
+      - name: Changelog covers every commit (nothing that happened goes unrecorded)
+        run: python3 scripts/docs_changelog.py --check

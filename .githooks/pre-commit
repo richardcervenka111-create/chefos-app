@@ -23,6 +23,13 @@ fi
 # source doc so it can never drift or go stale (the 20.7/21.7-missing incident, 21.7.).
 python3 scripts/work_hours.py --write
 git add "visual data/costs.html" "visual data/tasklist.html" 2>/dev/null || true
+# Everything-that-happened, straight from git commit subjects into an Internal Doc (Richard,
+# 22.7. — the docs-QA robots only check RENDERING, so nothing guaranteed the CONTENT of what we
+# did got written down; he ran the robot and the docs weren't filled in). This closes that: the
+# changelog is generated from the commits themselves, so it can never miss anything. (Reflects
+# commits up to the parent; the in-flight commit's line lands on the next commit.)
+python3 scripts/docs_changelog.py
+git add "visual data/changelog.html" 2>/dev/null || true
 # Robots auto-fix the safe class (Richard, 21.7. — "roboti nech chyby aj opravia"): ensure every
 # Internal Doc carries a bottom-right date stamp, adding one only where genuinely absent (never a
 # duplicate next to a doc's own badge). Layout/content findings stay report-only in the QA robots.

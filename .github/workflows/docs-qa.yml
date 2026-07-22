@@ -33,6 +33,7 @@ jobs:
           - poznamky.html
           - aare.html
           - health.html
+          - changelog.html
           - CRITICAL_REVIEW/latest.html
     name: ${{ matrix.doc }}
     steps:
