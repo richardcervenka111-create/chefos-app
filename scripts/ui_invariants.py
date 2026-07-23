@@ -558,6 +558,30 @@ def check_mode_switch_refreshes_recipe_tiles(html):
         passes.append('mode-switch-tiles: switching mode refetches and redraws the Recipes tiles.')
 
 
+def check_company_invite_email_claim(html):
+    # Richard, 24.7.: two Add Company invitees were stranded with kitchen_id NULL because the whole
+    # flow depended on ?invite= surviving the magic-link redirect. db/187 makes the offer claimable
+    # by email; renderTeamGate must actually call it, BEFORE the "invite-only" dead end, and must
+    # report a failure loudly rather than swallowing it (the 16.7. protonmail failure class).
+    problems = []
+    if "claim_company_invite_by_email" not in html:
+        problems.append('renderTeamGate never calls claim_company_invite_by_email')
+    else:
+        gate = re.search(r'async function renderTeamGate\(\)\{(.*?)\n\}', html, re.S)
+        body = gate.group(1) if gate else ''
+        if 'claim_company_invite_by_email' not in body:
+            problems.append('the claim call is not inside renderTeamGate')
+        else:
+            if body.index('claim_company_invite_by_email') > body.index('getJoinTargetFromUrl'):
+                problems.append('the email claim runs after the URL-invite path instead of before it')
+            if 'logClientError' not in body[body.index('claim_company_invite_by_email'):][:600]:
+                problems.append('a failed claim is not reported loudly')
+    if problems:
+        failures.append('company-invite-email-claim: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('company-invite-email-claim: Add Company offers self-heal by email, failures are logged.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -570,6 +594,7 @@ def main():
     check_recipe_shelf_order(html)
     check_recipe_list_default_newest(html)
     check_mode_switch_refreshes_recipe_tiles(html)
+    check_company_invite_email_claim(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)

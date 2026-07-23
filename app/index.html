@@ -9557,6 +9557,24 @@ async function renderTeamGate(){
 
   // Approved — join the kitchen from an invite link, or (super-admin only) create a brand
   // new one from scratch.
+  // Before any of that: an Add Company offer is claimable by EMAIL alone (db/187). The whole
+  // flow used to hang on the ?invite= param surviving the magic-link redirect — if Supabase fell
+  // back to the Site URL, or the person opened the app from their home screen instead of the mail,
+  // or never tapped the final "Join", they ended up signed up with kitchen_id NULL and no way
+  // forward, silently. That is exactly what happened to the two companies added on 23.7.
+  // The server function only ever onboards someone who has NO kitchen, so it can never move an
+  // existing account; it returns the kitchen name on success and null when there is nothing to claim.
+  const { data: claimedCompany, error: claimEmailErr } = await sb.rpc('claim_company_invite_by_email');
+  if(claimEmailErr){
+    // Loud, not a console line: this is the single-use-token failure class that cost the protonmail
+    // account its role on 16.7. — a silent failure here strands a brand-new customer.
+    logClientError('claim_company_invite_by_email failed: ' + claimEmailErr.message);
+  } else if(claimedCompany){
+    el.innerHTML = `<p class="login-tagline">Welcome to Sautero</p><p class="lede">Setting up <b>${String(claimedCompany).replace(/</g,'&lt;')}</b>…</p>`;
+    history.replaceState(null, '', location.pathname);
+    await startApp();
+    return;
+  }
   const { invite, legacyKitchenId } = getJoinTargetFromUrl();
   // ?friend wins over ?invite (Richard, 17.7. PRIORITA): old dual-purpose Add Friend links
   // (pre-17.7. personal QRs and their emails) carry BOTH params — those were always meant as
