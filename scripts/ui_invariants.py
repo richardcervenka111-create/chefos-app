@@ -495,6 +495,46 @@ def check_foreign_ingredient_escaping(html):
         passes.append('foreign-ingredient-escaping: all free-text ingredient columns escaped at the boundary; no raw on* interpolation.')
 
 
+def check_recipe_shelf_order(html):
+    # Richard, 24.7.: the Recipes landing tiles have a fixed order — Sautero, Public, the account's
+    # own shelf (Company Recipes in company mode / My Recipes in personal), then projects, then
+    # Add Project. Easy to break by inserting a new tile in the wrong place.
+    m = re.search(r'function renderRecipeShelvesGrid\(\)\{(.*?)\n\}', html, re.S)
+    problems = []
+    if not m:
+        problems.append('renderRecipeShelvesGrid() not found')
+    else:
+        body = m.group(1)
+        order = re.findall(r"fixedTile\('(\w+)'|addTile\('➕'", body)
+        seq = [o for o in order if o] + (['add'] if "addTile('➕'" in body else [])
+        if seq[:2] != ['chefos', 'public']:
+            problems.append(f'first two tiles are {seq[:2]}, expected Sautero then Public')
+        if 'company' not in seq or 'mine' not in seq:
+            problems.append('one of the base shelves (company / mine) is missing')
+        if body.index("addTile('➕'") < body.rindex("fixedTile('"):
+            problems.append('Add Project is not last')
+    if problems:
+        failures.append('recipe-shelf-order: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('recipe-shelf-order: Sautero → Public → own shelf → projects → Add Project.')
+
+
+def check_recipe_list_default_newest(html):
+    # Richard, 24.7.: every recipe list opens newest-first. Two things carry that — the default
+    # activeCategory and the load order — and either one silently reverting loses the behaviour.
+    problems = []
+    if "activeCategory = allRecipes().some" in html:
+        problems.append('a shelf still defaults to Favorites/All instead of Newest')
+    if len(re.findall(r"activeCategory = 'Newest'", html)) < 3:
+        problems.append('fewer than 3 places set the default to Newest')
+    if not re.search(r"from\('recipes'\)\.select\('\*'\)\.order\('created_at', \{ ascending:false \}\)", html):
+        problems.append('recipes are not loaded newest-first')
+    if problems:
+        failures.append('recipe-default-newest: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('recipe-default-newest: lists open newest-first and load newest-first.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -504,6 +544,8 @@ def main():
     check_saving_overlay(html)
     check_ingredient_info_panel(html)
     check_foreign_ingredient_escaping(html)
+    check_recipe_shelf_order(html)
+    check_recipe_list_default_newest(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)

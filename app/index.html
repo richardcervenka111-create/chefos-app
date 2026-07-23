@@ -7920,7 +7920,8 @@ async function enterApp(){
   if(shiftReminderEnabled()) startShiftReminderTicker();
 
   await loadAppData();
-  activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
+  activeCategory = 'Newest'; // Richard, 24.7.: every recipe list opens newest-first by default.
+  // (Was: Favorites when the shelf had any, else All. The Favorites/All chips are still one tap away.)
   renderRecipeSummaryBar();
   renderList();
   subscribeToRealtimeUpdates();
@@ -10841,7 +10842,7 @@ async function loadAppData(){
     { data: settingsRow },
     { data: commentRows }
   ] = await Promise.all([
-    sb.from('recipes').select('*').order('title'),
+    sb.from('recipes').select('*').order('created_at', { ascending:false }),  // newest first (Richard, 24.7.) — category groups list their newest recipe first too
     sb.from('favorites').select('recipe_id'),
     sb.from('recipe_notes').select('recipe_id, note'),
     fetchAllRows('ingredients', 'name', 'kitchen_id', currentKitchenId),
@@ -14646,7 +14647,8 @@ function showList(){
   // permanently-empty "No favorites yet" screen reads as "the recipes are gone/broken," not
   // as an invitation to go favorite something. Falls back to All whenever Favorites is empty,
   // so the 173 real recipes are always reachable the moment you open the screen.
-  activeCategory = allRecipes().some(r=>recipeOnCurrentShelf(r) && isFavorite(r.id)) ? 'Favorites' : 'All';
+  activeCategory = 'Newest'; // Richard, 24.7.: every recipe list opens newest-first by default.
+  // (Was: Favorites when the shelf had any, else All. The Favorites/All chips are still one tap away.)
   // recipeSourceFilter is NOT reset here (bug fixed 16.7. — this used to force 'chefos' on
   // every single call, silently undoing whatever shelf showRecipesHome()'s picker just set,
   // e.g. tapping "My Recipes" landed back on Sautero every time. It only went unnoticed while a
@@ -15090,14 +15092,20 @@ function renderRecipeShelvesGrid(){
     addTile(icon, label + (isHidden ? ' (hidden)' : ''), ()=>openShelf(key),
       ()=>openItemContextMenu('recipeShelf', key, label, isHidden, extra === 'share', nonHideable));
   };
-  if(currentAccountType !== 'company' || showPersonalInCompany){
-    fixedTile('mine', '📖', 'My Recipes', 'share', true);
-  }
+  // Tile order is fixed (Richard, 24.7.): Sautero → Public → the account's own shelf (My Recipes
+  // in personal mode, Company Recipes in company mode) → projects → Add Project. The built-in
+  // library comes first because that is what a brand-new kitchen has; the account's own shelf sits
+  // where the chef's own work starts.
   fixedTile('chefos', '✨', 'Sautero');
   // Public shelf (db/131) — every account type sees it, like the Sautero library.
   fixedTile('public', '🌍', 'Public');
   if(currentAccountType === 'company'){
     fixedTile('company', '🏢', 'Company Recipes', null, true);
+    // Only when the chef explicitly turned on "show personal in company" does the personal shelf
+    // appear too — after the company one, since company is this account's base shelf.
+    if(showPersonalInCompany) fixedTile('mine', '📖', 'My Recipes', 'share', true);
+  }else{
+    fixedTile('mine', '📖', 'My Recipes', 'share', true);
   }
   // Custom recipe projects (bod 8, 16.7.) — same pattern as custom ingredient lists. Since
   // db/147 (Richard, 18.7.: "rovnaká funkcia ako v ingredienciách") a kitchen's projects and
