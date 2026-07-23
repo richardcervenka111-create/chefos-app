@@ -11915,20 +11915,37 @@ async function openEmailContacts(){
   _emailContactRows = data || [];
   if(!_emailContactRows.length){ el.innerHTML = '<div class="empty-state">No emails recorded yet.</div>'; return; }
   const sourceLabel = { access_request:'requested access', invite_sent:'sent an invite', signup:'signed up' };
+  // ONE ROW PER ADDRESS (Richard, 24.7.: "v email contacts chcem mať emaily iba po jednom").
+  // email_contacts is keyed (email, source) — db/…, on purpose, so we keep the history of HOW we
+  // met someone — which meant an address that both requested access and was later invited showed
+  // up two or three times, and the count was unreadable. The table keeps every row; this screen
+  // now folds them per address, keeping the newest one (the list is already sorted newest-first)
+  // and listing every way that address has appeared.
+  const byEmail = new Map();
+  _emailContactRows.forEach(r=>{
+    const key = (r.email || '').toLowerCase();
+    const seen = byEmail.get(key);
+    if(seen){ if(!seen.sources.includes(r.source)) seen.sources.push(r.source); }
+    else byEmail.set(key, { row: r, sources: [r.source] });
+  });
+  const unique = [...byEmail.values()];
   // Numbering (Richard, 17.7.): the FIRST contact sits at the bottom with #1, the newest on top
-  // with the highest number. Rows are sorted newest-first, so index 0 = highest number = N.
-  const N = _emailContactRows.length;
-  el.innerHTML = _emailContactRows.map((r,i)=>`
+  // with the highest number — now counting ADDRESSES, so #N is a real "how many people" figure.
+  const N = unique.length;
+  el.innerHTML = unique.map((u,i)=>{
+    const r = u.row;
+    const sources = u.sources.map(s=>sourceLabel[s] || s).join(' + ');
+    return `
     <div class="task-row" onclick="openEmailContactDetail('${r.id}')" style="cursor:pointer;">
       <div class="task-row-top">
         <div class="info" style="flex:1;">
           <div class="name task-text"><span style="color:var(--ink-faint); font-variant-numeric:tabular-nums;">#${N - i}</span> &nbsp;${r.email.replace(/</g,'&lt;')}</div>
-          <div class="meta">${sourceLabel[r.source] || r.source} · ${r.status} · ${new Date(r.last_seen_at).toLocaleDateString('sk-SK')}</div>
+          <div class="meta">${sources} · ${r.status} · ${new Date(r.last_seen_at).toLocaleDateString('sk-SK')}</div>
         </div>
         <span style="font-size:18px;">›</span>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 /* Full contact detail (Richard, 17.7.: head admin can see their whole record). Everything we
    hold on this contact, plus — if the email belongs to a real Sautero account — their profile
