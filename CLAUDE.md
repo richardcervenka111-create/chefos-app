@@ -71,6 +71,13 @@ what it found.
   An inaccurate legal text is worse than none — it is a written statement to users and to the
   regulator. Verify every claim against the code as it exists today, not as it was designed.
 
+**If a mandatory skill is not available in the session, say so out loud and do the check by hand
+— never skip it silently.** The skill list the harness surfaces changes between sessions (observed
+four times on 23.7.: full Anthropic set → the Sautero six → the document four → the Sautero six),
+while the files sit unchanged in `~/.claude/skills/`. Availability is therefore not something to
+rely on: the obligation is the review, not the tool. State in the report which of the two happened
+— "rls-guard ran, found X" or "rls-guard was unavailable, reviewed manually against its checklist".
+
 Also available and worth reaching for: `single-file-surgeon` (any edit to `app/index.html`),
 `de-ch-i18n` (any user-facing string — de-CH is the primary locale, see roadmap t18),
 `price-provenance` (anything touching ingredient prices), `pilot-comms` (German messages to
