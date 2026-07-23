@@ -753,6 +753,18 @@ function upd(){
   renderPhaseProgress();
   applyFilters();
 }
+/* Server-authored completions win (Richard, 23.7.): when the roadmap is redeployed (new build) the
+   per-box localStorage is wiped so the FRESH HTML `checked` states take over. Without this, a box
+   checked off server-side kept showing unchecked from a stale local value (Richard saw 87 done
+   instead of 126). __DOCS_VERSION__ is rewritten to the commit SHA at deploy, so every roadmap
+   update resets the local cache once; manual ticks between deploys still persist. */
+try{
+  var _bver='__DOCS_VERSION__';
+  if(localStorage.getItem('sautero_backlog_ver')!==_bver){
+    Object.keys(localStorage).filter(k=>k.indexOf('sautero_backlog_')===0 && k!=='sautero_backlog_ver').forEach(k=>localStorage.removeItem(k));
+    localStorage.setItem('sautero_backlog_ver',_bver);
+  }
+}catch(e){}
 b.forEach(x=>{
   const saved=localStorage.getItem('sautero_backlog_'+x.id);
   x.checked = saved===null ? x.checked : (saved==='true');
