@@ -47,6 +47,35 @@
   (`is_personal`) — a team member's `kitchen_id` points at the company kitchen even in
   personal mode.
 
+## Mandatory skills (standing rule, Richard 23.7.2026)
+
+Two project skills are **not optional** — invoke them, don't just "keep them in mind". Run the
+skill BEFORE the change ships (before the commit), and state in the final report that it ran and
+what it found.
+
+- **`rls-guard` — required for every database change and every new user-content render path.**
+  Triggers: creating or altering a table, storage bucket, RLS policy, view, trigger, RPC or
+  database function; any file added under `db/`; and any new place where user-generated content
+  (recipe/ingredient/comment/profile text, uploads) is rendered into the DOM.
+  Why: this is the exact class of bug that keeps recurring — the public contracts bucket (17.7.),
+  the stored-XSS on the public recipe shelf (17.7.), the Remove-member RLS `WITH CHECK` hole
+  (16.7.), and the personal-projects-leaking-into-company-mode bug (23.7.). A passing
+  `audit_db.py` does NOT replace this: the auditor checks structure, `rls-guard` checks isolation.
+
+- **`claim-check` — required for anything that makes a factual claim about the product.**
+  Triggers: any edit to `app/legal.html`, the privacy/terms text, `PRIVACY_VERSION`, the pilot
+  agreement, DPA/AVV, Impressum; and any pilot-, customer-, investor- or funding-facing material
+  (`visual data/presentation.html`, monetization, manifesto, landing copy, onboarding e-mails).
+  Why: the 23.7. legal review found the public privacy policy asserting things the code
+  contradicts (password sign-in, GPS capture, two conflicting statements on what an admin sees).
+  An inaccurate legal text is worse than none — it is a written statement to users and to the
+  regulator. Verify every claim against the code as it exists today, not as it was designed.
+
+Also available and worth reaching for: `single-file-surgeon` (any edit to `app/index.html`),
+`de-ch-i18n` (any user-facing string — de-CH is the primary locale, see roadmap t18),
+`price-provenance` (anything touching ingredient prices), `pilot-comms` (German messages to
+pilot kitchens).
+
 ## Engineering Standard (permanent, 22.7.2026)
 - **`docs/ENGINEERING_STANDARD.md` is binding for every change.** In short: the deploy gate
   runs the FULL lock suite against the candidate build on localhost BEFORE production — never

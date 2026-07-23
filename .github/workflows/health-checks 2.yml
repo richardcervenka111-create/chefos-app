@@ -1,0 +1,17 @@
+name: Health checks
+
+# Health check 2026-07-15: run the ChefOS auditors on EVERY push and pull request, on
+# every branch — not just main. This is the layer that cannot be skipped locally.
+on:
+  push:
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: DB migration audit (tenant scoping, RLS, destructive statements)
+        run: python3 scripts/audit_db.py
+      - name: App audit (structure, dead buttons, ghost tables, secrets, mutation ratchet)
+        run: python3 scripts/audit_app.py
