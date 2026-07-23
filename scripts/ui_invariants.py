@@ -535,6 +535,29 @@ def check_recipe_list_default_newest(html):
         passes.append('recipe-default-newest: lists open newest-first and load newest-first.')
 
 
+def check_mode_switch_refreshes_recipe_tiles(html):
+    # Richard, 24.7.: switching personal/company on the Recipes landing left the tiles stale.
+    # Both switch paths must call the refresher, and the refresher must REFETCH recipe_lists —
+    # a redraw alone would leave the other mode's projects on screen (a privacy leak, same class
+    # as the 23.7. save-destination bug).
+    problems = []
+    if html.count('refreshRecipesHomeIfVisible();') < 2:
+        problems.append('fewer than 2 call sites (mode switch + show-personal-in-company)')
+    m = re.search(r'async function refreshRecipesHomeIfVisible\(\)\{(.*?)\n\}', html, re.S)
+    if not m:
+        problems.append('refreshRecipesHomeIfVisible() not defined')
+    else:
+        body = m.group(1)
+        if 'recipeListsModeFilter' not in body:
+            problems.append('refresher does not refetch through recipeListsModeFilter')
+        if 'renderRecipeShelvesGrid()' not in body:
+            problems.append('refresher does not redraw the tiles')
+    if problems:
+        failures.append('mode-switch-tiles: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('mode-switch-tiles: switching mode refetches and redraws the Recipes tiles.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -546,6 +569,7 @@ def main():
     check_foreign_ingredient_escaping(html)
     check_recipe_shelf_order(html)
     check_recipe_list_default_newest(html)
+    check_mode_switch_refreshes_recipe_tiles(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)

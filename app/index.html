@@ -8238,6 +8238,22 @@ function toggleShowPersonalInCompany(){
   openAccountTypeSettings();
   const listEl = document.getElementById('listView');
   if(listEl && listEl.style.display !== 'none'){ renderRecipeSummaryBar(); renderList(); }
+  refreshRecipesHomeIfVisible();
+}
+/* Richard, 24.7.: switching personal/company (or toggling "show personal in company") while
+   standing on the Recipes landing left the TILES stale — only the list view was refreshed, so the
+   grid kept showing the other mode's shelf and projects until you navigated away and back.
+   The projects are REFETCHED rather than just redrawn: recipe_lists is mode-filtered server-side,
+   so a redraw alone would keep the other mode's projects on screen — the same class of leak as the
+   23.7. save-destination bug. Safe to call from anywhere: it does nothing unless the view is up. */
+async function refreshRecipesHomeIfVisible(){
+  const el = document.getElementById('recipesHomeView');
+  if(!el || el.style.display === 'none') return;
+  try{
+    const { data } = await recipeListsModeFilter(sb.from('recipe_lists').select('*')).order('created_at');
+    _recipeLists = data || [];
+  }catch(e){ logClientError('refreshRecipesHomeIfVisible: ' + (e && e.message)); }
+  renderRecipeShelvesGrid();
 }
 function closeAccountTypeSettings(){ document.getElementById('accountTypeSettingsOverlay').classList.remove('open'); }
 /* Switch confirmation (bod 1, 16.7. — db/97). Richard explicitly asked for a confirm step with
@@ -8293,6 +8309,7 @@ async function applyAccountTypeSwitch(type){
   renderHomeAccountTypeBadge();
   const listEl = document.getElementById('listView');
   if(listEl && listEl.style.display !== 'none'){ renderRecipeSummaryBar(); renderList(); }
+  refreshRecipesHomeIfVisible();
   // First time ever switching to Company (bod 1): offer to link a real team via QR/code.
   // Richard: skipping is a valid outcome — an unlinked Company account just behaves like a
   // (limited) Personal one until a code is entered later from here in Settings.
