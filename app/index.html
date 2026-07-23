@@ -10809,7 +10809,12 @@ async function fetchAllRows(table, orderCol, eqCol, eqVal){
 /* SECURITY (17.7. — db/136 Public ingredients): foreign ingredients (other kitchens' public or
    friend-shared rows) render as innerHTML, so escape their free-text fields once at load, same
    data-boundary approach as sanitizeForeignRecipe. They're display-only (edit is blocked). */
-const INGREDIENT_TEXT_FIELDS = ['name','category','storage_type','notes','cuisine','supplier'];
+// Every free-text column of a FOREIGN (public-shelf / shared-list) ingredient is escaped once,
+// here at the data boundary — so no render path downstream has to remember. flavour/origin/
+// season/substitutes were added 23.7. together with the t13 backfill (rls-guard finding #2):
+// they are reference text today, but the edit form writes them freely, so they are attacker-
+// controlled exactly like `notes` is.
+const INGREDIENT_TEXT_FIELDS = ['name','category','storage_type','notes','cuisine','supplier','flavour','origin','season','substitutes','unit'];
 function sanitizeForeignIngredient(ing){
   INGREDIENT_TEXT_FIELDS.forEach(f=>{ if(ing[f]) ing[f] = escapeHtml(ing[f]); });
   ing.aliases = (ing.aliases || []).map(escapeHtml);
@@ -16377,7 +16382,7 @@ function ingredientInfoHtml(rowName){
     ${detailRows}
     <div class="ingredient-info-row"><div class="label">Learn more</div><div class="value"><a href="${wiki}" target="_blank" rel="noopener" style="color:var(--accent);">🔎 Wikipedia</a></div></div>
     <div id="ingredientAiInfo"></div>
-    <button id="ingredientAiBtn" class="save-btn" style="width:100%; margin-top:8px;" onclick="generateIngredientAiInfo('${String(displayName).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">✨ AI: flavour, origin &amp; season</button>
+    <button id="ingredientAiBtn" class="save-btn" style="width:100%; margin-top:8px;" data-ing-name="${escapeHtml(displayName)}" onclick="generateIngredientAiInfo(this.dataset.ingName)">✨ AI: flavour, origin &amp; season</button>
   `;
 }
 /* t13: on-demand AI description of an ingredient — one short flavour/origin/season note, filled into
@@ -16430,7 +16435,7 @@ async function openPrepItemInfo(id){
     return `<div class="ingredient-info-row"><div class="label">${prepItemStatusLabel(item, stage)}</div><div class="value">${val} min${n>0 ? ` — logged ${n} time${n===1?'':'s'}` : ' (placeholder, never logged)'}</div></div>`;
   }).join('');
   document.getElementById('ingredientInfoContent').innerHTML = `
-    <div class="ingredient-info-title">${item.name}</div>
+    <div class="ingredient-info-title">${escapeHtml(item.name)}</div>
     ${timingRows}
     <div style="border-top:1px solid var(--rule); margin:14px 0;"></div>
     ${ingredientInfoHtml(item.name)}

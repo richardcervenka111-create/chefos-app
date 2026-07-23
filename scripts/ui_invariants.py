@@ -470,6 +470,31 @@ def check_ingredient_info_panel(html):
         passes.append('ingredient-info: "i" panel keeps Wikipedia link + AI button + stored Flavour row.')
 
 
+def check_foreign_ingredient_escaping(html):
+    # rls-guard, 23.7. — two render-path holes found while reviewing db/170-176.
+    # (a) INGREDIENT_TEXT_FIELDS is the ONE data boundary where a foreign (public-shelf /
+    #     shared-list) ingredient's free text gets escaped. A column missing from this list is
+    #     rendered raw by every downstream innerHTML. flavour/origin/season/substitutes were
+    #     missing.
+    # (b) ingredientInfoHtml must never interpolate an ingredient name into an on* attribute —
+    #     a name containing a double quote breaks out of onclick="…". Use data-* + dataset.
+    problems = []
+    m = re.search(r'const INGREDIENT_TEXT_FIELDS = \[(.*?)\];', html, re.S)
+    if not m:
+        problems.append('INGREDIENT_TEXT_FIELDS not found')
+    else:
+        for col in ('flavour', 'origin', 'season', 'substitutes'):
+            if f"'{col}'" not in m.group(1):
+                problems.append(f'foreign-ingredient field "{col}" is not escaped at the boundary')
+    m2 = re.search(r'function ingredientInfoHtml\(rowName\)\{(.*?)\n\}', html, re.S)
+    if m2 and re.search(r'on[a-z]+="[^"]*\$\{(?!escapeHtml)', m2.group(1)):
+        problems.append('ingredientInfoHtml interpolates unescaped content into an on* attribute')
+    if problems:
+        failures.append('foreign-ingredient-escaping: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('foreign-ingredient-escaping: all free-text ingredient columns escaped at the boundary; no raw on* interpolation.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -478,6 +503,7 @@ def main():
     check_recipe_copy_is_personal(html)
     check_saving_overlay(html)
     check_ingredient_info_panel(html)
+    check_foreign_ingredient_escaping(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)
