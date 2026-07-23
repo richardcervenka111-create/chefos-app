@@ -96,8 +96,12 @@ def build_one(spec):
     # Bilingual shell (Richard, 18.7.: "NEZABUDNI NA HORNÝ BANER") — nav titles, the subtitle
     # and the tab labels all carry data-sk/data-en; a tiny script applies the shared
     # sautero_doc_lang and re-applies whenever an inner document's toggle writes localStorage.
+    # Cross-doc nav carries ?v=__DOCS_VERSION__ so navigating Produkt↔Plán↔… always fetches the
+    # fresh copy — GitHub Pages serves these with max-age=600 + a CDN cache (Richard, 23.7.: updates
+    # kept showing stale). deploy-pages.yml rewrites __DOCS_VERSION__ to the commit SHA at publish;
+    # the committed placeholder is a harmless query string if a doc is opened locally.
     nav_html = ''.join(
-        f'<a href="{f}" class="doc-link{" current" if f == spec["file"] else ""}">{i} <span data-sk="{t}" data-en="{te}">{t}</span></a>'
+        f'<a href="{f}?v=__DOCS_VERSION__" class="doc-link{" current" if f == spec["file"] else ""}">{i} <span data-sk="{t}" data-en="{te}">{t}</span></a>'
         for i, t, te, f in NAV
     )
     tabs_html = ''.join(

@@ -12191,8 +12191,12 @@ const INTERNAL_DOCS = [
 ];
 function openInternalDocs(){
   const base = location.origin + '/x7n2k9/';
+  // Cache-bust each doc with the deployed build (Richard, 23.7. — GitHub Pages serves the docs with
+  // max-age=600 + a CDN cache, so a just-shipped update kept showing stale for up to 10 min). The
+  // ?v changes on every deploy, forcing a fresh fetch — the same trick index.html already uses.
+  const v = window.__BUILD__ ? ('?v=' + encodeURIComponent(window.__BUILD__)) : '';
   document.getElementById('internalDocsList').innerHTML = INTERNAL_DOCS.map(d=>`
-    <a href="${base}${d.file}" target="_blank" rel="noopener" class="sheet-option" style="display:block; text-decoration:none;">
+    <a href="${base}${d.file}${v}" target="_blank" rel="noopener" class="sheet-option" style="display:block; text-decoration:none;">
       <div class="sheet-option-title">${d.name}</div>
     </a>
   `).join('');
