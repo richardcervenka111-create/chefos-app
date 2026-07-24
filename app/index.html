@@ -1352,6 +1352,10 @@ window.__BUILD__ = '__BUILD_VERSION__';
     z-index: 35;
     cursor: pointer;
   }
+  /* Richard, 24.7.: "bublina na feedback ma pod sebou kopiu". There is exactly ONE bubble in the
+     markup — what sat under it was its own drop shadow: offset 6px down with an 18px blur reads as
+     a second dark disc on a dark background. Tightened so it lifts the button without doubling it. */
+  .global-feedback-btn{ box-shadow: 0 2px 8px rgba(0,0,0,0.32); }
   .global-feedback-btn:hover{ border-color: var(--accent-dim, var(--copper)); }
   #globalFeedbackMenu{
     display:none; position:fixed; left:16px; bottom:74px; z-index:36;
@@ -2484,7 +2488,10 @@ html.theme-new .wt-bar-absence{ background:var(--nv-3); }
       <div class="form-status" id="faceIdSettingsStatus"></div>
     </div>
 
-    <button class="sheet-cancel" style="width:100%; margin-top:14px;" onclick="closeMyProfileSettings()">Close</button>
+    <!-- Sign Out lives here now (Richard, 24.7.) — it belongs with the account, not buried among
+         the Settings tiles it used to sit in. Removed from SETTINGS_TILE_DEFS in the same change. -->
+    <button class="sheet-cancel" style="width:100%; margin-top:14px; color:#FF7A68; border-color:#FF7A68;" onclick="closeMyProfileSettings(); confirmSignOut();">🚪 Sign Out</button>
+    <button class="sheet-cancel" style="width:100%; margin-top:8px;" onclick="closeMyProfileSettings()">Close</button>
   </div>
 </div>
 
@@ -11813,7 +11820,6 @@ const SETTINGS_TILE_DEFS = [
   { key:'sendFeedback', icon:'💬', staticLabel:'Send Feedback', onclick:"openFeedback('feedback')" },
   { key:'performanceConsent', icon:'📊', staticLabel:'Share My Hours with Admin', onclick:'openPerformanceConsent()', dynamicLabel:()=> 'Share My Hours with Admin: ' + (currentPerformanceConsent ? 'ON' : 'OFF') },
   { key:'legal', icon:'🔒', staticLabel:'Privacy & Terms', onclick:"window.open('legal.html','_blank')" },
-  { key:'signOut', icon:'🚪', staticLabel:'Sign Out', onclick:'confirmSignOut()' },
 ];
 function getSettingsTileOrder(){
   let saved = null;
@@ -21670,6 +21676,7 @@ const TUTORIAL_SLIDES = [
     { icon:'↕️', text:'Tap the reorder icon (top right) to rearrange them.' },
     { icon:'🔒', text:'That order is just for your phone, not shared.' },
     { icon:'💬', text:'Feedback or a bug? One tap on the Feedback icon — reports go straight to the team, never to your teammates.' },
+    { icon:'👤', text:'The person icon in the top bar is My Profile — your details, your password, and Sign Out.' },
     { icon:'🛡️', text:'Admin & Currency only show up if you\'re the kitchen\'s admin.', adminOnly:true },
     { icon:'❓', text:'Reopen this intro anytime from the ❓ up here on Home.' }
   ]}
@@ -21740,14 +21747,17 @@ const VIEW_TUTORIALS = {
       { icon:'🛒', text:'Tap 🛒 on an item to add it to the Order List.' },
       { icon:'🖨️', text:'Tap 🖨️ to queue a label for it in Print Labels.' },
       { icon:'📖', text:'Recipes can land here too — "Add to Check List" on any recipe, into an existing section or a brand-new one.' },
-      { icon:'🔄', text:'Every change syncs live to every phone, instantly.' }
+      { icon:'🔄', text:'Every change syncs live to every phone, instantly.' },
+      { icon:'🗑️', text:'Deleting moves an item to the bin, where Restore brings it back. Next to Restore, Delete removes it for good — kitchen admins only.' }
     ]}
   ]},
   recipes: { slides:[
     { icon:'📖', title:'Recipes — shelves', bullets:[
-      { icon:'🔒', text:'My Recipes — yours only. Private at the database level; not even an admin can see them.' },
-      { icon:'✨', text:'Sautero — the built-in library every kitchen gets.' },
-      { icon:'🏢', text:'Company Recipes — authored by your team (Company accounts).' },
+      { icon:'✨', text:'Sautero — the built-in library every kitchen gets. It comes first, and it is the same 262 recipes in every kitchen.' },
+      { icon:'🌍', text:'Public — recipes chefs have chosen to publish for everyone.' },
+      { icon:'🔒', text:'My Recipes — yours only, in a Personal account. Private at the database level; not even an admin can see them.' },
+      { icon:'🏢', text:'Company Recipes — authored by your team; this is your own shelf in a Company account.' },
+      { icon:'🕐', text:'Every shelf opens newest first. The Favorites / All / category chips are one tap away.' },
       { icon:'🗂️', text:'➕ Add Project makes your own named collection (e.g. "Summer menu").' },
       { icon:'✋', text:'Press and hold tiles for extra options (e.g. sharing My Recipes with chef friends).' }
     ]},
