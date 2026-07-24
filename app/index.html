@@ -17483,16 +17483,25 @@ function renderDeletedTrashHtml(deletedDishes, deletedItems, dishById){
     if(!n) return '';
     return `<button class="add-row-btn" style="margin-top:6px;" onclick="togglePrepShowDeleted()">🗑️ Show ${n} deleted — restore</button>`;
   }
+  // Delete for real (Richard, 24.7.: "ked vymažem check list tak ho chcem naozaj vymazať nie len
+  // skryť žiadne restore"). Deleting in the Check List has always been a soft delete — the row just
+  // moves into this bin. Restore stays for the accidental taps; the button beside it now removes the
+  // row from the database for good. Kitchen-wide content stays admin-only to destroy, exactly like
+  // the long-press Delete (18.7.) — a member can still empty their own view by hiding.
+  const canPurge = canDeletePrepContent();
+  const purgeBtn = (fn, id)=> canPurge
+    ? `<button class="save-btn" style="background:#FF7A68; color:#0A1A2F;" onclick="${fn}('${id}')">🗑️ Delete</button>`
+    : '';
   const dishRows = deletedDishes.map(d=>`
     <div class="task-row">
-      <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${d.name} <span class="meta">(whole dish)</span></div></div></div>
-      <div class="task-status-group"><button class="save-btn" onclick="restorePrepDish('${d.id}')">↩️ Restore</button></div>
+      <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${escapeHtml(d.name)} <span class="meta">(whole dish)</span></div></div></div>
+      <div class="task-status-group"><button class="save-btn" onclick="restorePrepDish('${d.id}')">↩️ Restore</button>${purgeBtn('purgePrepDish', d.id)}</div>
     </div>
   `).join('');
   const itemRows = deletedItems.map(i=>`
     <div class="task-row">
-      <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${i.name}${dishById[i.dish_id] ? ` <span class="meta">· ${dishById[i.dish_id].name}</span>` : ''}</div></div></div>
-      <div class="task-status-group"><button class="save-btn" onclick="restorePrepItem('${i.id}')">↩️ Restore</button></div>
+      <div class="task-row-top"><div class="info" style="flex:1;"><div class="name task-text">${escapeHtml(i.name)}${dishById[i.dish_id] ? ` <span class="meta">· ${escapeHtml(dishById[i.dish_id].name)}</span>` : ''}</div></div></div>
+      <div class="task-status-group"><button class="save-btn" onclick="restorePrepItem('${i.id}')">↩️ Restore</button>${purgeBtn('purgePrepItem', i.id)}</div>
     </div>
   `).join('');
   return `
@@ -17818,6 +17827,46 @@ async function restorePrepItem(id){
   const item = _prepItems.find(i=>i.id===id);
   if(item) item.deleted = false;
   setSyncStatus('saved');
+  renderPrepSheet();
+  renderTaskChips();
+}
+
+/* Permanent delete from the Check List bin (Richard, 24.7.). The soft delete above keeps a row
+   around forever, so a "cleared" Check List was never actually clear — these two remove the row
+   itself. Admin-gated for the same reason the long-press Delete is (18.7.): kitchen-wide content
+   must not be destroyable by a stray tap from a member's tablet. Both re-read from the server
+   afterwards rather than patching the local array, so a failed delete can't leave the screen
+   showing something that still exists. */
+async function purgePrepDish(id){
+  if(!canDeletePrepContent()){ alert('Only your kitchen admin can delete this for good.'); return; }
+  const dish = _prepDishes.find(d=>d.id===id);
+  const n = _prepItems.filter(i=>i.dish_id===id).length;
+  if(!confirm(`Delete "${(dish && dish.name) || 'this dish'}" for good${n ? ` — and its ${n} item${n===1?'':'s'}` : ''}? This cannot be undone.`)) return;
+  setSyncStatus('saving');
+  // Items first: prep_items → prep_dishes is CASCADE in the schema, but deleting them explicitly
+  // keeps this correct even if that ever changes, and makes the row count below honest.
+  const { error: itemErr } = await sb.from('prep_items').delete().eq('dish_id', id);
+  if(itemErr){ alert('Could not delete the items: ' + itemErr.message); setSyncStatus('offline'); return; }
+  const { data, error } = await sb.from('prep_dishes').delete().eq('id', id).select('id');
+  if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
+  // .delete() without .select() reports success on a 0-row RLS-blocked write (the db/164 lesson) —
+  // so a silent no-op would look like it worked. Say it plainly instead.
+  if(!data || !data.length){ alert("Nothing was deleted — you may not have permission for this dish."); setSyncStatus('saved'); return; }
+  setSyncStatus('saved');
+  await loadAppData();
+  renderPrepSheet();
+  renderTaskChips();
+}
+async function purgePrepItem(id){
+  if(!canDeletePrepContent()){ alert('Only your kitchen admin can delete this for good.'); return; }
+  const item = _prepItems.find(i=>i.id===id);
+  if(!confirm(`Delete "${(item && item.name) || 'this item'}" for good? This cannot be undone.`)) return;
+  setSyncStatus('saving');
+  const { data, error } = await sb.from('prep_items').delete().eq('id', id).select('id');
+  if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
+  if(!data || !data.length){ alert("Nothing was deleted — you may not have permission for this item."); setSyncStatus('saved'); return; }
+  setSyncStatus('saved');
+  await loadAppData();
   renderPrepSheet();
   renderTaskChips();
 }
@@ -22324,7 +22373,10 @@ async function callClaudeMenuVision(base64, mediaType, fileName){
   });
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured menu — try a clearer photo or PDF.');
-  return toolUse.input.dishes || [];
+  // Same normalisation as the prep-sheet scan (23.7. crash): a model can hand `dishes` back as a
+  // JSON string or one level deeper, and a string passes the empty check but breaks every array
+  // call downstream — after the scan has already been paid for.
+  return normalizePrepScanDishes(toolUse.input && toolUse.input.dishes);
 }
 
 /* Same record_menu tool as the photo scan, but the source is a live web page instead of an
@@ -22369,7 +22421,10 @@ async function callClaudeMenuUrlVision(url){
   });
   const toolUse = (data.content || []).filter(b=>b.type==='tool_use' && b.name==='record_menu').pop();
   if(!toolUse) throw new Error('Claude could not read a menu from that page — check the link is correct and publicly accessible.');
-  return toolUse.input.dishes || [];
+  // Same normalisation as the prep-sheet scan (23.7. crash): a model can hand `dishes` back as a
+  // JSON string or one level deeper, and a string passes the empty check but breaks every array
+  // call downstream — after the scan has already been paid for.
+  return normalizePrepScanDishes(toolUse.input && toolUse.input.dishes);
 }
 
 async function runMenuScanFromUrl(url){
@@ -23112,7 +23167,43 @@ async function callClaudePrepSheetVision(base64, mediaType, fileName){
   });
   const toolUse = (data.content || []).find(b=>b.type==='tool_use');
   if(!toolUse) throw new Error('Claude did not return a structured prep sheet — try a clearer photo or PDF.');
-  return toolUse.input.dishes || [];
+  return normalizePrepScanDishes(toolUse.input && toolUse.input.dishes);
+}
+
+/* The tool schema asks for `dishes` as an array of objects, but a model under a hard prompt can
+   still hand back the JSON as a STRING, or wrap it one level deeper. Richard hit exactly that on
+   23.7. 16:29: "TypeError: dishes.reduce is not a function" — a string has .length (so the empty
+   check passed) but no .reduce, so the scan died at the review screen after the credits had
+   already been spent. Anything that can be read as a list of dishes is read; anything that can't
+   returns empty, which the caller already reports honestly as "no dishes found". */
+function normalizePrepScanDishes(raw){
+  let v = raw;
+  if(typeof v === 'string'){
+    try{ v = JSON.parse(v); }
+    catch(e){
+      logClientError('prep scan: dishes came back as an unparseable string (' + v.slice(0,120) + ')');
+      return [];
+    }
+  }
+  if(v && !Array.isArray(v) && typeof v === 'object'){
+    // {dishes:[…]} nested one level deeper, or a single dish object handed back bare.
+    if(Array.isArray(v.dishes)) v = v.dishes;
+    else if(v.name) v = [v];
+    else v = Object.values(v).filter(x=>x && typeof x === 'object');
+  }
+  if(!Array.isArray(v)) return [];
+  // Shared by the prep-sheet scan (`items`) and the two menu scans (`components`) — only the list
+  // field a dish actually has is touched, so neither scan gets a field the other one's save path
+  // doesn't expect.
+  return v.filter(d=>d && typeof d === 'object' && d.name).map(d=>{
+    const out = { ...d, name: String(d.name) };
+    ['items','components'].forEach(k=>{
+      if(!(k in d)) return;
+      out[k] = Array.isArray(d[k]) ? d[k].map(String)
+             : (typeof d[k] === 'string' ? d[k].split(/\r?\n|,/).map(s=>s.trim()).filter(Boolean) : []);
+    });
+    return out;
+  });
 }
 
 async function runPrepSheetScan(base64, mediaType, fileName){
@@ -23160,6 +23251,9 @@ async function runPrepSheetScan(base64, mediaType, fileName){
 }
 
 function openPrepScanReview(dishes){
+  // Belt and braces after the 23.7. crash: normalizePrepScanDishes() upstream already guarantees an
+  // array, but this screen must never be the thing that throws — the scan has been paid for by then.
+  if(!Array.isArray(dishes)) dishes = normalizePrepScanDishes(dishes);
   _pendingPrepScanDishes = dishes;
   const totalItems = dishes.reduce((sum,d)=> sum + (d.items||[]).length, 0);
   document.getElementById('prepScanSummary').textContent = `Found ${dishes.length} dish${dishes.length===1?'':'es'}, ${totalItems} item${totalItems===1?'':'s'}. Check each one below, edit anything wrong, then add.`;

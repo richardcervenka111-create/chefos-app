@@ -582,6 +582,25 @@ def check_company_invite_email_claim(html):
         passes.append('company-invite-email-claim: Add Company offers self-heal by email, failures are logged.')
 
 
+def check_prep_scan_shape_guard(html):
+    # Richard, 23.7. 16:29 (error_logs): "TypeError: dishes.reduce is not a function" — the prep-sheet
+    # scan handed back `dishes` as a STRING. A string has .length, so the "no dishes found" check
+    # passed, and the review screen then died AFTER the AI credits were already spent. The vision
+    # call must normalise whatever comes back, and the review screen must not be able to throw.
+    problems = []
+    if 'function normalizePrepScanDishes(' not in html:
+        problems.append('normalizePrepScanDishes() is gone')
+    if re.search(r'return toolUse\.input\.dishes \|\| \[\];', html):
+        problems.append('the vision call returns raw tool input again, unnormalised')
+    m = re.search(r'function openPrepScanReview\(dishes\)\{(.{0,400})', html, re.S)
+    if not m or 'Array.isArray(dishes)' not in m.group(1):
+        problems.append('openPrepScanReview does not defend against a non-array')
+    if problems:
+        failures.append('prep-scan-shape: ' + '; '.join(problems) + '.')
+    else:
+        passes.append('prep-scan-shape: prep-sheet scan normalises its result and cannot crash the review.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -595,6 +614,7 @@ def main():
     check_recipe_list_default_newest(html)
     check_mode_switch_refreshes_recipe_tiles(html)
     check_company_invite_email_claim(html)
+    check_prep_scan_shape_guard(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)
