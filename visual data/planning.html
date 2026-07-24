@@ -559,6 +559,25 @@ const DAYS = [
     ],
     planned: 'Právne pred trialom: zosúladiť legal.html s kódom + Impressum + chýbajúci privacy zdroj (t165/t182/t183 — bez právnika, ~3,5h), potom sedenie s právnikom (t187). Ďalšia dlaždica na zamknutie: spolu prejsť do Richardovej predstavy → zamknúť + robot (zostáva 6: Ingrediencie, Check List, Order List, Events, Connections, Print Labels). Neskôr: samostatné QA účty pre member/admin, AI fotky pre všetkých po OK, fotky do storage bucketu, Nebenerwerb + Einzelfirma.'
   },
+  {
+    date: '2026-07-24',
+    headline: '🍽️ 79 Richardových receptov povýšených do Sautero knižnice (262 receptov v každej kuchyni) · účty vyprázdnené · dokončený backfill chuť/pôvod/sezóna pre VŠETKY suroviny · opravený Add Company (dvaja ľudia neboli adminmi) · Check List sa naozaj maže · nájdený a opravený pád skenu · guardov 18 → 27',
+    accomplished: [
+      '🧂 Dokončený backfill surovín: zvyšných 1 220 názvov v 7 dávkach (db/177–183) — 0 surovín bez chuti/pôvodu/sezóny, 91 623 riadkov, 2 072 unikátnych názvov, 100 %. Od dávky 7 som pracoval z reálneho zoznamu vytiahnutého z DB, nie z vymysleného — ukázalo sa, že skutočné názvy sú dodávateľské a z receptových riadkov („00 flour w260", „cherry tomatoes, halved").',
+      '🔒 rls-guard nad db/170–176: DB čistá, ale našli sa 3 diery vo vykresľovaní — chýbajúce escapovanie flavour/origin/season/substitutes pri cudzích surovinách, môj vlastný onclick s názvom suroviny (názov s úvodzovkou by ušiel z atribútu) a neescapovaný názov jedla v Check Liste. Opravené + guard, negatívne otestovaný.',
+      '🗑️ Upratané recepty: zmazaná dávka 25 receptov z 23.7. a 30 duplicitných kópií (161 → 106). Pravidlo „ktorá kópia prežije" som zmenil z „najstaršia" na „verejná → obľúbená → najstaršia" — obe zverejnené kópie boli totiž duplikáty a slepé pravidlo by zmazalo práve tie na public shelf.',
+      '📚 79 receptov povýšených do Sautero knižnice (db/185): 106 receptov malo len 91 unikátnych názvov, 12 už v knižnici bolo. Knižnica 183 → 262 a doplnená do všetkých kuchýň. Pri overovaní som zachytil vlastnú chybu: nové riadky nemali chefos_master_id (id, ktoré spája recept naprieč kuchyňami kvôli komentárom) — doplnené.',
+      '🧹 Účty vyprázdnené (db/186): 106 vlastných receptov, 8 projektov, 6 check-list projektov, 215 jedál, 891 položiek — všetko najprv zazálohované do neexponovanej schémy backup, odkiaľ sa to dá vrátiť jedným príkazom.',
+      '🎛️ Recepty: pevné poradie dlaždíc (Sautero → Public → vlastná polička → projekty → Add Project), každý zoznam sa otvára od najnovšieho, a prepnutie personal/company teraz dlaždice okamžite prekreslí (predtým ostali staré, vrátane projektov z druhého režimu).',
+      '🏢 Opravený Add Company (db/187): dvaja ľudia pridaní 23.7. neboli adminmi svojich firiem. Príčina: claim_company_admin() vie dať rolu len tomu, kto UŽ je v kuchyni, a do kuchyne sa človek dostane len ak prehliadač udrží ?invite= v adrese. Pozvánka je odteraz uplatniteľná podľa e-mailu, bez odkazu; mapovanie e-mail→pozvánka leží v neexponovanej schéme, lebo kitchen_invites má politiku „read any invite" a id pozvánky je fakticky heslo.',
+      '🗑️ Check List sa naozaj maže: vedľa Restore pribudlo Delete, ktoré riadok odstráni z databázy (doteraz sa len skrýval, takže „vyprataný" Check List nikdy nebol prázdny). Admin-only, s čestným hlásením keď sa nezmaže nič.',
+      '🐞 Nájdený a opravený pád skenu z 23.7. 16:29 (error_logs): „dishes.reduce is not a function" — model vrátil zoznam jedál ako reťazec, ten má .length ale nemá .reduce, takže kontrola prešla a appka padla až po minutí kreditov. Nový guard pri tom odhalil tú istú chybu aj v dvoch skenoch menu.',
+      '📧 Email Contacts: jeden riadok na adresu (tabuľka má kľúč e-mail+zdroj, takže ten istý človek tam bol 2–3×) a číslovanie počíta skutočné adresy.',
+      '🕓 Záznam aktivity: usage_events dovtedy vedeli len „otvoril obrazovku" — pribudlo recipe_saved, item_deleted, prep_dish_purged, prep_item_purged, scan_prep_sheet, mode_switched, plus scripts/activity_timeline.sql, takže na otázku „čo som robil o 15:00" existuje odpoveď z dát.',
+      '📋 Roadmapa opravená proti realite: migrácie 46–53 boli označené ako čakajúce, no všetkých 8 je overiteľne nasadených (odškrtnuté); karta o zálohách mala zastaraný predpoklad (projekt už nie je free tier a dát je rádovo viac) — zostáva otvorená a kritická; k rozdeleniu single-file architektúry doplnené reálne číslo (25 007 riadkov, 1,3 MB).',
+    ],
+    planned: 'Overiť zálohy Supabase a raz skutočne vyskúšať obnovu (jediná kritická otvorená položka). Naživo otestovať Add Company na e-maile, ktorý nikdy nebol v appke, a Delete v Check Liste. Ďalej: nové suroviny z receptov Sautero knižnice do zoznamu ingrediencií bez duplicít.'
+  },
 ];
 /* t174 (18.7.): full EN of the diary. DAYS_EN mirrors DAYS by index (dates repeat, so index
    is the key); the forEach glues headline_en/accomplished_en/planned_en onto each entry.
@@ -811,6 +830,21 @@ const DAYS_EN = [
     '✅ Full Roadmap reconciliation: walked all ~80 open items against code and history — 39 genuinely-done items checked off (Roadmap 87→126 of 170, 74%); Richard confirmed the uncertain ones, decisions/future/his-actions left open. Order List rebuild parked to Notes.',
     '⚖️ Folded in an external legal review (23 Jul): every code-checkable claim confirmed in the repo (password vs "no password", GPS snapshots db/63 missing from privacy, contradictions, missing Impressum, missing privacy source, Resend not listed as sub-processor). Added t165+t182–t187 to the Plan (legal.html, Impressum, DPA, retention conflict, trademark, lawyer session); added the key correction to Notes — "a sole proprietorship does NOT limit liability — maybe GmbH" — plus items to verify.',
   ], p:'Legal before the trial: align legal.html with the code + Impressum + the missing privacy source (t165/t182/t183 — no lawyer, ~3.5h), then the lawyer session (t187). Next tile to lock: walk it to Richard\'s vision → lock + robot (6 remain: Ingredients, Check List, Order List, Events, Connections, Print Labels). Later: separate QA accounts for member/admin, AI photos for everyone after OK, photos to a storage bucket, side-business consent + sole proprietorship.' },
+
+  { h:'79 of Richard\'s recipes promoted into the Sautero library (262 recipes in every kitchen) · accounts emptied · flavour/origin/season backfill finished for EVERY ingredient · Add Company fixed (two people were not admins) · Check List really deletes · scan crash found and fixed · guards 18 → 27', a:[
+    'Ingredient backfill finished: the remaining 1,220 names in 7 batches (db/177–183) — 0 ingredients without flavour/origin/season, 91,623 rows, 2,072 distinct names, 100%. From batch 7 on the names came from the live database rather than a written-out list, which is how supplier and recipe-line spellings got matched exactly.',
+    'rls-guard over db/170–176: the database side was clean, but three render-path holes turned up — flavour/origin/season/substitutes unescaped for foreign ingredients, my own onclick carrying an ingredient name (a name with a double quote would break out of the attribute), and an unescaped dish name in the Check List. Fixed, with a negative-tested guard.',
+    'Recipe cleanup: the 25-recipe batch from 23.7. and 30 duplicate copies removed (161 → 106). The survivor rule changed from "oldest" to "public → favourited → oldest": both published copies were duplicates, so the naive rule would have deleted exactly the ones on the public shelf.',
+    '79 recipes promoted into the Sautero library (db/185): the 106 recipes carried only 91 distinct titles and 12 already existed. Library 183 → 262, and rolled out to every kitchen. While verifying I caught my own mistake: the new rows had no chefos_master_id — the id that ties a recipe together across kitchens so comments follow it.',
+    'Accounts emptied (db/186): 106 own recipes, 8 projects, 6 check-list projects, 215 dishes, 891 items — every row snapshotted into a non-exposed backup schema first, restorable with one statement.',
+    'Recipes: fixed tile order (Sautero → Public → own shelf → projects → Add Project), every list opens newest-first, and switching personal/company now redraws the tiles immediately instead of leaving the other mode\'s shelf and projects on screen.',
+    'Add Company fixed (db/187): two people added on 23.7. were never admins of their companies. claim_company_admin() can only grant the role to someone already IN the kitchen, and getting into the kitchen depended on the browser keeping ?invite= in the URL. The offer is now claimable by email, with the email→invite mapping in a non-exposed schema because kitchen_invites has a "read any invite" policy and the invite id is effectively the password.',
+    'Check List really deletes: a Delete button beside Restore removes the row from the database (until now it was only hidden, so a "cleared" list was never clear). Admin-only, and honest when nothing was deleted.',
+    'Found and fixed the scan crash from 23.7. 16:29 (error_logs): "dishes.reduce is not a function" — the model returned the dish list as a string, which has .length but no .reduce, so the empty check passed and the app died after the credits had been spent. The new guard revealed the same latent crash in both menu scans.',
+    'Email Contacts: one row per address (the table is keyed email+source, so the same person appeared 2–3 times) and the numbering counts real addresses.',
+    'Activity trail: usage_events only knew "opened a screen" — added recipe_saved, item_deleted, prep_dish_purged, prep_item_purged, scan_prep_sheet, mode_switched, plus scripts/activity_timeline.sql, so "what was I doing at 15:00" has an answer that comes from data.',
+    'Roadmap corrected against reality: migrations 46–53 were listed as pending but all 8 are verifiably applied (ticked off); the backups card rested on a stale premise (no longer free tier, and far more data) — it stays open and critical; the single-file split card now carries a real number (25,007 lines, 1.3 MB).',
+  ], p:'Verify the Supabase backups and actually test a restore once (the one critical item still open). Live-test Add Company with an email that has never been in the app, and Delete in the Check List. Next: the new ingredients from the Sautero recipe library into the ingredient list, without duplicates.' },
 ];
 DAYS.forEach((d,i)=>{ const e = DAYS_EN[i]; if(e){ d.headline_en = e.h; d.accomplished_en = e.a; d.planned_en = e.p; } });
 
@@ -1032,6 +1066,6 @@ renderLogStats();
 renderPaceChart();
 </script>
 
-<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 23. 7. 2026, 00:07" data-en="🔄 Sautero state as of Jul 23, 2026, 00:07">🔄 Stav Sautero k 23. 7. 2026, 00:07</div>
+<div class="sautero-stamp" data-sk="🔄 Stav Sautero k 24. 7. 2026, 02:15" data-en="🔄 Sautero state as of Jul 24, 2026, 02:15">🔄 Stav Sautero k 24. 7. 2026, 02:15</div>
 </body>
 </html>

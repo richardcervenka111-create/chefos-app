@@ -8306,6 +8306,7 @@ async function applyAccountTypeSwitch(type){
   if(error){ alert('Could not save: ' + error.message); return; }
   currentAccountType = type;
   _pendingAccountTypeSwitch = null;
+  logEvent('mode_switched', { to: type });
   renderHomeAccountTypeBadge();
   const listEl = document.getElementById('listView');
   if(listEl && listEl.style.display !== 'none'){ renderRecipeSummaryBar(); renderList(); }
@@ -13670,6 +13671,7 @@ async function saveGeneratedRecipe(dests){
     is_personal: currentAccountType === 'personal', list_id: null, shared_with_chefos: _recipeAiShare === true };
   const { data: savedRow, error } = await sb.from('recipes').insert(base).select('id').single();
   if(error){ hideSavingOverlay(); alert('Could not save: ' + error.message); setSyncStatus('offline'); return; }
+  logEvent('recipe_saved', { title: base.title || null, projects: (dests || []).length });
   for(const dest of (dests || [])){
     // A project copy must carry the CURRENT mode's is_personal — in company mode the offered
     // projects are company projects (is_personal false), so hardcoding true here would file the
@@ -16124,6 +16126,11 @@ async function itemContextDelete(){
     ({ error } = await sb.from('prep_dishes').update({ deleted: true }).eq('id', t.id));
   }
   if(error){ alert('Could not delete: ' + error.message); return; }
+  // Activity trail (Richard, 24.7.): until now usage_events only recorded which SCREEN was
+  // opened, so "what did I do at 15:00" could never be answered. Every destructive action from
+  // this menu is recorded with what it was and what it was called — this is both the history he
+  // asked for and an audit trail for content the whole team shares.
+  logEvent('item_deleted', { type: t.type, name: t.name || null });
   closeItemContextMenu();
   await _contextMenuRefresh(t);
 }
@@ -17852,6 +17859,7 @@ async function purgePrepDish(id){
   // .delete() without .select() reports success on a 0-row RLS-blocked write (the db/164 lesson) —
   // so a silent no-op would look like it worked. Say it plainly instead.
   if(!data || !data.length){ alert("Nothing was deleted — you may not have permission for this dish."); setSyncStatus('saved'); return; }
+  logEvent('prep_dish_purged', { name: (dish && dish.name) || null, items: n });
   setSyncStatus('saved');
   await loadAppData();
   renderPrepSheet();
@@ -17865,6 +17873,7 @@ async function purgePrepItem(id){
   const { data, error } = await sb.from('prep_items').delete().eq('id', id).select('id');
   if(error){ alert('Could not delete: ' + error.message); setSyncStatus('offline'); return; }
   if(!data || !data.length){ alert("Nothing was deleted — you may not have permission for this item."); setSyncStatus('saved'); return; }
+  logEvent('prep_item_purged', { name: (item && item.name) || null });
   setSyncStatus('saved');
   await loadAppData();
   renderPrepSheet();
@@ -23232,6 +23241,7 @@ async function runPrepSheetScan(base64, mediaType, fileName){
 
   try{
     const dishes = await callClaudePrepSheetVision(base64, mediaType, fileName);
+    logEvent('scan_prep_sheet', { dishes: dishes.length, media: mediaType, file: fileName || null });
     finishBgScan(()=>{
       if(!dishes.length){ alert('No dishes found — try a clearer photo or PDF.'); return; }
       openPrepScanReview(dishes);

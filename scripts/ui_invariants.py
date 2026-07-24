@@ -601,6 +601,20 @@ def check_prep_scan_shape_guard(html):
         passes.append('prep-scan-shape: prep-sheet scan normalises its result and cannot crash the review.')
 
 
+def check_activity_events(html):
+    # Richard, 24.7.: "aby som ti v buducnosti povedal ze o takom a takom case som robil toto".
+    # usage_events used to hold only view_opened + login, so the honest answer to "what did I do at
+    # 15:00" was always "you were looking at a screen". These are the events that make the question
+    # answerable — and, for the destructive ones, an audit trail for shared kitchen content.
+    required = ['recipe_saved', 'item_deleted', 'prep_dish_purged', 'prep_item_purged',
+                'scan_prep_sheet', 'mode_switched']
+    missing = [e for e in required if f"logEvent('{e}'" not in html]
+    if missing:
+        failures.append('activity-events: no longer recorded: ' + ', '.join(missing) + '.')
+    else:
+        passes.append(f'activity-events: all {len(required)} action events still recorded.')
+
+
 def main():
     html = read(APP)
     check_status_pill(html)
@@ -615,6 +629,7 @@ def main():
     check_mode_switch_refreshes_recipe_tiles(html)
     check_company_invite_email_claim(html)
     check_prep_scan_shape_guard(html)
+    check_activity_events(html)
     check_scroll_helper(html)
     check_mode_toggle(html)
     check_admin_private_tiles(html)
